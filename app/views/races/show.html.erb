@@ -1,0 +1,11 @@
+<% @race.race_results.order(position_order: :asc).each do |race_result| %>
+    <%= race_result.driver.surname %> - 
+    <% if race_result.position %>
+        <%= race_result.position %>
+    <% else %>
+        <%= race_result.status.status_type %>
+    <% end %>
+    <%= race_result.new_elo.round(1) %> 
+    <br>
+<% end %>
+<%= link_to "link", @race.url %>

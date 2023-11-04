@@ -1,0 +1,6 @@
+<% @races.each do |race| %>
+    <% race.sorted_race_results.each_with_index do |race_result, index| %>
+        <span class="place-<%= index + 1 %>"><i class="fa-solid fa-trophy"></i></span><%= race_result.driver.surname %>
+    <% end %>
+    <br>
+<% end %>

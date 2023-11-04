@@ -1,0 +1,26 @@
+<%= line_chart @driver.race_results.map { |r| [r.race.date, r.new_elo] }, 
+    title: "#{@driver.surname}, #{@driver.forename}", 
+    min: 500, 
+    max: 1800, 
+    height: "1000px", 
+    curve: false,
+    library: {
+      annotation: {
+        annotations: [
+          {
+            type: 'line',
+            mode: 'vertical',
+            scaleID: 'x-axis-0',
+            value: 1200,
+            label: {
+              content: 'My Vertical Line',
+              enabled: true
+            }
+          }
+        ]
+      }
+    } %>
+
+<div class="race-result-grid">
+</div>
+<%= render @driver.race_results.sort_by { |r| r.race.date } %>

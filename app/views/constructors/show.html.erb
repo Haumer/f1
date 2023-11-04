@@ -1,0 +1,1 @@
+<%= line_chart @constructor.race_results.map { |r| [r.race.date, r.new_elo] }, title: "#{@constructor.name}", min: 500, max: 1700, height: "1000px" %>

@@ -1,0 +1,25 @@
+<div class="race-result grid">
+    <div class="race-result-position-order grid-item text-center">
+        <%= race_result.position_order %>
+    </div>
+    <% if race_result.gained_elo? %>
+        <div class="text-green grid-item d-flex justify-content-between">
+            <span class="left"><i class="fa-solid fa-caret-up"></i></span><span class="right"><%= race_result.elo_diff.round(1) %></span>
+        </div>
+    <% else %>
+        <div class="text-red grid-item d-flex justify-content-between">
+            <span class="left"><i class="fa-solid fa-caret-down"></i></span><span class="right"><%= race_result.elo_diff.round(1) %></span>
+        </div>
+    <% end %>
+    <div class="race-result-elos grid-item d-flex justify-content-evenly">
+        <span class="left old-elo"><%= race_result.old_elo.round(1) %></span>
+        <span class="center"><i class="fa-solid fa-caret-right"></i></span>
+        <span class="right new-elo"><%= race_result.new_elo.round(1) %></span>
+    </div>
+    <div class="race-result-status-type grid-item text-center <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>">
+        <%= race_result.status.status_type %>
+    </div>
+    <div class="race-result-constructor grid-item text-center">
+        <%= race_result.constructor.name %>
+    </div>
+</div>

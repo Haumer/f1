@@ -1,0 +1,21 @@
+<%= line_chart @race_results.map { |r| [r.race.date, r.new_elo] }, min: 1000, max: 1900, height: "1000px", curve: false %>
+
+<% @race_results.each do |race_result| %>
+    <div class="race-result grid">
+        <div class="race-date grid-item">
+            <%= race_result.race.date %>
+        </div>
+        <div class="race-result-position-order grid-item text-center">
+            <%= race_result.position_order %>
+        </div>
+        <div class="race-result-new-elo grid-item text-center">
+            <span class="right new-elo"><%= race_result.new_elo.round(1) %></span>
+        </div>
+        <div class="race-result-surname grid-item text-center">
+            <%= race_result.driver.surname %>
+        </div>
+        <div class="race-result-constructor grid-item text-center">
+            <%= race_result.constructor.name %>
+        </div>
+    </div>
+<% end %>

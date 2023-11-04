@@ -1,0 +1,46 @@
+<div class="layout-grid">
+    <div class="grid-sidebar">
+        <%=  simple_form_for :search, url: drivers_path, method: :get do |f| %>
+            <%= f.input :active, as: :radio_buttons, checked: params[:search].present? ? params[:search][:active] == "true" : false %>
+            <%= f.input :first_race_date, as: :date, html5: true %>
+            <%= f.submit %>
+        <% end %>
+    </div>
+    <div class="grid-main">
+        <%= line_chart @drivers.map { |driver| 
+            {
+                name: driver.surname,
+                data: driver.race_results.map { |r| [r.race.date, r.new_elo] }, 
+                curve: false,
+            }
+        }, min: 500, max: 1800, height: "1000px", title: "Drivers by Peak Elo" %>
+        <% @drivers.each do |driver| %>
+            <%= link_to driver.surname, driver_path(driver) %>
+            Constructors
+            <% driver.constructors.uniq.each do |constructor| %>
+                <%= link_to constructor_path(constructor) do %>
+                    <%= constructor.name %> 
+                <% end %>
+            <% end %>
+            <br>
+        <% end %>
+    </div>
+</div>
+
+
+
+<style>
+.layout-grid {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 4fr;
+}
+.grid-sidebar {
+    
+}
+
+.grid-main {
+    
+}
+
+</style>
