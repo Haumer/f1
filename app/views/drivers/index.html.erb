@@ -7,13 +7,10 @@
         <% end %>
     </div>
     <div class="grid-main">
-        <%= line_chart @drivers.map { |driver| 
-            {
-                name: driver.surname,
-                data: driver.race_results.map { |r| [r.race.date, r.new_elo] }, 
-                curve: false,
-            }
-        }, min: 500, max: 1800, height: "1000px", title: "Drivers by Peak Elo" %>
+        <%= custom_chart GraphData.new(drivers: Driver.where(id: [830, 1, 843, 845, 846, 4, 815])).generate %>
+        <%= custom_chart GraphData.new(races: Race.sorted.last(100), number_of_drivers: 2, by: :peak_elo, min_position_order: 20).generate %>
+        <%= custom_chart GraphData.new(races: Race.where.not(average_elo: nil).sorted).average %>
+
         <% @drivers.each do |driver| %>
             <%= link_to driver.surname, driver_path(driver) %>
             Constructors
@@ -26,21 +23,3 @@
         <% end %>
     </div>
 </div>
-
-
-
-<style>
-.layout-grid {
-    display: grid;
-    grid-template-rows: 1fr;
-    grid-template-columns: 1fr 4fr;
-}
-.grid-sidebar {
-    
-}
-
-.grid-main {
-    
-}
-
-</style>

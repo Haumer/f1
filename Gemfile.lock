@@ -190,6 +190,8 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
+    rails_charts (0.0.5)
+      rails
     railties (7.0.8)
       actionpack (= 7.0.8)
       activesupport (= 7.0.8)
@@ -260,7 +262,6 @@ DEPENDENCIES
   bootsnap
   bootstrap (~> 5.2)
   capybara
-  chartkick
   debug
   dotenv-rails
   font-awesome-sass (~> 6.1)
@@ -269,6 +270,7 @@ DEPENDENCIES
   pg (~> 1.1)
   puma (~> 5.0)
   rails (~> 7.0.8)
+  rails_charts
   sassc-rails
   selenium-webdriver
   simple_form!

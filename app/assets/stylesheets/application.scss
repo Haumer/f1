@@ -14,7 +14,7 @@
 .grid {
     display: grid;
     grid-template-rows: 1fr;
-    grid-template-columns: 1fr 1fr 1fr 2fr 2fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
     width: 80vw;
 }
 .grid-item {
@@ -22,4 +22,40 @@
 }
 .old-elo, .new-elo {
     width: 52px;
+}
+
+.layout-grid {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 4fr;
+}
+
+@font-face {
+    font-family: "Formula1-Wide";
+    src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
+    font-weight: 600;
+}
+@font-face {
+    font-family: "Formula1-Wide";
+    src: url("fonts/Formula1-Bold-4.ttf") format("truetype");
+    font-weight: 900;
+    src: url("fonts/Formula1-Black.ttf") format("truetype");
+    src: url("fonts/Formula1-Bold_web.ttf") format("truetype");
+    src: url("fonts/Formula1-Italic.ttf") format("truetype");
+    src: url("fonts/Formula1-Wide.ttf") format("truetype");
+}
+@font-face {
+    font-family: "Formula1-Wide";
+    src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
+}
+$torque-font: "Formula1-Wide";
+
+div {
+    font-family: 'Formula1-Wide' !important;
+    font-weight: regular;
+}
+
+.underline {
+    text-decoration: underline;
+    color: $gold;
 }

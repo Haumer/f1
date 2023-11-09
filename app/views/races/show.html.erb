@@ -1,11 +1,38 @@
+Round: <%= @race.round %> - <%= @race.year %>
+<br>
 <% @race.race_results.order(position_order: :asc).each do |race_result| %>
     <%= race_result.driver.surname %> - 
-    <% if race_result.position %>
-        <%= race_result.position %>
+    <% if race_result.position_order %>
+        <%= race_result.position_order %>
     <% else %>
         <%= race_result.status.status_type %>
     <% end %>
-    <%= race_result.new_elo.round(1) %> 
+    <%= race_result.new_elo.round %> 
     <br>
 <% end %>
+<%= @race.race_results.pluck(:new_elo).sum.round / @race.race_results.count %>
 <%= link_to "link", @race.url %>
+
+<% if @race.round - 1 <= 0 %>
+    <%= link_to 'last race', race_path(
+        Race.find_by(
+            year: @race.year - 1,
+            round: Race.where(
+                    year: @race.year - 1
+                ).count
+            )
+        ) %>
+<% else %>
+    <%= link_to 'last race', race_path(Race.find_by(year: @race.year, round: @race.round - 1)) %>
+<% end %>
+
+<% if @race.round + 1 >= Race.where(year: @race.year).count %>
+    <%= link_to 'next race', race_path(
+        Race.find_by(
+            year: @race.year + 1,
+            round: 1
+        )
+    ) %>
+<% else %>
+    <%= link_to 'next race', race_path(Race.find_by(year: @race.year, round: @race.round + 1)) %>
+<% end %>

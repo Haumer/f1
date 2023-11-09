@@ -17,13 +17,13 @@ class DriversController < ApplicationController
             @race_results = races.map(&:race_results).flatten
             @drivers = Driver.where(id: driver_ids, active: active_drivers).order(peak_elo: :desc).first(10)
         else
-            @drivers = Driver.where(first_race_date: Date.new(1980,1,1)..Date.today, active: true).order(peak_elo: :desc).first(10)
+            @drivers = Driver.active.by_peak_elo
         end
     end
 
     def peak_elo
-        @drivers = Driver.where(first_race_date: Date.new(1980,1,1)..Date.today, active: true).order(peak_elo: :desc).first(10)
-        @race_results = Driver.all.map { |driver| driver.peak_elo_race_result }.sort_by { |race_result| -race_result.new_elo }
+        # @drivers = Driver.where(first_race_date: Date.new(1980,1,1)..Date.today).order(peak_elo: :desc).first(10)
+        @race_results = Driver.elite.map { |driver| driver.peak_elo_race_result }.sort_by { |race_result| -race_result.new_elo }
     end
 
     def current_active_elo

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_03_152859) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -124,6 +124,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_152859) do
     t.date "first_race_date"
     t.date "last_race_date"
     t.float "peak_elo"
+    t.string "color", default: "#4B0082"
+    t.float "lowest_elo"
+    t.string "image_url"
   end
 
   create_table "race_results", force: :cascade do |t|
@@ -162,7 +165,29 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_152859) do
     t.bigint "circuit_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "average_elo"
+    t.bigint "season_id", null: false
     t.index ["circuit_id"], name: "index_races_on_circuit_id"
+    t.index ["season_id"], name: "index_races_on_season_id"
+  end
+
+  create_table "season_drivers", force: :cascade do |t|
+    t.bigint "driver_id", null: false
+    t.bigint "season_id", null: false
+    t.bigint "constructor_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "active"
+    t.boolean "standin"
+    t.index ["constructor_id"], name: "index_season_drivers_on_constructor_id"
+    t.index ["driver_id"], name: "index_season_drivers_on_driver_id"
+    t.index ["season_id"], name: "index_season_drivers_on_season_id"
+  end
+
+  create_table "seasons", force: :cascade do |t|
+    t.string "year"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "statuses", force: :cascade do |t|
@@ -179,4 +204,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_03_152859) do
   add_foreign_key "race_results", "races"
   add_foreign_key "race_results", "statuses"
   add_foreign_key "races", "circuits"
+  add_foreign_key "races", "seasons"
+  add_foreign_key "season_drivers", "constructors"
+  add_foreign_key "season_drivers", "drivers"
+  add_foreign_key "season_drivers", "seasons"
 end

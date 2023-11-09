@@ -12,14 +12,17 @@
         </div>
     <% end %>
     <div class="race-result-elos grid-item d-flex justify-content-evenly">
-        <span class="left old-elo"><%= race_result.old_elo.round(1) %></span>
+        <span class="left old-elo"><%= race_result.old_elo.round %></span>
         <span class="center"><i class="fa-solid fa-caret-right"></i></span>
-        <span class="right new-elo"><%= race_result.new_elo.round(1) %></span>
+        <span class="right new-elo <%= 'underline' if race_result.driver.peak_elo == race_result.new_elo %>"><%= race_result.new_elo.round %></span>
     </div>
     <div class="race-result-status-type grid-item text-center <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>">
         <%= race_result.status.status_type %>
     </div>
     <div class="race-result-constructor grid-item text-center">
         <%= race_result.constructor.name %>
+    </div>
+    <div class="race-result-constructor grid-item text-center">
+        <%= race_result.race.date %>
     </div>
 </div>

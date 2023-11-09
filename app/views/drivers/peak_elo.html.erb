@@ -1,10 +1,4 @@
-<%= line_chart @drivers.map { |driver| 
-    {
-        name: driver.surname,
-        data: driver.race_results.map { |r| [r.race.date, r.new_elo] }, 
-        curve: false,
-    }
-}, min: 500, max: 1800, height: "1000px" %>
+<%= bar_chart @race_results.map { |race_result| [race_result.driver.surname, race_result.driver.peak_elo.round(1)] } %>
 
 <% @race_results.each do |race_result| %>
     <%= race_result.driver.surname %> <%= race_result.new_elo.round(1) %> <%= race_result.position_order %>

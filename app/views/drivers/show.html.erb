@@ -1,26 +1,35 @@
-<%= line_chart @driver.race_results.map { |r| [r.race.date, r.new_elo] }, 
-    title: "#{@driver.surname}, #{@driver.forename}", 
-    min: 500, 
-    max: 1800, 
-    height: "1000px", 
-    curve: false,
-    library: {
-      annotation: {
-        annotations: [
-          {
-            type: 'line',
-            mode: 'vertical',
-            scaleID: 'x-axis-0',
-            value: 1200,
-            label: {
-              content: 'My Vertical Line',
-              enabled: true
+<div class="layout-grid">
+    <div class="grid-sidebar">
+    a
+    </div>
+    <div class="grid-main">
+        <%= custom_chart GraphData.new(drivers: Driver.where(id: [@driver.id])).generate %>
+        <%#= line_chart @driver.race_results.sort_by {|race_result| race_result.race.date }.map { |r| ["#{r.race.circuit.name} #{r.race.date.year}", r.new_elo.round(1)] }, 
+            title: "#{@driver.surname}, #{@driver.forename}", 
+            min: 500, 
+            max: 1800, 
+            height: "1000px",
+            code: false,
+            options: {
+                yAxis: {
+                    min: 500
+                },
+                dataZoom: [
+                    {
+                        id: 'dataZoomX',
+                        type: 'slider',
+                        xAxisIndex: [0],
+                        filterMode: 'filter'
+                    }
+                ],
+                markPoint: {
+                data: [
+                { type: 'max', name: 'Max' },
+                { type: 'min', name: 'Min' }
+                ]
+            },
             }
-          }
-        ]
-      }
-    } %>
-
-<div class="race-result-grid">
+        %>
+        <%= render @driver.race_results.sort_by { |r| r.race.date }.reverse %>
+    </div>
 </div>
-<%= render @driver.race_results.sort_by { |r| r.race.date } %>
