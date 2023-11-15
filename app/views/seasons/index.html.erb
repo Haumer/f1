@@ -1,0 +1,13 @@
+<div class="seasons">
+
+    <% @seasons.each do |season| %>
+        <div class="season">
+            <%= link_to season_path(season) do %>
+                <%= season.year %>  
+            <% end %>
+            <%= season.drivers.count %>
+            <%= season.races.count %>
+        </div>
+    <% end %>
+
+</div>

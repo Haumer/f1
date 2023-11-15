@@ -4,6 +4,7 @@ class Race < ApplicationRecord
   has_many :race_results
   has_many :driver_ratings
   has_many :drivers, through: :race_results
+  has_many :driver_standings
 
   scope :sorted, -> { order(date: :asc) }
 
@@ -18,4 +19,10 @@ class Race < ApplicationRecord
   def average_elos
     race_results.pluck(:new_elo).sum / race_results.count
   end
+
+  PODIUM_COLORS = {
+    1 => "#C9B037",
+    2 => "#808080",
+    3 => "#cc6633",
+  }
 end

@@ -1,6 +1,6 @@
 module EloRating
     @k_factor = Proc.new do |rating|
-        8
+        2
     end
 
     def self.k_factor(rating = nil)
@@ -159,7 +159,7 @@ class EloRating::Race
         puts @match.updated_ratings
         @match.updated_ratings.each do |changes|
             changes[:race_result].update(old_elo: changes[:old_rating], new_elo: changes[:new_rating])
-            changes[:race_result].driver.update(elo: changes[:new_rating])
+            changes[:race_result].driver.update(elo: changes[:new_rating], peak_elo: changes[:new_rating] > changes[:race_result].driver.peak_elo ?  changes[:new_rating] : changes[:race_result].driver.peak_elo )
         end
         self
     end

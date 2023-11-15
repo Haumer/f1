@@ -1,6 +1,7 @@
 class GraphData
 
     def initialize(options = {})
+        @season = options[:season]
         @drivers = options[:drivers]
         @races = options[:races]
         @race_results = options[:race_results]
@@ -42,6 +43,42 @@ class GraphData
             },
         }
         graph_options(min: 800, inverse: false)
+    end
+
+    def column_race
+        @races = @season.races.order(round: :asc).select { |race| race.driver_standings.present? }
+        @race_ids = @races.map(&:id)
+        @series_data = @season.drivers.map do |driver|
+            {
+                data: DriverStanding.where(driver: driver, race_id: @race_ids).map do |driver_standing|
+                    {
+                        name: driver_standing.race.circuit.name,
+                        value: driver_standing.points
+                    }
+                end,
+                type: 'line'
+            }
+        end
+        {
+            label: {
+                show: false,
+            },
+            xAxis: {
+                max: 'category',
+                data: @races.map { |race| race.circuit.circuit_ref },
+            },
+            yAxis: {
+                type: 'value',
+            },
+            series: @series_data,
+            legend: { show: true },
+            toolbox: { show: true },
+            tooltip: { 
+                trigger: "axis",
+                position: [10, 10],
+            },
+            height: "1000px",
+        }
     end
 
     def race_results
@@ -94,7 +131,25 @@ class GraphData
                     formatter: '{a}',
                     distance: 20
                 },
-                markLine: mark_lines
+                markLine: mark_lines,
+                markPoint: { data: [{
+                    name: 'fixed x position',
+                    yAxis: 1000,
+                    x: '90%'
+                },{
+                    name: 'maximum',
+                    type: 'max',
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    label: {
+                        fontSize: 10,
+                        show: false
+                    }
+                },    {
+                    name: 'screen coordinate',
+                    x: 400,
+                    y: 100
+                } ] }
             }
         end
     end
@@ -191,7 +246,7 @@ class GraphData
                     type: "max",
                 },
                 {           
-                    xAxis: "#{driver.race_results.find_by(new_elo: driver.peak_elo).race.circuit.circuit_ref} #{driver.race_results.find_by(new_elo: driver.peak_elo).race.year }" ,                 
+                    xAxis: "#{driver.race_results.find_by(new_elo: driver.peak_elo).race.circuit.circuit_ref} #{driver.race_results.find_by(new_elo: driver.peak_elo).race.year }",                 
                 }
             ]
         }

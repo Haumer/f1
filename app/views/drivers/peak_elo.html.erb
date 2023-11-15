@@ -1,6 +1,8 @@
 <%= bar_chart @race_results.map { |race_result| [race_result.driver.surname, race_result.driver.peak_elo.round(1)] } %>
 
 <% @race_results.each do |race_result| %>
-    <%= race_result.driver.surname %> <%= race_result.new_elo.round(1) %> <%= race_result.position_order %>
+    <%= link_to driver_path(race_result.driver) do %>
+        <%= race_result.driver.forename[0] %>.<%= race_result.driver.surname %>
+    <% end %> <%= race_result.new_elo.round(1) %> <%= race_result.position_order %>
     <br>
 <% end %>

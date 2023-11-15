@@ -1,0 +1,7 @@
+<% @circuits.each do |circuit| %>
+    <div class="circuit">
+        <%= link_to circuit_path(circuit) do %>
+            <%= circuit.name %>
+        <% end %>
+    </div>
+<% end %>

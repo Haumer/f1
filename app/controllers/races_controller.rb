@@ -26,6 +26,10 @@ class RacesController < ApplicationController
     end
 
     def winners
-        @race_results = RaceResult.where(position_order: 1).sort_by { |race_result| race_result.race.date }.reverse
+        # @races = Race.sorted.reverse
+        # @race_results = RaceResult.where(position_order: 1).sort_by { |race_result| race_result.race.date }.reverse
+        @champ_race_results = Driver::CHAMPIONS.map do |champ|
+            RaceResult.where(champ)
+        end
     end
 end

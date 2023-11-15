@@ -22,4 +22,6 @@ Rails.application.routes.draw do
     end
   end
   resources :constructors
+  resources :seasons
+  resources :circuits
 end

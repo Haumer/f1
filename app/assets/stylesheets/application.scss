@@ -30,6 +30,10 @@
     grid-template-columns: 1fr 4fr;
 }
 
+body {
+    background-color: white;
+}
+
 @font-face {
     font-family: "Formula1-Wide";
     src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
@@ -58,4 +62,20 @@ div {
 .underline {
     text-decoration: underline;
     color: $gold;
+}
+.current-driver-standings td {
+    padding: 4px 8px;
+}
+.homepage-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+}
+.table, .table-header {
+    display: flex;
+    justify-content: space-around;
+}
+.table-driver {
+    margin-right: 6rem !important;
 }

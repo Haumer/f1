@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_14_113418) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,19 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "constructor_standings", force: :cascade do |t|
+    t.string "kaggle_id"
+    t.bigint "race_id", null: false
+    t.bigint "constructor_id", null: false
+    t.float "points"
+    t.integer "position"
+    t.integer "wins"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["constructor_id"], name: "index_constructor_standings_on_constructor_id"
+    t.index ["race_id"], name: "index_constructor_standings_on_race_id"
+  end
+
   create_table "constructors", force: :cascade do |t|
     t.integer "kaggle_id"
     t.string "constructor_ref"
@@ -92,6 +105,25 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "active"
+  end
+
+  create_table "countries", force: :cascade do |t|
+    t.string "nationality"
+    t.string "two_letter_country_code"
+    t.string "name"
+    t.string "three_letter_country_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "driver_countries", force: :cascade do |t|
+    t.bigint "driver_id", null: false
+    t.bigint "country_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["country_id"], name: "index_driver_countries_on_country_id"
+    t.index ["driver_id"], name: "index_driver_countries_on_driver_id"
   end
 
   create_table "driver_ratings", force: :cascade do |t|
@@ -103,6 +135,23 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
     t.datetime "updated_at", null: false
     t.index ["driver_id"], name: "index_driver_ratings_on_driver_id"
     t.index ["race_id"], name: "index_driver_ratings_on_race_id"
+  end
+
+  create_table "driver_standings", force: :cascade do |t|
+    t.string "kaggle_id"
+    t.bigint "race_id", null: false
+    t.bigint "driver_id", null: false
+    t.float "points"
+    t.integer "position"
+    t.integer "wins"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "podiums"
+    t.integer "second_places"
+    t.integer "third_places"
+    t.boolean "season_end"
+    t.index ["driver_id"], name: "index_driver_standings_on_driver_id"
+    t.index ["race_id"], name: "index_driver_standings_on_race_id"
   end
 
   create_table "drivers", force: :cascade do |t|
@@ -150,6 +199,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
     t.datetime "updated_at", null: false
     t.float "old_elo"
     t.float "new_elo"
+    t.integer "year"
     t.index ["constructor_id"], name: "index_race_results_on_constructor_id"
     t.index ["driver_id"], name: "index_race_results_on_driver_id"
     t.index ["race_id"], name: "index_race_results_on_race_id"
@@ -197,8 +247,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_08_203032) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "constructor_standings", "constructors"
+  add_foreign_key "constructor_standings", "races"
+  add_foreign_key "driver_countries", "countries"
+  add_foreign_key "driver_countries", "drivers"
   add_foreign_key "driver_ratings", "drivers"
   add_foreign_key "driver_ratings", "races"
+  add_foreign_key "driver_standings", "drivers"
+  add_foreign_key "driver_standings", "races"
   add_foreign_key "race_results", "constructors"
   add_foreign_key "race_results", "drivers"
   add_foreign_key "race_results", "races"
