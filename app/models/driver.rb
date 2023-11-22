@@ -98,6 +98,14 @@ class Driver < ApplicationRecord
         driver_standings.select { |ds| ds.race.year == season.year.to_i }.sort_by { |ds| ds.race.date }
     end
 
+    def current_constructor
+        season_drivers.find_by(active: true).constructor
+    end
+
+    def constructor_for(season)
+        season_drivers.find_by(season: season).constructor
+    end
+
     CHAMPIONS = [
         {:driver_id=>643, :year=>1950},
         {:driver_id=>580, :year=>1951},

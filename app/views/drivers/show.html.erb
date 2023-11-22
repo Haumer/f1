@@ -1,6 +1,6 @@
 <div class="layout-grid">
     <div class="grid-sidebar">
-    a
+        <%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %>
     </div>
     <div class="grid-main">
         <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>

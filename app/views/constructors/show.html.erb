@@ -1,1 +1,2 @@
-<%= line_chart @constructor.race_results.map { |r| [r.race.date, r.new_elo] }, title: "#{@constructor.name}", min: 500, max: 1700, height: "1000px" %>
+<%#= line_chart @constructor.race_results.map { |r| [r.race.date, r.new_elo] }, title: "#{@constructor.name}", min: 500, max: 1700, height: "1000px" %>
+<%= line_chart @constructor.race_results.group_by {|rr| rr.race}.map { |race, rr| [race.date, rr.map(&:new_elo).sum / rr.count ] },title: "#{@constructor.name}", min: 500, max: 1700, height: "1000px" %>

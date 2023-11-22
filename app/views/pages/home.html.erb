@@ -21,54 +21,5 @@
             <h3>Current Season</h3>
         <% end %>
     </div>
-    <div class="table">
-        <table class="current-driver-standings">
-            <th>
-                <tr>
-                    <td class="text-center">#</td>
-                    <td></td>
-                    <td class="table-driver">Driver</td>
-                    <td class="text-center">Points</td>
-                    <td class="text-center">Wins</td>
-                    <td class="text-center">2nd</td>
-                    <td class="text-center">3rd</td>
-                    <td class="text-center">Podiums</td>
-                    <td class="text-center">Elo</td>
-                </tr>
-            </th>
-            <% @season.latest_driver_standings.each_with_index do |driver_standing, index| %>
-                <tr style="background: <%= index.odd? ? '#f9f9f9' : 'white' %>; border-bottom: 1px #f9f9f9;">
-                    <td class="text-center">
-                        <%= index + 1 %>
-                    </td>
-                    <td>
-                        <img src="https://flagsapi.com/<%= driver_standing.driver.country.two_letter_country_code %>/shiny/32.png">
-                    </td>
-                    <td class="table-driver">
-                        <%= link_to driver_path(driver_standing.driver) do %>
-                            <%= driver_standing.driver.surname %>
-                        <% end %>
-                    </td>
-                    <td class="text-center">
-                        <%= driver_standing.points.round %>
-                    </td>
-                    <td class="text-center">
-                        <%= driver_standing.wins %>
-                    </td>
-                    <td class="text-center">
-                        <%= driver_standing.second_places %>
-                    </td>
-                    <td class="text-center">
-                        <%= driver_standing.third_places %>
-                    </td>
-                    <td class="text-center">
-                        <%= driver_standing.podiums %>
-                    </td>
-                    <td class="text-center">
-                        <%= driver_standing.driver.elo.round %>
-                    </td>
-                </tr>
-            <% end %>
-        </table>
-    </div>
+    <%= render 'seasons/driver_standings_table', driver_standings: @season.latest_driver_standings, season: @season %>
 </div>

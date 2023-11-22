@@ -3,6 +3,7 @@ class Season < ApplicationRecord
     has_many :season_drivers
     has_many :drivers, through: :season_drivers
     has_many :race_results, through: :drivers
+    has_many :races
 
     has_many :driver_standings, through: :drivers
 

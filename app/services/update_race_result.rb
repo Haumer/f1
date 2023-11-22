@@ -95,6 +95,7 @@ class UpdateRaceResult
                 wins: driver_standing['wins'],
                 points: driver_standing['points'],
             )
+            driver.update(last_race_date: @race.date)
             UpdateDriverStanding.new(driver: driver, season: race.season).update
             EloRating::Race.new(race: race).update_driver_ratings
         end

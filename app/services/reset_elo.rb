@@ -1,4 +1,4 @@
-class RestElo
+class ResetElo
 
     def self.hard_reset
         puts "confirm with 'y'"
