@@ -1,38 +1,59 @@
 Round: <%= @race.round %> - <%= @race.year %>
 <br>
-<% @race.race_results.order(position_order: :asc).each do |race_result| %>
-    <%= race_result.driver.surname %> - 
-    <% if race_result.position_order %>
-        <%= race_result.position_order %>
-    <% else %>
-        <%= race_result.status.status_type %>
-    <% end %>
-    <%= race_result.new_elo.round %> 
-    <br>
-<% end %>
-<%= @race.race_results.pluck(:new_elo).sum.round / @race.race_results.count %>
+<div class="race_results">
+    <table class="race-results">
+        <tr>
+            <td class="text-center">#</td>
+            <td></td>
+            <td></td>
+            <td class="race-result-cell">Driver</td>
+            <td class="text-center race-result-cell">Points</td>
+            <td class="text-center race-result-cell">Season Points</td>
+            <td class="text-center race-result-cell">Season #</td>
+            <td class="text-center race-result-cell">Elo Change</td>
+            <td class="text-center race-result-cell">Elo</td>
+        </tr>
+        <% @race.race_results.order(position_order: :asc).each do |race_result| %>
+            <tr>
+                <td class="text-center"><%= race_result.position_order %></td>
+                <td class="text-center"><img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code if race_result.driver.country.present? %>/shiny/32.png"></td>
+                <td class="text-center"><img src="<%= race_result.driver.constructor_for(@race.season).logo_url %>" alt="" style="width: 32px; height: 32px;"></td>
+                <td>
+                    <%= link_to driver_path(race_result.driver) do %>
+                        <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
+                    <% end %>
+                </td>
+                <td class="text-center"><%= race_result.points.zero? ? race_result.points : "+#{race_result.points}" %></td>
+                <% if@race.driver_standing_for(race_result.driver) %>
+                    <td class="text-center"><%= @race.driver_standing_for(race_result.driver).points %></td>
+                    <td class="text-center"><%= @race.driver_standing_for(race_result.driver).position %></td>
+                <% else %>
+                    <td></td>
+                    <td></td>
+                <% end %>
+                <td class="text-center">
+                    <% if race_result.gained_elo? %>
+                        <span class="left text-green"><i class="fa-solid fa-caret-up"></i></span><span class="right"><%= race_result.elo_diff.round(1) %></span>
+                    <% else %>
+                        <span class="left text-red"><i class="fa-solid fa-caret-down"></i></span><span class="right"><%= race_result.elo_diff.round(1) %></span>
+                    <% end %>
+                </td>
+                <td class="text-center"><%= race_result.new_elo.round(1) %></td>
+            </tr>
+        <% end %>
+    </table>
+</div>
 <%= link_to "link", @race.url %>
-
-<% if @race.round - 1 <= 0 %>
-    <%= link_to 'last race', race_path(
-        Race.find_by(
-            year: @race.year - 1,
-            round: Race.where(
-                    year: @race.year - 1
-                ).count
-            )
-        ) %>
-<% else %>
-    <%= link_to 'last race', race_path(Race.find_by(year: @race.year, round: @race.round - 1)) %>
+<% if @next_race %>
+    <%= link_to 'next race', race_path(@next_race) %>
 <% end %>
 
-<% if @race.round + 1 >= Race.where(year: @race.year).count %>
-    <%= link_to 'next race', race_path(
-        Race.find_by(
-            year: @race.year + 1,
-            round: 1
-        )
-    ) %>
-<% else %>
-    <%= link_to 'next race', race_path(Race.find_by(year: @race.year, round: @race.round + 1)) %>
+<% if @previous_race %>
+    <%= link_to 'previous race', race_path(@previous_race) %>
 <% end %>
+
+<style>
+table.race-results .race-result-cell {
+    width: 150px;
+}
+</style>

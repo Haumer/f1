@@ -11,7 +11,9 @@
   </head>
 
   <body style="padding: 16px;">
-    <%= link_to "home", root_path %>
-    <%= yield %>
+    <div class="app col-12 col-sm-10 offset-sm-1">
+      <%= render 'components/navbar' %>
+      <%= yield %>
+    </div>
   </body>
 </html>

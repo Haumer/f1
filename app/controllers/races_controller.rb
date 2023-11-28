@@ -2,6 +2,8 @@ class RacesController < ApplicationController
 
     def show
         @race = Race.find(params[:id])
+        @previous_race = @race.previous_race
+        @next_race = @race.next_race
     end
 
     def index
@@ -13,7 +15,7 @@ class RacesController < ApplicationController
             end
             @races = Race.sorted.reverse.where(date: search_date..Date.today)
         else
-            @races = Race.sorted.reverse
+            @races = Race.where(year: (2000..2023).to_a).sorted_by_most_recent
         end
     end
 
@@ -26,8 +28,6 @@ class RacesController < ApplicationController
     end
 
     def winners
-        # @races = Race.sorted.reverse
-        # @race_results = RaceResult.where(position_order: 1).sort_by { |race_result| race_result.race.date }.reverse
         @champ_race_results = Driver::CHAMPIONS.map do |champ|
             RaceResult.where(champ)
         end

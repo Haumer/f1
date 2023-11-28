@@ -69,18 +69,7 @@ class Driver < ApplicationRecord
         "#5e8faa", # Alpha Tauri
     ]
 
-    CONSTRUCTOR_COLORS = {
-        williams: "#37bedd",
-        red_bull: "#3571c6",
-        ferrari: "#ff2800",
-        mercedes: "#6cd3bf",
-        mclaren: "#f58021",
-        alfa: "#c92d4b",
-        haas: "#b6babd",
-        alphatauri: "#5e8faa",
-        aston_martin: "#358c75",
-        alpine: "#2193d1",
-    }
+    CONSTRUCTOR_COLORS = Constructor::COLORS
 
     def peak_elo_race_result
         self.race_results.order(new_elo: :desc).first
@@ -92,6 +81,10 @@ class Driver < ApplicationRecord
 
     def country
         countries.first
+    end
+
+    def driver_standing_for(race)
+        driver_standings.find_by(race: race)
     end
     
     def season_driver_standings(season)

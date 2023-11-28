@@ -32,22 +32,22 @@
                         <%= driver_standing.driver.forename[0] %>.<%= driver_standing.driver.surname %>
                     <% end %>
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="width: 95px">
                     <%= driver_standing.points.round %>
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="width: 95px">
                     <%= driver_standing.wins %>
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="width: 95px">
                     <%= driver_standing.second_places %>
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="width: 95px">
                     <%= driver_standing.third_places %>
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="width: 95px">
                     <%= driver_standing.podiums %>
                 </td>
-                <td class="text-center">
+                <td class="text-center" style="width: 95px">
                     <%= @season.driver_last_season_race_result(driver_standing.driver).new_elo.round  %>
                 </td>
             </tr>

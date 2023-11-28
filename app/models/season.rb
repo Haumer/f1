@@ -4,6 +4,7 @@ class Season < ApplicationRecord
     has_many :drivers, through: :season_drivers
     has_many :race_results, through: :drivers
     has_many :races
+    has_many :videos, as: :video_media
 
     has_many :driver_standings, through: :drivers
 
@@ -19,6 +20,14 @@ class Season < ApplicationRecord
 
     def latest_race
         races.select { |race| race.driver_standings.present? }.sort_by { |race| race.round }.last
+    end
+
+    def next_season
+        Season.find_by(year: "#{self.year.to_i + 1}")
+    end
+
+    def previous_season
+        Season.find_by(year: "#{self.year.to_i - 1}")
     end
 
     def next_race
@@ -41,6 +50,6 @@ class Season < ApplicationRecord
     end
 
     def last_race
-        races.sorted.last
+        races.find_by(season_end: true)
     end
 end

@@ -8,21 +8,21 @@
             <div class="season-wins">
                 <% @driver.driver_standings.where(position: 1, season_end: true).sort_by(&:race).each do |driver_standing| %>
                     <div class="place-1">
-                        <%= driver_standing.race.season.year %>
+                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-1"  %>
                     </div>
                 <% end %>
             </div>
             <div class="season-2nd-place">
                 <% @driver.driver_standings.where(position: 2, season_end: true).sort_by(&:race).each do |driver_standing| %>
                     <div class="place-2">
-                        <%= driver_standing.race.season.year %>
+                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-2" %>
                     </div>
                 <% end %>
             </div>
             <div class="season-3rd-place">
                 <% @driver.driver_standings.where(position: 3, season_end: true).sort_by(&:race).each do |driver_standing| %>
                     <div class="place-3">
-                        <%= driver_standing.race.season.year %>
+                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-3"  %>
                     </div>
                 <% end %>
             </div>

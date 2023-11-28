@@ -2,15 +2,20 @@
 
 <div class="table-header"> 
     <% if @next_season %>
-        <%= link_to season_path(Season.find_by(year: "#{@season.year.to_i + 1}")) do %>
-            <i class="fa-solid fa-angles-left"></i>
+        <%= link_to season_path(@next_season) do %>
+            <i class="fa-solid fa-angles-left"></i><%= @season.year.to_i + 1 %>
         <% end %>
+    <% else %>
+        <span><i class="fa-solid fa-angles-left"></i><%= @season.year.to_i + 1 %></span>
     <% end %>
     <h3><%= @season.year %></h3> 
-    <% if @last_season %>
-        <%= link_to season_path(Season.find_by(year: "#{@season.year.to_i - 1}")) do %>
-            <i class="fa-solid fa-angles-right"></i>
+    <% if @previous_season %>
+        <%= link_to season_path(@previous_season) do %>
+            <%= @season.year.to_i - 1 %><i class="fa-solid fa-angles-right"></i>
         <% end %>
     <% end %>
 </div>
+<% @season.videos.each do |video| %>
+    <%= raw(video.embed_html) %>
+<% end %>
 <%= render 'driver_standings_table', driver_standings: @season.latest_driver_standings, season: @season %>

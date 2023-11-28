@@ -5,8 +5,8 @@ class SeasonsController < ApplicationController
 
     def show
         @season = Season.find(params[:id])
-        @next_season = Season.find_by(year: "#{@season.year.to_i + 1}")
-        @last_season = Season.find_by(year: "#{@season.year.to_i - 1}")
+        @next_season = @season.next_season
+        @previous_season = @season.previous_season
         @sorted_races = @season.races.order(round: :asc)
         @driver_driver_standings = @season.drivers.map do |driver|
             DriverStanding.where(driver: driver, race_id: @sorted_races.pluck(:id))
