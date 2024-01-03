@@ -18,4 +18,4 @@
 <% @season.videos.each do |video| %>
     <%= raw(video.embed_html) %>
 <% end %>
-<%= render 'driver_standings_table', driver_standings: @season.latest_driver_standings, season: @season %>
+<%= render 'driver_standings_table', driver_standings: @season.latest_driver_standings.sort_by(&:position), season: @season %>

@@ -1,25 +1,20 @@
 <div class="layout-grid">
     <div class="grid-sidebar">
-        <%=  simple_form_for :search, url: drivers_path, method: :get do |f| %>
-            <%= f.input :active, as: :radio_buttons, checked: params[:search].present? ? params[:search][:active] == "true" : false %>
-            <%= f.input :first_race_date, as: :date, html5: true %>
+        <%=  simple_form_for :search, url: drivers_path, method: :get, data: { 
+                controller: "search-form", 
+                search_form_target: "form", 
+                turbo_frame: "drivers",
+                turbo_action: "advance",
+                action: "input->search-form#submit"
+            } do |f| %>
+            <%= f.input :query,placeholder: "Search by name",
+                class: "border border-blue-500 rounded p-2",
+                autocomplete: "off",
+                data: { action: "input->search-form#search" } %>
             <%= f.submit %>
         <% end %>
     </div>
-    <div class="grid-main">
-        <%= custom_chart GraphData.new(drivers: Driver.where(id: [830, 1, 843, 845, 846, 4, 815])).generate %>
-        <%= custom_chart GraphData.new(races: Race.sorted.last(100), number_of_drivers: 2, by: :peak_elo, min_position_order: 20).generate %>
-        <%= custom_chart GraphData.new(races: Race.where.not(average_elo: nil).sorted).average %>
-
-        <% @drivers.each do |driver| %>
-            <%= link_to driver.surname, driver_path(driver) %>
-            Constructors
-            <% driver.constructors.uniq.each do |constructor| %>
-                <%= link_to constructor_path(constructor) do %>
-                    <%= constructor.name %> 
-                <% end %>
-            <% end %>
-            <br>
-        <% end %>
-    </div>
+    <%= turbo_frame_tag "drivers" do %>
+        <%= render 'drivers', drivers: @drivers %>
+    <% end %>
 </div>

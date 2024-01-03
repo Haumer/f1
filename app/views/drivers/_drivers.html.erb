@@ -1,0 +1,13 @@
+<div class="grid-main">
+    <% drivers.each do |driver| %>
+        <%= link_to driver_path(driver), data: { turbo: false } do %>
+            <%= driver.forename %> <%= driver.surname %>
+        <% end %>
+        <% driver.constructors.uniq.each do |constructor| %>
+            <%= link_to constructor_path(constructor) do %>
+                <%= constructor.name %> 
+            <% end %>
+        <% end %>
+        <br>
+    <% end %>
+</div>

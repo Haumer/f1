@@ -14,8 +14,12 @@ class Season < ApplicationRecord
 
     def latest_driver_standings
         drivers.map do |driver|
-            DriverStanding.find_by(race: latest_race, driver: driver)
+            latest_driver_standings_for(driver)
         end.reject(&:blank?).sort_by { |driver_standing| -driver_standing.points }
+    end
+
+    def latest_driver_standings_for(driver)
+        DriverStanding.find_by(race: latest_race, driver: driver)
     end
 
     def latest_race

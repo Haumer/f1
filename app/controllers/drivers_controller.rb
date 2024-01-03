@@ -4,21 +4,12 @@ class DriversController < ApplicationController
     end
     
     def index
-        if params[:search].present?
-            begin
-                search_date_start = Date.parse(params[:search][:first_race_date])
-            rescue => exception
-                search_date_start = Date.new(1930,1,1)
-            end
-            active_drivers = params[:search][:active] == 'true' ? true : [true, false]
-
-            races = Race.where(date: search_date_start..Date.today)
-            driver_ids = races.map(&:drivers).flatten.map(&:id).uniq
-            @race_results = races.map(&:race_results).flatten
-            @drivers = Driver.where(id: driver_ids, active: active_drivers).order(peak_elo: :desc).first(10)
+        if params[:search].present? && params[:search][:query].length > 1
+            @drivers = Driver.name_and_constructor_search(params[:search][:query])
         else
-            @drivers = Driver.active.by_peak_elo
+            @drivers = Driver.all.by_surname
         end
+        # render(partial: 'drivers', locals: { drivers: @drivers })
     end
 
     def peak_elo
@@ -28,5 +19,8 @@ class DriversController < ApplicationController
 
     def current_active_elo
         @drivers = Driver.active.order(elo: :desc)
+    end
+
+    def compare
     end
 end

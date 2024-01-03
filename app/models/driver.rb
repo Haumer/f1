@@ -8,12 +8,31 @@ class Driver < ApplicationRecord
     has_many :season_drivers
     has_many :seasons, through: :season_drivers
     has_many :constructors, through: :season_drivers
+    has_one :career
+
+    include PgSearch::Model 
+    pg_search_scope :name_and_constructor_search,
+        against: [
+            [ :surname, 'A' ],
+            [ :forename, 'C' ]
+        ],
+        associated_against: {
+            constructors: [
+                [ :name, 'B' ]
+            ]
+        }, 
+        using: {
+            tsearch: { prefix: true },
+        }
 
     scope :active, -> { where(active: true) }
     scope :elite, -> { where(skill: 'elite') }
     scope :by_peak_elo, -> { order(peak_elo: :desc) }
-    scope :by_first_race_date, -> { order(first_race_date: :asc) }
-    scope :by_last_race_date, -> { order(last_race_date: :asc) }
+    scope :by_first_race_date_asc, -> { order(first_race_date: :asc) }
+    scope :by_first_race_date_desc, -> { order(first_race_date: :desc) }
+    scope :by_last_race_date_asc, -> { order(last_race_date: :asc) }
+    scope :by_last_race_date_desc, -> { order(last_race_date: :desc) }
+    scope :by_surname, -> { order(surname: :asc) }
 
     # https://www.rapidtables.com/web/color/RGB_Color.html
     COLORS = [

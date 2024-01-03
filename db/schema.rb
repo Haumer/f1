@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_28_165917) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -127,17 +127,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_28_165917) do
     t.index ["driver_id"], name: "index_driver_countries_on_driver_id"
   end
 
-  create_table "driver_ratings", force: :cascade do |t|
-    t.bigint "driver_id", null: false
-    t.bigint "race_id", null: false
-    t.integer "rating"
-    t.boolean "peak_rating", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["driver_id"], name: "index_driver_ratings_on_driver_id"
-    t.index ["race_id"], name: "index_driver_ratings_on_race_id"
-  end
-
   create_table "driver_standings", force: :cascade do |t|
     t.string "kaggle_id"
     t.bigint "race_id", null: false
@@ -151,6 +140,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_28_165917) do
     t.integer "second_places"
     t.integer "third_places"
     t.boolean "season_end"
+    t.integer "fourth_places"
+    t.integer "fifth_places"
+    t.integer "sixth_places"
+    t.integer "seventh_places"
+    t.integer "eighth_places"
+    t.integer "nineth_places"
+    t.integer "tenth_places"
+    t.integer "outside_of_top_ten"
+    t.integer "crash_races"
+    t.integer "technichal_failures_races"
+    t.integer "disqualified_races"
+    t.integer "lapped_races"
+    t.integer "finished_races"
+    t.integer "fastest_laps"
     t.index ["driver_id"], name: "index_driver_standings_on_driver_id"
     t.index ["race_id"], name: "index_driver_standings_on_race_id"
   end
@@ -177,6 +180,33 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_28_165917) do
     t.string "color", default: "#4B0082"
     t.float "lowest_elo"
     t.string "image_url"
+    t.integer "podiums"
+    t.integer "wins"
+    t.integer "second_places"
+    t.integer "third_places"
+    t.integer "fourth_places"
+    t.integer "fifth_places"
+    t.integer "sixth_places"
+    t.integer "seventh_places"
+    t.integer "eighth_places"
+    t.integer "nineth_places"
+    t.integer "tenth_places"
+    t.integer "outside_of_top_ten"
+    t.integer "crash_races"
+    t.integer "technichal_failures_races"
+    t.integer "disqualified_races"
+    t.integer "lapped_races"
+    t.integer "finished_races"
+    t.integer "fastest_laps"
+  end
+
+  create_table "pg_search_documents", force: :cascade do |t|
+    t.text "content"
+    t.string "searchable_type"
+    t.bigint "searchable_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["searchable_type", "searchable_id"], name: "index_pg_search_documents_on_searchable"
   end
 
   create_table "race_results", force: :cascade do |t|
@@ -264,8 +294,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_28_165917) do
   add_foreign_key "constructor_standings", "races"
   add_foreign_key "driver_countries", "countries"
   add_foreign_key "driver_countries", "drivers"
-  add_foreign_key "driver_ratings", "drivers"
-  add_foreign_key "driver_ratings", "races"
   add_foreign_key "driver_standings", "drivers"
   add_foreign_key "driver_standings", "races"
   add_foreign_key "race_results", "constructors"

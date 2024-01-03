@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     collection do 
       get 'peak_elo', to: 'drivers#peak_elo'
       get 'current_active_elo', to: 'drivers#current_active_elo'
+      get 'compare', to: 'drivers#compare'
     end
   end
   resources :race_results

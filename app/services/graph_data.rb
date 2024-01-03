@@ -9,8 +9,8 @@ class GraphData
         @number_of_drivers = options[:number_of_drivers].present? ? options[:number_of_drivers] : 10
         @criteria = options[:by].present? ? options[:by] : :peak_elo
         if @drivers.present?
-            @last_race_date = @drivers.by_last_race_date.first.last_race_date
-            @first_race_date = @drivers.by_first_race_date.first.first_race_date
+            @last_race_date = @drivers.by_last_race_date_asc.first.last_race_date
+            @first_race_date = @drivers.by_first_race_date_asc.first.first_race_date
         end
     end
 
