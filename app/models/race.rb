@@ -1,10 +1,9 @@
 class Race < ApplicationRecord
   belongs_to :circuit
   belongs_to :season
-  has_many :race_results
-  has_many :driver_ratings
+  has_many :race_results, dependent: :destroy
   has_many :drivers, through: :race_results
-  has_many :driver_standings
+  has_many :driver_standings, dependent: :destroy
 
   scope :sorted, -> { order(date: :asc) }
   scope :sorted_by_most_recent, -> { order(date: :desc) }

@@ -135,14 +135,18 @@ end
 
 class EloRating::Race
     def initialize(race:)
+        puts "inside elo"
         @match = EloRating::Match.new
+        puts "new elo match"
         @race = race
         @results = @race.race_results
-        add_all_drivers unless @race.driver_ratings.present?
+        add_all_drivers 
+        puts "add all drivers"
     end
 
     def add_all_drivers
         @results.map do |result|
+            puts @match
             @match.add_player(rating: result.driver.elo, place: result.position_order, race_result: result)
         end
         self

@@ -15,7 +15,7 @@ class RacesController < ApplicationController
             end
             @races = Race.sorted.reverse.where(date: search_date..Date.today)
         else
-            @races = Race.where(year: (2000..2023).to_a).sorted_by_most_recent
+            @races = Race.where(year: (2000..2024).to_a).sorted_by_most_recent
         end
     end
 

@@ -1,7 +1,6 @@
 class Driver < ApplicationRecord
     has_many :race_results
     has_many :races, through: :race_results
-    has_many :driver_ratings
     has_many :driver_standings
     has_many :driver_countries
     has_many :countries, through: :driver_countries

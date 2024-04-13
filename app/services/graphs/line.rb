@@ -100,7 +100,7 @@ class Graphs::Line
             symbol: 'none'
         }
         @seasons.each do |season| 
-            position = season.last_race.driver_standings.find_by(driver: @driver).position
+            position = season.latest_race.driver_standings.find_by(driver: @driver).position
             label_text = "#{season.year} #{position_in_words(position)}"
             lines[:data] << { 
                 label: { 
@@ -142,7 +142,7 @@ class Graphs::Line
                     last_race.present? ? last_race.new_elo : 0
                 ],
                 label: { 
-                    formatter: season.last_race.driver_standings.find_by(driver: @driver).position
+                    formatter: season.latest_race.driver_standings.find_by(driver: @driver).position
                 }, 
             }
         end

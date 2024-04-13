@@ -46,6 +46,8 @@ class Season < ApplicationRecord
     end
 
     def driver_last_season_race_result(driver)
+        return unless driver.races.where(year: self.year).sorted.last
+
         driver.races.where(year: self.year).sorted.last.race_results.find_by(driver: driver)
     end
 

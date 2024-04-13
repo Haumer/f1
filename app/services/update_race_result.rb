@@ -14,11 +14,13 @@ class UpdateRaceResult
     end
 
     def fetch_results_data
+        puts "fetching results"
         @url = "#{ENDPOINT}/#{@race.year}/#{@race.round}/results.json"
         JSON.parse(URI.open(url).read)
     end
 
     def fetch_standings_data
+        puts "fetching standings"
         @url = "#{ENDPOINT}/#{@race.year}/#{@race.round}/driverStandings.json"
         JSON.parse(URI.open(url).read)
     end
@@ -29,11 +31,12 @@ class UpdateRaceResult
     end
 
     def results
+        puts "here"
         @race_results = @results_data['MRData']['RaceTable']['Races'].first['Results'].map do |race_result|
             driver = Driver.find_by(driver_ref: race_result['Driver']['driverId'])
+            constructor = Constructor.find_or_create_by(constructor_ref: race_result['Constructor']['constructorId'], name: race_result['Constructor']['name'], url: race_result['Constructor']['url'])
             if !driver.present?
                 @found_new_drivers = true
-                constructor = Constructor.find_by(constructor_ref: race_result['Constructor']['constructorId'])
                 driver = Driver.create(
                     driver_ref: race_result['Driver']['driverId'],
                     surname: race_result['Driver']['familyName'],
@@ -51,22 +54,24 @@ class UpdateRaceResult
                     skill: nil,
                 )
                 @new_drivers << driver
-                SeasonDriver.create(
-                    season: race.season,
-                    constructor: constructor,
-                    driver: driver,
-                    active: true
-                )
-                DriverCountry.create(
-                    driver: driver,
-                    country: Country.find_by(nationality: driver.nationality)
-                )
             end
 
-             RaceResult.create(
-                driver: Driver.find_by(driver_ref: race_result['Driver']['driverId']),
+            SeasonDriver.find_or_create_by(
+                season: race.season,
+                constructor: constructor,
+                driver: driver,
+                active: true
+            )
+            DriverCountry.find_or_create_by(
+                driver: driver,
+                country: Country.find_by(nationality: driver.nationality)
+            )
+
+            
+            new_race_result = RaceResult.find_or_create_by(
+                driver: driver,
                 race: @race,
-                constructor: Constructor.find_by(constructor_ref: race_result['Constructor']['constructorId']),
+                constructor: constructor,
                 status: Status.find_by(status_type: race_result['status']),
                 position: race_result['position'],
                 position_order: race_result['position'],
@@ -87,7 +92,7 @@ class UpdateRaceResult
         @driver_standings = @standings_data['MRData']['StandingsTable']['StandingsLists'].first['DriverStandings'].map do |driver_standing|
             driver = Driver.find_by(driver_ref: driver_standing['Driver']['driverId'])
 
-            DriverStanding.create(
+            DriverStanding.find_or_create_by(
                 race: @race,
                 driver: driver,
                 position: driver_standing['position'],
@@ -97,6 +102,7 @@ class UpdateRaceResult
             )
             driver.update(last_race_date: @race.date)
             UpdateDriverStanding.new(driver: driver, season: race.season).update
+            puts "elo"
             EloRating::Race.new(race: race).update_driver_ratings
         end
     end
