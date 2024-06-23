@@ -12,6 +12,7 @@
                 <td class="text-center">3rd</td>
                 <td class="text-center">Podiums</td>
                 <td class="text-center">Elo</td>
+                <td class="text-center">Elo diff</td>
             </tr>
         </th>
         <% driver_standings.each_with_index do |driver_standing, index| %>
@@ -49,6 +50,12 @@
                 </td>
                 <td class="text-center" style="width: 95px">
                     <%= @season.driver_last_season_race_result(driver_standing.driver).new_elo.round  %>
+                </td>
+                <td class="text-center" style="width: 95px">
+                <% if driver_standing.driver.race_results.where(race: @season.races.pluck(:id)).last.new_elo %>
+                  
+                    <%= driver_standing.driver.race_results.where(race: @season.races.pluck(:id)).last.new_elo.round - driver_standing.driver.race_results.where(race: @season.races.pluck(:id)).first.old_elo.round %>
+                <% end %>
                 </td>
             </tr>
         <% end %>

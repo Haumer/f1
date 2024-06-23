@@ -117,6 +117,10 @@ class Driver < ApplicationRecord
         season_drivers.find_by(season: season).constructor
     end
 
+    def fullname
+        "#{forename} #{surname}"
+    end
+
     CHAMPIONS = [
         {:driver_id=>643, :year=>1950},
         {:driver_id=>580, :year=>1951},
@@ -190,6 +194,7 @@ class Driver < ApplicationRecord
         {:driver_id=>1, :year=>2019},
         {:driver_id=>1, :year=>2020},
         {:driver_id=>830, :year=>2021},
-        {:driver_id=>830, :year=>2022}
+        {:driver_id=>830, :year=>2022},
+        {:driver_id=>830, :year=>2023}
     ]
 end

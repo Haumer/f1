@@ -1,6 +1,7 @@
 <div class="layout-grid">
     <div class="grid-sidebar">
         <%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %>
+        <img src="<%= @driver.image_url%>" alt="" style="width: 160px; height: 200px; object-fit: cover">
     </div>
     <div class="grid-main">
         <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>

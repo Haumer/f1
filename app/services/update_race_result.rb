@@ -31,7 +31,6 @@ class UpdateRaceResult
     end
 
     def results
-        puts "here"
         @race_results = @results_data['MRData']['RaceTable']['Races'].first['Results'].map do |race_result|
             driver = Driver.find_by(driver_ref: race_result['Driver']['driverId'])
             constructor = Constructor.find_or_create_by(constructor_ref: race_result['Constructor']['constructorId'], name: race_result['Constructor']['name'], url: race_result['Constructor']['url'])
@@ -102,7 +101,6 @@ class UpdateRaceResult
             )
             driver.update(last_race_date: @race.date)
             UpdateDriverStanding.new(driver: driver, season: race.season).update
-            puts "elo"
             EloRating::Race.new(race: race).update_driver_ratings
         end
     end

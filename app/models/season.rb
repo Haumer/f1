@@ -58,4 +58,10 @@ class Season < ApplicationRecord
     def last_race
         races.find_by(season_end: true)
     end
+
+    def races_to_update
+        races.select do |race|
+            !race.race_results.present? && race.date < Date.today
+        end
+    end
 end

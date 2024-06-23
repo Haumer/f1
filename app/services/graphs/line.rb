@@ -5,7 +5,7 @@ class Graphs::Line
         @first_race_date = @driver.first_race_date
         date_range = @first_race_date..@last_race_date
         @races = Race.where(date: date_range).sorted
-        @seasons = @driver.seasons.where.not(year: 2023)
+        @seasons = @driver.seasons.where.not(year: 2024)
     end
 
     def driver_data

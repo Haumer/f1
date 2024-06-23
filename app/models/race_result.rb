@@ -1,5 +1,6 @@
 class RaceResult < ApplicationRecord
   belongs_to :race
+  has_one :season, through: :race
   belongs_to :constructor
   belongs_to :status
   belongs_to :driver
