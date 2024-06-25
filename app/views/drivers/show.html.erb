@@ -1,57 +1,59 @@
 <div class="layout-grid">
     <div class="grid-sidebar">
+        <%= @driver.fullname %>
+        <div class="season-champion">
+            <% if @season_1st_place_finishes.present? %>
+                <%= @season_1st_place_finishes.count %>x Champion
+            <% end %>
+        </div>
+        <div class="season-runner-up">
+            <% if @season_2nd_place_finishes.present? %>
+                <%= @season_2nd_place_finishes.count %>x Runner Up
+            <% end %>
+        </div>
+        <div class="season-3rd">
+            <% if @season_3rd_place_finishes.present? %>
+                <%= @season_3rd_place_finishes.count %>x 3rd Place
+            <% end %>
+        </div>
         <%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %>
         <img src="<%= @driver.image_url%>" alt="" style="width: 160px; height: 200px; object-fit: cover">
-    </div>
-    <div class="grid-main">
-        <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>
-        <div class="season-trophy-case">
-            <div class="season-wins">
-                <% @driver.driver_standings.where(position: 1, season_end: true).sort_by(&:race).each do |driver_standing| %>
-                    <div class="place-1">
-                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-1"  %>
-                    </div>
-                <% end %>
-            </div>
-            <div class="season-2nd-place">
-                <% @driver.driver_standings.where(position: 2, season_end: true).sort_by(&:race).each do |driver_standing| %>
-                    <div class="place-2">
-                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-2" %>
-                    </div>
-                <% end %>
-            </div>
-            <div class="season-3rd-place">
-                <% @driver.driver_standings.where(position: 3, season_end: true).sort_by(&:race).each do |driver_standing| %>
-                    <div class="place-3">
-                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-3"  %>
-                    </div>
-                <% end %>
-            </div>
-        </div>
-        <div class="race-trophy-case">
-            <div class="race-wins">
-                <span class="place-1"><i class="fa-solid fa-trophy"></i></span>x<%= @driver.race_results.where(position_order: 1).count %>
-            </div>
+        <div class="profile-section lifetime-Podiums">
+            <div>Lifetime Podiums</div>
+            <div class="race-trophy-case">
+                <div class="race-2nd-place">
+                    <div class="place-2"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="box"><%= @driver.race_results.where(position_order: 2).count %></div>
+                </div>
 
-            <div class="race-2nd-place">
-                <span class="place-2"><i class="fa-solid fa-trophy"></i></span>x<%= @driver.race_results.where(position_order: 2).count %>
-            </div>
+                <div class="race-wins">
+                    <div class="place-1"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="box"><%= @driver.race_results.where(position_order: 1).count %></div>
+                </div>
 
-            <div class="race-3rd-place">
-                <span class="place-3"><i class="fa-solid fa-trophy"></i></span>x<%= @driver.race_results.where(position_order: 3).count %>
+                <div class="race-3rd-place">
+                    <div class="place-3"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="box"><%= @driver.race_results.where(position_order: 3).count %></div>
+                </div>
             </div>
-
             <div class="race-4th-place">
                <span class="place-4"><i class="fa-solid fa-trophy"></i></span>x<%= @driver.race_results.where(position_order: 4).count %>
             </div>
         </div>
+        <div class="profile-section season-finishes">
+            <div>Seasons</div>
+            <div class="profile-seasons">
+
+                <% @driver.driver_standings.where(season_end: true).sort_by(&:race).reverse.each do |driver_standing| %>
+                    <div class="place-<%= driver_standing.position%>">
+                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-#{driver_standing.position}"  %>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    </div>
+    <div class="grid-main">
+        <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>
         <%= render @driver.race_results.sort_by { |r| r.race.date }.reverse %>
     </div>
 </div>
-
-<style>
-.season-wins, .season-2nd-place, .season-3rd-place {
-    display:flex;
-    gap: 4px;
-}
-</style>

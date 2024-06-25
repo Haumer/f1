@@ -20,9 +20,17 @@
         <%= race_result.status.status_type %>
     </div>
     <div class="race-result-constructor grid-item text-center">
-        <%= race_result.constructor.name %>
+        <%= link_to constructor_path(race_result.constructor) do %>
+            <img src="<%= race_result.constructor.logo_url %>" alt="" style="width: 32px; height: 32px;">
+        <% end %>
     </div>
     <div class="race-result-constructor grid-item text-center">
-        <%= race_result.race.date %>
+        <%= race_result.race.circuit.circuit_ref %>
+    </div>
+    <div class="race-result-constructor grid-item text-center">
+        <%= race_result.race.date.strftime("%b %d, %Y") %>
+    </div>
+    <div class="race-result-constructor grid-item text-center">
+        <%= link_to "Round #{race_result.race.round}", race_path(race_result.race) %>
     </div>
 </div>

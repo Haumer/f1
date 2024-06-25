@@ -1,6 +1,9 @@
 class DriversController < ApplicationController
     def show
         @driver = Driver.find(params[:id])
+        @season_1st_place_finishes = @driver.driver_standings.where(position: 1, season_end: true).sort_by(&:race)
+        @season_2nd_place_finishes = @driver.driver_standings.where(position: 2, season_end: true).sort_by(&:race)
+        @season_3rd_place_finishes = @driver.driver_standings.where(position: 3, season_end: true).sort_by(&:race)
     end
     
     def index

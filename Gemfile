@@ -9,6 +9,7 @@ gem 'blazer'
 gem 'yt'
 gem 'pg_search'
 gem 'wikipedia-client'
+gem "rails_live_reload"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.8"

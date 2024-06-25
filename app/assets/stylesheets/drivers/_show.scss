@@ -1,0 +1,59 @@
+.lifetime-Podiums, .season-finishes {
+
+    .race-trophy-case, .season-trophy-case {
+        align-items: flex-end;
+        display: flex;
+        .box {
+            text-align: center;
+            width: 53px
+        }
+    }
+    .race-2nd-place {
+        .box {
+            border: 1px solid;
+            height: 40px;
+            line-height: 40px;
+        }
+    }
+    .race-wins {
+        .box {
+            border: 1px solid;
+            height: 52px;
+            line-height: 52px;
+        }   
+    }
+    .race-3rd-place {
+        .box {
+            border: 1px solid;
+            height: 28px;
+            line-height: 28px;
+        }
+    }
+    .place-1 {
+        font-size: 40px;
+        text-align: center;
+    }
+    .place-2 {
+        font-size: 36px;
+        text-align: center;
+    }
+    .place-3 {
+        font-size: 32px;
+        text-align: center;
+    }
+    .race-4th-place {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+    }
+    .profile-seasons {
+        .place-1, .place-2, .place-3 {
+            text-align: start;
+            font-size: 16px !important;
+        }
+    }
+}
+
+.profile-section {
+    margin-top: 16px;
+}
