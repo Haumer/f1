@@ -1,1 +1,50 @@
-<%= custom_chart Graphs::Champions.new(race_results: @champ_race_results).champions_data %>
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>World Champions</h3>
+    </div>
+    <div class="card">
+        <%= custom_chart Graphs::Champions.new(race_results: @champ_race_results).champions_data %>
+    </div>
+
+    <div class="card">
+        <div class="chart-header">
+            <h4>Championship Count</h4>
+        </div>
+        <%= custom_chart Graphs::ChampionshipCount.new(champion_data: @champion_data).data %>
+    </div>
+
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th>Driver</th>
+                    <th class="text-center">Titles</th>
+                    <th>Championship Years</th>
+                    <th class="text-center">Peak Elo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @champion_data.each_with_index do |(driver, data), idx| %>
+                    <tr>
+                        <td class="text-center position-cell"><%= idx + 1 %></td>
+                        <td>
+                            <% if driver.country.present? %>
+                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
+                            <% end %>
+                            <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
+                            <% if data[:count] > 1 %>
+                                <span class="title-badge champion title-count-inline"><%= data[:count] %>x</span>
+                            <% end %>
+                        </td>
+                        <td class="text-center font-bold"><%= data[:count] %></td>
+                        <td><%= data[:years].join(", ") %></td>
+                        <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>

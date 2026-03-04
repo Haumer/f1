@@ -1,21 +1,123 @@
-<%= custom_chart Graphs::Ranking.new(season: @season).season_driver_standings_data %>
+<div class="homepage-container">
+    <div class="season-nav">
+        <% if @previous_season %>
+            <%= link_to season_path(@previous_season) do %>
+                <i class="fa-solid fa-chevron-left"></i> <%= @season.year.to_i - 1 %>
+            <% end %>
+        <% else %>
+            <span></span>
+        <% end %>
+        <h2><%= @season.year %></h2>
+        <% if @next_season %>
+            <%= link_to season_path(@next_season) do %>
+                <%= @season.year.to_i + 1 %> <i class="fa-solid fa-chevron-right"></i>
+            <% end %>
+        <% else %>
+            <span></span>
+        <% end %>
+    </div>
 
-<div class="table-header"> 
-    <% if @next_season %>
-        <%= link_to season_path(@next_season) do %>
-            <i class="fa-solid fa-angles-left"></i><%= @season.year.to_i + 1 %>
-        <% end %>
-    <% else %>
-        <span><i class="fa-solid fa-angles-left"></i><%= @season.year.to_i + 1 %></span>
+    <div class="chart-container">
+        <%= custom_chart Graphs::Ranking.new(season: @season).season_driver_standings_data %>
+    </div>
+
+    <div class="chart-container">
+        <h4 class="chart-title">Elo Progression</h4>
+        <%= custom_chart Graphs::SeasonElo.new(season: @season).season_elo_data %>
+    </div>
+
+    <% @season.videos.each do |video| %>
+        <div class="video-embed">
+            <%= raw(video.embed_html) %>
+        </div>
     <% end %>
-    <h3><%= @season.year %></h3> 
-    <% if @previous_season %>
-        <%= link_to season_path(@previous_season) do %>
-            <%= @season.year.to_i - 1 %><i class="fa-solid fa-angles-right"></i>
-        <% end %>
+
+    <%# Season Stats Bar %>
+    <% if @leader_standing %>
+        <div class="season-stats-bar">
+            <div class="stat-card">
+                <span class="stat-label">Races</span>
+                <span class="stat-value"><%= @races_completed %> / <%= @total_races %></span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Leader</span>
+                <span class="stat-value"><%= link_to "#{@leader_standing.driver.forename[0]}.#{@leader_standing.driver.surname}", driver_path(@leader_standing.driver) %></span>
+                <span class="stat-detail"><%= @leader_standing.points&.round %> pts</span>
+            </div>
+            <% if @most_wins_standing && @most_wins_standing.wins.to_i > 0 %>
+                <div class="stat-card">
+                    <span class="stat-label">Most Wins</span>
+                    <span class="stat-value"><%= link_to "#{@most_wins_standing.driver.forename[0]}.#{@most_wins_standing.driver.surname}", driver_path(@most_wins_standing.driver) %></span>
+                    <span class="stat-detail"><%= @most_wins_standing.wins %> wins</span>
+                </div>
+            <% end %>
+            <% if @avg_field_elo %>
+                <div class="stat-card">
+                    <span class="stat-label">Avg Field Elo</span>
+                    <span class="stat-value"><%= @avg_field_elo %></span>
+                </div>
+            <% end %>
+        </div>
     <% end %>
+
+    <% if @season_mvp %>
+        <div class="season-stats-bar">
+            <div class="stat-card">
+                <span class="stat-label">Season MVP (Elo)</span>
+                <span class="stat-value"><%= link_to "#{@season_mvp[:driver].forename[0]}.#{@season_mvp[:driver].surname}", driver_path(@season_mvp[:driver]) %></span>
+                <span class="stat-detail text-green">+<%= @season_mvp[:change] %></span>
+            </div>
+            <% if @biggest_race_gain %>
+                <div class="stat-card">
+                    <span class="stat-label">Biggest Race Gain</span>
+                    <span class="stat-value"><%= link_to "#{@biggest_race_gain.driver.forename[0]}.#{@biggest_race_gain.driver.surname}", driver_path(@biggest_race_gain.driver) %></span>
+                    <span class="stat-detail"><%= @biggest_race_gain.race.circuit.name %> (<span class="text-green">+<%= @biggest_race_gain.display_elo_diff.round %></span>)</span>
+                </div>
+            <% end %>
+            <% if @biggest_race_drop %>
+                <div class="stat-card">
+                    <span class="stat-label">Biggest Race Drop</span>
+                    <span class="stat-value"><%= link_to "#{@biggest_race_drop.driver.forename[0]}.#{@biggest_race_drop.driver.surname}", driver_path(@biggest_race_drop.driver) %></span>
+                    <span class="stat-detail"><%= @biggest_race_drop.race.circuit.name %> (<span class="text-red"><%= @biggest_race_drop.display_elo_diff.round %></span>)</span>
+                </div>
+            <% end %>
+        </div>
+
+        <div class="elo-movers-row">
+            <div class="card elo-movers-card">
+                <h4 class="last-race-header"><i class="fa-solid fa-arrow-trend-up"></i> Season Elo Gainers</h4>
+                <div class="elo-movers-list">
+                    <% @season_biggest_gainers.each_with_index do |entry, idx| %>
+                        <div class="elo-mover-item">
+                            <span class="mover-rank"><%= idx + 1 %></span>
+                            <%= link_to driver_path(entry[:driver]) do %>
+                                <span class="mover-name"><%= entry[:driver].forename[0] %>.<%= entry[:driver].surname %></span>
+                            <% end %>
+                            <span class="elo-badge text-green">+<%= entry[:change] %></span>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+            <div class="card elo-movers-card">
+                <h4 class="last-race-header"><i class="fa-solid fa-arrow-trend-down"></i> Season Elo Losers</h4>
+                <div class="elo-movers-list">
+                    <% @season_biggest_losers.each_with_index do |entry, idx| %>
+                        <div class="elo-mover-item">
+                            <span class="mover-rank"><%= idx + 1 %></span>
+                            <%= link_to driver_path(entry[:driver]) do %>
+                                <span class="mover-name"><%= entry[:driver].forename[0] %>.<%= entry[:driver].surname %></span>
+                            <% end %>
+                            <span class="elo-badge text-red"><%= entry[:change] %></span>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+    <% end %>
+
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <%= render 'driver_standings_table', driver_standings: @season.latest_driver_standings.sort_by(&:position), season: @season, standings_extras: @standings_extras %>
+        </div>
+    </div>
 </div>
-<% @season.videos.each do |video| %>
-    <%= raw(video.embed_html) %>
-<% end %>
-<%= render 'driver_standings_table', driver_standings: @season.latest_driver_standings.sort_by(&:position), season: @season %>

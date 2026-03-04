@@ -1,0 +1,21 @@
+<div class="hero-intro race-weekend-hero">
+    <span class="race-weekend-label"><i class="fa-solid fa-circle"></i> Race Weekend</span>
+    <h1><%= @weekend_race.circuit.name %></h1>
+    <p class="subtitle">Round <%= @weekend_race.round %> · <%= @weekend_race.circuit.location %>, <%= @weekend_race.circuit.country %></p>
+
+    <% if @next_session %>
+        <div class="countdown-timer"
+             data-controller="countdown"
+             data-countdown-target-value="<%= @next_session[:starts_at].iso8601 %>"
+             data-countdown-label-value="<%= @next_session[:name] %> in">
+        </div>
+    <% end %>
+</div>
+
+<%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
+
+<% if @session_schedule.present? %>
+    <div class="card session-schedule-card">
+        <%= render "pages/session_schedule", sessions: @session_schedule %>
+    </div>
+<% end %>

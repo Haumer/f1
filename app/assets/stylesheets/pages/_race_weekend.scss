@@ -1,0 +1,364 @@
+// Countdown Timer
+.countdown-timer {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: $light-gray;
+  border-radius: $radius-md;
+
+  .countdown-timer-label {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: $text-secondary;
+  }
+
+  .countdown-timer-value {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.countdown-timer-race {
+    background: rgba($green, 0.08);
+    border: 1px solid rgba($green, 0.15);
+
+    .countdown-timer-label { color: $green; }
+  }
+}
+
+// Race Weekend Hero
+.race-weekend-hero {
+  @include hero-accent-line($red);
+
+  .race-weekend-label {
+    display: block;
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: $red;
+    margin-bottom: 12px;
+
+    i {
+      font-size: 8px;
+      margin-right: 6px;
+      vertical-align: middle;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+  }
+}
+
+// Session Schedule Card
+.session-schedule-card {
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+.session-timeline {
+  display: flex;
+  justify-content: space-between;
+  gap: 0;
+}
+
+.session-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  text-align: center;
+
+  .session-dot-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+    height: 16px;
+  }
+
+  .session-status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid $border-color;
+    background: $bg-card;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .session-connector {
+    height: 2px;
+    flex: 1;
+    background: $border-color;
+    position: relative;
+    overflow: hidden;
+
+    &-before { margin-right: 0; }
+    &-after { margin-left: 0; }
+  }
+
+  .session-connector-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: $green;
+    transition: width 0.6s ease;
+  }
+
+  &:first-child .session-connector-before { display: none; }
+  &:last-child .session-connector-after { display: none; }
+
+  .session-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .session-name {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: $text-primary;
+  }
+
+  .session-date {
+    font-size: 11px;
+    color: $text-secondary;
+  }
+
+  .session-time {
+    font-size: 11px;
+    color: $text-secondary;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .session-badge {
+    margin-top: 6px;
+    min-height: 18px;
+  }
+
+  .badge-done {
+    color: $green;
+    font-size: 11px;
+  }
+
+  .badge-today {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: $green;
+
+    i {
+      font-size: 6px;
+      vertical-align: middle;
+      margin-right: 3px;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+  }
+
+  // Status variants
+  &.session-done {
+    .session-status-dot {
+      background: $green;
+      border-color: $green;
+    }
+    .session-name { color: $text-secondary; }
+  }
+
+  &.session-today {
+    .session-status-dot {
+      background: $green;
+      border-color: $green;
+      box-shadow: 0 0 0 4px rgba($green, 0.15);
+    }
+    .session-name { color: $green; }
+  }
+
+  &.session-upcoming {
+    .session-name { color: $text-secondary; }
+  }
+}
+
+// Countdown Badge (pre-race)
+.countdown-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: $light-gray;
+  border-radius: $radius-md;
+
+  .countdown-number {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    color: $text-primary;
+  }
+
+  .countdown-label {
+    font-size: 13px;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+.race-time-preview {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  .race-time-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: $text-secondary;
+  }
+
+  .race-time-value {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 14px;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Race Day — Lights Out time badge
+.race-start-time {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: rgba($green, 0.08);
+  border-radius: $radius-md;
+  border: 1px solid rgba($green, 0.15);
+
+  .race-start-label {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: $green;
+  }
+
+  .race-start-value {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Post-Race Elo Card
+.post-race-elo-card {
+  margin-bottom: 24px;
+
+  .section-label {
+    margin: 0 0 16px;
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: $text-secondary;
+  }
+}
+
+.post-race-movers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.post-race-mover-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: $radius-sm;
+  background: $light-gray;
+  transition: background-color 0.15s;
+
+  &:hover { background: darken($light-gray, 3%); }
+
+  .mover-name {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .elo-badge {
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Podium Elo change overlay
+.podium-elo-change {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+// Mobile
+@media (max-width: 768px) {
+  .session-timeline {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .session-item {
+    flex-direction: row;
+    text-align: left;
+    gap: 12px;
+    padding: 6px 0;
+
+    .session-dot-row {
+      flex-direction: column;
+      width: 16px;
+      height: auto;
+      margin-bottom: 0;
+    }
+
+    .session-connector {
+      width: 2px;
+      height: 12px;
+      flex: none;
+    }
+
+    .session-info {
+      flex: 1;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-badge {
+      margin-top: 0;
+    }
+  }
+
+  .countdown-badge {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px;
+  }
+}

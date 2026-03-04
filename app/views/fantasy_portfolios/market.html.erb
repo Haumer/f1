@@ -1,0 +1,62 @@
+<div class="homepage-container">
+    <div class="fantasy-header">
+        <div>
+            <h2>Driver Market</h2>
+            <span class="fantasy-season">Cash: <strong><%= @portfolio.cash.round(0) %></strong></span>
+        </div>
+        <div class="fantasy-header-actions">
+            <%= link_to fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-arrow-left"></i> Portfolio
+            <% end %>
+        </div>
+    </div>
+
+    <%# Transfer Window Status %>
+    <div class="fantasy-transfer-status <%= @can_trade ? 'open' : 'closed' %>">
+        <i class="fa-solid fa-<%= @can_trade ? 'lock-open' : 'lock' %>"></i>
+        <% if @can_trade %>
+            Transfer window open — closes at <%= @next_race.starts_at&.strftime("%b %d, %H:%M UTC") || @next_race.date.strftime("%b %d") %>
+        <% else %>
+            Transfer window closed
+        <% end %>
+    </div>
+
+    <div class="fantasy-market-grid">
+        <% @drivers.each do |driver| %>
+            <% on_roster = @active_driver_ids.include?(driver.id) %>
+            <% can_afford = @portfolio.cash >= (driver.elo_v2 || 0) %>
+            <div class="card fantasy-market-card <%= 'on-roster' if on_roster %>">
+                <div class="fantasy-market-driver">
+                    <% if driver.image_url.present? %>
+                        <img src="<%= driver.image_url %>" alt="<%= driver.fullname %>" class="fantasy-market-img">
+                    <% end %>
+                    <div class="fantasy-market-info">
+                        <h4><%= link_to driver.fullname, driver_path(driver) %></h4>
+                        <span class="fantasy-market-constructor"><%= driver.current_constructor&.name %></span>
+                        <% if driver.country %>
+                            <span class="fantasy-market-flag fi fi-<%= driver.country.two_letter_country_code&.downcase %>"></span>
+                        <% end %>
+                    </div>
+                </div>
+                <div class="fantasy-market-price">
+                    <span class="fantasy-price-label">Elo Price</span>
+                    <span class="fantasy-price-value"><%= (driver.elo_v2 || 0).round(0) %></span>
+                </div>
+                <div class="fantasy-market-actions">
+                    <% if on_roster %>
+                        <span class="fantasy-badge-on-roster"><i class="fa-solid fa-check"></i> On Roster</span>
+                    <% elsif @can_trade && !@portfolio.roster_full? && can_afford %>
+                        <%= form_with url: buy_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
+                            <%= hidden_field_tag :driver_id, driver.id %>
+                            <%= submit_tag "Buy", class: "fantasy-btn fantasy-btn-primary fantasy-btn-sm" %>
+                        <% end %>
+                    <% elsif !can_afford %>
+                        <span class="fantasy-badge-cant-afford">Not enough cash</span>
+                    <% elsif @portfolio.roster_full? %>
+                        <span class="fantasy-badge-cant-afford">Roster full</span>
+                    <% end %>
+                </div>
+            </div>
+        <% end %>
+    </div>
+</div>

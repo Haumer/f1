@@ -2,40 +2,54 @@ require 'json'
 require 'open-uri'
 
 class UpdateRaceResult
-    ENDPOINT = 'https://ergast.com/api/f1'
+    ENDPOINT = 'https://api.jolpi.ca/ergast/f1'
     attr_reader :url, :race_results, :driver_standings, :race, :new_drivers
 
     def initialize(race:)
         @race = race
         @results_data = fetch_results_data
         @standings_data = fetch_standings_data
-        @found_new_drivers = false
         @new_drivers = []
     end
 
     def fetch_results_data
         puts "fetching results"
         @url = "#{ENDPOINT}/#{@race.year}/#{@race.round}/results.json"
-        JSON.parse(URI.open(url).read)
+        JSON.parse(URI.open(url, read_timeout: 30).read)
+    rescue OpenURI::HTTPError, Timeout::Error, JSON::ParserError => e
+        puts "Error fetching results for #{@race.year}/#{@race.round}: #{e.message}"
+        nil
     end
 
     def fetch_standings_data
         puts "fetching standings"
         @url = "#{ENDPOINT}/#{@race.year}/#{@race.round}/driverStandings.json"
-        JSON.parse(URI.open(url).read)
+        JSON.parse(URI.open(url, read_timeout: 30).read)
+    rescue OpenURI::HTTPError, Timeout::Error, JSON::ParserError => e
+        puts "Error fetching standings for #{@race.year}/#{@race.round}: #{e.message}"
+        nil
     end
 
     def update_all
+        return unless @results_data && @standings_data
+
         self.results
         self.standings
+        EloRating::Race.new(race: @race).update_driver_ratings
+        ConstructorEloV2.process_race(@race)
     end
 
     def results
-        @race_results = @results_data['MRData']['RaceTable']['Races'].first['Results'].map do |race_result|
+        races = @results_data.dig('MRData', 'RaceTable', 'Races')
+        return unless races&.first
+
+        @race_results = races.first['Results'].map do |race_result|
             driver = Driver.find_by(driver_ref: race_result['Driver']['driverId'])
-            constructor = Constructor.find_or_create_by(constructor_ref: race_result['Constructor']['constructorId'], name: race_result['Constructor']['name'], url: race_result['Constructor']['url'])
-            if !driver.present?
-                @found_new_drivers = true
+            constructor = Constructor.find_or_create_by(constructor_ref: race_result['Constructor']['constructorId']) do |c|
+                c.name = race_result['Constructor']['name']
+                c.url = race_result['Constructor']['url']
+            end
+            unless driver
                 driver = Driver.create(
                     driver_ref: race_result['Driver']['driverId'],
                     surname: race_result['Driver']['familyName'],
@@ -45,10 +59,11 @@ class UpdateRaceResult
                     code: race_result['Driver']['code'],
                     url: race_result['Driver']['url'],
                     number: race_result['number'],
-                    first_race_date: race.date,
-                    last_race_date: race.date,
+                    first_race_date: @race.date,
+                    last_race_date: @race.date,
                     elo: 1000,
-                    color: Driver::CONSTRUCTOR_COLORS[constructor.constructor_ref.to_sym],
+                    peak_elo: 1000,
+                    color: Driver::CONSTRUCTOR_COLORS.fetch(constructor.constructor_ref.to_sym, "#4B0082"),
                     active: true,
                     skill: nil,
                 )
@@ -61,26 +76,25 @@ class UpdateRaceResult
                 driver: driver,
                 active: true
             )
-            DriverCountry.find_or_create_by(
-                driver: driver,
-                country: Country.find_by(nationality: driver.nationality)
-            )
+            country = Country.find_by(nationality: driver.nationality)
+            if country
+                DriverCountry.find_or_create_by(driver: driver, country: country)
+            end
 
-            
-            new_race_result = RaceResult.find_or_create_by(
+            RaceResult.find_or_create_by(
                 driver: driver,
                 race: @race,
                 constructor: constructor,
                 status: Status.find_by(status_type: race_result['status']),
                 position: race_result['position'],
-                position_order: race_result['position'],
+                position_order: race_result['positionOrder'] || race_result['position'],
                 points: race_result['points'],
-                time: race_result['Time'].present? ? race_result['Time']['time'] : 0,
+                time: race_result.dig('Time', 'time') || 0,
                 laps: race_result['laps'],
-                milliseconds: race_result['Time'].present? ? race_result['Time']['millis'] : nil,
-                fastest_lap_time: race_result['FastestLap'].present? ? race_result['FastestLap']['Time']['time'] : nil,
-                fastest_lap_speed: race_result['FastestLap'].present? ? race_result['FastestLap']['AverageSpeed']['speed'] : nil,
-                fastest_lap: race_result['FastestLap'].present? ? race_result['FastestLap']['lap'] : nil,
+                milliseconds: race_result.dig('Time', 'millis'),
+                fastest_lap_time: race_result.dig('FastestLap', 'Time', 'time'),
+                fastest_lap_speed: race_result.dig('FastestLap', 'AverageSpeed', 'speed'),
+                fastest_lap: race_result.dig('FastestLap', 'lap'),
                 grid: race_result['grid'],
                 number: race_result['number'],
             )
@@ -88,8 +102,12 @@ class UpdateRaceResult
     end
 
     def standings
-        @driver_standings = @standings_data['MRData']['StandingsTable']['StandingsLists'].first['DriverStandings'].map do |driver_standing|
+        standings_lists = @standings_data.dig('MRData', 'StandingsTable', 'StandingsLists')
+        return unless standings_lists&.first
+
+        @driver_standings = standings_lists.first['DriverStandings'].map do |driver_standing|
             driver = Driver.find_by(driver_ref: driver_standing['Driver']['driverId'])
+            next unless driver
 
             DriverStanding.find_or_create_by(
                 race: @race,
@@ -97,11 +115,9 @@ class UpdateRaceResult
                 position: driver_standing['position'],
                 points: driver_standing['points'],
                 wins: driver_standing['wins'],
-                points: driver_standing['points'],
             )
             driver.update(last_race_date: @race.date)
             UpdateDriverStanding.new(driver: driver, season: @race.season).update
-            EloRating::Race.new(race: @race).update_driver_ratings
         end
     end
 end

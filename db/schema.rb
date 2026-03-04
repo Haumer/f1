@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -107,6 +107,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.datetime "updated_at", null: false
     t.boolean "active"
     t.string "logo_url"
+    t.float "elo"
+    t.float "peak_elo"
+    t.float "elo_v2"
+    t.float "peak_elo_v2"
   end
 
   create_table "countries", force: :cascade do |t|
@@ -116,6 +120,21 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.string "three_letter_country_code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "driver_badges", force: :cascade do |t|
+    t.bigint "driver_id", null: false
+    t.string "key", null: false
+    t.string "label", null: false
+    t.string "description"
+    t.string "icon"
+    t.string "color"
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "tier"
+    t.index ["driver_id", "key"], name: "index_driver_badges_on_driver_id_and_key", unique: true
+    t.index ["driver_id"], name: "index_driver_badges_on_driver_id"
   end
 
   create_table "driver_countries", force: :cascade do |t|
@@ -155,7 +174,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.integer "finished_races"
     t.integer "fastest_laps"
     t.index ["driver_id"], name: "index_driver_standings_on_driver_id"
+    t.index ["race_id", "driver_id"], name: "index_driver_standings_on_race_id_and_driver_id", unique: true
     t.index ["race_id"], name: "index_driver_standings_on_race_id"
+    t.index ["season_end", "position"], name: "index_driver_standings_on_season_end_and_position", where: "(season_end = true)"
   end
 
   create_table "drivers", force: :cascade do |t|
@@ -198,6 +219,55 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.integer "lapped_races"
     t.integer "finished_races"
     t.integer "fastest_laps"
+    t.float "elo_v2"
+    t.float "peak_elo_v2"
+  end
+
+  create_table "fantasy_portfolios", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "season_id", null: false
+    t.float "cash", default: 0.0, null: false
+    t.float "starting_capital", null: false
+    t.integer "login_streak", default: 0
+    t.date "last_login_date"
+    t.integer "interactions_today", default: 0
+    t.date "last_interaction_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["season_id"], name: "index_fantasy_portfolios_on_season_id"
+    t.index ["user_id", "season_id"], name: "index_fantasy_portfolios_on_user_id_and_season_id", unique: true
+    t.index ["user_id"], name: "index_fantasy_portfolios_on_user_id"
+  end
+
+  create_table "fantasy_roster_entries", force: :cascade do |t|
+    t.bigint "fantasy_portfolio_id", null: false
+    t.bigint "driver_id", null: false
+    t.float "bought_at_elo", null: false
+    t.bigint "bought_race_id"
+    t.float "sold_at_elo"
+    t.bigint "sold_race_id"
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bought_race_id"], name: "index_fantasy_roster_entries_on_bought_race_id"
+    t.index ["driver_id"], name: "index_fantasy_roster_entries_on_driver_id"
+    t.index ["fantasy_portfolio_id", "active"], name: "index_fantasy_roster_entries_on_fantasy_portfolio_id_and_active"
+    t.index ["fantasy_portfolio_id"], name: "index_fantasy_roster_entries_on_fantasy_portfolio_id"
+    t.index ["sold_race_id"], name: "index_fantasy_roster_entries_on_sold_race_id"
+  end
+
+  create_table "fantasy_transactions", force: :cascade do |t|
+    t.bigint "fantasy_portfolio_id", null: false
+    t.string "kind", null: false
+    t.float "amount", null: false
+    t.bigint "driver_id"
+    t.bigint "race_id"
+    t.string "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["driver_id"], name: "index_fantasy_transactions_on_driver_id"
+    t.index ["fantasy_portfolio_id"], name: "index_fantasy_transactions_on_fantasy_portfolio_id"
+    t.index ["race_id"], name: "index_fantasy_transactions_on_race_id"
   end
 
   create_table "pg_search_documents", force: :cascade do |t|
@@ -231,8 +301,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.float "old_elo"
     t.float "new_elo"
     t.integer "year"
+    t.float "old_elo_v2"
+    t.float "new_elo_v2"
+    t.float "old_constructor_elo_v2"
+    t.float "new_constructor_elo_v2"
     t.index ["constructor_id"], name: "index_race_results_on_constructor_id"
+    t.index ["driver_id", "race_id"], name: "index_race_results_on_driver_id_and_race_id"
     t.index ["driver_id"], name: "index_race_results_on_driver_id"
+    t.index ["race_id", "driver_id"], name: "index_race_results_on_race_id_and_driver_id"
     t.index ["race_id"], name: "index_race_results_on_race_id"
     t.index ["status_id"], name: "index_race_results_on_status_id"
   end
@@ -249,7 +325,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.float "average_elo"
     t.bigint "season_id", null: false
     t.boolean "season_end"
+    t.string "time"
+    t.string "fp1_time"
+    t.string "fp2_time"
+    t.string "fp3_time"
+    t.string "quali_time"
     t.index ["circuit_id"], name: "index_races_on_circuit_id"
+    t.index ["season_id", "date"], name: "index_races_on_season_id_and_date"
+    t.index ["season_id", "round"], name: "index_races_on_season_id_and_round"
     t.index ["season_id"], name: "index_races_on_season_id"
   end
 
@@ -263,6 +346,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.boolean "standin"
     t.index ["constructor_id"], name: "index_season_drivers_on_constructor_id"
     t.index ["driver_id"], name: "index_season_drivers_on_driver_id"
+    t.index ["season_id", "driver_id"], name: "index_season_drivers_on_season_id_and_driver_id"
     t.index ["season_id"], name: "index_season_drivers_on_season_id"
   end
 
@@ -272,11 +356,33 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
   create_table "statuses", force: :cascade do |t|
     t.integer "kaggle_id"
     t.string "status_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.boolean "admin", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "username"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   create_table "videos", force: :cascade do |t|
@@ -292,10 +398,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_29_155137) do
 
   add_foreign_key "constructor_standings", "constructors"
   add_foreign_key "constructor_standings", "races"
+  add_foreign_key "driver_badges", "drivers"
   add_foreign_key "driver_countries", "countries"
   add_foreign_key "driver_countries", "drivers"
   add_foreign_key "driver_standings", "drivers"
   add_foreign_key "driver_standings", "races"
+  add_foreign_key "fantasy_portfolios", "seasons"
+  add_foreign_key "fantasy_portfolios", "users"
+  add_foreign_key "fantasy_roster_entries", "drivers"
+  add_foreign_key "fantasy_roster_entries", "fantasy_portfolios"
+  add_foreign_key "fantasy_roster_entries", "races", column: "bought_race_id"
+  add_foreign_key "fantasy_roster_entries", "races", column: "sold_race_id"
+  add_foreign_key "fantasy_transactions", "drivers"
+  add_foreign_key "fantasy_transactions", "fantasy_portfolios"
+  add_foreign_key "fantasy_transactions", "races"
   add_foreign_key "race_results", "constructors"
   add_foreign_key "race_results", "drivers"
   add_foreign_key "race_results", "races"

@@ -27,28 +27,33 @@ class UpdateDriverCareer
     end
 
     def set_attributes
-        @driver.race_results.each do |race_result|
+        results = @driver.race_results.includes(:status).to_a
+        # Exclude DNS (did not qualify / did not start) from race count
+        started = results.reject { |rr| rr.status.did_not_start? }
+        @career_attributes[:number_of_races] = started.size
+        started.each do |race_result|
             positions(race_result)
             races(race_result)
-            @career_attributes[:podiums] = @career_attributes[:wins] + @career_attributes[:second_places] + @career_attributes[:third_places]
         end
+        @career_attributes[:podiums] = @career_attributes[:wins] + @career_attributes[:second_places] + @career_attributes[:third_places]
         self
     end
-    
+
     def update
         @driver.update(@career_attributes)
     end
 
     def races(race_result)
-        if race_result.status.finished?
+        if race_result.status.finished? || race_result.status.lapped?
             @career_attributes[:finished_races] += 1
+            @career_attributes[:lapped_races] += 1 if race_result.status.lapped?
         elsif race_result.status.disqualified?
             @career_attributes[:disqualified_races] += 1
+        elsif race_result.status.accident?
+            @career_attributes[:crash_races] += 1
         elsif race_result.status.technical?
             @career_attributes[:technichal_failures_races] += 1
-        elsif race_result.status.lapped?
-            @career_attributes[:lapped_races] += 1
-        elsif race_result.status.accident?
+        elsif race_result.status.retired? || race_result.status.health?
             @career_attributes[:crash_races] += 1
         end
     end

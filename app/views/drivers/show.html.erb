@@ -1,59 +1,224 @@
+<div class="homepage-container">
 <div class="layout-grid">
     <div class="grid-sidebar">
-        <%= @driver.fullname %>
-        <div class="season-champion">
-            <% if @season_1st_place_finishes.present? %>
-                <%= @season_1st_place_finishes.count %>x Champion
-            <% end %>
-        </div>
-        <div class="season-runner-up">
-            <% if @season_2nd_place_finishes.present? %>
-                <%= @season_2nd_place_finishes.count %>x Runner Up
-            <% end %>
-        </div>
-        <div class="season-3rd">
-            <% if @season_3rd_place_finishes.present? %>
-                <%= @season_3rd_place_finishes.count %>x 3rd Place
-            <% end %>
-        </div>
-        <%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %>
-        <img src="<%= @driver.image_url%>" alt="" style="width: 160px; height: 200px; object-fit: cover">
-        <div class="profile-section lifetime-Podiums">
-            <div>Lifetime Podiums</div>
-            <div class="race-trophy-case">
-                <div class="race-2nd-place">
-                    <div class="place-2"><i class="fa-solid fa-trophy"></i></div>
-                    <div class="box"><%= @driver.race_results.where(position_order: 2).count %></div>
+        <div class="card driver-card">
+            <h2 class="driver-name">
+                <% if @driver.country.present? %>
+                    <img src="https://flagsapi.com/<%= @driver.country.two_letter_country_code %>/shiny/32.png"
+                         alt="<%= @driver.country.name %>" loading="lazy" onerror="this.style.display='none'"
+                         class="driver-flag">
+                <% end %>
+                <%= @driver.fullname %>
+            </h2>
+            <% if @driver.current_constructor %>
+                <div class="driver-constructor">
+                    <%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %>
                 </div>
+            <% end %>
 
-                <div class="race-wins">
-                    <div class="place-1"><i class="fa-solid fa-trophy"></i></div>
-                    <div class="box"><%= @driver.race_results.where(position_order: 1).count %></div>
-                </div>
-
-                <div class="race-3rd-place">
-                    <div class="place-3"><i class="fa-solid fa-trophy"></i></div>
-                    <div class="box"><%= @driver.race_results.where(position_order: 3).count %></div>
-                </div>
-            </div>
-            <div class="race-4th-place">
-               <span class="place-4"><i class="fa-solid fa-trophy"></i></span>x<%= @driver.race_results.where(position_order: 4).count %>
-            </div>
-        </div>
-        <div class="profile-section season-finishes">
-            <div>Seasons</div>
-            <div class="profile-seasons">
-
-                <% @driver.driver_standings.where(season_end: true).sort_by(&:race).reverse.each do |driver_standing| %>
-                    <div class="place-<%= driver_standing.position%>">
-                        <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-#{driver_standing.position}"  %>
-                    </div>
+            <div class="driver-titles">
+                <% if @season_1st_place_finishes.present? %>
+                    <div class="title-badge champion"><%= @season_1st_place_finishes.count %>x Champion</div>
+                <% end %>
+                <% if @season_2nd_place_finishes.present? %>
+                    <div class="title-badge runner-up"><%= @season_2nd_place_finishes.count %>x Runner Up</div>
+                <% end %>
+                <% if @season_3rd_place_finishes.present? %>
+                    <div class="title-badge third"><%= @season_3rd_place_finishes.count %>x 3rd Place</div>
                 <% end %>
             </div>
+
+            <img src="<%= @driver.image_url %>" alt="<%= @driver.fullname %>" class="driver-photo" loading="lazy" onerror="this.style.display='none'">
+
+            <div class="profile-section">
+                <div class="section-label">Race Podiums</div>
+                <div class="race-trophy-case">
+                    <div class="trophy-col">
+                        <div class="place-2"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="trophy-count"><%= @race_result_counts[2] || 0 %></div>
+                    </div>
+                    <div class="trophy-col trophy-first">
+                        <div class="place-1"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="trophy-count"><%= @race_result_counts[1] || 0 %></div>
+                    </div>
+                    <div class="trophy-col">
+                        <div class="place-3"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="trophy-count"><%= @race_result_counts[3] || 0 %></div>
+                    </div>
+                </div>
+                <div class="fourth-place">
+                    <span class="place-4"><i class="fa-solid fa-trophy"></i></span> x<%= @race_result_counts[4] || 0 %>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="section-label">Seasons</div>
+                <div class="profile-seasons">
+                    <% @driver.driver_standings.select { |ds| ds.season_end }.sort_by { |ds| ds.race.season.year }.reverse.each do |driver_standing| %>
+                        <div class="season-badge place-<%= driver_standing.position %>">
+                            <%= link_to driver_standing.race.season.year, season_path(driver_standing.race.season), class: "place-#{driver_standing.position}" %>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="section-label">Elo Rating</div>
+                <div class="elo-stats">
+                    <div class="elo-stat">
+                        <div class="elo-value"><%= @driver.display_elo&.round %></div>
+                        <div class="elo-label">Current</div>
+                    </div>
+                    <div class="elo-stat">
+                        <div class="elo-value"><%= @driver.display_peak_elo&.round %></div>
+                        <div class="elo-label">Peak</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="section-label">Elo Rank</div>
+                <div class="elo-rank-badges">
+                    <% if @peak_elo_rank %>
+                        <div class="rank-badge">
+                            #<%= @peak_elo_rank %> <span class="rank-context">all-time peak</span>
+                        </div>
+                    <% end %>
+                    <% if @driver.active && @active_elo_rank %>
+                        <div class="rank-badge">
+                            #<%= @active_elo_rank %> <span class="rank-context">active</span>
+                        </div>
+                    <% end %>
+                    <div class="elo-tier-badge elo-tier-<%= @elo_tier[:css] %>"><%= @elo_tier[:label] %></div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="section-label">Career Stats</div>
+                <div class="career-stats-grid">
+                    <div class="career-stat-row">
+                        <span class="career-stat-label">Races</span>
+                        <span class="career-stat-value"><%= @driver.number_of_races || 0 %></span>
+                    </div>
+                    <div class="career-stat-row">
+                        <span class="career-stat-label">Finished</span>
+                        <span class="career-stat-value"><%= @driver.finished_races || 0 %></span>
+                    </div>
+                    <div class="career-stat-row">
+                        <span class="career-stat-label">DNFs</span>
+                        <span class="career-stat-value"><%= (@driver.crash_races || 0) + (@driver.technichal_failures_races || 0) + (@driver.disqualified_races || 0) %></span>
+                    </div>
+                    <div class="career-stat-row career-stat-sub">
+                        <span class="career-stat-label">Accident / Other</span>
+                        <span class="career-stat-value"><%= @driver.crash_races || 0 %></span>
+                    </div>
+                    <div class="career-stat-row career-stat-sub">
+                        <span class="career-stat-label">Mechanical</span>
+                        <span class="career-stat-value"><%= @driver.technichal_failures_races || 0 %></span>
+                    </div>
+                    <% if (@driver.disqualified_races || 0) > 0 %>
+                        <div class="career-stat-row career-stat-sub">
+                            <span class="career-stat-label">Disqualified</span>
+                            <span class="career-stat-value"><%= @driver.disqualified_races %></span>
+                        </div>
+                    <% end %>
+                    <% if @driver.number_of_races.to_i > 0 %>
+                        <div class="career-stat-row">
+                            <span class="career-stat-label">Win Rate</span>
+                            <span class="career-stat-value"><%= ((@driver.wins || 0).to_f / @driver.number_of_races.to_i * 100).round(1) %>%</span>
+                        </div>
+                        <div class="career-stat-row">
+                            <span class="career-stat-label">Podium Rate</span>
+                            <span class="career-stat-value"><%= ((@driver.podiums || 0).to_f / @driver.number_of_races.to_i * 100).round(1) %>%</span>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+
+            <% if @badges.any? %>
+                <div class="profile-section">
+                    <div class="section-label">Achievements</div>
+                    <div class="achievement-badges">
+                        <% @badges.each do |badge| %>
+                            <% tier_label = { "gold" => "🥇 #1 all-time", "silver" => "🥈 #2 all-time", "bronze" => "🥉 #3 all-time" }[badge.tier] %>
+                            <% is_circuit_king = badge.key.start_with?("circuit_king") %>
+                            <div class="achievement-badge<%= " tier-#{badge.tier}" if badge.tier %><%= " badge-icon-only" unless is_circuit_king %>" data-tooltip="<%= badge.label %> — <%= badge.description %><%= " — #{tier_label}" if tier_label %>">
+                                <i class="<%= badge.icon %>"></i>
+                                <% if is_circuit_king %>
+                                    <span class="achievement-label"><%= badge.label.sub("King of ", "") %></span>
+                                <% end %>
+                            </div>
+                        <% end %>
+                    </div>
+                </div>
+            <% end %>
         </div>
     </div>
     <div class="grid-main">
-        <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>
-        <%= render @driver.race_results.sort_by { |r| r.race.date }.reverse %>
+        <div class="card">
+            <div class="chart-header">
+                <h4>Elo Rating Over Time</h4>
+            </div>
+            <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>
+        </div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+            <table class="driver-race-results current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">Elo</th>
+                        <th class="text-center">Old</th>
+                        <th></th>
+                        <th class="text-center">New</th>
+                        <th class="text-center">Status</th>
+                        <th></th>
+                        <th>Circuit</th>
+                        <th>Date</th>
+                        <th>Race</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% previous_year = nil %>
+                    <% @driver.race_results.sort_by { |r| r.race.date }.reverse.each do |race_result| %>
+                        <% current_year = race_result.race.date.year %>
+                        <% if current_year != previous_year %>
+                            <tr class="season-divider">
+                                <td colspan="10"><strong><%= current_year %> Season</strong></td>
+                            </tr>
+                            <% previous_year = current_year %>
+                        <% end %>
+                        <tr>
+                            <td class="text-center"><%= race_result.position_order %></td>
+                            <td class="text-center">
+                                <% if race_result.display_gained_elo? %>
+                                    <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
+                                <% else %>
+                                    <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
+                                <% end %>
+                            </td>
+                            <td class="text-center"><%= race_result.display_old_elo&.round %></td>
+                            <td class="text-center"><i class="fa-solid fa-caret-right"></i></td>
+                            <td class="text-center <%= 'underline' if race_result.driver.display_peak_elo == race_result.display_new_elo %>"><%= race_result.display_new_elo&.round %></td>
+                            <td class="text-center <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>"><%= race_result.status.status_type %></td>
+                            <td class="text-center">
+                                <%= link_to constructor_path(race_result.constructor) do %>
+                                    <% if race_result.constructor.logo_url.present? %>
+                                        <img src="<%= race_result.constructor.logo_url %>" alt="<%= race_result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                    <% else %>
+                                        <span class="text-secondary"><%= race_result.constructor.name %></span>
+                                    <% end %>
+                                <% end %>
+                            </td>
+                            <td><%= link_to race_result.race.circuit.name, circuit_path(race_result.race.circuit) %></td>
+                            <td><%= race_result.race.date.strftime("%b %d, %Y") %></td>
+                            <td><%= link_to "Round #{race_result.race.round}", race_path(race_result.race) %></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+            </div>
+        </div>
     </div>
+</div>
 </div>

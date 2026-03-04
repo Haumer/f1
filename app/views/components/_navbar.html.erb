@@ -1,21 +1,68 @@
-<div class="navbar">
+<nav class="navbar" data-controller="navbar" aria-label="Main navigation">
     <div class="home">
-        <%= link_to "home", root_path %>
+        <%= link_to "F1 ELO", root_path %>
     </div>
-    <div class="links">
-        <%= link_to "drivers", drivers_path %>
-        <%= link_to "peak_elo", peak_elo_drivers_path %>
-        <%= link_to "highest_elo", highest_elo_races_path %>
-        <%= link_to "races", races_path %>
-        <%= link_to "current active elo", current_active_elo_drivers_path %>
-        <%= link_to "winners", winners_races_path %>
-        <%= link_to "seasons", seasons_path %>
-        <%= link_to "circuits", circuits_path %>
+    <button class="menu-toggle" data-action="click->navbar#toggleMenu" aria-label="Toggle navigation menu" aria-expanded="false" data-navbar-target="toggle">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="links" data-navbar-target="links" role="menubar">
+        <%= link_to "Standings", root_path, class: ("active" if current_page?(root_path)), role: "menuitem" %>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/drivers') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Drivers <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "All Drivers", drivers_path, class: ("active" if current_page?(drivers_path)), role: "menuitem" %>
+                <%= link_to "Peak Elo", peak_elo_drivers_path, class: ("active" if current_page?(peak_elo_drivers_path)), role: "menuitem" %>
+                <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
+                <%= link_to "Podium Leaders", podiums_races_path, class: ("active" if current_page?(podiums_races_path)), role: "menuitem" %>
+                <%= link_to "Compare", compare_drivers_path, class: ("active" if current_page?(compare_drivers_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/constructors') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Constructors <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "All Constructors", constructors_path, class: ("active" if current_page?(constructors_path)), role: "menuitem" %>
+                <%= link_to "Elo Rankings", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
+                <%= link_to "Team Lineages", families_constructors_path, class: ("active" if current_page?(families_constructors_path)), role: "menuitem" %>
+                <%= link_to "Best Pairings", best_pairings_constructors_path, class: ("active" if current_page?(best_pairings_constructors_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/seasons') || current_page?(winners_races_path) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Seasons <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "All Seasons", seasons_path, class: ("active" if current_page?(seasons_path)), role: "menuitem" %>
+                <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/stats') || current_page?(highest_elo_races_path) || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Stats <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
+                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
+                <%= link_to "Badges", badges_path, class: ("active" if current_page?(badges_path)), role: "menuitem" %>
+                <%= link_to "Circuits", circuits_path, class: ("active" if request.path.start_with?('/circuits')), role: "menuitem" %>
+            </div>
+        </div>
+
+        <%= link_to "About", about_path, class: ("active" if current_page?(about_path)), role: "menuitem" %>
+        <% if current_user %>
+            <%= link_to "Fantasy", new_fantasy_portfolio_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+        <% end %>
+        <% if current_user&.admin? %>
+            <%= link_to admin_root_path, class: "admin-link", "aria-label": "Admin panel" do %>
+                <i class="fa-solid fa-lock"></i>
+            <% end %>
+        <% end %>
     </div>
-</div>
-<style>
-.links {
-    display: flex;
-    gap: 16px !important;
-}
-</style>
+</nav>

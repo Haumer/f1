@@ -1,17 +1,21 @@
-<div class="layout-grid">
-    <div class="grid-sidebar">
-        <%=  simple_form_for :search, url: drivers_path, method: :get, data: { 
-                controller: "search-form", 
-                search_form_target: "form", 
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>All Drivers</h3>
+    </div>
+    <div class="driver-search-wrapper">
+        <%= simple_form_for :search, url: drivers_path, method: :get, html: { class: "search-form" }, data: {
+                controller: "search-form",
+                search_form_target: "form",
                 turbo_frame: "drivers",
                 turbo_action: "advance",
                 action: "input->search-form#submit"
             } do |f| %>
-            <%= f.input :query,placeholder: "Search by name",
-                class: "border border-blue-500 rounded p-2",
+            <%= f.input :query, placeholder: "Search by name",
                 autocomplete: "off",
+                label: false,
+                input_html: { class: "driver-search-input" },
                 data: { action: "input->search-form#search" } %>
-            <%= f.submit %>
+            <%= f.submit class: "visually-hidden", tabindex: "-1" %>
         <% end %>
     </div>
     <%= turbo_frame_tag "drivers" do %>

@@ -1,0 +1,26 @@
+<% if portfolio %>
+    <%= link_to fantasy_portfolio_path(portfolio), class: "card fantasy-mini-card" do %>
+        <div class="fantasy-mini-header">
+            <i class="fa-solid fa-chess-knight"></i>
+            <span>Fantasy F1</span>
+        </div>
+        <div class="fantasy-mini-stats">
+            <div class="fantasy-mini-stat">
+                <span class="label">Value</span>
+                <span class="value"><%= portfolio.portfolio_value.round(0) %></span>
+            </div>
+            <div class="fantasy-mini-stat">
+                <span class="label">P&L</span>
+                <% pl = portfolio.profit_loss %>
+                <span class="value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                    <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+                </span>
+            </div>
+            <div class="fantasy-mini-drivers">
+                <% portfolio.active_roster_entries.includes(:driver).each do |entry| %>
+                    <span class="fantasy-mini-driver"><%= entry.driver.surname %></span>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+<% end %>

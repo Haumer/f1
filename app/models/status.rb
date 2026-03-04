@@ -20,6 +20,18 @@ class Status < ApplicationRecord
         status_type.in?(ACCIDENT_REASONS)
     end
 
+    def retired?
+        status_type.in?(RETIRED_REASONS)
+    end
+
+    def health?
+        status_type.in?(DRIVER_HEALTH_REASONS)
+    end
+
+    def did_not_start?
+        status_type.in?(DID_NOT_START_REASONS)
+    end
+
     TECHNICAL_REASONS = [
         "Engine",
         "Gearbox",
@@ -98,19 +110,48 @@ class Status < ApplicationRecord
         "Safety belt",
         "Oil pressure",
         "Brake duct",
+        "Out of fuel",
+        "ERS",
+        "Drivetrain",
+        "Fuel",
+        "Magneto",
+        "Refuelling",
+        "Stalled",
     ]
 
     DRIVER_HEALTH_REASONS = [
         "Injured",
         "Driver unwell",
-        "Fatal accident",
         "Eye injury",
         "Illness",
+        "Injury",
+    ]
+
+    # Generic retirements that don't fit other categories
+    RETIRED_REASONS = [
+        "Retired",
+        "Withdrew",
+        "Not classified",
+        "Not restarted",
+        "Safety",
+        "Safety concerns",
+    ]
+
+    # Driver never started the race
+    DID_NOT_START_REASONS = [
+        "Did not qualify",
+        "Did not prequalify",
+        "Did not start",
+        "107% Rule",
+        "Excluded",
+        "Underweight",
     ]
 
     ACCIDENT_REASONS = [
         "Accident",
         "Collision",
+        "Spun off",
+        "Fatal accident",
     ]
 
     LAPPED_REASONS = [
@@ -147,6 +188,7 @@ class Status < ApplicationRecord
         "+12 Laps",
         "+26 Laps",
         "+10 Laps",
+        "Lapped",
     ]
     OTHER_REASONS = [
         "ERS",

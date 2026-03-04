@@ -1,0 +1,41 @@
+<h2>Admin Dashboard</h2>
+
+<div class="admin-stats-grid">
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @total_drivers %></div>
+    <div class="admin-stat-label">Total Drivers</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @active_drivers %></div>
+    <div class="admin-stat-label">Active Drivers</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @total_races %></div>
+    <div class="admin-stat-label">Total Races</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @total_seasons %></div>
+    <div class="admin-stat-label">Seasons</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @elo_version.upcase %></div>
+    <div class="admin-stat-label">Elo Version</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @v2_populated ? "Yes" : "No" %></div>
+    <div class="admin-stat-label">V2 Data</div>
+  </div>
+</div>
+
+<div class="admin-cards-row">
+  <div class="admin-card">
+    <h3><i class="fa-solid fa-sliders"></i> Settings</h3>
+    <p>Toggle Elo version, view V2 parameters.</p>
+    <%= link_to "Go to Settings", admin_settings_path, class: "admin-btn" %>
+  </div>
+  <div class="admin-card">
+    <h3><i class="fa-solid fa-gears"></i> Operations</h3>
+    <p>Sync data, re-simulate Elo, backfill stats.</p>
+    <%= link_to "Go to Operations", admin_operations_path, class: "admin-btn" %>
+  </div>
+</div>

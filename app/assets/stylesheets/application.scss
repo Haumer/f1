@@ -13,72 +13,1117 @@
 
 @import "drivers/show";
 @import "race_results/race_result";
+@import "admin/admin";
+@import "fantasy/fantasy";
 
+// Formula 1 fonts
+@font-face {
+    font-family: "Formula1";
+    src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
+    font-weight: 400;
+}
+@font-face {
+    font-family: "Formula1";
+    src: url("fonts/Formula1-Bold-4.ttf") format("truetype");
+    font-weight: 700;
+}
+@font-face {
+    font-family: "Formula1-Wide";
+    src: url("fonts/Formula1-Wide.ttf") format("truetype");
+    font-weight: 700;
+}
+
+// Turbo progress bar
+.turbo-progress-bar {
+    background-color: var(--page-accent, $accent-red);
+    height: 3px;
+}
+
+// Global styles
+body {
+    background-color: $bg-page;
+    color: $text-primary;
+    font-family: $body-font;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; // Prevent scrollbar from full-bleed sections
+}
+
+div, td, th, span, p, a {
+    font-family: $body-font;
+}
+
+a {
+    color: $text-primary;
+    text-decoration: none;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
+// Focus-visible for accessibility
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--page-accent, $accent-red);
+    outline-offset: 2px;
+}
+
+// Card component
+.card {
+    background: $bg-card;
+    border-radius: $radius-md;
+    // Layered shadow for depth
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid $border-color;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: box-shadow 0.2s ease;
+}
+
+.card.card-flush {
+    padding: 0;
+    overflow: hidden;
+}
+
+// Table styles
+table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    thead th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+        border-bottom: 2px solid $border-color;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid lighten($border-color, 5%);
+        transition: background-color 0.15s;
+        &:hover { background-color: $light-gray; }
+    }
+}
+
+// Table scroll wrapper for mobile
+.table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+// Layout grid (driver show)
+.layout-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// 8-column race result grid
 .grid {
     display: grid;
     grid-template-rows: 1fr;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-    width: 80vw;
+    grid-template-columns: repeat(8, 1fr);
 }
 .grid-item {
-    padding: 0 16px
+    padding: 4px 12px;
 }
 .old-elo, .new-elo {
     width: 52px;
 }
 
-.layout-grid {
-    display: grid;
-    grid-template-rows: 1fr;
-    grid-template-columns: 1fr 4fr;
+// Standings table
+.current-driver-standings {
+    td {
+        padding: 6px 10px;
+        font-variant-numeric: tabular-nums;
+    }
+    tbody tr:nth-child(odd) { background-color: $light-gray; }
+    tbody tr:hover { background-color: darken($light-gray, 5%); }
+
+    // Position column
+    .position-cell {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    // Icon cells fixed width
+    .icon-cell {
+        width: 36px;
+        min-width: 36px;
+        text-align: center;
+        padding: 5px 4px;
+    }
+
+    // Multiple constructor logos side by side
+    .constructor-logos {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: auto;
+        min-width: auto;
+        a { display: inline-flex; }
+    }
+
+    // Driver name no wrap
+    td:nth-child(4) {
+        white-space: nowrap;
+    }
+
+    // Top-3 podium highlighting
+    tbody tr { border-left: 3px solid transparent; }
+    tbody tr.podium-p1 { border-left-color: $gold; }
+    tbody tr.podium-p2 { border-left-color: $silver; }
+    tbody tr.podium-p3 { border-left-color: $bronze; }
+
+    // Driver name hover
+    td a:hover {
+        text-decoration: underline;
+        color: var(--page-accent, $accent-red);
+    }
+
+    .constructor-logo-sm {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+        vertical-align: middle;
+    }
+
+    &.compact {
+        font-size: 13px;
+        td, th { padding: 5px 8px; }
+    }
 }
 
-body {
-    background-color: white;
+// Elo diff bold
+.text-green, .text-red {
+    font-weight: 700;
 }
 
-@font-face {
-    font-family: "Formula1-Wide";
-    src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
-    font-weight: 600;
-}
-@font-face {
-    font-family: "Formula1-Wide";
-    src: url("fonts/Formula1-Bold-4.ttf") format("truetype");
-    font-weight: 900;
-    src: url("fonts/Formula1-Black.ttf") format("truetype");
-    src: url("fonts/Formula1-Bold_web.ttf") format("truetype");
-    src: url("fonts/Formula1-Italic.ttf") format("truetype");
-    src: url("fonts/Formula1-Wide.ttf") format("truetype");
-}
-@font-face {
-    font-family: "Formula1-Wide";
-    src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
-}
-$torque-font: "Formula1-Wide";
-
-div {
-    font-family: 'Formula1-Wide' !important;
-    font-weight: regular;
+// Home
+.homepage-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-bottom: 48px;
 }
 
+.hero-intro {
+    text-align: center;
+    padding: 48px 0 40px;
+    margin-bottom: 40px;
+    position: relative;
+
+    // Thin accent line beneath hero
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 64px;
+        height: 3px;
+        background: var(--page-accent, $accent-red);
+        border-radius: 2px;
+    }
+
+    h1 {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 40px;
+        margin: 0 0 8px;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+    }
+    .subtitle {
+        font-size: 15px;
+        color: $text-secondary;
+        margin: 0;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.5;
+    }
+
+    // Season year as an oversized faded background element
+    .hero-season-year {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 160px;
+        font-weight: 700;
+        color: rgba(0, 0, 0, 0.03);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+    }
+
+    // Keep text above the watermark
+    h1, .subtitle {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid $border-color;
+    h3 {
+        margin: 0;
+        font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    }
+}
+
+.table-header-link {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    h3 {
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    i { font-size: 14px; transition: transform 0.15s; }
+    &:hover i { transform: translateX(4px); }
+    &:hover h3 { color: var(--page-accent, $accent-red); }
+}
+
+// Empty state
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: $text-secondary;
+    i { font-size: 32px; margin-bottom: 12px; display: block; }
+    h3 { margin: 0 0 8px; color: $text-primary; }
+    p { margin: 0; font-size: 14px; }
+}
+
+// Underline for peak elo
 .underline {
     text-decoration: underline;
     color: $gold;
 }
-.current-driver-standings td {
-    padding: 4px 8px;
-}
-.homepage-container {
-    width: 100%;
+
+// Season page
+.season-nav {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    a {
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: $radius-sm;
+        border: 1px solid $border-color;
+        transition: all 0.15s;
+        &:hover {
+            border-color: var(--page-accent, $accent-red);
+            color: var(--page-accent, $accent-red);
+            background: color-mix(in srgb, var(--page-accent, $accent-red) 4%, transparent);
+        }
+    }
+    h2 { margin: 0; font-family: 'Formula1-Wide', sans-serif; }
+}
+
+// Chart container
+.chart-container {
+    background: $bg-card;
+    border-radius: $radius-md;
+    border: 1px solid $border-color;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+// Video embed responsive wrapper
+.video-embed {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    margin-bottom: 24px;
+    border-radius: $radius-md;
+    iframe {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        border: 0;
+    }
+}
+
+// Seasons index
+.seasons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+.season-card {
+    text-align: center;
+    padding: 16px;
+    border-top: 3px solid var(--card-accent, transparent);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    &:hover {
+        border-color: var(--card-accent, var(--page-accent, $accent-red));
+        border-top-color: var(--card-accent, var(--page-accent, $accent-red));
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        .season-year { color: var(--card-accent, var(--page-accent, $accent-red)); }
+        .season-stats { color: darken($text-secondary, 15%); }
+    }
+    .season-year {
+        display: block;
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .season-stats {
+        font-size: 12px;
+        color: $text-secondary;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    &.is-current {
+        border-color: var(--card-accent, var(--page-accent, $accent-red));
+        border-top-color: var(--card-accent, var(--page-accent, $accent-red));
+        border-width: 2px;
+        border-top-width: 3px;
+        position: relative;
+        &::after {
+            content: 'Current';
+            position: absolute;
+            top: -8px;
+            right: 8px;
+            background: var(--card-accent, var(--page-accent, $accent-red));
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+    }
+}
+
+// Races index
+.season-group {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.season-year-label {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: $text-secondary;
+    display: flex;
+    align-items: center;
+    min-width: 40px;
+}
+.races-table {
+    flex: 1;
+    td.driver { width: 200px; }
+    td.race { width: 80px; }
+    td.circuit { color: $text-secondary; }
+    tr { border-bottom: 1px solid $border-color; }
+}
+
+// Race show
+.race-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    h2 { margin: 0; }
+}
+.race-nav {
+    display: flex;
+    gap: 12px;
+}
+table.race-results {
+    .race-result-cell { width: 120px; }
+    tr:nth-child(-n+4) td:first-child {
+        font-weight: 700;
+    }
+}
+
+// Peak elo page
+.peak-elo-drivers {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+}
+.peak-elo-driver {
+    padding: 8px 12px;
+    background: $bg-card;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    a { font-size: 13px; }
+}
+
+// Season champion on season cards
+.season-champion {
+    font-size: 11px;
+    color: $gold;
+    font-weight: 700;
+    margin-top: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    i { margin-right: 3px; font-size: 10px; }
+}
+
+// Chart title
+.chart-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+    margin: 0 0 8px;
+}
+
+// Compare page
+.compare-search-card {
+    position: relative;
+    margin-bottom: 24px;
+}
+.compare-input-wrapper {
+    position: relative;
+}
+.compare-suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-top: none;
+    border-radius: 0 0 $radius-md $radius-md;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+    &.open { display: block; }
+}
+.suggestion-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    &:hover { background: $light-gray; color: var(--page-accent, $accent-red); }
+    .suggestion-elo {
+        font-size: 11px;
+        color: $text-secondary;
+        font-variant-numeric: tabular-nums;
+    }
+}
+.compare-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.compare-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: color-mix(in srgb, var(--page-accent, $accent-red) 8%, transparent);
+    color: var(--page-accent, $accent-red);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    button {
+        background: none;
+        border: none;
+        color: var(--page-accent, $accent-red);
+        font-size: 16px;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        &:hover { opacity: 0.7; }
+    }
+}
+.compare-hint {
+    color: $text-secondary;
+    font-size: 13px;
+    margin: 12px 0 0;
+}
+
+// Constructor index grid
+.constructors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.constructor-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 16px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    &:hover {
+        border-color: var(--page-accent, $accent-red);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+}
+.constructor-grid-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+.constructor-grid-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+.constructor-grid-nationality {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+// About / Elo explainer page
+.about-section {
+    h4 {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 16px;
+        margin: 24px 0 8px;
+        &:first-child { margin-top: 0; }
+    }
+    p { line-height: 1.6; margin-bottom: 12px; color: $text-primary; }
+    ul {
+        margin: 8px 0 16px 20px;
+        li { line-height: 1.6; margin-bottom: 6px; }
+    }
+    code {
+        background: $light-gray;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+}
+.elo-tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.elo-tier-card {
+    background: $bg-card;
+    border-radius: $radius-md;
+    border: 1px solid $border-color;
+    padding: 20px;
+    border-top: 3px solid $border-color;
+    &.tier-elite { border-top-color: $gold; }
+    &.tier-world-class { border-top-color: $silver; }
+    &.tier-strong { border-top-color: $green; }
+    .tier-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .tier-range {
+        font-size: 13px;
+        font-weight: 700;
+        color: $text-secondary;
+        font-variant-numeric: tabular-nums;
+    }
+    .tier-description {
+        font-size: 13px;
+        line-height: 1.5;
+        color: $text-secondary;
+        margin-bottom: 12px;
+    }
+    .tier-examples {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .tier-driver {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 8px;
+        background: $light-gray;
+        border-radius: 3px;
+        &:hover { background: darken($light-gray, 5%); }
+    }
+    .tier-elo {
+        font-size: 11px;
+        color: $text-secondary;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+// Constructor families / lineages
+.lineage-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.lineage-card {
+    padding: 20px 24px;
+}
+.lineage-name {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 15px;
+    margin: 0 0 16px;
+}
+.lineage-chain {
+    display: flex;
     flex-direction: column;
 }
-.table, .table-header {
+.lineage-step {
     display: flex;
-    justify-content: space-around;
+    align-items: center;
+    gap: 12px;
 }
-.table-driver {
-    margin-right: 6rem !important;
+.lineage-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid $bg-card;
+    box-shadow: 0 0 0 1px $border-color;
+}
+.lineage-step-content {
+    display: flex;
+    flex-direction: column;
+    .lineage-team-name {
+        font-weight: 700;
+        font-size: 13px;
+    }
+    .lineage-years {
+        font-size: 11px;
+        color: $text-secondary;
+    }
+}
+.lineage-connector {
+    width: 2px;
+    height: 12px;
+    background: $border-color;
+    margin-left: 5px;
+}
+
+.families-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+.family-card {
+    padding: 16px 20px;
+}
+.family-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid $border-color;
+}
+.family-members {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.family-member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 4px 0;
+    &:hover .family-member-name { color: var(--page-accent, $accent-red); }
+}
+.family-member-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.family-member-name {
+    transition: color 0.15s;
+}
+
+// Nationality Grid
+.nationality-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+.nationality-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: $text-primary;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    &:hover { border-color: var(--page-accent, $accent-red); color: $text-primary; }
+}
+.nationality-flag {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+.nationality-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    strong { font-size: 14px; }
+}
+.nationality-count {
+    font-size: 12px;
+    color: $text-secondary;
+}
+.nationality-top {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+.nationality-top-name {
+    font-size: 12px;
+    color: $text-secondary;
+}
+.nationality-top-elo {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+// Back link
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    color: $text-secondary;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
+// Calendar Grid (Circuits index)
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.calendar-race-card {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+
+    &:hover {
+        border-color: var(--page-accent, $accent-red);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+        color: $text-primary;
+    }
+
+    &.calendar-past {
+        opacity: 0.65;
+        &:hover { opacity: 1; }
+    }
+
+    .calendar-accent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .calendar-track {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 56px;
+        height: 56px;
+        opacity: 0.12;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    .calendar-track-svg {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0);
+    }
+
+    &:hover .calendar-track { opacity: 0.25; }
+
+
+    .calendar-round {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 11px;
+        color: $text-secondary;
+        margin-bottom: 8px;
+    }
+
+    .calendar-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .calendar-circuit {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    .calendar-location {
+        font-size: 12px;
+        color: $text-secondary;
+    }
+
+    .calendar-date {
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-secondary;
+        margin-top: 8px;
+    }
+
+    .calendar-winner {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid $border-color;
+        font-size: 12px;
+        font-weight: 700;
+    }
+}
+
+// Circuit table track thumbnails
+.circuit-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.circuit-table-track {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    background: $bg-dark;
+    border-radius: $radius-sm;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.circuit-table-track-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+// Badges index page
+.badge-group {
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-lg;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.badge-group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid $border-color;
+    background: $light-gray;
+}
+
+.badge-group-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.badge-group-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.badge-group-count {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+.badge-group-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    border-bottom: 1px solid lighten($border-color, 5%);
+    font-size: 13px;
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: $light-gray; }
+
+    &.badge-row-gold   { background: rgba($gold, 0.06); }
+    &.badge-row-silver { background: rgba($silver, 0.06); }
+    &.badge-row-bronze { background: rgba($bronze, 0.06); }
+}
+
+.badge-row-rank {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 10px;
+    color: $text-secondary;
+    min-width: 20px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.badge-row-value {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 48px;
+    text-align: center;
+    padding: 3px 8px;
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+}
+
+.badge-row-name {
+    font-weight: 700;
+    white-space: nowrap;
+    min-width: 140px;
+    a { color: $text-primary; &:hover { color: var(--page-accent, $accent-red); } }
+}
+
+.badge-tier-medal {
+    font-size: 12px;
+    margin-right: 2px;
+    &.tier-gold   { color: $gold; }
+    &.tier-silver { color: $silver; }
+    &.tier-bronze { color: $bronze; }
+}
+
+.badge-row-desc {
+    color: $text-secondary;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .badge-row-desc { display: none; }
+    .badge-row-name { min-width: auto; }
+    .badge-row-rank { display: none; }
+}
+
+// Circuit kings component
+.circuit-kings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.circuit-kings-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+    i { color: $gold; margin-right: 4px; }
+}
+
+.circuit-kings-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.circuit-king-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    background: $light-gray;
+    color: $text-secondary;
+    position: relative;
+    cursor: default;
+
+    a { color: inherit; }
+
+    &.tier-gold   { @include tier-gold; }
+    &.tier-silver { @include tier-silver; }
+    &.tier-bronze { @include tier-bronze; }
+
+    .circuit-king-wins {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 10px;
+        opacity: 0.7;
+    }
+
+    // Tooltip
+    &[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        background: $text-primary;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 400;
+        padding: 5px 10px;
+        border-radius: $radius-sm;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s, transform 0.15s;
+        z-index: 9999;
+    }
+    &[data-tooltip]:hover::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }

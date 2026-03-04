@@ -1,34 +1,63 @@
-// Define variables for your color scheme
-
-// For example:
-$red: #cf222e;
+// Core palette
+$red: #e10600;
 $blue: #0D6EFD;
 $yellow: #FFC65A;
 $orange: #E67E22;
 $green: #1f883d;
-$gray: #0E0000;
-$light-gray: #F4F4F4;
+$gray: #6c757d;
+$light-gray: #f5f5f5;
 $gold: #C9B037;
 $silver: #808080;
 $bronze: #cc6633;
 
+// Design system
+$bg-page: #f0f1f3;
+$bg-card: #ffffff;
+$border-color: #e0e0e0;
+$text-primary: #1a1a2e;
+$text-secondary: #6c757d;
+$accent-red: #e10600;
 
-.text-green {
-    color: $green;
+// Dark palette (hero, stats strip)
+$bg-dark: #0d0d1a;
+$bg-dark-card: #1a1a2e;
+$text-on-dark: #ffffff;
+$text-on-dark-muted: rgba(255, 255, 255, 0.5);
+
+// Border radius scale
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+
+// Tier mixins (reusable across badges, chips, etc.)
+@mixin tier-gold {
+    background: rgba($gold, 0.15);
+    color: darken($gold, 10%);
+    box-shadow: 0 0 0 1px $gold;
+}
+@mixin tier-silver {
+    background: rgba($silver, 0.15);
+    color: darken($silver, 35%);
+    box-shadow: 0 0 0 1px $silver;
+}
+@mixin tier-bronze {
+    background: rgba($bronze, 0.15);
+    color: darken($bronze, 10%);
+    box-shadow: 0 0 0 1px $bronze;
 }
 
-.text-red {
-    color: $red;
+// Hero accent line mixin
+@mixin hero-accent-line($color, $width: 96px) {
+    &::after {
+        background: $color;
+        width: $width;
+    }
 }
 
-.place-1 {
-    color: $gold;
-}
+// Utility classes
+.text-green { color: $green; }
+.text-red { color: $red; }
 
-.place-2 {
-    color: $silver;
-}
-
-.place-3 {
-    color: $bronze;
-}
+.place-1 { color: $gold; }
+.place-2 { color: $silver; }
+.place-3 { color: $bronze; }

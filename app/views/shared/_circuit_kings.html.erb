@@ -1,0 +1,13 @@
+<% if circuit_kings.present? %>
+    <div class="circuit-kings">
+        <span class="circuit-kings-label"><i class="fa-solid fa-crown"></i> Kings of this circuit</span>
+        <div class="circuit-kings-list">
+            <% circuit_kings.each do |badge| %>
+                <span class="circuit-king-chip<%= " tier-#{badge.tier}" if badge.tier %>" data-tooltip="<%= badge.description %>">
+                    <%= link_to "#{badge.driver.forename[0]}.#{badge.driver.surname}", driver_path(badge.driver) %>
+                    <span class="circuit-king-wins"><%= badge.value %></span>
+                </span>
+            <% end %>
+        </div>
+    </div>
+<% end %>

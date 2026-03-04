@@ -1,6 +1,18 @@
 class UpdateActiveDrivers
     def self.update_season
-        Driver.active.each { |driver| driver.update(active: false) }
-        Season.last.season_drivers.each { |season_driver| season_driver.driver.update(active: true) }
+        ActiveRecord::Base.transaction do
+            Driver.where(active: true).update_all(active: false)
+
+            # Active = has race results in the latest season with results
+            latest_season = Season.sorted_by_year.joins(races: :race_results).distinct.first
+            return unless latest_season
+
+            active_ids = RaceResult.joins(:race)
+                                   .where(races: { season_id: latest_season.id })
+                                   .distinct
+                                   .pluck(:driver_id)
+
+            Driver.where(id: active_ids).update_all(active: true)
+        end
     end
 end

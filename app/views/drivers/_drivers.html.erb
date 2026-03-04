@@ -1,13 +1,51 @@
-<div class="grid-main">
-    <% drivers.each do |driver| %>
-        <%= link_to driver_path(driver), data: { turbo: false } do %>
-            <%= driver.forename %> <%= driver.surname %>
-        <% end %>
-        <% driver.constructors.uniq.each do |constructor| %>
-            <%= link_to constructor_path(constructor) do %>
-                <%= constructor.name %> 
-            <% end %>
-        <% end %>
-        <br>
-    <% end %>
-</div>
+<% if drivers.any? %>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th></th>
+                        <th>Driver</th>
+                        <th></th>
+                        <th class="text-center">Peak Elo</th>
+                        <th class="text-center">Races</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% drivers.each_with_index do |driver, idx| %>
+                        <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                            <td class="text-center position-cell"><%= idx + 1 %></td>
+                            <td class="icon-cell">
+                                <% if driver.country.present? %>
+                                    <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td>
+                                <%= link_to driver_path(driver), data: { turbo: false } do %>
+                                    <%= driver.forename[0] %>.<%= driver.surname %>
+                                <% end %>
+                            </td>
+                            <td class="icon-cell">
+                                <% constructor = driver.current_constructor || driver.season_drivers.last&.constructor %>
+                                <% if constructor&.logo_url.present? %>
+                                    <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                            <td class="text-center"><%= driver.race_count %></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<% else %>
+    <div class="card">
+        <div class="empty-state">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <h3>No drivers found</h3>
+            <p>Try a different search term or clear your search.</p>
+        </div>
+    </div>
+<% end %>

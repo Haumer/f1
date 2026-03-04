@@ -1,0 +1,51 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Constructors</h3>
+    </div>
+
+    <% if @active_constructors.any? %>
+        <div class="table-header"><h4>Current Grid</h4></div>
+        <div class="constructors-grid">
+            <% @active_constructors.each do |constructor| %>
+                <%= link_to constructor_path(constructor), class: "constructor-grid-item card" do %>
+                    <% if constructor.logo_url.present? %>
+                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-grid-logo" loading="lazy" onerror="this.style.display='none'">
+                    <% end %>
+                    <span class="constructor-grid-name"><%= constructor.name %></span>
+                    <span class="constructor-grid-nationality"><%= constructor.nationality %></span>
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
+
+    <% if @historical_constructors.any? %>
+        <div class="table-header" style="margin-top: 16px;"><h4>Historical Constructors</h4></div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th>Constructor</th>
+                            <th>Nationality</th>
+                            <th class="text-center">Races</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @historical_constructors.each do |constructor| %>
+                            <tr>
+                                <td>
+                                    <% if constructor.logo_url.present? %>
+                                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" style="vertical-align: middle; margin-right: 4px;">
+                                    <% end %>
+                                    <%= link_to constructor.name, constructor_path(constructor) %>
+                                </td>
+                                <td class="text-secondary"><%= constructor.nationality %></td>
+                                <td class="text-center"><%= constructor.race_count %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+</div>

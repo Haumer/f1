@@ -1,0 +1,77 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Drivers By Nationality</h3>
+    </div>
+
+    <% if @selected_nationality %>
+        <div style="margin-bottom: 16px;">
+            <%= link_to "← All Nationalities", by_nationality_drivers_path, class: "back-link" %>
+        </div>
+
+        <div class="table-header">
+            <h3><%= @selected_nationality %></h3>
+        </div>
+
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>Driver</th>
+                            <th></th>
+                            <th class="text-center">Peak Elo</th>
+                            <th class="text-center">Tier</th>
+                            <th class="text-center">Current Elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @country_drivers.each_with_index do |driver, idx| %>
+                            <tr>
+                                <td class="text-center"><%= idx + 1 %></td>
+                                <td>
+                                    <%= link_to driver_path(driver) do %>
+                                        <%= driver.forename %> <%= driver.surname %>
+                                    <% end %>
+                                </td>
+                                <td class="icon-cell">
+                                    <% constructor = driver.current_constructor || driver.season_drivers.last&.constructor %>
+                                    <% if constructor&.logo_url.present? %>
+                                        <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                                <td class="text-center">
+                                    <% tier = elo_tier(driver.display_peak_elo) %>
+                                    <% if tier %>
+                                        <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><%= driver.active? ? driver.display_elo&.round : "—" %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+
+    <div class="nationality-grid">
+        <% @nationalities.each do |nat| %>
+            <%= link_to by_nationality_drivers_path(nationality: nat[:nationality]), class: "nationality-card card" do %>
+                <div class="nationality-info">
+                    <strong><%= nat[:nationality] %></strong>
+                    <span class="nationality-count"><%= nat[:count] %> driver<%= nat[:count] == 1 ? '' : 's' %></span>
+                </div>
+                <div class="nationality-top">
+                    <span class="nationality-top-name"><%= nat[:top_driver].forename[0] %>.<%= nat[:top_driver].surname %></span>
+                    <span class="nationality-top-elo"><%= nat[:top_peak_elo] %></span>
+                    <% tier = elo_tier(nat[:top_peak_elo]) %>
+                    <% if tier %>
+                        <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
+                    <% end %>
+                </div>
+            <% end %>
+        <% end %>
+    </div>
+</div>

@@ -1,13 +1,17 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.1.2"
+ruby "3.3.5"
+
+# Ruby 3.3.5 removed logger from stdlib defaults; Rails 7.0.x needs it explicitly
+gem 'logger'
 
 # gem 'chartkick'
 gem "rails_charts"
 gem 'blazer'
 gem 'yt'
 gem 'pg_search'
+gem 'devise'
 gem 'wikipedia-client'
 gem "rails_live_reload"
 

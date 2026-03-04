@@ -3,32 +3,37 @@ class UpdateDriverStanding
         @driver = driver
         @season = season
         @races = season.races.sorted
-        @driver_standings = driver.driver_standings.where(race_id: @races.pluck(:id))
-        @race_results = driver.race_results.where(race_id: @races.pluck(:id))
+        race_ids = @races.pluck(:id)
+        @driver_standings = driver.driver_standings.where(race_id: race_ids)
+        @race_results = driver.race_results.where(race_id: race_ids).includes(:status)
     end
 
     def update
         zip.each do |race, data|
-            first_places = data[:cumulative_race_results].count {|rr| rr.position_order == 1}
-            second_places = data[:cumulative_race_results].count {|rr| rr.position_order == 2}
-            third_places = data[:cumulative_race_results].count {|rr| rr.position_order == 3}
-            fourth_places = data[:cumulative_race_results].count {|rr| rr.position_order == 4}
-            fifth_places = data[:cumulative_race_results].count {|rr| rr.position_order == 5}
-            sixth_places = data[:cumulative_race_results].count {|rr| rr.position_order == 6}
-            seventh_places = data[:cumulative_race_results].count {|rr| rr.position_order == 7}
-            eighth_places = data[:cumulative_race_results].count {|rr| rr.position_order == 8}
-            nineth_places = data[:cumulative_race_results].count {|rr| rr.position_order == 9}
-            tenth_places = data[:cumulative_race_results].count {|rr| rr.position_order == 10}
-            outside_of_top_ten = data[:cumulative_race_results].count {|rr| rr.position_order > 10}
-            podiums = third_places + second_places + first_places
-            
-            crash_races = data[:cumulative_race_results].count {|rr| rr.status.accident?}
-            technichal_failures_races = data[:cumulative_race_results].count {|rr| rr.status.technical?}
-            disqualified_races = data[:cumulative_race_results].count {|rr| rr.status.disqualified?}
-            lapped_races = data[:cumulative_race_results].count {|rr| rr.status.lapped?}
-            finished_races = data[:cumulative_race_results].count {|rr| rr.status.finished?}
+            results = data[:cumulative_race_results]
+
+            position_counts = results.group_by(&:position_order)
+            first_places = position_counts[1]&.size || 0
+            second_places = position_counts[2]&.size || 0
+            third_places = position_counts[3]&.size || 0
+            fourth_places = position_counts[4]&.size || 0
+            fifth_places = position_counts[5]&.size || 0
+            sixth_places = position_counts[6]&.size || 0
+            seventh_places = position_counts[7]&.size || 0
+            eighth_places = position_counts[8]&.size || 0
+            nineth_places = position_counts[9]&.size || 0
+            tenth_places = position_counts[10]&.size || 0
+            outside_of_top_ten = results.count { |rr| rr.position_order > 10 }
+            podiums = first_places + second_places + third_places
+
+            crash_races = results.count { |rr| rr.status&.accident? }
+            technichal_failures_races = results.count { |rr| rr.status&.technical? }
+            disqualified_races = results.count { |rr| rr.status&.disqualified? }
+            lapped_races = results.count { |rr| rr.status&.lapped? }
+            finished_races = results.count { |rr| rr.status&.finished? }
 
             data[:driver_standing].update(
+                wins: first_places,
                 second_places: second_places,
                 third_places: third_places,
                 fourth_places: fourth_places,

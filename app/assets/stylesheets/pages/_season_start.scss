@@ -1,0 +1,847 @@
+// ═══════════════════════════════════════════
+// Season Start Landing Page
+// Dark hero, podium cards, stats strip, duo rankings
+// ═══════════════════════════════════════════
+
+// ───────────────────────────────────────────
+// 1. DARK HERO
+// ───────────────────────────────────────────
+.season-start-hero-wrapper {
+  margin: 0 calc(-50vw + 50%);
+  padding: 0 calc(50vw - 50%);
+  background: linear-gradient(180deg, $bg-dark 0%, $bg-dark-card 60%, $bg-page 100%);
+  position: relative;
+  overflow: hidden;
+
+  // Grid pattern overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+.season-start-hero {
+  padding: 100px 0 80px;
+  margin-bottom: 0;
+  color: $text-on-dark;
+  position: relative;
+  overflow: visible;
+
+  &::after {
+    background: var(--page-accent, $accent-red);
+    width: 80px;
+    height: 4px;
+    opacity: 0;
+    animation: fade-up 0.5s ease-out 0.8s forwards;
+  }
+
+  // Accent glow — pumped up
+  .hero-glow {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 600px;
+    background: radial-gradient(
+      ellipse,
+      color-mix(in srgb, var(--page-accent, $accent-red) 18%, transparent),
+      color-mix(in srgb, var(--page-accent, $accent-red) 5%, transparent) 50%,
+      transparent 75%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .season-start-label {
+    display: inline-block;
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--page-accent, $accent-red);
+    margin-bottom: 16px;
+    padding: 5px 16px;
+    border: 1px solid color-mix(in srgb, var(--page-accent, $accent-red) 30%, transparent);
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+    animation: fade-up 0.4s ease-out 0.1s both;
+  }
+
+  .hero-season-year {
+    font-size: 320px;
+    animation: watermark-fade 1.2s ease-out forwards;
+    opacity: 0;
+    // Outline-only on dark background
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.05);
+    color: transparent;
+  }
+
+  h1 {
+    font-size: 60px;
+    letter-spacing: -2px;
+    animation: fade-up 0.6s ease-out 0.2s both;
+    position: relative;
+    z-index: 1;
+
+    // Accent line under heading
+    &::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 4px;
+      background: var(--page-accent, $accent-red);
+      margin: 20px auto 0;
+      border-radius: 2px;
+      animation: line-grow 0.8s ease-out 0.6s forwards;
+    }
+  }
+
+  .subtitle {
+    font-size: 16px;
+    margin-top: 12px;
+    color: $text-on-dark-muted;
+    animation: fade-up 0.6s ease-out 0.35s both;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@keyframes watermark-fade {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes line-grow {
+  from { width: 0; }
+  to   { width: 80px; }
+}
+
+// Countdown Blocks — glass on dark
+.season-start-hero .countdown-blocks {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 40px;
+  animation: fade-up 0.6s ease-out 0.5s both;
+  position: relative;
+  z-index: 1;
+}
+
+.season-start-hero .countdown-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  padding: 20px 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--page-accent, $accent-red) 30%, transparent);
+  }
+}
+
+.season-start-hero .countdown-number {
+  font-family: 'Formula1-Wide', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: $text-on-dark;
+}
+
+.season-start-hero .countdown-unit {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: $text-on-dark-muted;
+  margin-top: 6px;
+}
+
+.season-start-hero .countdown-separator {
+  font-family: 'Formula1-Wide', sans-serif;
+  font-size: 24px;
+  color: $text-on-dark-muted;
+  opacity: 0.3;
+  align-self: center;
+  line-height: 1;
+  margin-top: -4px;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+// CTA Button — filled accent on dark
+.season-start-hero .hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  padding: 12px 28px;
+  background: var(--page-accent, $accent-red);
+  border: none;
+  border-radius: $radius-sm;
+  transition: all 0.2s;
+  animation: fade-up 0.6s ease-out 0.7s both;
+  position: relative;
+  z-index: 1;
+
+  i { font-size: 11px; transition: transform 0.2s ease; }
+  &:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--page-accent, $accent-red) 35%, transparent);
+  }
+  &:hover i { transform: translateX(4px); }
+}
+
+// ───────────────────────────────────────────
+// 2. PODIUM CARDS (Top 3)
+// ───────────────────────────────────────────
+.power-rankings-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-areas: "p2 p1 p3";
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: fade-up 0.5s ease-out 0.1s both;
+}
+
+.power-podium-card {
+  background: $bg-card;
+  border-radius: $radius-md;
+  border: 1px solid $border-color;
+  text-align: center;
+  padding: 28px 20px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  // Constructor-color gradient top bar
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--constructor-color, $border-color);
+  }
+
+  // Subtle tinted background from constructor color
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--constructor-color) 5%, transparent),
+      transparent 50%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * { position: relative; z-index: 1; }
+
+  &.podium-p1 {
+    grid-area: p1;
+    padding: 36px 24px 28px;
+    border-color: color-mix(in srgb, var(--constructor-color) 20%, $border-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+    &::before { height: 5px; }
+  }
+  &.podium-p2 { grid-area: p2; align-self: end; }
+  &.podium-p3 { grid-area: p3; align-self: end; }
+
+  .podium-rank {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    display: block;
+    margin-bottom: 12px;
+
+    .podium-p1 & { font-size: 40px; color: $gold; }
+    .podium-p2 & { color: $silver; }
+    .podium-p3 & { color: $bronze; }
+  }
+
+  .podium-driver-name {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 15px;
+    display: block;
+    margin-bottom: 8px;
+
+    .podium-p1 & { font-size: 18px; }
+
+    a {
+      color: inherit;
+      transition: color 0.15s;
+      &:hover { color: var(--constructor-color, var(--page-accent, $accent-red)); }
+    }
+  }
+
+  .podium-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .podium-constructor-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    .podium-p1 & { width: 32px; height: 32px; }
+  }
+
+  .podium-elo {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    display: block;
+
+    .podium-p1 & { font-size: 32px; }
+  }
+}
+
+// ───────────────────────────────────────────
+// 3. DARK STATS STRIP
+// ───────────────────────────────────────────
+.stats-strip {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 32px 24px;
+  background: $text-primary;
+  border-radius: $radius-md;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  animation: fade-up 0.5s ease-out 0.2s both;
+
+  // Accent glow in corner
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--page-accent, $accent-red) 12%, transparent),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  .stat-item {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+
+    // Vertical divider
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 10%;
+      height: 80%;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .stat-number {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: $text-on-dark;
+    display: block;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-caption {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: $text-on-dark-muted;
+    margin-top: 8px;
+    display: block;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: $text-on-dark-muted;
+    margin-top: 4px;
+    display: block;
+
+    a {
+      color: $text-on-dark-muted;
+      transition: color 0.15s;
+      &:hover { color: var(--page-accent, $accent-red); }
+    }
+  }
+}
+
+// ───────────────────────────────────────────
+// 4. SIDE-BY-SIDE RANKINGS
+// ───────────────────────────────────────────
+.rankings-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: fade-up 0.5s ease-out 0.3s both;
+}
+
+.rankings-duo-card {
+  padding: 24px;
+}
+
+.rankings-duo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border-color;
+
+  h3 {
+    margin: 0;
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 14px;
+    letter-spacing: -0.3px;
+  }
+
+  .rankings-duo-sub {
+    font-size: 11px;
+    color: $text-secondary;
+    font-weight: 500;
+  }
+}
+
+.rankings-duo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: $radius-sm;
+  border-left: 3px solid var(--constructor-color, transparent);
+  background: $light-gray;
+  transition: background 0.15s, transform 0.15s;
+  animation: fade-up 0.3s ease-out both;
+  animation-delay: calc(var(--rank, 0) * 0.04s);
+
+  &:hover {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--constructor-color, $light-gray) 10%, $light-gray),
+      $light-gray 50%
+    );
+    transform: translateX(3px);
+  }
+
+  // Constructor rows: gradient fill from constructor color
+  &.constructor-row {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--constructor-color) 8%, $light-gray),
+      $light-gray 60%
+    );
+    border-left-width: 4px;
+
+    &:hover {
+      background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--constructor-color) 16%, $light-gray),
+        $light-gray 60%
+      );
+    }
+  }
+}
+
+.rank-pos {
+  font-family: 'Formula1-Wide', sans-serif;
+  font-size: 12px;
+  color: $text-secondary;
+  min-width: 20px;
+  text-align: right;
+}
+
+.rank-name {
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  a {
+    color: inherit;
+    transition: color 0.15s;
+    &:hover { color: var(--constructor-color, var(--page-accent, $accent-red)); }
+  }
+}
+
+.rank-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.rank-elo {
+  font-family: 'Formula1-Wide', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
+}
+
+.rankings-duo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: $text-secondary;
+  transition: color 0.15s;
+
+  i { font-size: 10px; transition: transform 0.2s ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(4px); }
+}
+
+// ───────────────────────────────────────────
+// 5. MOMENTUM CHART
+// ───────────────────────────────────────────
+.momentum-chart {
+  margin-bottom: 24px;
+  animation: fade-up 0.5s ease-out 0.35s both;
+
+  .momentum-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+
+    h4 {
+      margin: 0;
+      font-family: 'Formula1-Wide', sans-serif;
+      font-size: 14px;
+    }
+
+    .momentum-chart-sub {
+      font-size: 11px;
+      color: $text-secondary;
+    }
+  }
+}
+
+// ───────────────────────────────────────────
+// 6. SEASON REVIEW
+// ───────────────────────────────────────────
+.season-review {
+  margin-bottom: 32px;
+  animation: fade-up 0.5s ease-out 0.4s both;
+
+  .season-review-header {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: $text-secondary;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $border-color;
+    }
+  }
+}
+
+.season-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.season-review-card {
+  text-align: center;
+  padding: 24px 16px;
+  color: $text-secondary;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: rgba($gold, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+  }
+
+  // Champion card — gold treatment
+  &.champion-review {
+    background: linear-gradient(135deg, rgba($gold, 0.06), $bg-card 60%);
+    border: 1px solid rgba($gold, 0.2);
+    border-top: 3px solid $gold;
+
+    .review-icon {
+      font-size: 28px;
+      color: $gold;
+      text-shadow: 0 0 24px rgba($gold, 0.3);
+    }
+
+    .review-value {
+      font-family: 'Formula1-Wide', sans-serif;
+    }
+  }
+
+  .review-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+    display: block;
+    color: $text-secondary;
+  }
+
+  .review-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .review-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-primary;
+    display: block;
+  }
+
+  .review-detail {
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+  }
+
+  .review-cta {
+    font-size: 12px;
+    font-weight: 700;
+    color: $text-secondary;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 12px;
+    transition: color 0.15s;
+
+    i { font-size: 10px; transition: transform 0.15s; }
+    &:hover { color: $gold; }
+    &:hover i { transform: translateX(3px); }
+  }
+}
+
+// ───────────────────────────────────────────
+// 7. EXPLORE ARCHIVE GRID
+// ───────────────────────────────────────────
+.explore-archive {
+  margin-bottom: 24px;
+  animation: fade-up 0.5s ease-out 0.45s both;
+
+  .explore-header {
+    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: $text-secondary;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $border-color;
+    }
+  }
+}
+
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.explore-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: var(--page-accent, $accent-red);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    color: $text-primary;
+
+    .explore-icon {
+      background: var(--page-accent, $accent-red);
+      color: white;
+    }
+  }
+
+  .explore-icon {
+    font-size: 18px;
+    color: var(--page-accent, $accent-red);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--page-accent, $accent-red) 12%, transparent),
+      color-mix(in srgb, var(--page-accent, $accent-red) 4%, transparent)
+    );
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .explore-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .explore-name {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .explore-desc {
+    font-size: 11px;
+    color: $text-secondary;
+    margin-top: 1px;
+  }
+}
+
+// ───────────────────────────────────────────
+// RESPONSIVE
+// ───────────────────────────────────────────
+@media (max-width: 768px) {
+  .season-start-hero {
+    padding: 64px 0 52px;
+
+    .hero-season-year { font-size: 160px; }
+    h1 { font-size: 36px; letter-spacing: -1px; }
+    .hero-glow { width: 400px; height: 300px; }
+  }
+
+  .season-start-hero .countdown-blocks { gap: 6px; }
+
+  .season-start-hero .countdown-block {
+    min-width: 60px;
+    padding: 14px 8px 10px;
+  }
+
+  .season-start-hero .countdown-number { font-size: 26px; }
+  .season-start-hero .countdown-separator { font-size: 18px; }
+
+  .power-rankings-podium {
+    grid-template-columns: 1fr;
+    grid-template-areas: "p1" "p2" "p3";
+    gap: 12px;
+
+    .power-podium-card {
+      padding: 20px 16px;
+      &.podium-p1 { padding: 24px 20px; }
+      &.podium-p2, &.podium-p3 { align-self: auto; }
+    }
+
+    .podium-rank {
+      font-size: 20px;
+      .podium-p1 & { font-size: 28px; }
+    }
+
+    .podium-elo {
+      font-size: 20px;
+      .podium-p1 & { font-size: 24px; }
+    }
+  }
+
+  .stats-strip {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 24px 16px;
+
+    .stat-item {
+      flex: 1 1 40%;
+      &:not(:last-child)::after { display: none; }
+    }
+
+    .stat-number { font-size: 22px; }
+  }
+
+  .rankings-duo {
+    grid-template-columns: 1fr;
+  }
+
+  .season-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

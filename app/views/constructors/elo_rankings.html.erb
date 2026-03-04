@@ -1,0 +1,48 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Constructor Elo Rankings</h3>
+    </div>
+
+    <% if @top_constructors.any? %>
+        <div class="card">
+            <h4 class="chart-title">Top 10 Constructor Elo Over Time</h4>
+            <%= custom_chart Graphs::ConstructorElo.new(constructors: @top_constructors).data %>
+        </div>
+    <% end %>
+
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th></th>
+                        <th>Constructor</th>
+                        <th class="text-center">Elo</th>
+                        <th class="text-center">Peak</th>
+                        <th>Nationality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @constructors.each_with_index do |constructor, index| %>
+                        <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
+                            <td class="text-center position-cell"><%= index + 1 %></td>
+                            <td class="icon-cell">
+                                <% if constructor.logo_url.present? %>
+                                    <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>"
+                                         class="constructor-logo-sm" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td>
+                                <%= link_to constructor.name, constructor_path(constructor) %>
+                            </td>
+                            <td class="text-center"><%= constructor.display_elo&.round %></td>
+                            <td class="text-center"><%= constructor.display_peak_elo&.round %></td>
+                            <td class="text-secondary"><%= constructor.nationality %></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

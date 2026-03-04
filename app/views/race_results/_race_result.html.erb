@@ -12,16 +12,20 @@
         </div>
     <% end %>
     <div class="race-result-elos grid-item d-flex justify-content-evenly">
-        <span class="left old-elo"><%= race_result.old_elo.round %></span>
+        <span class="left old-elo"><%= race_result.old_elo&.round %></span>
         <span class="center"><i class="fa-solid fa-caret-right"></i></span>
-        <span class="right new-elo <%= 'underline' if race_result.driver.peak_elo == race_result.new_elo %>"><%= race_result.new_elo.round %></span>
+        <span class="right new-elo <%= 'underline' if race_result.driver.peak_elo == race_result.new_elo %>"><%= race_result.new_elo&.round %></span>
     </div>
     <div class="race-result-status-type grid-item text-center <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>">
         <%= race_result.status.status_type %>
     </div>
     <div class="race-result-constructor grid-item text-center">
         <%= link_to constructor_path(race_result.constructor) do %>
-            <img src="<%= race_result.constructor.logo_url %>" alt="" style="width: 32px; height: 32px;">
+            <% if race_result.constructor.logo_url.present? %>
+                <img src="<%= race_result.constructor.logo_url %>" alt="" style="width: 32px; height: 32px;" onerror="this.style.display='none'">
+            <% else %>
+                <%= race_result.constructor.name %>
+            <% end %>
         <% end %>
     </div>
     <div class="race-result-constructor grid-item text-center">

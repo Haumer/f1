@@ -1,0 +1,115 @@
+<h2>Settings</h2>
+
+<div class="admin-card">
+  <h3>Elo Display Version</h3>
+  <p>Switch between the original Elo system (V1) and the adjusted system (V2) with K-factor scaling, grid normalization, and season regression.</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
+    <div class="admin-radio-group">
+      <label class="admin-radio <%= 'selected' if @elo_version == 'v1' %>">
+        <input type="radio" name="elo_version" value="v1" <%= 'checked' if @elo_version == 'v1' %>>
+        <div>
+          <strong>V1 — Original</strong>
+          <span class="admin-radio-desc">Flat K=2 per pair, no regression, starting Elo 1200</span>
+        </div>
+      </label>
+      <label class="admin-radio <%= 'selected' if @elo_version == 'v2' %>">
+        <input type="radio" name="elo_version" value="v2" <%= 'checked' if @elo_version == 'v2' %>>
+        <div>
+          <strong>V2 — Adjusted</strong>
+          <span class="admin-radio-desc">K-factor scaling + grid normalization + season regression</span>
+        </div>
+      </label>
+    </div>
+    <button type="submit" class="admin-btn">Save</button>
+  <% end %>
+</div>
+
+<div class="admin-card">
+  <h3>Date Override</h3>
+  <p>Simulate a different date for the homepage contextual logic (race day, pre-race, post-race). Leave blank for real date.</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <input type="date" name="simulated_date" value="<%= @simulated_date %>" class="admin-input">
+      <button type="submit" class="admin-btn">Set Date</button>
+    </div>
+  <% end %>
+
+  <% if @simulated_date.present? %>
+    <div style="margin-top: 12px;">
+      <span class="admin-radio-desc">Currently simulating: <strong><%= @simulated_date %></strong></span>
+      <%= form_with url: admin_settings_path, method: :patch, style: "display: inline;" do %>
+        <input type="hidden" name="clear_simulated_date" value="1">
+        <button type="submit" class="admin-btn" style="background: #6c757d;">Clear Override</button>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @race_dates.any? %>
+    <details style="margin-top: 16px;">
+      <summary style="cursor: pointer; font-size: 13px; color: #6c757d;">Race Calendar (click to expand)</summary>
+      <table class="admin-params-table" style="margin-top: 8px;">
+        <tbody>
+          <% @race_dates.each do |r| %>
+            <tr>
+              <td class="param-label">R<%= r[:round] %></td>
+              <td class="param-value"><%= r[:date].strftime("%b %d") %></td>
+              <td class="param-desc"><%= r[:circuit] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </details>
+  <% end %>
+</div>
+
+<div class="admin-card">
+  <h3>Badge Minimum Year</h3>
+  <p>Only count races from this year onwards for badge calculations. Pre-<%= @badge_min_year %> races with irregular grid sizes are excluded.</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <input type="number" name="badge_min_year" value="<%= @badge_min_year %>" min="1950" max="2026" class="admin-input" style="width: 100px;">
+      <button type="submit" class="admin-btn">Save</button>
+    </div>
+  <% end %>
+</div>
+
+<div class="admin-card">
+  <h3>V2 Parameters</h3>
+  <table class="admin-params-table">
+    <tbody>
+      <tr>
+        <td class="param-label">Base K-Factor</td>
+        <td class="param-value"><%= EloRatingV2::BASE_K %></td>
+        <td class="param-desc">Per-pair K before normalization</td>
+      </tr>
+      <tr>
+        <td class="param-label">Starting Elo</td>
+        <td class="param-value"><%= EloRatingV2::STARTING_ELO.to_i %></td>
+        <td class="param-desc">Default rating for new drivers</td>
+      </tr>
+      <tr>
+        <td class="param-label">Regression Factor</td>
+        <td class="param-value"><%= (EloRatingV2::REGRESSION_FACTOR * 100).round(1) %>%</td>
+        <td class="param-desc">Season-end pull toward starting Elo</td>
+      </tr>
+      <tr>
+        <td class="param-label">Reference Races</td>
+        <td class="param-value"><%= EloRatingV2::REFERENCE_RACES.to_i %></td>
+        <td class="param-desc">Baseline season length for K scaling</td>
+      </tr>
+      <tr>
+        <td class="param-label">Scale</td>
+        <td class="param-value"><%= EloRatingV2::SCALE.to_i %></td>
+        <td class="param-desc">Rating difference for 10:1 expected win ratio</td>
+      </tr>
+      <tr>
+        <td class="param-label">Grid Normalization</td>
+        <td class="param-value">sqrt(n-1)</td>
+        <td class="param-desc">K divided by sqrt of opponents count</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

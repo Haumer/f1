@@ -1,0 +1,138 @@
+<div class="homepage-container">
+    <div class="fantasy-header">
+        <div>
+            <h2>Fantasy Portfolio</h2>
+            <span class="fantasy-season"><%= @portfolio.season.year %> Season</span>
+        </div>
+        <div class="fantasy-header-actions">
+            <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
+                <i class="fa-solid fa-store"></i> Driver Market
+            <% end %>
+            <%= link_to leaderboard_fantasy_portfolios_path, class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-ranking-star"></i> Leaderboard
+            <% end %>
+        </div>
+    </div>
+
+    <%# Portfolio Summary Cards %>
+    <div class="fantasy-stats-row">
+        <div class="card fantasy-stat-card">
+            <span class="fantasy-stat-label">Portfolio Value</span>
+            <span class="fantasy-stat-value"><%= @portfolio.portfolio_value.round(0) %></span>
+        </div>
+        <div class="card fantasy-stat-card">
+            <span class="fantasy-stat-label">Cash</span>
+            <span class="fantasy-stat-value"><%= @portfolio.cash.round(0) %></span>
+        </div>
+        <div class="card fantasy-stat-card">
+            <span class="fantasy-stat-label">P&L</span>
+            <% pl = @portfolio.profit_loss %>
+            <span class="fantasy-stat-value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+            </span>
+        </div>
+        <div class="card fantasy-stat-card">
+            <span class="fantasy-stat-label">Starting Capital</span>
+            <span class="fantasy-stat-value"><%= @portfolio.starting_capital.round(0) %></span>
+        </div>
+    </div>
+
+    <%# Transfer Window Status %>
+    <% if @next_race %>
+        <div class="fantasy-transfer-status <%= @can_trade ? 'open' : 'closed' %>">
+            <i class="fa-solid fa-<%= @can_trade ? 'lock-open' : 'lock' %>"></i>
+            <% if @can_trade %>
+                Transfer window open — closes at <%= @next_race.starts_at&.strftime("%b %d, %H:%M UTC") || @next_race.date.strftime("%b %d") %>
+            <% else %>
+                Transfer window closed for <%= @next_race.circuit.name %>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# Active Roster %>
+    <div class="table-header">
+        <h3>Your Roster</h3>
+    </div>
+
+    <% if @active_entries.any? %>
+        <div class="fantasy-roster-grid">
+            <% @active_entries.each do |entry| %>
+                <div class="card fantasy-driver-card">
+                    <div class="fantasy-driver-info">
+                        <% if entry.driver.image_url.present? %>
+                            <img src="<%= entry.driver.image_url %>" alt="<%= entry.driver.fullname %>" class="fantasy-driver-img">
+                        <% end %>
+                        <div>
+                            <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
+                            <span class="fantasy-driver-constructor"><%= entry.driver.current_constructor&.name %></span>
+                        </div>
+                    </div>
+                    <div class="fantasy-driver-stats">
+                        <div class="fantasy-driver-stat">
+                            <span class="label">Bought at</span>
+                            <span class="value"><%= entry.bought_at_elo.round(0) %></span>
+                        </div>
+                        <div class="fantasy-driver-stat">
+                            <span class="label">Current Elo</span>
+                            <span class="value"><%= entry.current_value.round(0) %></span>
+                        </div>
+                        <div class="fantasy-driver-stat">
+                            <span class="label">Gain/Loss</span>
+                            <% gl = entry.gain_loss %>
+                            <span class="value <%= gl >= 0 ? 'text-green' : 'text-red' %>">
+                                <%= gl >= 0 ? '+' : '' %><%= gl.round(0) %> (<%= entry.gain_loss_percent %>%)
+                            </span>
+                        </div>
+                    </div>
+                    <% if @can_trade && @portfolio.held_races_for(entry.driver) >= 1 %>
+                        <%= form_with url: sell_fantasy_portfolio_path(@portfolio), method: :post, local: true, class: "fantasy-sell-form" do %>
+                            <%= hidden_field_tag :driver_id, entry.driver.id %>
+                            <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger", data: { confirm: "Sell #{entry.driver.fullname} at #{entry.current_value.round(0)} (1% fee)?" } %>
+                        <% end %>
+                    <% end %>
+                </div>
+            <% end %>
+        </div>
+    <% else %>
+        <div class="card empty-state">
+            <i class="fa-solid fa-user-plus"></i>
+            <h3>No drivers yet</h3>
+            <p>Visit the <%= link_to "Driver Market", market_fantasy_portfolio_path(@portfolio) %> to build your roster.</p>
+        </div>
+    <% end %>
+
+    <%# Transaction History %>
+    <% if @transactions.any? %>
+        <div class="table-header">
+            <h3>Recent Transactions</h3>
+        </div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="fantasy-transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @transactions.each do |txn| %>
+                            <tr>
+                                <td><%= txn.created_at.strftime("%b %d, %H:%M") %></td>
+                                <td>
+                                    <span class="fantasy-txn-kind fantasy-txn-<%= txn.kind %>"><%= txn.kind.humanize %></span>
+                                </td>
+                                <td class="<%= txn.amount >= 0 ? 'text-green' : 'text-red' %>">
+                                    <%= txn.amount >= 0 ? '+' : '' %><%= txn.amount.round(0) %>
+                                </td>
+                                <td class="fantasy-txn-note"><%= txn.note %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+</div>

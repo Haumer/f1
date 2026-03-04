@@ -1,7 +1,78 @@
-<% @circuits.each do |circuit| %>
-    <div class="circuit">
-        <%= link_to circuit_path(circuit) do %>
-            <%= circuit.name %>
-        <% end %>
+<div class="homepage-container">
+    <%# 1. Current Season Calendar %>
+    <% if @calendar_races.any? %>
+        <div class="table-header">
+            <h3><%= @season_year %> Calendar</h3>
+        </div>
+        <div class="calendar-grid">
+            <% @calendar_races.each do |race| %>
+                <% circuit = race.circuit %>
+                <% past = race.date < Setting.effective_today %>
+                <% winner = past ? race.race_results.find_by(position_order: 1) : nil %>
+                <% color = winner ? (Constructor::COLORS[winner.constructor&.constructor_ref&.to_sym] || '#6c757d') : nil %>
+                <%= link_to circuit_path(circuit), class: "card calendar-race-card #{'calendar-past' if past}" do %>
+                    <% if color %>
+                        <div class="calendar-accent" style="background: <%= color %>"></div>
+                    <% end %>
+                    <% if circuit.track_image? %>
+                        <div class="calendar-track">
+                            <%= image_tag circuit.track_image_path, alt: circuit.name, class: "calendar-track-svg" %>
+                        </div>
+                    <% end %>
+                    <div class="calendar-round">R<%= race.round %></div>
+                    <div class="calendar-info">
+                        <span class="calendar-circuit"><%= circuit.name %></span>
+                        <span class="calendar-location"><%= circuit.location %>, <%= circuit.country %></span>
+                        <span class="calendar-date"><%= race.date.strftime("%b %d") %></span>
+                    </div>
+                    <% if winner %>
+                        <div class="calendar-winner">
+                            <i class="fa-solid fa-trophy" style="color: #C9B037; font-size: 10px;"></i>
+                            <span><%= winner.driver.forename[0] %>.<%= winner.driver.surname %></span>
+                        </div>
+                    <% end %>
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# 2. All Circuits by Race Count %>
+    <div class="table-header" style="margin-top: 32px;">
+        <h3>All Circuits</h3>
     </div>
-<% end %>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th>Circuit</th>
+                        <th>Location</th>
+                        <th>Country</th>
+                        <th class="text-center">Races</th>
+                        <th class="text-center"><%= @season_year %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @circuits.each do |circuit| %>
+                        <tr>
+                            <td class="circuit-name-cell">
+                                <% if circuit.track_image? %>
+                                    <span class="circuit-table-track"><%= image_tag circuit.track_image_path, class: "circuit-table-track-svg" %></span>
+                                <% end %>
+                                <%= link_to circuit.name, circuit_path(circuit) %>
+                            </td>
+                            <td class="text-secondary"><%= circuit.location %></td>
+                            <td class="text-secondary"><%= circuit.country %></td>
+                            <td class="text-center"><%= circuit.races_count %></td>
+                            <td class="text-center">
+                                <% if @calendar_circuit_ids.include?(circuit.id) %>
+                                    <i class="fa-solid fa-check" style="color: #1f883d;"></i>
+                                <% end %>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

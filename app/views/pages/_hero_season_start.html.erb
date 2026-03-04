@@ -1,0 +1,249 @@
+<%# ═══════════════════════════════════════ %>
+<%# 1. DARK HERO: "The Grid Is Set"     %>
+<%# ═══════════════════════════════════════ %>
+<div class="season-start-hero-wrapper">
+    <div class="hero-intro season-start-hero">
+        <div class="hero-glow"></div>
+        <span class="hero-season-year"><%= @season.year %></span>
+        <span class="season-start-label">New Season</span>
+        <h1>The Grid Is Set</h1>
+        <% if @first_race %>
+            <p class="subtitle">
+                Round 1 · <%= @first_race.circuit.name %> · <%= @first_race.date.strftime("%B %d") %>
+            </p>
+
+            <div class="countdown-blocks"
+                 data-controller="countdown"
+                 data-countdown-target-value="<%= (@first_race.starts_at || @first_race.date.to_time).iso8601 %>"
+                 data-countdown-format-value="blocks">
+            </div>
+
+            <%= link_to races_path, class: "hero-cta" do %>
+                Explore <%= @season.year %> Calendar <i class="fa-solid fa-arrow-right"></i>
+            <% end %>
+        <% end %>
+    </div>
+</div>
+
+<%# ═══════════════════════════════════════ %>
+<%# 2. POWER RANKINGS — Podium Top 3     %>
+<%# ═══════════════════════════════════════ %>
+<% if @power_rankings&.any? %>
+    <div class="power-rankings-podium">
+        <% [1, 0, 2].each do |i| %>
+            <% driver = @power_rankings[i] %>
+            <% next unless driver %>
+            <% elo = driver.display_elo&.round || 0 %>
+            <% constructor = driver.current_constructor %>
+            <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+            <% tier = elo_tier(driver.display_peak_elo) %>
+            <div class="power-podium-card podium-p<%= i + 1 %>" style="--constructor-color: <%= color %>">
+                <span class="podium-rank"><%= i + 1 %></span>
+                <span class="podium-driver-name">
+                    <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
+                </span>
+                <div class="podium-meta">
+                    <% if constructor&.logo_url.present? %>
+                        <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="podium-constructor-logo" onerror="this.style.display='none'" loading="lazy">
+                    <% end %>
+                    <% if tier %>
+                        <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
+                    <% end %>
+                </div>
+                <span class="podium-elo"><%= elo %></span>
+            </div>
+        <% end %>
+    </div>
+
+    <%# ═══════════════════════════════════════ %>
+    <%# 3. DARK STATS STRIP                   %>
+    <%# ═══════════════════════════════════════ %>
+    <div class="stats-strip">
+        <% if @highest_elo_driver %>
+            <div class="stat-item">
+                <span class="stat-number"><%= @highest_elo_driver.display_elo&.round %></span>
+                <span class="stat-caption">Highest Elo</span>
+                <span class="stat-sub"><%= link_to "#{@highest_elo_driver.forename[0]}.#{@highest_elo_driver.surname}", driver_path(@highest_elo_driver) %></span>
+            </div>
+        <% end %>
+        <div class="stat-item">
+            <span class="stat-number"><%= @active_driver_count %></span>
+            <span class="stat-caption">Active Drivers</span>
+        </div>
+        <% if @prev_champion %>
+            <div class="stat-item">
+                <span class="stat-number"><i class="fa-solid fa-trophy" style="color: #C9B037; font-size: 24px;"></i></span>
+                <span class="stat-caption"><%= @prev_season.year %> Champion</span>
+                <span class="stat-sub"><%= link_to "#{@prev_champion.forename[0]}.#{@prev_champion.surname}", driver_path(@prev_champion) %></span>
+            </div>
+        <% end %>
+        <div class="stat-item">
+            <span class="stat-number"><%= number_with_delimiter(@total_races_tracked) %></span>
+            <span class="stat-caption">Races Tracked</span>
+        </div>
+    </div>
+
+    <%# ═══════════════════════════════════════ %>
+    <%# 4. SIDE-BY-SIDE: Drivers 4-10 + Constructors %>
+    <%# ═══════════════════════════════════════ %>
+    <div class="rankings-duo">
+        <div class="card rankings-duo-card">
+            <div class="rankings-duo-header">
+                <h3>Driver Rankings</h3>
+                <span class="rankings-duo-sub">Positions 4–10</span>
+            </div>
+            <div class="rankings-duo-list">
+                <% @power_rankings[3..9]&.each_with_index do |driver, idx| %>
+                    <% constructor = driver.current_constructor %>
+                    <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                    <div class="rank-row" style="--constructor-color: <%= color %>; --rank: <%= idx %>">
+                        <span class="rank-pos"><%= idx + 4 %></span>
+                        <span class="rank-name">
+                            <%= link_to "#{driver.forename[0]}.#{driver.surname}", driver_path(driver) %>
+                        </span>
+                        <% if constructor&.logo_url.present? %>
+                            <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="rank-logo" onerror="this.style.display='none'" loading="lazy">
+                        <% end %>
+                        <span class="rank-elo"><%= driver.display_elo&.round %></span>
+                    </div>
+                <% end %>
+            </div>
+            <%= link_to current_active_elo_drivers_path, class: "rankings-duo-link" do %>
+                All Elo Rankings <i class="fa-solid fa-arrow-right"></i>
+            <% end %>
+        </div>
+
+        <% if @constructor_rankings&.any? %>
+            <div class="card rankings-duo-card">
+                <div class="rankings-duo-header">
+                    <h3>Constructor Elo</h3>
+                    <span class="rankings-duo-sub">Team Strength</span>
+                </div>
+                <div class="rankings-duo-list">
+                    <% @constructor_rankings.each_with_index do |constructor, idx| %>
+                        <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                        <div class="rank-row constructor-row" style="--constructor-color: <%= color %>; --rank: <%= idx %>">
+                            <span class="rank-pos"><%= idx + 1 %></span>
+                            <% if constructor.logo_url.present? %>
+                                <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="rank-logo" onerror="this.style.display='none'" loading="lazy">
+                            <% end %>
+                            <span class="rank-name">
+                                <%= link_to constructor.name, constructor_path(constructor) %>
+                            </span>
+                            <span class="rank-elo"><%= constructor.display_elo&.round %></span>
+                        </div>
+                    <% end %>
+                </div>
+                <%= link_to elo_rankings_constructors_path, class: "rankings-duo-link" do %>
+                    All Constructor Rankings <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+<% end %>
+
+<%# ═══════════════════════════════════════ %>
+<%# 5. ELO MOMENTUM CHART                 %>
+<%# ═══════════════════════════════════════ %>
+<% if @prev_season %>
+    <div class="card momentum-chart">
+        <div class="momentum-chart-header">
+            <h4>Elo Momentum</h4>
+            <span class="momentum-chart-sub">Top 5 drivers through <%= @prev_season.year %></span>
+        </div>
+        <%= custom_chart Graphs::SeasonElo.new(season: @prev_season, top_n: 5).season_elo_data %>
+    </div>
+<% end %>
+
+<%# ═══════════════════════════════════════ %>
+<%# 6. PREVIOUS SEASON IN REVIEW          %>
+<%# ═══════════════════════════════════════ %>
+<% if @prev_season %>
+    <div class="season-review">
+        <div class="season-review-header"><%= @prev_season.year %> In Review</div>
+        <div class="season-review-grid">
+            <% if @prev_champion %>
+                <div class="card season-review-card champion-review">
+                    <span class="review-icon"><i class="fa-solid fa-trophy"></i></span>
+                    <span class="review-label">World Champion</span>
+                    <span class="review-value"><%= @prev_champion.forename %> <%= @prev_champion.surname %></span>
+                    <span class="review-detail"><%= @prev_champion_standing.points&.round %> pts
+                        <% if @prev_champion_standing.wins.to_i > 0 %> · <%= @prev_champion_standing.wins %> wins<% end %>
+                    </span>
+                    <%= link_to driver_path(@prev_champion), class: "review-cta" do %>
+                        Driver Profile <i class="fa-solid fa-arrow-right"></i>
+                    <% end %>
+                </div>
+            <% end %>
+            <div class="card season-review-card">
+                <span class="review-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span class="review-label">Season Recap</span>
+                <span class="review-value"><%= @prev_season.year %> Season</span>
+                <span class="review-detail">Full standings & Elo progression</span>
+                <%= link_to season_path(@prev_season), class: "review-cta" do %>
+                    View Season <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            </div>
+            <div class="card season-review-card">
+                <span class="review-icon"><i class="fa-solid fa-crown"></i></span>
+                <span class="review-label">All Champions</span>
+                <span class="review-value">World Champions</span>
+                <span class="review-detail">Every title winner ranked</span>
+                <%= link_to winners_races_path, class: "review-cta" do %>
+                    View All <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            </div>
+        </div>
+    </div>
+<% end %>
+
+<%# ═══════════════════════════════════════ %>
+<%# 7. EXPLORE THE ARCHIVE                %>
+<%# ═══════════════════════════════════════ %>
+<div class="explore-archive">
+    <div class="explore-header">Explore</div>
+    <div class="explore-grid">
+        <%= link_to peak_elo_drivers_path, class: "card explore-card" do %>
+            <div class="explore-icon"><i class="fa-solid fa-ranking-star"></i></div>
+            <div class="explore-info">
+                <span class="explore-name">Peak Elo</span>
+                <span class="explore-desc">All-time highest ratings</span>
+            </div>
+        <% end %>
+        <%= link_to compare_drivers_path, class: "card explore-card" do %>
+            <div class="explore-icon"><i class="fa-solid fa-code-compare"></i></div>
+            <div class="explore-info">
+                <span class="explore-name">Compare Drivers</span>
+                <span class="explore-desc">Head-to-head Elo history</span>
+            </div>
+        <% end %>
+        <%= link_to seasons_path, class: "card explore-card" do %>
+            <div class="explore-icon"><i class="fa-solid fa-calendar"></i></div>
+            <div class="explore-info">
+                <span class="explore-name">All Seasons</span>
+                <span class="explore-desc">Browse every F1 season</span>
+            </div>
+        <% end %>
+        <%= link_to circuits_path, class: "card explore-card" do %>
+            <div class="explore-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <div class="explore-info">
+                <span class="explore-name">Circuits</span>
+                <span class="explore-desc">Tracks around the world</span>
+            </div>
+        <% end %>
+        <%= link_to constructors_path, class: "card explore-card" do %>
+            <div class="explore-icon"><i class="fa-solid fa-warehouse"></i></div>
+            <div class="explore-info">
+                <span class="explore-name">Constructors</span>
+                <span class="explore-desc">Team histories & Elo</span>
+            </div>
+        <% end %>
+        <%= link_to podiums_races_path, class: "card explore-card" do %>
+            <div class="explore-icon"><i class="fa-solid fa-medal"></i></div>
+            <div class="explore-info">
+                <span class="explore-name">Podium Leaders</span>
+                <span class="explore-desc">Most podiums all-time</span>
+            </div>
+        <% end %>
+    </div>
+</div>

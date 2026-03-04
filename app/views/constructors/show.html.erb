@@ -1,2 +1,93 @@
-<%#= line_chart @constructor.race_results.map { |r| [r.race.date, r.new_elo] }, title: "#{@constructor.name}", min: 500, max: 1700, height: "1000px" %>
-<%= line_chart @constructor.race_results.group_by {|rr| rr.race}.map { |race, rr| [race.date, rr.map(&:new_elo).sum / rr.count ] },title: "#{@constructor.name}", min: 500, max: 1700, height: "1000px" %>
+<div class="homepage-container">
+    <p><%= link_to "&larr; All Constructors".html_safe, constructors_path %></p>
+    <div class="table-header">
+        <h3>
+            <% if @constructor.logo_url.present? %>
+                <img src="<%= @constructor.logo_url %>" alt="<%= @constructor.name %>" class="constructor-logo-sm constructor-logo-header">
+            <% end %>
+            <%= @constructor.name %>
+            <% if @constructor.active %>
+                <span class="constructor-active-badge">Active</span>
+            <% end %>
+        </h3>
+    </div>
+
+    <div class="race-stats-row">
+        <div class="race-stat-card">
+            <div class="race-stat-value"><%= @constructor.nationality %></div>
+            <div class="race-stat-label">Nationality</div>
+        </div>
+        <div class="race-stat-card">
+            <div class="race-stat-value"><%= @total_races %></div>
+            <div class="race-stat-label">Races</div>
+        </div>
+        <div class="race-stat-card">
+            <div class="race-stat-value"><%= @race_wins %></div>
+            <div class="race-stat-label">Wins</div>
+        </div>
+        <div class="race-stat-card">
+            <div class="race-stat-value"><%= @podiums %></div>
+            <div class="race-stat-label">Podiums</div>
+        </div>
+        <% if @championship_wins > 0 %>
+            <div class="race-stat-card">
+                <div class="race-stat-value championship-value"><%= @championship_wins %></div>
+                <div class="race-stat-label">Championships</div>
+            </div>
+        <% end %>
+        <% if @constructor.display_elo %>
+            <div class="race-stat-card">
+                <div class="race-stat-value"><%= @constructor.display_elo.round %></div>
+                <div class="race-stat-label">Current Elo</div>
+            </div>
+            <div class="race-stat-card">
+                <div class="race-stat-value"><%= @constructor.display_peak_elo&.round %></div>
+                <div class="race-stat-label">Peak Elo</div>
+            </div>
+        <% end %>
+    </div>
+
+    <div class="card">
+        <div class="chart-header">
+            <h4>Driver Elo Over Time</h4>
+        </div>
+        <%= custom_chart Graphs::Constructor.new(constructor: @constructor).data %>
+    </div>
+
+    <% if @roster_by_season.present? %>
+        <div class="card card-flush">
+            <div class="roster-section-header">
+                <div class="section-label">Driver Roster History</div>
+            </div>
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th>Season</th>
+                            <th>Drivers</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @roster_by_season.each do |season, season_drivers| %>
+                            <tr>
+                                <td>
+                                    <%= link_to season.year, season_path(season) %>
+                                </td>
+                                <td>
+                                    <% season_drivers.map(&:driver).uniq.each do |driver| %>
+                                        <span class="roster-driver-span">
+                                            <% if driver.country.present? %>
+                                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                                            <% end %>
+                                            <%= link_to "#{driver.forename.first}.#{driver.surname}", driver_path(driver) %>
+                                        </span>
+                                    <% end %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+</div>

@@ -1,0 +1,156 @@
+<% v2 = Setting.use_elo_v2? %>
+<% peak_col = v2 ? :peak_elo_v2 : :peak_elo %>
+<% thresholds = v2 ? [2600, 2450, 2300, 2100] : [1500, 1400, 1300, 1200] %>
+
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>How Elo Ratings Work</h3>
+    </div>
+
+    <div class="card about-section">
+        <h4>What is Elo?</h4>
+        <p>
+            The Elo rating system, originally developed for chess by Arpad Elo, is a method for calculating
+            the relative skill of players. Every driver starts at a rating of <strong><%= v2 ? 2000 : 1000 %></strong>. After each race,
+            ratings are adjusted based on finishing position — beating a higher-rated driver gains you more points
+            than beating a lower-rated one.
+        </p>
+
+        <h4>How It Works in F1</h4>
+        <p>
+            Each race is treated as a series of head-to-head matchups between every pair of drivers. For each pairing:
+        </p>
+        <ul>
+            <li>The driver who finishes ahead "wins" the matchup</li>
+            <li>An <strong>expected score</strong> is calculated based on the rating difference:
+                <code>E = 1 / (1 + 10^((opponent_rating - player_rating) / <%= v2 ? EloRatingV2::SCALE.to_i : 400 %>))</code></li>
+            <li>The rating adjustment is: <code>K × (actual_score - expected_score)</code></li>
+            <% if v2 %>
+                <li>Base K-factor is <strong><%= EloRatingV2::BASE_K %></strong>, scaled by season length (<%= EloRatingV2::REFERENCE_RACES %> reference races) and normalized by <strong>√(grid size − 1)</strong></li>
+                <li>At each season's end, ratings regress <strong><%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong> toward the starting Elo of <%= EloRatingV2::STARTING_ELO.to_i %></li>
+            <% else %>
+                <li>K-factor is set to <strong>2</strong> per matchup, which keeps ratings stable while still responsive</li>
+            <% end %>
+        </ul>
+        <p>
+            A driver's total rating change for a race is the sum of adjustments across all opponents.
+            With 20 drivers on the grid, that's 19 head-to-head matchups per race.
+        </p>
+
+        <h4>Why Elo for F1?</h4>
+        <p>
+            Unlike championship points, Elo ratings account for the <strong>strength of the field</strong>.
+            Winning against a grid of highly-rated drivers is worth more than winning against weaker competition.
+            This makes it possible to compare drivers across different eras — a <%= thresholds[0] %>-rated driver in 1955 demonstrated
+            the same level of dominance as a <%= thresholds[0] %>-rated driver in 2024.
+        </p>
+        <p>
+            Across <strong><%= @total_races %></strong> races and <strong><%= @total_drivers %></strong> drivers
+            in F1 history, the Elo system produces a natural distribution of skill tiers.
+        </p>
+    </div>
+
+    <div class="table-header">
+        <h3>Elo Tiers</h3>
+    </div>
+
+    <div class="elo-tiers-grid">
+        <div class="elo-tier-card tier-elite">
+            <div class="tier-header">
+                <span class="elo-tier-badge elo-tier-elite">Elite</span>
+                <span class="tier-range"><%= thresholds[0] %>+</span>
+            </div>
+            <p class="tier-description">
+                The all-time greats. Drivers who achieved sustained dominance against the strongest competition.
+                Only <strong><%= @tier_counts[:elite] %></strong> drivers
+                (<%= (@tier_counts[:elite].to_f / @total_drivers * 100).round(1) %>%) have reached this level.
+            </p>
+            <div class="tier-examples">
+                <% Driver.where("#{peak_col} >= ?", thresholds[0]).order(peak_col => :desc).limit(5).each do |d| %>
+                    <%= link_to driver_path(d), class: "tier-driver" do %>
+                        <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
+                    <% end %>
+                <% end %>
+            </div>
+        </div>
+
+        <div class="elo-tier-card tier-world-class">
+            <div class="tier-header">
+                <span class="elo-tier-badge elo-tier-world-class">World Class</span>
+                <span class="tier-range"><%= thresholds[1] %>–<%= thresholds[0] - 1 %></span>
+            </div>
+            <p class="tier-description">
+                Championship contenders and race winners who consistently performed at the highest level.
+                <strong><%= @tier_counts[:world_class] %></strong> drivers
+                (<%= (@tier_counts[:world_class].to_f / @total_drivers * 100).round(1) %>%).
+            </p>
+            <div class="tier-examples">
+                <% Driver.where("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[1], thresholds[0]).order(peak_col => :desc).limit(5).each do |d| %>
+                    <%= link_to driver_path(d), class: "tier-driver" do %>
+                        <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
+                    <% end %>
+                <% end %>
+            </div>
+        </div>
+
+        <div class="elo-tier-card tier-strong">
+            <div class="tier-header">
+                <span class="elo-tier-badge elo-tier-strong">Strong</span>
+                <span class="tier-range"><%= thresholds[2] %>–<%= thresholds[1] - 1 %></span>
+            </div>
+            <p class="tier-description">
+                Solid midfield performers and occasional podium finishers. Competitive drivers who proved themselves against strong fields.
+                <strong><%= @tier_counts[:strong] %></strong> drivers
+                (<%= (@tier_counts[:strong].to_f / @total_drivers * 100).round(1) %>%).
+            </p>
+            <div class="tier-examples">
+                <% Driver.where("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[2], thresholds[1]).order(peak_col => :desc).limit(5).each do |d| %>
+                    <%= link_to driver_path(d), class: "tier-driver" do %>
+                        <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
+                    <% end %>
+                <% end %>
+            </div>
+        </div>
+
+        <div class="elo-tier-card tier-average">
+            <div class="tier-header">
+                <span class="elo-tier-badge elo-tier-average">Average</span>
+                <span class="tier-range"><%= thresholds[3] %>–<%= thresholds[2] - 1 %></span>
+            </div>
+            <p class="tier-description">
+                The bulk of the F1 field. Capable drivers who held their own in the sport.
+                <strong><%= @tier_counts[:average] %></strong> drivers
+                (<%= (@tier_counts[:average].to_f / @total_drivers * 100).round(1) %>%).
+            </p>
+        </div>
+
+        <div class="elo-tier-card tier-developing">
+            <div class="tier-header">
+                <span class="elo-tier-badge elo-tier-developing">Developing</span>
+                <span class="tier-range">Below <%= thresholds[3] %></span>
+            </div>
+            <p class="tier-description">
+                Short careers, backmarkers, or drivers still building their rating. Many only raced a handful of grands prix.
+                <strong><%= @tier_counts[:developing] %></strong> drivers
+                (<%= (@tier_counts[:developing].to_f / @total_drivers * 100).round(1) %>%).
+            </p>
+        </div>
+    </div>
+
+    <div class="card about-section" style="margin-top: 24px;">
+        <h4>Key Properties</h4>
+        <ul>
+            <li><strong>Zero-sum per matchup</strong> — every point gained by one driver is lost by another</li>
+            <li><strong>Starting rating: <%= v2 ? EloRatingV2::STARTING_ELO.to_i : 1000 %></strong> — all drivers begin at the same baseline</li>
+            <% if v2 %>
+                <li><strong>Base K-factor: <%= EloRatingV2::BASE_K %></strong> — scaled by season length and grid size (√(n−1) normalization)</li>
+                <li><strong>Season regression: <%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong> — ratings pull toward starting Elo between seasons</li>
+            <% else %>
+                <li><strong>K-factor: 2</strong> — per head-to-head matchup within a race</li>
+            <% end %>
+            <li><strong>All positions matter</strong> — finishing 5th vs 6th affects your rating, not just podiums</li>
+            <li><strong>Field strength</strong> — beating a <%= thresholds[1] %>-rated driver gains more than beating a <%= thresholds[3] %>-rated driver</li>
+            <li><strong>Peak Elo</strong> — a driver's highest-ever rating, representing their best sustained form</li>
+        </ul>
+    </div>
+</div>

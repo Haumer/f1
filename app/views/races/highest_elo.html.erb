@@ -1,21 +1,52 @@
-<%= line_chart @race_results.map { |r| [r.race.date, r.new_elo] }, min: 1000, max: 1900, height: "1000px", curve: false %>
-
-<% @race_results.each do |race_result| %>
-    <div class="race-result grid">
-        <div class="race-date grid-item">
-            <%= race_result.race.date %>
-        </div>
-        <div class="race-result-position-order grid-item text-center">
-            <%= race_result.position_order %>
-        </div>
-        <div class="race-result-new-elo grid-item text-center">
-            <span class="right new-elo"><%= race_result.new_elo.round %></span>
-        </div>
-        <div class="race-result-surname grid-item text-center">
-            <%= race_result.driver.surname %>
-        </div>
-        <div class="race-result-constructor grid-item text-center">
-            <%= race_result.constructor.name %>
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Highest Elo Race Results</h3>
+    </div>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th></th>
+                    <th>Driver</th>
+                    <th></th>
+                    <th class="text-center">Elo</th>
+                    <th class="text-center">Pos</th>
+                    <th>Circuit</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @race_results.each_with_index do |race_result, index| %>
+                    <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
+                        <td class="text-center position-cell"><%= index + 1 %></td>
+                        <td class="icon-cell">
+                            <% if race_result.driver.country.present? %>
+                                <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png"
+                                     alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
+                            <% end %>
+                        </td>
+                        <td>
+                            <%= link_to driver_path(race_result.driver) do %>
+                                <%= race_result.driver.forename[0] %>.<%= race_result.driver.surname %>
+                            <% end %>
+                        </td>
+                        <td class="icon-cell">
+                            <% if race_result.constructor&.logo_url.present? %>
+                                <%= link_to constructor_path(race_result.constructor) do %>
+                                    <img src="<%= race_result.constructor.logo_url %>" alt="<%= race_result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                <% end %>
+                            <% end %>
+                        </td>
+                        <td class="text-center"><%= race_result.display_new_elo&.round %></td>
+                        <td class="text-center"><%= race_result.position_order %></td>
+                        <td><%= link_to race_result.race.circuit.name, race_path(race_result.race) %></td>
+                        <td><%= race_result.race.date.year %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
         </div>
     </div>
-<% end %>
+</div>

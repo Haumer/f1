@@ -1,12 +1,174 @@
-.navbar-lewagon {
+.navbar {
+  display: flex;
   justify-content: space-between;
-  background: white;
+  align-items: center;
+  padding: 12px 0;
+  margin-bottom: 24px;
+  border-bottom: 3px solid var(--page-accent, $accent-red);
+
+  .home a {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--page-accent, $accent-red);
+    letter-spacing: 1px;
+    &:hover { opacity: 0.8; }
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: $text-primary;
+    cursor: pointer;
+  }
+
+  .links {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+
+    > a {
+      padding: 8px 12px;
+      border-radius: $radius-sm;
+      font-size: 12px;
+      color: $text-secondary;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: all 0.15s;
+
+      &:hover {
+        color: var(--page-accent, $accent-red);
+        background: color-mix(in srgb, var(--page-accent, $accent-red) 6%, transparent);
+      }
+
+      &.active {
+        color: var(--page-accent, $accent-red);
+        background: color-mix(in srgb, var(--page-accent, $accent-red) 8%, transparent);
+      }
+    }
+  }
+
+  // Dropdown component
+  .nav-dropdown {
+    position: relative;
+
+    .nav-dropdown-toggle {
+      padding: 8px 12px;
+      border-radius: $radius-sm;
+      font-size: 12px;
+      color: $text-secondary;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: all 0.15s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      i {
+        font-size: 9px;
+        transition: transform 0.15s;
+      }
+
+      &:hover {
+        color: var(--page-accent, $accent-red);
+        background: color-mix(in srgb, var(--page-accent, $accent-red) 6%, transparent);
+      }
+
+      &.active {
+        color: var(--page-accent, $accent-red);
+        background: color-mix(in srgb, var(--page-accent, $accent-red) 8%, transparent);
+      }
+    }
+
+    .nav-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 200px;
+      background: $bg-card;
+      border: 1px solid $border-color;
+      border-radius: $radius-md;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 4px 0;
+      z-index: 1000;
+      margin-top: 4px;
+
+      &.open {
+        display: flex;
+        flex-direction: column;
+      }
+
+      a {
+        padding: 8px 16px;
+        font-size: 12px;
+        color: $text-secondary;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        transition: all 0.15s;
+        white-space: nowrap;
+
+        &:hover {
+          color: var(--page-accent, $accent-red);
+          background: color-mix(in srgb, var(--page-accent, $accent-red) 6%, transparent);
+        }
+
+        &.active {
+          color: var(--page-accent, $accent-red);
+        }
+      }
+    }
+  }
 }
 
-.navbar-lewagon .navbar-collapse {
-  flex-grow: 0;
-}
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+  }
+  .navbar .menu-toggle { display: block; }
+  .navbar .links {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding-top: 12px;
+    align-items: stretch;
 
-.navbar-lewagon .navbar-brand img {
-  width: 40px;
+    &.open { display: flex; }
+
+    > a {
+      padding: 10px 0;
+      border-bottom: 1px solid $border-color;
+    }
+
+    .nav-dropdown {
+      border-bottom: 1px solid $border-color;
+
+      .nav-dropdown-toggle {
+        padding: 10px 0;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .nav-dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        margin-top: 0;
+        padding: 0 0 8px 16px;
+
+        a {
+          padding: 8px 0;
+          border-bottom: none;
+        }
+      }
+    }
+  }
 }

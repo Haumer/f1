@@ -1,0 +1,67 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Best Teammate Pairings</h3>
+        <p class="text-secondary" style="font-size: 13px;">Ranked by 1-2 finish rate. Minimum 5 races together.</p>
+    </div>
+
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th></th>
+                        <th>Driver 1</th>
+                        <th></th>
+                        <th>Driver 2</th>
+                        <th></th>
+                        <th class="text-center">Races</th>
+                        <th class="text-center">Wins</th>
+                        <th class="text-center">Win %</th>
+                        <th class="text-center">1-2s</th>
+                        <th class="text-center">1-2 %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @pairings.each_with_index do |pairing, idx| %>
+                        <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                            <td class="text-center position-cell"><%= idx + 1 %></td>
+                            <td class="icon-cell">
+                                <% if pairing[:driver1].country.present? %>
+                                    <img src="https://flagsapi.com/<%= pairing[:driver1].country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td>
+                                <%= link_to driver_path(pairing[:driver1]) do %>
+                                    <%= pairing[:driver1].forename[0] %>.<%= pairing[:driver1].surname %>
+                                <% end %>
+                            </td>
+                            <td class="icon-cell">
+                                <% if pairing[:driver2].country.present? %>
+                                    <img src="https://flagsapi.com/<%= pairing[:driver2].country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td>
+                                <%= link_to driver_path(pairing[:driver2]) do %>
+                                    <%= pairing[:driver2].forename[0] %>.<%= pairing[:driver2].surname %>
+                                <% end %>
+                            </td>
+                            <td class="icon-cell">
+                                <% pairing[:constructors].each do |c| %>
+                                    <% if c.logo_url.present? %>
+                                        <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="constructor-logo-sm" title="<%= c.name %>" onerror="this.style.display='none'">
+                                    <% end %>
+                                <% end %>
+                            </td>
+                            <td class="text-center"><%= pairing[:races_together] %></td>
+                            <td class="text-center"><%= pairing[:wins] %></td>
+                            <td class="text-center"><%= pairing[:win_pct] %>%</td>
+                            <td class="text-center"><%= pairing[:one_two_finishes] %></td>
+                            <td class="text-center"><strong><%= pairing[:one_two_pct] %>%</strong></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

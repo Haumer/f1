@@ -1,0 +1,55 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Constructor Lineages</h3>
+    </div>
+
+    <% if @lineages.any? %>
+        <h4 class="chart-title" style="margin-bottom: 16px;">Team Evolution Chains</h4>
+        <div class="lineage-cards">
+            <% @lineages.each do |name, info| %>
+                <div class="card lineage-card">
+                    <h4 class="lineage-name"><%= name %></h4>
+                    <div class="lineage-chain">
+                        <% info[:labels].each_with_index do |label, i| %>
+                            <% ref = info[:chain][i] %>
+                            <% constructor = @constructors_by_ref[ref] %>
+                            <div class="lineage-step">
+                                <div class="lineage-dot" style="background: <%= Constructor::COLORS[ref.to_sym] || Constructor::COLORS[ref.tr('-', '_').to_sym] || '#999' %>;"></div>
+                                <div class="lineage-step-content">
+                                    <% if constructor %>
+                                        <%= link_to constructor.name, constructor_path(constructor), class: "lineage-team-name" %>
+                                    <% else %>
+                                        <span class="lineage-team-name"><%= label.split(' (').first %></span>
+                                    <% end %>
+                                    <span class="lineage-years"><%= label[/\((.+)\)/, 1] %></span>
+                                </div>
+                            </div>
+                            <% if i < info[:labels].size - 1 %>
+                                <div class="lineage-connector"></div>
+                            <% end %>
+                        <% end %>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+    <% end %>
+
+    <% if @families.any? %>
+        <h4 class="chart-title" style="margin-top: 32px; margin-bottom: 16px;">All Constructor Families</h4>
+        <div class="families-grid">
+            <% @families.each do |family_name, constructors| %>
+                <div class="card family-card">
+                    <h5 class="family-name"><%= family_name %></h5>
+                    <div class="family-members">
+                        <% constructors.each do |constructor| %>
+                            <%= link_to constructor_path(constructor), class: "family-member" do %>
+                                <span class="family-member-dot" style="background: <%= Constructor::COLORS[constructor.constructor_ref.to_sym] || Constructor::COLORS[constructor.constructor_ref.tr('-', '_').to_sym] || '#999' %>;"></span>
+                                <span class="family-member-name"><%= constructor.name %></span>
+                            <% end %>
+                        <% end %>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+    <% end %>
+</div>

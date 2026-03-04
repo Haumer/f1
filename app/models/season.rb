@@ -3,7 +3,6 @@ class Season < ApplicationRecord
     has_many :season_drivers
     has_many :drivers, through: :season_drivers
     has_many :race_results, through: :drivers
-    has_many :races
     has_many :videos, as: :video_media
 
     has_many :driver_standings, through: :drivers
@@ -13,9 +12,13 @@ class Season < ApplicationRecord
     validates :year, uniqueness: true
 
     def latest_driver_standings
-        drivers.map do |driver|
-            latest_driver_standings_for(driver)
-        end.reject(&:blank?).sort_by { |driver_standing| -driver_standing.points }
+        race = latest_race
+        return [] unless race
+
+        DriverStanding.where(race: race)
+                      .includes(driver: [:countries, :season_drivers])
+                      .order(points: :desc)
+                      .to_a
     end
 
     def latest_driver_standings_for(driver)
@@ -23,7 +26,7 @@ class Season < ApplicationRecord
     end
 
     def latest_race
-        races.select { |race| race.driver_standings.present? }.sort_by { |race| race.round }.last
+        races.joins(:driver_standings).distinct.order(round: :desc).first
     end
 
     def next_season
@@ -35,20 +38,16 @@ class Season < ApplicationRecord
     end
 
     def next_race
-        last_race = races.order(round: :desc).last
-        return latest_race if latest_race == last_race
+        return nil if latest_race.nil?
 
-        races.find_by(round: latest_race.round + 1) 
+        first_race = races.order(round: :asc).first
+        return latest_race if latest_race == first_race
+
+        races.find_by(round: latest_race.round + 1)
     end
 
     def season_race_results
-        races.sorted.map { |race| race.race_results }.flatten
-    end
-
-    def driver_last_season_race_result(driver)
-        return unless driver.races.where(year: self.year).sorted.last
-
-        driver.races.where(year: self.year).sorted.last.race_results.find_by(driver: driver)
+        RaceResult.joins(:race).where(races: { season_id: id }).order('races.date ASC')
     end
 
     def first_race
@@ -61,7 +60,7 @@ class Season < ApplicationRecord
 
     def races_to_update
         races.select do |race|
-            !race.race_results.present? && race.date < Date.today
+            !race.race_results.present? && race.date <= Date.today
         end
     end
 end

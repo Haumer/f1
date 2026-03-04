@@ -1,0 +1,35 @@
+<div class="homepage-container">
+    <div class="table-header table-header-stacked">
+        <h3>Driver Achievements</h3>
+        <span class="circuit-meta"><%= @total_badges %> badges across <%= @total_drivers %> drivers</span>
+    </div>
+
+    <% @badge_groups.each do |group| %>
+        <div class="badge-group">
+            <div class="badge-group-header">
+                <span class="badge-group-icon achievement-<%= group[:color] %>">
+                    <i class="<%= group[:icon] %>"></i>
+                </span>
+                <div class="badge-group-info">
+                    <h4 class="badge-group-title"><%= group[:label] %></h4>
+                    <span class="badge-group-count"><%= group[:badges].size %> driver<%= group[:badges].size == 1 ? "" : "s" %></span>
+                </div>
+            </div>
+            <div class="badge-group-list">
+                <% group[:badges].each_with_index do |badge, i| %>
+                    <div class="badge-row<%= " badge-row-#{badge.tier}" if badge.tier %>">
+                        <span class="badge-row-rank"><%= i + 1 %></span>
+                        <span class="badge-row-value achievement-<%= badge.color %>"><%= badge.value %></span>
+                        <span class="badge-row-name">
+                            <% if badge.tier %>
+                                <i class="badge-tier-medal fa-solid fa-medal tier-<%= badge.tier %>"></i>
+                            <% end %>
+                            <%= link_to badge.driver.fullname, driver_path(badge.driver) %>
+                        </span>
+                        <span class="badge-row-desc"><%= badge.label != group[:label] ? badge.label : badge.description %></span>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+</div>

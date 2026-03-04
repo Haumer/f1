@@ -1,8 +1,60 @@
-<%= bar_chart @race_results.map { |race_result| [race_result.driver.surname, race_result.driver.peak_elo.round(1)] } %>
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>All-Time Peak Elo Ratings</h3>
+    </div>
+    <div class="card">
+        <%= bar_chart @drivers.map { |driver| [driver.surname, driver.display_peak_elo.round(1)] }, {
+            options: {
+                yAxis: { min: 1250 }
+            }
+        } %>
+    </div>
 
-<% @race_results.each do |race_result| %>
-    <%= link_to driver_path(race_result.driver) do %>
-        <%= race_result.driver.forename[0] %>.<%= race_result.driver.surname %>
-    <% end %> <%= race_result.new_elo.round(1) %> <%= race_result.position_order %>
-    <br>
-<% end %>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th></th>
+                        <th>Driver</th>
+                        <th></th>
+                        <th class="text-center">Peak Elo</th>
+                        <th>Race</th>
+                        <th>Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @drivers.each_with_index do |driver, idx| %>
+                        <% peak_rr = @peak_race_by_driver[driver.id] %>
+                        <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                            <td class="text-center position-cell"><%= idx + 1 %></td>
+                            <td class="icon-cell">
+                                <% if driver.country.present? %>
+                                    <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td>
+                                <%= link_to driver_path(driver) do %>
+                                    <%= driver.forename[0] %>.<%= driver.surname %>
+                                <% end %>
+                            </td>
+                            <td class="icon-cell">
+                                <% if peak_rr&.constructor&.logo_url.present? %>
+                                    <img src="<%= peak_rr.constructor.logo_url %>" alt="<%= peak_rr.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                <% end %>
+                            </td>
+                            <td class="text-center"><strong><%= driver.display_peak_elo.round %></strong></td>
+                            <td>
+                                <% if peak_rr %>
+                                    <%= link_to peak_rr.race.circuit.name, race_path(peak_rr.race) %>
+                                <% end %>
+                            </td>
+                            <td><%= peak_rr&.race&.date&.year %></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

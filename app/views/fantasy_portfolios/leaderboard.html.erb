@@ -1,0 +1,65 @@
+<div class="homepage-container">
+    <div class="fantasy-header">
+        <div>
+            <h2>Fantasy Leaderboard</h2>
+            <span class="fantasy-season"><%= @season.year %> Season</span>
+        </div>
+        <div class="fantasy-header-actions">
+            <% portfolio = current_user.fantasy_portfolio_for(@season) %>
+            <% if portfolio %>
+                <%= link_to fantasy_portfolio_path(portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+                    <i class="fa-solid fa-arrow-left"></i> My Portfolio
+                <% end %>
+            <% end %>
+        </div>
+    </div>
+
+    <% if @entries.any? %>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="fantasy-leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Drivers</th>
+                            <th>Portfolio Value</th>
+                            <th>P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @entries.each_with_index do |entry, idx| %>
+                            <% portfolio = entry[:portfolio] %>
+                            <% is_me = portfolio.user_id == current_user.id %>
+                            <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= 'podium-p1' if idx == 0 %> <%= 'podium-p2' if idx == 1 %> <%= 'podium-p3' if idx == 2 %>">
+                                <td class="position-cell"><%= idx + 1 %></td>
+                                <td>
+                                    <strong><%= portfolio.user.display_name %></strong>
+                                    <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                </td>
+                                <td>
+                                    <% portfolio.active_roster_entries.each do |re| %>
+                                        <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
+                                    <% end %>
+                                </td>
+                                <td class="fantasy-leaderboard-value"><%= entry[:value].round(0) %></td>
+                                <td>
+                                    <% pl = entry[:value] - portfolio.starting_capital %>
+                                    <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                                        <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+                                    </span>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% else %>
+        <div class="card empty-state">
+            <i class="fa-solid fa-ranking-star"></i>
+            <h3>No portfolios yet</h3>
+            <p>Be the first to <%= link_to "create a fantasy portfolio", new_fantasy_portfolio_path %>!</p>
+        </div>
+    <% end %>
+</div>

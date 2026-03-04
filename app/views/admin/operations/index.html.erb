@@ -1,0 +1,51 @@
+<h2>Operations</h2>
+
+<div class="admin-ops-grid">
+  <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-rotate"></i> Sync Season</h3>
+    <p>Fetch schedule and race results from the Jolpica API for a given year.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="sync_season">
+      <div class="admin-op-input-row">
+        <input type="number" name="year" value="<%= Date.current.year %>" min="1950" max="2030" class="admin-input">
+        <button type="submit" class="admin-btn">Sync</button>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-calculator"></i> Re-simulate Elo V2</h3>
+    <p>Run the full V2 historical simulation from scratch. Updates all driver and race result V2 Elo fields.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="elo_v2_simulate">
+      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will re-simulate all V2 Elo ratings. Continue?">Re-simulate</button>
+    <% end %>
+  </div>
+
+  <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-building"></i> Recalculate Constructor Elo</h3>
+    <p>Recalculate all constructor Elo ratings from scratch based on race results.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="constructor_elo">
+      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="Recalculate all constructor Elo? Continue?">Recalculate</button>
+    <% end %>
+  </div>
+
+  <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-chart-bar"></i> Backfill Career Stats</h3>
+    <p>Recalculate career stats (wins, podiums, DNFs, etc.) for all drivers from race results.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="backfill_careers">
+      <button type="submit" class="admin-btn" data-turbo-confirm="Backfill career stats for all drivers?">Backfill</button>
+    <% end %>
+  </div>
+
+  <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-users"></i> Update Active Drivers</h3>
+    <p>Mark drivers as active/inactive based on current season participation.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="update_active_drivers">
+      <button type="submit" class="admin-btn">Update</button>
+    <% end %>
+  </div>
+</div>

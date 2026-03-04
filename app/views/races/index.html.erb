@@ -1,61 +1,65 @@
-<%= simple_form_for :search, url: races_path, method: :get do |f| %>
-    <%= f.input :date, as: :date, html5: true %>
-    <%= f.submit %>
-<% end %>
-
-<% @races.group_by(&:year).each do |season, races| %>
-    <div class="season">
-        <div class="season-year"><%= season %></div>
-        <div class="races-table">
-            <% races.each do |race| %>
-                <table>
-                    <tr>
-                        <% if !race.race_results.first(3).present? %>
-                            <td class="driver"><span class="place-1"><i class="fa-solid fa-trophy"></i></span> TBD</td>
-                            <td class="driver"><span class="place-2"><i class="fa-solid fa-trophy"></i></span> TBD</td>
-                            <td class="driver"><span class="place-3"><i class="fa-solid fa-trophy"></i></span> TBD</td>
-                        <% end %>
-                        <% race.race_results.first(3).each_with_index do |race_result, index| %>
-                            <td class="driver">
-                                <%= link_to driver_path(race_result.driver) do %>
-                                    <span class="place-<%= index + 1 %>"><i class="fa-solid fa-trophy"></i></span>  <img src="<%= race_result.driver.constructor_for(Season.find_by(year: season)).logo_url %>" alt="" style="width: 24px; height: 24px;"> <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
-                                <% end %>
-                            </td>
-                        <% end %>
-                        <td class="race">
-                            <% if race.race_results.present? %>
-                                <%= link_to "All Results", race_path(race) %>
-                            <% else %>
-                                -
-                            <% end %>
-                        </td>
-                        <td class="circuit">
-                            <%= link_to race_path(race) do %>
-                                <%= race.circuit.name %>
-                            <% end %>
-                        </td>
-                    </tr>
-                </table>
-            <% end %>
-        </div>
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>All Races</h3>
     </div>
-    <br>
-<% end %>
+    <div class="race-search-form">
+        <%= simple_form_for :search, url: races_path, method: :get do |f| %>
+            <%= f.input :date, as: :date, html5: true, input_html: { class: "race-date-input" } %>
+            <%= f.submit "Filter", class: "race-date-submit" %>
+        <% end %>
+    </div>
 
-<style>
-.races-table .driver, .races-table .race {
-    width: 210px;
-}
-.race-table .race {
-    width: 20px
-}
-.season {
-    display: flex;
-}
-.season .season-year {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    transform: rotate(-90deg)
-}
-</style>
+    <% @races.group_by(&:year).each do |year, races| %>
+        <% season = @seasons_by_year[year] %>
+        <div class="season-group">
+            <div class="season-year-label">
+                <% if season %>
+                    <%= link_to "#{year}", season_path(season) %>
+                <% else %>
+                    <%= year %>
+                <% end %>
+            </div>
+            <div class="card card-flush races-table">
+                <div class="table-scroll-wrapper">
+                <table>
+                    <tbody>
+                        <% races.each do |race| %>
+                            <tr>
+                                <% podium = race.race_results.sort_by { |rr| rr.position_order || 999 }.first(3) %>
+                                <% if podium.present? %>
+                                    <% podium.each_with_index do |race_result, index| %>
+                                        <td class="driver">
+                                            <%= link_to driver_path(race_result.driver) do %>
+                                                <span class="place-<%= index + 1 %>"><i class="fa-solid fa-trophy"></i></span>
+                                                <% constructor = race_result.constructor %>
+                                                <% if constructor&.logo_url.present? %>
+                                                    <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs">
+                                                <% end %>
+                                                <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
+                                            <% end %>
+                                        </td>
+                                    <% end %>
+                                <% else %>
+                                    <td class="driver" colspan="3">
+                                        <span class="text-secondary text-upcoming">Upcoming</span>
+                                    </td>
+                                <% end %>
+                                <td class="race">
+                                    <% if race.race_results.present? %>
+                                        <%= link_to "R#{race.round}", race_path(race) %>
+                                    <% else %>
+                                        -
+                                    <% end %>
+                                </td>
+                                <td class="circuit">
+                                    <%= link_to race.circuit.name, circuit_path(race.circuit) %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    <% end %>
+</div>

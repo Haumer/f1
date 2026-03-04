@@ -1,0 +1,30 @@
+<div class="hero-intro pre-race-hero">
+    <span class="pre-race-label">
+        <i class="fa-solid fa-calendar"></i>
+        Race Week · <%= @countdown_race.date.strftime("%B %d") %>
+    </span>
+    <h1><%= @countdown_race.circuit.name %></h1>
+    <p class="subtitle">Round <%= @countdown_race.round %> · <%= @countdown_race.circuit.location %>, <%= @countdown_race.circuit.country %></p>
+
+    <% if @next_session %>
+        <div class="countdown-timer"
+             data-controller="countdown"
+             data-countdown-target-value="<%= @next_session[:starts_at].iso8601 %>"
+             data-countdown-label-value="<%= @next_session[:name] %> in">
+        </div>
+    <% else %>
+        <div class="countdown-badge">
+            <span class="countdown-number"><%= @days_until_fp1 %></span>
+            <span class="countdown-label"><%= @days_until_fp1 == 1 ? 'day' : 'days' %> until FP1</span>
+        </div>
+    <% end %>
+
+    <% if @countdown_race.starts_at %>
+        <div class="race-time-preview">
+            <span class="race-time-label">Race Start</span>
+            <span class="race-time-value"><%= @countdown_race.starts_at.strftime("%H:%M UTC") %></span>
+        </div>
+    <% end %>
+</div>
+
+<%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>

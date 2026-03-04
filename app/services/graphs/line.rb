@@ -1,22 +1,32 @@
 class Graphs::Line
     def initialize(driver:)
         @driver = driver
-        @last_race_date = @driver.last_race_date
-        @first_race_date = @driver.first_race_date
-        date_range = @first_race_date..@last_race_date
-        @races = Race.where(date: date_range).sorted
-        @seasons = @driver.seasons.where.not(year: 2024)
+        @v2 = Setting.use_elo_v2?
+        @new_elo_col = @v2 ? :new_elo_v2 : :new_elo
+        date_range = @driver.first_race_date..@driver.last_race_date
+        @races = Race.where(date: date_range).sorted.includes(:circuit)
+        @seasons = @driver.seasons.where.not(year: Date.current.year.to_s)
+                         .includes(races: :circuit)
+        @race_results_by_race = @driver.race_results.where(race: @races)
+                                       .includes(race: :circuit)
+                                       .index_by(&:race_id)
+
+        # Batch-load standings for all season-end races to avoid N+1
+        season_race_ids = @seasons.flat_map { |s| s.races.map(&:id) }
+        @driver_standings_by_race = @driver.driver_standings
+                                          .where(race_id: season_race_ids)
+                                          .index_by(&:race_id)
     end
 
     def driver_data
         @series_data = [
             {
-                data: @races.sorted.map do |race|
-                    race_result = RaceResult.find_by(driver: @driver, race: race)
-                    if race.drivers.pluck(:id).include?(@driver.id)
+                data: @races.map do |race|
+                    race_result = @race_results_by_race[race.id]
+                    if race_result && race_result.send(@new_elo_col)
                         {
-                            name: "#{race.circuit.name} - #{race.date.strftime("%b %d, %Y")} - #{ordinalize(race_result.position_order)} - #{race_result.new_elo.round}",
-                            value: race_result.new_elo.round,
+                            name: "#{race.circuit.name} - #{race.date.strftime("%b %d, %Y")} - #{ordinalize(race_result.position_order)} - #{race_result.send(@new_elo_col).round}",
+                            value: race_result.send(@new_elo_col).round,
                         }
                     else
                         {
@@ -26,7 +36,7 @@ class Graphs::Line
                 end,
                 type: 'line',
                 name: @driver.surname,
-                color: "#3571c6",
+                color: @driver.color,
                 smooth: true,
                 endLabel: {
                     show: true,
@@ -44,17 +54,17 @@ class Graphs::Line
             },
             xAxis: {
                 type: 'category',
-                data: @races.map{|race| "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}"}
+                data: @races.map { |race| race_x_label(race) }
             },
             yAxis: {
                 type: 'value',
-                min: 800,
-                max: @driver.peak_elo.round + 50
+                min: [(@driver.display_lowest_elo || 800).round - 50, Setting.use_elo_v2? ? 1500 : 800].min,
+                max: (@driver.display_peak_elo || 1200).round + 50
             },
             series: @series_data,
             legend: { show: true },
             toolbox: { show: true },
-            tooltip: { 
+            tooltip: {
                 trigger: "axis",
                 formatter: '{b}',
                 position: [10, 10],
@@ -72,91 +82,92 @@ class Graphs::Line
         }
     end
 
+    private
+
+    def race_x_label(race)
+        "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}"
+    end
+
     def mark_peak_elo
-        peak_elo_race = @driver.race_results.find_by(new_elo: @driver.peak_elo)
+        peak_elo_race = @driver.display_peak_elo_race_result
+        return { data: [] } unless peak_elo_race
+
         lines = {
             label: {
                 position: 'insideStartTop',
                 show: true,
             },
             data: [
-                {       
-                    xAxis: "#{peak_elo_race.race.circuit.circuit_ref} #{peak_elo_race.race.date.strftime("%b %d, %Y")}",   
-                    label: { formatter: '                                             Elo Peak' },              
-                },
                 {
-                    type: "max",
-                    label: { formatter: 'Max' },
+                    xAxis: race_x_label(peak_elo_race.race),
+                    label: { formatter: '                                             Elo Peak' },
                 },
-                {
-                    type: "average",
-                    label: { formatter: 'Average' },
-                },
-                {
-                    type: "min",
-                    label: { formatter: 'Min', position: 'insideStartBottom' },
-                },
+                { type: "max", label: { formatter: 'Max' } },
+                { type: "average", label: { formatter: 'Average' } },
+                { type: "min", label: { formatter: 'Min', position: 'insideStartBottom' } },
             ],
             symbol: 'none'
         }
-        @seasons.each do |season| 
-            position = season.latest_race.driver_standings.find_by(driver: @driver).position
-            label_text = "#{season.year} #{position_in_words(position)}"
-            lines[:data] << { 
-                label: { 
-                    formatter: label_text,
+
+        @seasons.each do |season|
+            last = season_last_race(season)
+            next unless last
+
+            latest = season_latest_race(season)
+            standing = @driver_standings_by_race[latest&.id]
+            next unless standing
+
+            position = standing.position
+            lines[:data] << {
+                label: {
+                    formatter: "#{season.year} #{position_in_words(position)}",
                     color: Race::PODIUM_COLORS[position],
                     fontWeight: 'bold',
-                }, 
-                xAxis: "#{season.last_race.circuit.circuit_ref} #{season.last_race.date.strftime("%b %d, %Y")}",
+                },
+                xAxis: race_x_label(last),
             }
         end
         lines
     end
 
     def notable_events
-        peak_elo_race = @driver.race_results.find_by(new_elo: @driver.peak_elo)
         points = {
             label: {
                 position: 'insideStartTop',
                 show: true,
             },
             data: [
-                {
-                    type: "max",
-                    label: { formatter: '' },
-                },
-                {
-                    type: "min",
-                    label: { formatter: '' },
-                },
+                { type: "max", label: { formatter: '' } },
+                { type: "min", label: { formatter: '' } },
             ],
             symbol: 'circle',
             symbolSize: 8,
         }
-        @seasons.each do |season| 
-            last_race = season.last_race.race_results.find_by(driver:@driver)
-            points[:data] << { 
-                coord: [
-                    "#{season.last_race.circuit.circuit_ref} #{season.year}", 
-                    last_race.present? ? last_race.new_elo : 0
-                ],
-                label: { 
-                    formatter: season.latest_race.driver_standings.find_by(driver: @driver).position
-                }, 
+
+        @seasons.each do |season|
+            last = season_last_race(season)
+            next unless last
+
+            last_race_result = @race_results_by_race[last.id]
+            elo_val = last_race_result&.send(@new_elo_col)
+            next unless elo_val
+
+            latest = season_latest_race(season)
+            standing = @driver_standings_by_race[latest&.id]
+
+            points[:data] << {
+                coord: [race_x_label(last), elo_val],
+                label: { formatter: standing&.position },
             }
         end
-        @driver.race_results.where(position_order: 1..3).each do |race_result|
+
+        @driver.race_results.where(position_order: 1..3).includes(race: :circuit).each do |race_result|
+            elo_point = race_result.send(@new_elo_col)
+            next unless elo_point
             position = race_result.position_order
-            points[:data] << { 
-                coord: [
-                    "#{race_result.race.circuit.circuit_ref} #{race_result.race.date.strftime("%b %d, %Y")}", 
-                    race_result.new_elo
-                ],
-                label: { 
-                    show: false,
-                    color: 'white'
-                },
+            points[:data] << {
+                coord: [race_x_label(race_result.race), elo_point],
+                label: { show: false, color: 'white' },
                 value: race_result.position_order,
                 symbol: 'circle',
                 itemStyle: {
@@ -170,23 +181,29 @@ class Graphs::Line
         points
     end
 
+    def season_last_race(season)
+        season.races.select(&:season_end).first || season.races.max_by(&:round)
+    end
+
+    def season_latest_race(season)
+        season.races.select { |r| @driver_standings_by_race.key?(r.id) }.max_by(&:round)
+    end
+
     def position_in_words(position)
         case position
         when 1 then "Champion"
-        else
-            "#{ordinalize(position)} Place"
+        else "#{ordinalize(position)} Place"
         end
     end
 
     def ordinalize(n)
         return "#{n}th" if (11..13).include?(n % 100)
-      
-        case n%10
+
+        case n % 10
         when 1 then "#{n}st"
         when 2 then "#{n}nd"
         when 3 then "#{n}rd"
-        else    
-            "#{n}th"
+        else "#{n}th"
         end
     end
 end

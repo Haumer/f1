@@ -1,59 +1,308 @@
-.lifetime-Podiums, .season-finishes {
+.driver-card {
+    text-align: center;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
 
-    .race-trophy-case, .season-trophy-case {
-        align-items: flex-end;
+    .driver-name {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 15px;
+        margin: 0 0 4px;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .driver-constructor {
+        font-size: 13px;
+        color: $text-secondary;
+        margin-bottom: 12px;
+        a { color: $text-secondary; }
+    }
+
+    .driver-titles {
         display: flex;
-        .box {
-            text-align: center;
-            width: 53px
-        }
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 16px;
     }
-    .race-2nd-place {
-        .box {
-            border: 1px solid;
-            height: 40px;
-            line-height: 40px;
-        }
+
+    .title-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 4px;
+        &.champion { background: rgba($gold, 0.15); color: darken($gold, 10%); }
+        &.runner-up { background: rgba($silver, 0.15); color: darken($silver, 35%); }
+        &.third { background: rgba($bronze, 0.15); color: darken($bronze, 10%); }
     }
-    .race-wins {
-        .box {
-            border: 1px solid;
-            height: 52px;
-            line-height: 52px;
-        }   
-    }
-    .race-3rd-place {
-        .box {
-            border: 1px solid;
-            height: 28px;
-            line-height: 28px;
-        }
-    }
-    .place-1 {
-        font-size: 40px;
-        text-align: center;
-    }
-    .place-2 {
-        font-size: 36px;
-        text-align: center;
-    }
-    .place-3 {
-        font-size: 32px;
-        text-align: center;
-    }
-    .race-4th-place {
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-    }
-    .profile-seasons {
-        .place-1, .place-2, .place-3 {
-            text-align: start;
-            font-size: 16px !important;
-        }
+
+    .driver-photo {
+        width: 160px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        background: $light-gray url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="%23ccc"><circle cx="32" cy="22" r="12"/><path d="M12 56c0-11 9-20 20-20s20 9 20 20"/></svg>') center/40% no-repeat;
     }
 }
 
 .profile-section {
-    margin-top: 16px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+    margin-bottom: 8px;
+}
+
+.race-trophy-case {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+
+    .trophy-col {
+        text-align: center;
+        .trophy-count {
+            font-weight: 700;
+            font-size: 16px;
+            border: 1px solid $border-color;
+            border-radius: 4px;
+            padding: 4px 12px;
+            min-width: 40px;
+        }
+    }
+
+    .trophy-first .trophy-count {
+        padding: 8px 12px;
+    }
+
+    .place-1 { font-size: 32px; }
+    .place-2 { font-size: 26px; }
+    .place-3 { font-size: 22px; }
+}
+
+.fourth-place {
+    margin-top: 6px;
+    font-size: 13px;
+    color: $text-secondary;
+}
+
+.chart-header {
+    margin-bottom: 12px;
+    h4 {
+        font-size: 14px;
+        margin: 0;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+.driver-race-results {
+    td:first-child { font-weight: 700; }
+}
+
+.profile-seasons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+
+    .season-badge {
+        font-size: 12px;
+        font-weight: 700;
+        a {
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: $light-gray;
+            transition: background 0.15s, transform 0.1s;
+            display: inline-block;
+            &:hover {
+                transform: translateY(-1px);
+                filter: brightness(0.95);
+            }
+        }
+        &.place-1 a { background: rgba($gold, 0.15); }
+        &.place-2 a { background: rgba($silver, 0.15); }
+        &.place-3 a { background: rgba($bronze, 0.15); }
+    }
+}
+
+// Elo stats in driver sidebar
+.elo-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+}
+.elo-stat {
+    text-align: center;
+    .elo-value {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+    }
+    .elo-label {
+        font-size: 11px;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+}
+
+// Driver flag in sidebar
+.driver-flag {
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+// Season divider rows in race history
+.season-divider {
+    td {
+        background: $light-gray;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+        padding: 4px 10px;
+        border-bottom: 2px solid $border-color;
+    }
+    &:hover td { background-color: $light-gray; }
+}
+
+// Layout grid max-width constraint
+.layout-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+// Elo rank badges
+.elo-rank-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+.rank-badge {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    .rank-context {
+        font-family: 'Formula1', sans-serif;
+        font-size: 11px;
+        color: $text-secondary;
+        font-weight: 400;
+    }
+}
+.elo-tier-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    &.elo-tier-elite { background: rgba($gold, 0.15); color: darken($gold, 10%); }
+    &.elo-tier-world-class { background: rgba($silver, 0.15); color: darken($silver, 15%); }
+    &.elo-tier-strong { background: rgba($green, 0.15); color: $green; }
+    &.elo-tier-average { background: rgba($text-secondary, 0.1); color: $text-secondary; }
+    &.elo-tier-developing { background: rgba($text-secondary, 0.1); color: $text-secondary; }
+}
+
+// Achievement badges
+.achievement-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.achievement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: $radius-sm;
+    cursor: default;
+    transition: transform 0.15s, box-shadow 0.15s;
+
+    position: relative;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    // Tooltip
+    &[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        background: $text-primary;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 400;
+        padding: 5px 10px;
+        border-radius: $radius-sm;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s, transform 0.15s;
+        z-index: 9999;
+    }
+
+    &[data-tooltip]:hover::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    i { font-size: 12px; }
+
+    .achievement-value {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 10px;
+        opacity: 0.8;
+    }
+
+    // Default: light gray
+    background: $light-gray;
+    color: $text-secondary;
+
+    // Tier colors for top 3
+    &.tier-gold   { @include tier-gold; box-shadow: 0 0 0 1.5px $gold, 0 0 6px rgba($gold, 0.3); }
+    &.tier-silver { @include tier-silver; box-shadow: 0 0 0 1.5px $silver, 0 0 6px rgba($silver, 0.3); }
+    &.tier-bronze { @include tier-bronze; box-shadow: 0 0 0 1.5px $bronze, 0 0 6px rgba($bronze, 0.3); }
+
+    &.badge-icon-only {
+        padding: 6px 8px;
+        i { font-size: 14px; }
+    }
+}
+
+// Career stats grid
+.career-stats-grid {
+    text-align: left;
+    .career-stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px solid lighten($border-color, 5%);
+        font-size: 13px;
+        &:last-child { border-bottom: none; }
+    }
+    .career-stat-label { color: $text-secondary; }
+    .career-stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .career-stat-sub {
+        padding-left: 12px;
+        font-size: 12px;
+        .career-stat-label { font-size: 12px; }
+        .career-stat-value { font-weight: 400; }
+    }
 }

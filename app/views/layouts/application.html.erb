@@ -1,19 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>F1</title>
+    <title>F1 Elo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <script>
+      document.addEventListener('turbo:before-visit', () => {
+        document.querySelector('.navbar .links')?.classList.remove('open');
+      });
+    </script>
   </head>
 
-  <body style="padding: 16px;">
-    <div class="app col-12 col-sm-10 offset-sm-1">
+  <body<%= " style=\"--page-accent: #{@page_accent};\"".html_safe if @page_accent %>>
+    <div class="container py-3">
       <%= render 'components/navbar' %>
-      <%= yield %>
+      <% if notice.present? %>
+        <div class="flash flash-notice"><%= notice %></div>
+      <% end %>
+      <% if alert.present? %>
+        <div class="flash flash-alert"><%= alert %></div>
+      <% end %>
+      <main><%= yield %></main>
     </div>
   </body>
 </html>

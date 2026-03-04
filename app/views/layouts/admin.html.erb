@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>F1 Elo — Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body>
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <div class="admin-logo">
+          <%= link_to "F1 ELO", root_path %>
+          <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="admin-nav">
+          <%= link_to admin_root_path, class: "admin-nav-link #{'active' if controller_name == 'dashboard'}" do %>
+            <i class="fa-solid fa-gauge"></i> Dashboard
+          <% end %>
+          <%= link_to admin_settings_path, class: "admin-nav-link #{'active' if controller_name == 'settings'}" do %>
+            <i class="fa-solid fa-sliders"></i> Settings
+          <% end %>
+          <%= link_to admin_operations_path, class: "admin-nav-link #{'active' if controller_name == 'operations'}" do %>
+            <i class="fa-solid fa-gears"></i> Operations
+          <% end %>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <%= link_to root_path, class: "admin-nav-link" do %>
+            <i class="fa-solid fa-arrow-left"></i> Back to Site
+          <% end %>
+          <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "admin-nav-link" do %>
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+          <% end %>
+        </div>
+      </aside>
+      <main class="admin-main">
+        <% if notice.present? %>
+          <div class="flash flash-notice"><%= notice %></div>
+        <% end %>
+        <% if alert.present? %>
+          <div class="flash flash-alert"><%= alert %></div>
+        <% end %>
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

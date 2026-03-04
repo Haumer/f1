@@ -17,7 +17,7 @@ class GraphData
     def generate
         if @drivers.present? 
             drivers_data
-            graph_options(min: 800, inverse: false)
+            graph_options(min: Setting.use_elo_v2? ? 1500 : 800, inverse: false)
         else
             race_data
             graph_options(min: 1, inverse: true)
@@ -42,7 +42,7 @@ class GraphData
                 distance: 20
             },
         }
-        graph_options(min: 800, inverse: false)
+        graph_options(min: Setting.use_elo_v2? ? 1500 : 800, inverse: false)
     end
 
     def column_race
@@ -101,7 +101,7 @@ class GraphData
                 distance: 20
             },
         }
-        graph_options(min: 800, inverse: false)
+        graph_options(min: Setting.use_elo_v2? ? 1500 : 800, inverse: false)
     end
 
     def drivers_data

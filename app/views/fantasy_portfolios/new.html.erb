@@ -1,0 +1,51 @@
+<div class="homepage-container">
+    <div class="hero-intro">
+        <h1>Fantasy F1</h1>
+        <p class="subtitle">Build your dream roster. Buy drivers at their Elo rating, track their performance, and grow your portfolio.</p>
+    </div>
+
+    <div class="card fantasy-create-card">
+        <div class="fantasy-create-header">
+            <h3><%= @season.year %> Season</h3>
+            <span class="fantasy-capital-preview">
+                Starting Capital: <strong><%= @starting_capital %></strong>
+            </span>
+        </div>
+
+        <div class="fantasy-rules">
+            <div class="fantasy-rule">
+                <i class="fa-solid fa-users"></i>
+                <div>
+                    <strong>2 Driver Roster</strong>
+                    <span>Pick any 2 active drivers at their current Elo V2 price</span>
+                </div>
+            </div>
+            <div class="fantasy-rule">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                <div>
+                    <strong>1 Swap Per Race</strong>
+                    <span>Sell and buy before each race starts. Must hold for 1+ race.</span>
+                </div>
+            </div>
+            <div class="fantasy-rule">
+                <i class="fa-solid fa-percent"></i>
+                <div>
+                    <strong>1% Sell Fee</strong>
+                    <span>A small fee applies when selling a driver</span>
+                </div>
+            </div>
+            <div class="fantasy-rule">
+                <i class="fa-solid fa-chart-line"></i>
+                <div>
+                    <strong>Portfolio Value</strong>
+                    <span>Your score = cash + current Elo of your drivers</span>
+                </div>
+            </div>
+        </div>
+
+        <%= form_with url: fantasy_portfolios_path, method: :post, local: true do %>
+            <%= hidden_field_tag :season_id, @season.id %>
+            <%= submit_tag "Start Fantasy Season", class: "fantasy-btn fantasy-btn-primary" %>
+        <% end %>
+    </div>
+</div>

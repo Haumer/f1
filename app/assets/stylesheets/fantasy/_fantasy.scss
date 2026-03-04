@@ -1,0 +1,475 @@
+// Fantasy F1 Styles
+
+// Header
+.fantasy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    h2 {
+        margin: 0;
+        font-family: 'Formula1-Wide', sans-serif;
+    }
+}
+
+.fantasy-season {
+    font-size: 14px;
+    color: $text-secondary;
+    strong { color: $text-primary; }
+}
+
+.fantasy-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+// Buttons
+.fantasy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+
+    &-primary {
+        background: $accent-red;
+        color: white;
+        border-color: $accent-red;
+        &:hover { background: darken($accent-red, 8%); color: white; }
+    }
+
+    &-outline {
+        background: transparent;
+        color: $text-primary;
+        border-color: $border-color;
+        &:hover { border-color: $accent-red; color: $accent-red; }
+    }
+
+    &-danger {
+        background: transparent;
+        color: $red;
+        border-color: $red;
+        font-size: 12px;
+        padding: 4px 12px;
+        &:hover { background: $red; color: white; }
+    }
+
+    &-sm {
+        padding: 4px 12px;
+        font-size: 12px;
+    }
+}
+
+// Stats row
+.fantasy-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.fantasy-stat-card {
+    text-align: center;
+    padding: 16px;
+}
+
+.fantasy-stat-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+    margin-bottom: 4px;
+}
+
+.fantasy-stat-value {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+// Transfer window indicator
+.fantasy-transfer-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 24px;
+
+    &.open {
+        background: rgba($green, 0.08);
+        color: $green;
+        border: 1px solid rgba($green, 0.2);
+    }
+
+    &.closed {
+        background: rgba($red, 0.08);
+        color: $red;
+        border: 1px solid rgba($red, 0.2);
+    }
+}
+
+// Roster grid
+.fantasy-roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.fantasy-driver-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fantasy-driver-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    h4 {
+        margin: 0;
+        font-size: 15px;
+        a { color: $text-primary; &:hover { color: $accent-red; } }
+    }
+}
+
+.fantasy-driver-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.fantasy-driver-constructor {
+    font-size: 12px;
+    color: $text-secondary;
+    display: block;
+}
+
+.fantasy-driver-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.fantasy-driver-stat {
+    display: flex;
+    flex-direction: column;
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+    }
+    .value {
+        font-weight: 700;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.fantasy-sell-form {
+    margin-top: auto;
+}
+
+// Market grid
+.fantasy-market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.fantasy-market-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s;
+
+    &.on-roster {
+        border-color: $green;
+        background: rgba($green, 0.03);
+    }
+
+    &:hover { border-color: $accent-red; }
+}
+
+.fantasy-market-driver {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fantasy-market-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.fantasy-market-info {
+    h4 {
+        margin: 0;
+        font-size: 14px;
+        a { color: $text-primary; &:hover { color: $accent-red; } }
+    }
+}
+
+.fantasy-market-constructor {
+    font-size: 11px;
+    color: $text-secondary;
+    display: block;
+}
+
+.fantasy-market-flag {
+    margin-left: auto;
+}
+
+.fantasy-market-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+}
+
+.fantasy-price-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+}
+
+.fantasy-price-value {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.fantasy-market-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.fantasy-badge-on-roster {
+    font-size: 12px;
+    font-weight: 700;
+    color: $green;
+    i { margin-right: 4px; }
+}
+
+.fantasy-badge-cant-afford {
+    font-size: 12px;
+    color: $text-secondary;
+}
+
+// Transactions table
+.fantasy-transactions-table {
+    width: 100%;
+
+    .fantasy-txn-kind {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 3px;
+
+        &.fantasy-txn-buy {
+            background: rgba($red, 0.1);
+            color: $red;
+        }
+        &.fantasy-txn-sell {
+            background: rgba($green, 0.1);
+            color: $green;
+        }
+        &.fantasy-txn-login_bonus,
+        &.fantasy-txn-interaction_bonus {
+            background: rgba($blue, 0.1);
+            color: $blue;
+        }
+    }
+
+    .fantasy-txn-note {
+        color: $text-secondary;
+        font-size: 12px;
+    }
+}
+
+// Leaderboard
+.fantasy-leaderboard-table {
+    width: 100%;
+
+    tbody tr {
+        border-left: 3px solid transparent;
+    }
+
+    .podium-p1 { border-left-color: $gold; }
+    .podium-p2 { border-left-color: $silver; }
+    .podium-p3 { border-left-color: $bronze; }
+
+    .position-cell {
+        font-weight: 700;
+        font-size: 14px;
+        width: 40px;
+    }
+}
+
+.fantasy-leaderboard-me {
+    background: rgba($accent-red, 0.04);
+}
+
+.fantasy-you-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: $accent-red;
+    background: rgba($accent-red, 0.1);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+}
+
+.fantasy-leaderboard-driver {
+    font-size: 12px;
+    color: $text-secondary;
+    margin-right: 8px;
+    &:hover { color: $accent-red; }
+}
+
+.fantasy-leaderboard-value {
+    font-family: 'Formula1-Wide', sans-serif;
+    font-weight: 700;
+}
+
+// Create page
+.fantasy-create-card {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.fantasy-create-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    h3 { margin: 0; font-family: 'Formula1-Wide', sans-serif; }
+}
+
+.fantasy-capital-preview {
+    font-size: 14px;
+    color: $text-secondary;
+    strong {
+        font-family: 'Formula1-Wide', sans-serif;
+        color: $text-primary;
+    }
+}
+
+.fantasy-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.fantasy-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    i {
+        color: $accent-red;
+        font-size: 16px;
+        margin-top: 2px;
+        width: 20px;
+        text-align: center;
+    }
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    span {
+        font-size: 13px;
+        color: $text-secondary;
+    }
+}
+
+// Mini portfolio card (homepage)
+.fantasy-mini-card {
+    display: block;
+    text-decoration: none;
+    color: $text-primary;
+    transition: border-color 0.15s;
+    margin-bottom: 24px;
+
+    &:hover {
+        border-color: $accent-red;
+        color: $text-primary;
+    }
+}
+
+.fantasy-mini-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 12px;
+    i { color: $accent-red; }
+}
+
+.fantasy-mini-stats {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.fantasy-mini-stat {
+    display: flex;
+    flex-direction: column;
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+    }
+    .value {
+        font-family: 'Formula1-Wide', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+    }
+}
+
+.fantasy-mini-drivers {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.fantasy-mini-driver {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    background: $light-gray;
+    border-radius: 3px;
+}

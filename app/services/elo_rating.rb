@@ -135,35 +135,34 @@ end
 
 class EloRating::Race
     def initialize(race:)
-        puts "inside elo"
         @match = EloRating::Match.new
-        puts "new elo match"
         @race = race
         @results = @race.race_results
-        add_all_drivers 
-        puts "add all drivers"
+        add_all_drivers
     end
 
     def add_all_drivers
-        @results.map do |result|
-            puts @match
+        @results.each do |result|
+            next unless result.driver
+
             @match.add_player(rating: result.driver.elo, place: result.position_order, race_result: result)
         end
         self
     end
 
     def preview_rating_changes
-        @match.updated_ratings.each do |changes|
+        @match.updated_ratings.map do |changes|
             { new: changes[:new_rating], old: changes[:old_rating], race_result: changes[:race_result]}
         end
-        self
     end
 
     def update_driver_ratings
-        puts @match.updated_ratings
         @match.updated_ratings.each do |changes|
             changes[:race_result].update(old_elo: changes[:old_rating], new_elo: changes[:new_rating])
-            changes[:race_result].driver.update(elo: changes[:new_rating], peak_elo: changes[:new_rating] > changes[:race_result].driver.peak_elo ?  changes[:new_rating] : changes[:race_result].driver.peak_elo )
+            driver = changes[:race_result].driver
+            current_peak = driver.peak_elo || 0
+            new_peak = [changes[:new_rating], current_peak].max
+            driver.update(elo: changes[:new_rating], peak_elo: new_peak)
         end
         self
     end

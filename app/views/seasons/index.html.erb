@@ -1,13 +1,23 @@
-<div class="seasons">
-
-    <% @seasons.each do |season| %>
-        <div class="season">
-            <%= link_to season_path(season) do %>
-                <%= season.year %>  
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>All Seasons</h3>
+    </div>
+    <div class="seasons-grid">
+        <% @seasons.each do |season| %>
+            <% card_color = @champion_colors[season.id] %>
+            <%= link_to season_path(season), class: "season-card card #{'is-current' if season == @seasons.first}", style: (card_color ? "--card-accent: #{card_color};" : nil) do %>
+                <span class="season-year"><%= season.year %></span>
+                <div class="season-stats">
+                    <span><%= season.drivers.size %> drivers</span>
+                    <span><%= season.races.size %> races</span>
+                </div>
+                <% champion_standing = @champions_by_season[season.id] %>
+                <% if champion_standing %>
+                    <div class="season-champion">
+                        <i class="fa-solid fa-trophy"></i> <%= champion_standing.driver.forename[0] %>.<%= champion_standing.driver.surname %>
+                    </div>
+                <% end %>
             <% end %>
-            <%= season.drivers.count %>
-            <%= season.races.count %>
-        </div>
-    <% end %>
-
+        <% end %>
+    </div>
 </div>

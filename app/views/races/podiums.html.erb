@@ -1,0 +1,45 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>All-Time Podium Leaders</h3>
+    </div>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact podium-leaders">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th></th>
+                    <th>Driver</th>
+                    <th class="text-center" title="Total Podiums">Pod</th>
+                    <th class="text-center" title="Wins">W</th>
+                    <th class="text-center" title="Second Places">2nd</th>
+                    <th class="text-center" title="Third Places">3rd</th>
+                    <th class="text-center">Peak Elo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @drivers.each_with_index do |driver, index| %>
+                    <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
+                        <td class="text-center"><%= index + 1 %></td>
+                        <td class="icon-cell">
+                            <% if driver.country.present? %>
+                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
+                            <% end %>
+                        </td>
+                        <td>
+                            <%= link_to driver_path(driver) do %>
+                                <%= driver.forename[0] %>.<%= driver.surname %>
+                            <% end %>
+                        </td>
+                        <td class="text-center"><%= driver.podiums %></td>
+                        <td class="text-center"><%= driver.wins %></td>
+                        <td class="text-center"><%= driver.second_places %></td>
+                        <td class="text-center"><%= driver.third_places %></td>
+                        <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
