@@ -6,11 +6,13 @@ module AccentColorable
   private
 
   def set_current_champion_accent
-    standing = DriverStanding.where(season_end: true, position: 1)
-                             .joins(race: :season)
-                             .order("seasons.year DESC")
-                             .first
-    @page_accent = constructor_color_for_standing(standing) || DEFAULT_ACCENT
+    @page_accent = Rails.cache.fetch("current_champion_accent", expires_in: 1.day) do
+      standing = DriverStanding.where(season_end: true, position: 1)
+                               .joins(race: :season)
+                               .order("seasons.year DESC")
+                               .first
+      constructor_color_for_standing(standing) || DEFAULT_ACCENT
+    end
   end
 
   def set_season_champion_accent(season)
@@ -23,6 +25,29 @@ module AccentColorable
 
   def set_race_winner_accent(race)
     winner = race.race_results.find_by(position_order: 1)
+    @page_accent = constructor_color(winner&.constructor) || DEFAULT_ACCENT
+  end
+
+  def set_latest_race_winner_accent
+    @page_accent = Rails.cache.fetch("latest_race_winner_accent", expires_in: 1.hour) do
+      latest = Race.joins(:race_results).order(date: :desc).first
+      winner = latest&.race_results&.find_by(position_order: 1)
+      constructor_color(winner&.constructor) || DEFAULT_ACCENT
+    end
+  end
+
+  def set_constructor_accent(constructor)
+    @page_accent = constructor_color(constructor) || DEFAULT_ACCENT
+  end
+
+  def set_driver_accent(driver)
+    sd = driver.season_drivers.includes(:constructor).joins(:season).order("seasons.year DESC").first
+    @page_accent = constructor_color(sd&.constructor) || DEFAULT_ACCENT
+  end
+
+  def set_circuit_accent(circuit)
+    latest_race = circuit.races.joins(:race_results).order(date: :desc).first
+    winner = latest_race&.race_results&.find_by(position_order: 1)
     @page_accent = constructor_color(winner&.constructor) || DEFAULT_ACCENT
   end
 

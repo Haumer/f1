@@ -7,7 +7,6 @@ class Driver < ApplicationRecord
     has_many :season_drivers
     has_many :seasons, through: :season_drivers
     has_many :constructors, through: :season_drivers
-    has_one :career
     has_many :badges, class_name: "DriverBadge", dependent: :delete_all
 
     validates :surname, :driver_ref, presence: true
@@ -139,7 +138,7 @@ class Driver < ApplicationRecord
     end
 
     def current_constructor
-        season_drivers.find_by(active: true)&.constructor
+        season_drivers.joins(:season).order("seasons.year DESC").first&.constructor
     end
 
     def constructor_for(season)

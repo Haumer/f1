@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_05_194643) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "admin_alerts", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "message"
+    t.string "severity", default: "error"
+    t.string "source"
+    t.boolean "resolved", default: false
+    t.datetime "resolved_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_admin_alerts_on_created_at"
+    t.index ["resolved"], name: "index_admin_alerts_on_resolved"
+  end
 
   create_table "blazer_audits", force: :cascade do |t|
     t.bigint "user_id"
@@ -82,6 +95,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.string "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["circuit_ref"], name: "index_circuits_on_circuit_ref"
   end
 
   create_table "constructor_standings", force: :cascade do |t|
@@ -111,6 +125,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.float "peak_elo"
     t.float "elo_v2"
     t.float "peak_elo_v2"
+    t.index ["active"], name: "index_constructors_on_active"
+    t.index ["constructor_ref"], name: "index_constructors_on_constructor_ref", unique: true
+    t.index ["elo"], name: "index_constructors_on_elo"
+    t.index ["elo_v2"], name: "index_constructors_on_elo_v2"
   end
 
   create_table "countries", force: :cascade do |t|
@@ -221,6 +239,19 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.integer "fastest_laps"
     t.float "elo_v2"
     t.float "peak_elo_v2"
+    t.index ["active"], name: "index_drivers_on_active"
+    t.index ["driver_ref"], name: "index_drivers_on_driver_ref", unique: true
+  end
+
+  create_table "fantasy_achievements", force: :cascade do |t|
+    t.bigint "fantasy_portfolio_id", null: false
+    t.string "key"
+    t.string "tier"
+    t.datetime "earned_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fantasy_portfolio_id", "key"], name: "index_fantasy_achievements_on_fantasy_portfolio_id_and_key", unique: true
+    t.index ["fantasy_portfolio_id"], name: "index_fantasy_achievements_on_fantasy_portfolio_id"
   end
 
   create_table "fantasy_portfolios", force: :cascade do |t|
@@ -228,12 +259,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.bigint "season_id", null: false
     t.float "cash", default: 0.0, null: false
     t.float "starting_capital", null: false
-    t.integer "login_streak", default: 0
-    t.date "last_login_date"
-    t.integer "interactions_today", default: 0
-    t.date "last_interaction_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "roster_slots", default: 2, null: false
     t.index ["season_id"], name: "index_fantasy_portfolios_on_season_id"
     t.index ["user_id", "season_id"], name: "index_fantasy_portfolios_on_user_id_and_season_id", unique: true
     t.index ["user_id"], name: "index_fantasy_portfolios_on_user_id"
@@ -254,6 +282,19 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.index ["fantasy_portfolio_id", "active"], name: "index_fantasy_roster_entries_on_fantasy_portfolio_id_and_active"
     t.index ["fantasy_portfolio_id"], name: "index_fantasy_roster_entries_on_fantasy_portfolio_id"
     t.index ["sold_race_id"], name: "index_fantasy_roster_entries_on_sold_race_id"
+  end
+
+  create_table "fantasy_snapshots", force: :cascade do |t|
+    t.bigint "fantasy_portfolio_id", null: false
+    t.bigint "race_id", null: false
+    t.float "value"
+    t.float "cash"
+    t.integer "rank"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fantasy_portfolio_id", "race_id"], name: "index_fantasy_snapshots_on_fantasy_portfolio_id_and_race_id", unique: true
+    t.index ["fantasy_portfolio_id"], name: "index_fantasy_snapshots_on_fantasy_portfolio_id"
+    t.index ["race_id"], name: "index_fantasy_snapshots_on_race_id"
   end
 
   create_table "fantasy_transactions", force: :cascade do |t|
@@ -308,6 +349,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.index ["constructor_id"], name: "index_race_results_on_constructor_id"
     t.index ["driver_id", "race_id"], name: "index_race_results_on_driver_id_and_race_id"
     t.index ["driver_id"], name: "index_race_results_on_driver_id"
+    t.index ["position_order"], name: "index_race_results_on_position_order"
     t.index ["race_id", "driver_id"], name: "index_race_results_on_race_id_and_driver_id"
     t.index ["race_id"], name: "index_race_results_on_race_id"
     t.index ["status_id"], name: "index_race_results_on_status_id"
@@ -354,6 +396,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.string "year"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["year"], name: "index_seasons_on_year", unique: true
   end
 
   create_table "settings", force: :cascade do |t|
@@ -362,6 +405,99 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_settings_on_key", unique: true
+  end
+
+  create_table "solid_queue_blocked_executions", force: :cascade do |t|
+    t.bigint "job_id", null: false
+    t.string "queue_name", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "concurrency_key", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.index ["expires_at", "concurrency_key"], name: "index_solid_queue_blocked_executions_for_maintenance"
+    t.index ["job_id"], name: "index_solid_queue_blocked_executions_on_job_id", unique: true
+  end
+
+  create_table "solid_queue_claimed_executions", force: :cascade do |t|
+    t.bigint "job_id", null: false
+    t.bigint "process_id"
+    t.datetime "created_at", null: false
+    t.index ["job_id"], name: "index_solid_queue_claimed_executions_on_job_id", unique: true
+    t.index ["process_id", "job_id"], name: "index_solid_queue_claimed_executions_on_process_id_and_job_id"
+  end
+
+  create_table "solid_queue_failed_executions", force: :cascade do |t|
+    t.bigint "job_id", null: false
+    t.text "error"
+    t.datetime "created_at", null: false
+    t.index ["job_id"], name: "index_solid_queue_failed_executions_on_job_id", unique: true
+  end
+
+  create_table "solid_queue_jobs", force: :cascade do |t|
+    t.string "queue_name", null: false
+    t.string "class_name", null: false
+    t.text "arguments"
+    t.integer "priority", default: 0, null: false
+    t.string "active_job_id"
+    t.datetime "scheduled_at"
+    t.datetime "finished_at"
+    t.string "concurrency_key"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active_job_id"], name: "index_solid_queue_jobs_on_active_job_id"
+    t.index ["class_name"], name: "index_solid_queue_jobs_on_class_name"
+    t.index ["finished_at"], name: "index_solid_queue_jobs_on_finished_at"
+    t.index ["queue_name", "finished_at"], name: "index_solid_queue_jobs_for_filtering"
+    t.index ["scheduled_at", "finished_at"], name: "index_solid_queue_jobs_for_alerting"
+  end
+
+  create_table "solid_queue_pauses", force: :cascade do |t|
+    t.string "queue_name", null: false
+    t.datetime "created_at", null: false
+    t.index ["queue_name"], name: "index_solid_queue_pauses_on_queue_name", unique: true
+  end
+
+  create_table "solid_queue_processes", force: :cascade do |t|
+    t.string "kind", null: false
+    t.datetime "last_heartbeat_at", null: false
+    t.bigint "supervisor_id"
+    t.integer "pid", null: false
+    t.string "hostname"
+    t.text "metadata"
+    t.datetime "created_at", null: false
+    t.index ["last_heartbeat_at"], name: "index_solid_queue_processes_on_last_heartbeat_at"
+    t.index ["supervisor_id"], name: "index_solid_queue_processes_on_supervisor_id"
+  end
+
+  create_table "solid_queue_ready_executions", force: :cascade do |t|
+    t.bigint "job_id", null: false
+    t.string "queue_name", null: false
+    t.integer "priority", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.index ["job_id"], name: "index_solid_queue_ready_executions_on_job_id", unique: true
+    t.index ["priority", "job_id"], name: "index_solid_queue_poll_all"
+    t.index ["queue_name", "priority", "job_id"], name: "index_solid_queue_poll_by_queue"
+  end
+
+  create_table "solid_queue_scheduled_executions", force: :cascade do |t|
+    t.bigint "job_id", null: false
+    t.string "queue_name", null: false
+    t.integer "priority", default: 0, null: false
+    t.datetime "scheduled_at", null: false
+    t.datetime "created_at", null: false
+    t.index ["job_id"], name: "index_solid_queue_scheduled_executions_on_job_id", unique: true
+    t.index ["scheduled_at", "priority", "job_id"], name: "index_solid_queue_dispatch_all"
+  end
+
+  create_table "solid_queue_semaphores", force: :cascade do |t|
+    t.string "key", null: false
+    t.integer "value", default: 1, null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_solid_queue_semaphores_on_expires_at"
+    t.index ["key", "value"], name: "index_solid_queue_semaphores_on_key_and_value"
+    t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
   create_table "statuses", force: :cascade do |t|
@@ -403,12 +539,15 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
   add_foreign_key "driver_countries", "drivers"
   add_foreign_key "driver_standings", "drivers"
   add_foreign_key "driver_standings", "races"
+  add_foreign_key "fantasy_achievements", "fantasy_portfolios"
   add_foreign_key "fantasy_portfolios", "seasons"
   add_foreign_key "fantasy_portfolios", "users"
   add_foreign_key "fantasy_roster_entries", "drivers"
   add_foreign_key "fantasy_roster_entries", "fantasy_portfolios"
   add_foreign_key "fantasy_roster_entries", "races", column: "bought_race_id"
   add_foreign_key "fantasy_roster_entries", "races", column: "sold_race_id"
+  add_foreign_key "fantasy_snapshots", "fantasy_portfolios"
+  add_foreign_key "fantasy_snapshots", "races"
   add_foreign_key "fantasy_transactions", "drivers"
   add_foreign_key "fantasy_transactions", "fantasy_portfolios"
   add_foreign_key "fantasy_transactions", "races"
@@ -421,4 +560,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_04_225529) do
   add_foreign_key "season_drivers", "constructors"
   add_foreign_key "season_drivers", "drivers"
   add_foreign_key "season_drivers", "seasons"
+  add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
 end

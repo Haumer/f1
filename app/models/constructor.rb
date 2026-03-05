@@ -25,6 +25,8 @@ class Constructor < ApplicationRecord
         alpine: "#2193d1",
         sauber: "#52e252",
         rb: "#5e8faa",
+        audi: "#d5001c",
+        cadillac: "#c0a44d",
 
         # Historical teams
         lotus: "#4a9e5c",

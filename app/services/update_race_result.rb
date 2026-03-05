@@ -36,6 +36,7 @@ class UpdateRaceResult
         self.results
         self.standings
         EloRating::Race.new(race: @race).update_driver_ratings
+        EloRatingV2.process_race(@race)
         ConstructorEloV2.process_race(@race)
     end
 
@@ -43,8 +44,12 @@ class UpdateRaceResult
         races = @results_data.dig('MRData', 'RaceTable', 'Races')
         return unless races&.first
 
+        all_drivers = Driver.all.index_by(&:driver_ref)
+        all_countries = Country.all.index_by(&:nationality)
+        all_statuses = Status.all.index_by(&:status_type)
+
         @race_results = races.first['Results'].map do |race_result|
-            driver = Driver.find_by(driver_ref: race_result['Driver']['driverId'])
+            driver = all_drivers[race_result['Driver']['driverId']]
             constructor = Constructor.find_or_create_by(constructor_ref: race_result['Constructor']['constructorId']) do |c|
                 c.name = race_result['Constructor']['name']
                 c.url = race_result['Constructor']['url']
@@ -68,6 +73,7 @@ class UpdateRaceResult
                     skill: nil,
                 )
                 @new_drivers << driver
+                all_drivers[driver.driver_ref] = driver
             end
 
             SeasonDriver.find_or_create_by(
@@ -76,7 +82,7 @@ class UpdateRaceResult
                 driver: driver,
                 active: true
             )
-            country = Country.find_by(nationality: driver.nationality)
+            country = all_countries[driver.nationality]
             if country
                 DriverCountry.find_or_create_by(driver: driver, country: country)
             end
@@ -85,7 +91,7 @@ class UpdateRaceResult
                 driver: driver,
                 race: @race,
                 constructor: constructor,
-                status: Status.find_by(status_type: race_result['status']),
+                status: all_statuses[race_result['status']],
                 position: race_result['position'],
                 position_order: race_result['positionOrder'] || race_result['position'],
                 points: race_result['points'],
@@ -105,8 +111,10 @@ class UpdateRaceResult
         standings_lists = @standings_data.dig('MRData', 'StandingsTable', 'StandingsLists')
         return unless standings_lists&.first
 
+        all_drivers = Driver.all.index_by(&:driver_ref)
+
         @driver_standings = standings_lists.first['DriverStandings'].map do |driver_standing|
-            driver = Driver.find_by(driver_ref: driver_standing['Driver']['driverId'])
+            driver = all_drivers[driver_standing['Driver']['driverId']]
             next unless driver
 
             DriverStanding.find_or_create_by(

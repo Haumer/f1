@@ -107,10 +107,12 @@ class ConstructorEloV2
     n = constructor_scores.size
     k_pair = BASE_K * (REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
 
+    all_constructors = Constructor.where(id: constructor_scores.map(&:first)).index_by(&:id)
+
     adjustments = Hash.new(0.0)
     constructor_scores.combination(2) do |(cid_a, score_a, _), (cid_b, score_b, _)|
-      ra = Constructor.find(cid_a).elo_v2 || STARTING_ELO
-      rb = Constructor.find(cid_b).elo_v2 || STARTING_ELO
+      ra = all_constructors[cid_a].elo_v2 || STARTING_ELO
+      rb = all_constructors[cid_b].elo_v2 || STARTING_ELO
       ea = 1.0 / (1 + 10**((rb - ra) / SCALE))
 
       actual = score_a < score_b ? 1.0 : (score_a == score_b ? 0.5 : 0.0)
@@ -121,7 +123,7 @@ class ConstructorEloV2
 
     ActiveRecord::Base.transaction do
       constructor_scores.each do |cid, _, rrs|
-        constructor = Constructor.find(cid)
+        constructor = all_constructors[cid]
         old_elo = constructor.elo_v2 || STARTING_ELO
         new_elo = old_elo + (adjustments[cid] || 0)
         new_peak = [constructor.peak_elo_v2 || 0, new_elo].max
