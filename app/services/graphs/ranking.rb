@@ -5,6 +5,30 @@ class Graphs::Ranking
         @drivers = @season.drivers.distinct
         all_standings = DriverStanding.where(race: @races, driver: @drivers).to_a
 
+        # DriverStanding data is sparse — often only point-scorers are listed.
+        # Supplement with RaceResult data: any driver who raced but has no
+        # standing gets 0 points and is ranked after the listed drivers.
+        race_results_by_race = RaceResult.where(race: @races, driver: @drivers)
+                                         .group_by(&:race_id)
+        existing_by_race = all_standings.group_by(&:race_id)
+
+        @races.each do |race|
+            existing = existing_by_race[race.id] || []
+            existing_driver_ids = existing.map(&:driver_id).to_set
+            last_position = existing.size
+
+            results = race_results_by_race[race.id] || []
+            results.sort_by(&:position_order).each do |rr|
+                next if existing_driver_ids.include?(rr.driver_id)
+                last_position += 1
+                synth = DriverStanding.new(
+                    race_id: race.id, driver_id: rr.driver_id,
+                    points: 0, wins: 0, position: last_position
+                )
+                all_standings << synth
+            end
+        end
+
         # Fill in nil positions by ranking drivers by points per race
         standings_by_race = all_standings.group_by(&:race_id)
         standings_by_race.each do |_race_id, standings|
@@ -36,8 +60,7 @@ class Graphs::Ranking
                 end
             end
 
-            # Forward-fill mid-season gaps only (carry last known position)
-            # Do NOT backfill — lines should start when the driver first appears
+            # Forward-fill mid-season gaps (carry last known position)
             forward_fill!(raw_data, driver_name)
 
             {
