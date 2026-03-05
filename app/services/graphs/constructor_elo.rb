@@ -1,9 +1,7 @@
 class Graphs::ConstructorElo
   def initialize(constructors:)
     @constructors = constructors
-    @races = Race.joins(:race_results)
-                 .where(race_results: { constructor_id: @constructors.map(&:id) })
-                 .distinct.order(date: :asc).includes(:circuit)
+    @constructor_ids = constructors.map(&:id)
     build_elo_history
   end
 
@@ -12,7 +10,7 @@ class Graphs::ConstructorElo
       color = Constructor::COLORS[constructor.constructor_ref.to_sym] || "#666"
       history = @elo_history[constructor.id] || []
       {
-        data: history.map { |h| h[:elo].round },
+        data: history.map { |h| h[:elo]&.round },
         type: 'line',
         name: constructor.name,
         color: color,
@@ -52,40 +50,38 @@ class Graphs::ConstructorElo
 
   def build_elo_history
     @elo_history = @constructors.each_with_object({}) { |c, h| h[c.id] = [] }
-    current_elo = @constructors.each_with_object({}) { |c, h| h[c.id] = 1000.0 }
     @race_labels = []
 
-    @races.find_each do |race|
-      results = race.race_results.where(constructor_id: @constructors.map(&:id)).to_a
-      constructor_results = results.group_by(&:constructor_id)
+    # Fetch all race_results for these constructors with stored V2 Elo snapshots,
+    # grouped by race in chronological order
+    results = RaceResult.joins(:race)
+                        .where(constructor_id: @constructor_ids)
+                        .where.not(new_constructor_elo_v2: nil)
+                        .includes(race: :circuit)
+                        .order("races.date ASC, races.round ASC")
+                        .to_a
 
-      # Calculate constructor places for this race
-      constructor_places = constructor_results.map do |cid, rrs|
-        best = rrs.min_by { |rr| rr.position_order || 999 }
-        [cid, best.position_order || 999]
-      end
-
-      # Calculate adjustments
-      adjustments = Hash.new(0.0)
-      constructor_places.combination(2) do |(c1, p1), (c2, p2)|
-        r1 = current_elo[c1] || 1000.0
-        r2 = current_elo[c2] || 1000.0
-        expected = 1.0 / (1 + (10 ** ((r2 - r1) / 400.0)))
-        actual = p1 < p2 ? 1.0 : (p1 == p2 ? 0.5 : 0.0)
-        adj = 4.0 * (actual - expected)
-        adjustments[c1] += adj
-        adjustments[c2] -= adj
-      end
-
-      # Apply and record
+    # Group by race, one data point per race
+    results.group_by(&:race_id).each do |_race_id, race_results|
+      race = race_results.first.race
       label = "#{race.circuit&.circuit_ref} #{race.date.strftime('%Y')}"
+      # Disambiguate double-headers at the same circuit in the same year
+      label = "#{label} (R#{race.round})" if @race_labels.include?(label)
       @race_labels << label
 
+      by_constructor = race_results.group_by(&:constructor_id)
       @constructors.each do |c|
-        if adjustments.key?(c.id)
-          current_elo[c.id] += adjustments[c.id]
+        rrs = by_constructor[c.id]
+        if rrs
+          elo_val = rrs.first.new_constructor_elo_v2
+          @elo_history[c.id] << { elo: elo_val, race: label }
+        elsif @elo_history[c.id].any?
+          # Carry forward last known value for continuity
+          @elo_history[c.id] << { elo: @elo_history[c.id].last[:elo], race: label }
+        else
+          # Constructor hasn't started racing yet — pad with nil
+          @elo_history[c.id] << { elo: nil, race: label }
         end
-        @elo_history[c.id] << { elo: current_elo[c.id], race: label }
       end
     end
   end

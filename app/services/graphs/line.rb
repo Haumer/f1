@@ -47,7 +47,18 @@ class Graphs::Line
                 markPoint: notable_events
             }
         ]
+        # Calculate dataZoom start to show ~last 8 years
+        total = @races.size
+        zoom_start = if total > 0
+            cutoff_date = Date.current - 8.years
+            first_visible = @races.index { |r| r.date >= cutoff_date } || 0
+            (first_visible.to_f / total * 100).round(1)
+        else
+            0
+        end
+
         {
+            backgroundColor: 'transparent',
             label: {
                 show: false,
                 position: "right"
@@ -75,7 +86,9 @@ class Graphs::Line
                     id: 'dataZoomX',
                     type: 'slider',
                     xAxisIndex: [0],
-                    filterMode: 'filter'
+                    filterMode: 'filter',
+                    start: zoom_start,
+                    end: 100
                 }
             ],
             smoothMonotone: 'y'

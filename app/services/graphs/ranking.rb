@@ -3,8 +3,37 @@ class Graphs::Ranking
         @season = season
         @races = @season.races.sorted.includes(:circuit)
         @drivers = @season.drivers.distinct
-        @standings_lookup = DriverStanding.where(race: @races, driver: @drivers)
-                                         .group_by { |ds| [ds.race_id, ds.driver_id] }
+        all_standings = DriverStanding.where(race: @races, driver: @drivers).to_a
+
+        # Build lookup of existing standings
+        standings_by_race = all_standings.group_by(&:race_id)
+
+        # Fill in nil positions by ranking drivers by points per race
+        standings_by_race.each do |_race_id, standings|
+            sorted = standings.sort_by { |ds| [-(ds.points || 0), -(ds.wins || 0)] }
+            sorted.each_with_index do |ds, idx|
+                ds.position ||= idx + 1
+            end
+        end
+
+        # Synthesize missing standings for early races.
+        # If a driver has standings later but not for an early race,
+        # they had 0 points — rank them after all listed drivers.
+        driver_ids_with_standings = all_standings.map(&:driver_id).uniq
+        @races.each do |race|
+            existing = standings_by_race[race.id] || []
+            existing_driver_ids = existing.map(&:driver_id)
+            last_position = existing.map(&:position).compact.max || 0
+
+            missing_driver_ids = driver_ids_with_standings - existing_driver_ids
+            missing_driver_ids.each do |did|
+                last_position += 1
+                synth = DriverStanding.new(race_id: race.id, driver_id: did, points: 0, wins: 0, position: last_position)
+                all_standings << synth
+            end
+        end
+
+        @standings_lookup = all_standings.group_by { |ds| [ds.race_id, ds.driver_id] }
         @constructor_by_driver = SeasonDriver.where(season: @season, driver: @drivers)
                                              .includes(:constructor)
                                              .order(:id)
@@ -23,8 +52,6 @@ class Graphs::Ranking
                     driver_standing = @standings_lookup[[race.id, driver.id]]&.first
                     if driver_standing&.position
                         { name: driver_name, value: driver_standing.position }
-                    else
-                        '-'
                     end
                 end,
                 type: 'line',
@@ -38,8 +65,8 @@ class Graphs::Ranking
                 },
                 lineStyle: { width: 2 },
                 smooth: true,
-                connectNulls: false,
-                symbolSize: 6,
+                connectNulls: true,
+                symbolSize: 8,
             }
         end
 
