@@ -3,6 +3,7 @@
   <head>
     <title>F1 Elo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#0a0a0f">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -15,16 +16,47 @@
     </script>
   </head>
 
-  <body<%= " style=\"--page-accent: #{@page_accent};\"".html_safe if @page_accent %>>
+  <body<%= " style=\"--page-accent: #{@page_accent}; --page-accent-rgb: #{hex_to_rgb(@page_accent)};\"".html_safe if @page_accent %>>
+    <% if notice.present? %>
+      <div class="flash flash-notice"><%= notice %></div>
+    <% end %>
+    <% if alert.present? %>
+      <div class="flash flash-alert"><%= alert %></div>
+    <% end %>
     <div class="container py-3">
       <%= render 'components/navbar' %>
-      <% if notice.present? %>
-        <div class="flash flash-notice"><%= notice %></div>
-      <% end %>
-      <% if alert.present? %>
-        <div class="flash flash-alert"><%= alert %></div>
-      <% end %>
       <main><%= yield %></main>
     </div>
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <div class="footer-brand">
+          <span class="font-display footer-logo">F1 ELO</span>
+          <span class="footer-tagline">Rating every Formula 1 driver since 1950</span>
+        </div>
+        <div class="footer-links-grid">
+          <div class="footer-col">
+            <span class="footer-col-title">Drivers</span>
+            <%= link_to "Peak Elo", peak_elo_drivers_path %>
+            <%= link_to "Active Elo", current_active_elo_drivers_path %>
+            <%= link_to "Compare", compare_drivers_path %>
+          </div>
+          <div class="footer-col">
+            <span class="footer-col-title">Racing</span>
+            <%= link_to "Seasons", seasons_path %>
+            <%= link_to "Circuits", circuits_path %>
+            <%= link_to "Constructors", constructors_path %>
+          </div>
+          <div class="footer-col">
+            <span class="footer-col-title">Stats</span>
+            <%= link_to "Elo Milestones", elo_milestones_path %>
+            <%= link_to "Badges", badges_path %>
+            <%= link_to "How Elo Works", elo_path %>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">Data from Ergast API</span>
+      </div>
+    </footer>
   </body>
 </html>

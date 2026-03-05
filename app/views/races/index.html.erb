@@ -35,7 +35,7 @@
                                                 <% if constructor&.logo_url.present? %>
                                                     <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs">
                                                 <% end %>
-                                                <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
+                                                <%= race_result.driver.forename&.first %>.<%= race_result.driver.surname %>
                                             <% end %>
                                         </td>
                                     <% end %>

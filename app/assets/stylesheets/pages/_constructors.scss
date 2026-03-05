@@ -1,0 +1,172 @@
+// Constructor index grid
+.constructors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.constructor-grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 16px;
+    border-top: 3px solid var(--team-color, $border-color);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    &:hover {
+        border-color: var(--team-color, $accent-red);
+        box-shadow: $shadow-md;
+    }
+}
+.constructor-grid-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 12px;
+    transition: opacity 0.15s;
+    &:hover { opacity: 0.8; }
+}
+.constructor-grid-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+    transition: color 0.15s;
+    &:hover { color: var(--team-color, $text-primary); }
+}
+.constructor-grid-nationality {
+    font-size: 12px;
+    color: $text-secondary;
+    margin-bottom: 4px;
+}
+.constructor-grid-drivers {
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.constructor-grid-driver {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    a { color: $text-secondary; &:hover { color: var(--team-color, $text-primary); } }
+}
+.constructor-grid-driver-elo {
+    margin-left: auto;
+    font-family: $mono-font;
+    font-size: 11px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Constructor families / lineages
+.lineage-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.lineage-card {
+    padding: 20px 24px;
+}
+.lineage-name {
+    font-size: 15px;
+    font-weight: $weight-bold;
+    margin: 0 0 16px;
+}
+.lineage-chain {
+    display: flex;
+    flex-direction: column;
+}
+.lineage-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.lineage-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid $bg-card;
+    box-shadow: 0 0 0 1px $border-color;
+}
+.lineage-step-content {
+    display: flex;
+    flex-direction: column;
+    .lineage-team-name {
+        font-weight: 700;
+        font-size: 13px;
+    }
+    .lineage-years {
+        font-size: 11px;
+        color: $text-secondary;
+    }
+}
+.lineage-connector {
+    width: 2px;
+    height: 12px;
+    background: $border-color;
+    margin-left: 5px;
+}
+
+.families-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+.family-card {
+    padding: 16px 20px;
+}
+.family-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid $border-color;
+}
+.family-members {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.family-member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 4px 0;
+    &:hover .family-member-name { color: var(--page-accent, $accent-red); }
+}
+.family-member-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.family-member-name {
+    transition: color 0.15s;
+}
+
+// Constructor show chart — full width, no card
+.constructor-chart-full {
+    margin: 0 -16px 24px;
+    @media (min-width: 769px) {
+        margin: 0 0 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .constructors-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    .lineage-cards {
+        grid-template-columns: 1fr;
+    }
+    .families-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,15 +1,18 @@
 <% if drivers.any? %>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-            <table class="current-driver-standings compact">
+            <table class="current-driver-standings compact" data-controller="sortable-table">
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
                         <th></th>
-                        <th>Driver</th>
-                        <th></th>
-                        <th class="text-center">Peak Elo</th>
-                        <th class="text-center">Races</th>
+                        <th data-sort="text">Driver</th>
+                        <th>Teams</th>
+                        <th class="text-center" data-sort="num">Peak Elo</th>
+                        <th class="text-center" data-sort="num"><i class="fa-solid fa-trophy" style="color: #C9B037;"></i></th>
+                        <th class="text-center" data-sort="num"><span style="color: #B4B4B4;">2nd</span></th>
+                        <th class="text-center" data-sort="num"><span style="color: #AD8A56;">3rd</span></th>
+                        <th class="text-center" data-sort="num">Races</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,14 +29,28 @@
                                     <%= driver.forename[0] %>.<%= driver.surname %>
                                 <% end %>
                             </td>
-                            <td class="icon-cell">
-                                <% constructor = driver.current_constructor || driver.season_drivers.last&.constructor %>
-                                <% if constructor&.logo_url.present? %>
-                                    <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                                <% end %>
+                            <td>
+                                <% recent_constructors = driver.season_drivers.sort_by { |sd| -(sd.season&.year.to_i) }.map(&:constructor).uniq(&:id).first(3) %>
+                                <div class="driver-teams-cell">
+                                    <% recent_constructors.each_with_index do |constructor, cidx| %>
+                                        <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] %>
+                                        <% if constructor.logo_url.present? %>
+                                            <%= link_to constructor_path(constructor), title: constructor.name do %>
+                                                <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-xs" onerror="this.parentNode.innerHTML='<span class=driver-team-tag style=--tc:<%= color || '#555' %>><%= j constructor.name %></span>'">
+                                            <% end %>
+                                        <% else %>
+                                            <%= link_to constructor_path(constructor) do %>
+                                                <span class="driver-team-tag" <% if color %>style="--tc: <%= color %>"<% end %>><%= constructor.name %></span>
+                                            <% end %>
+                                        <% end %>
+                                    <% end %>
+                                </div>
                             </td>
-                            <td class="text-center"><%= driver.display_peak_elo&.round %></td>
-                            <td class="text-center"><%= driver.race_count %></td>
+                            <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
+                            <td class="text-center"><%= driver.wins.to_i > 0 ? driver.wins : '—' %></td>
+                            <td class="text-center"><%= driver.second_places.to_i > 0 ? driver.second_places : '—' %></td>
+                            <td class="text-center"><%= driver.third_places.to_i > 0 ? driver.third_places : '—' %></td>
+                            <td class="text-center text-secondary"><%= driver.race_count %></td>
                         </tr>
                     <% end %>
                 </tbody>

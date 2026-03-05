@@ -1,0 +1,170 @@
+// Nationality Grid
+.nationality-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+.nationality-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: $text-primary;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    &:hover { border-color: var(--page-accent, $accent-red); color: $text-primary; }
+}
+.nationality-flag {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+.nationality-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    strong { font-size: 14px; }
+}
+.nationality-count {
+    font-size: 12px;
+    color: $text-secondary;
+}
+.nationality-top {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+.nationality-top-name {
+    font-size: 12px;
+    color: $text-secondary;
+}
+.nationality-top-elo {
+    font-family: $mono-font;
+    font-size: $type-body;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+}
+
+// Calendar Grid (Circuits index)
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.calendar-race-card {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+
+    &:hover {
+        border-color: var(--page-accent, $accent-red);
+        box-shadow: $shadow-lg;
+        transform: translateY(-2px);
+        color: $text-primary;
+    }
+
+    &.calendar-past {
+        opacity: 0.65;
+        &:hover { opacity: 1; }
+    }
+
+    .calendar-accent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .calendar-track {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 56px;
+        height: 56px;
+        opacity: 0.12;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    .calendar-track-svg {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(0.85);
+    }
+
+    &:hover .calendar-track { opacity: 0.25; }
+
+    .calendar-round {
+        font-size: $type-label;
+        font-weight: $weight-semi;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-secondary;
+        margin-bottom: 8px;
+    }
+
+    .calendar-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .calendar-circuit {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    .calendar-location {
+        font-size: 12px;
+        color: $text-secondary;
+    }
+
+    .calendar-date {
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-secondary;
+        margin-top: 8px;
+    }
+
+    .calendar-winner {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid $border-color;
+        font-size: 12px;
+        font-weight: 700;
+    }
+}
+
+// Circuit table track thumbnails
+.circuit-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.circuit-table-track {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    background: $bg-inset;
+    border-radius: $radius-sm;
+    padding: 4px;
+    flex-shrink: 0;
+}
+
+.circuit-table-track-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}

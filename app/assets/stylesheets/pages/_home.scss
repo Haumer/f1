@@ -4,10 +4,10 @@
 
   .champion-label {
     display: block;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 12px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: $ls-label;
     color: $gold;
     margin-bottom: 12px;
 
@@ -17,7 +17,7 @@
   h1 {
     a {
       color: inherit;
-      transition: color 0.15s;
+      transition: color $t-fast;
       &:hover { color: $gold; }
     }
 
@@ -41,7 +41,7 @@
     }
 
     .champion-stats {
-      font-size: 14px;
+      font-size: $type-body;
       color: $text-secondary;
     }
   }
@@ -49,12 +49,12 @@
   .champion-season-link {
     display: inline-block;
     margin-top: 16px;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: $type-small;
+    font-weight: $weight-bold;
     color: $text-secondary;
-    transition: color 0.15s;
+    transition: color $t-fast;
 
-    i { font-size: 11px; transition: transform 0.2s ease; margin-left: 4px; }
+    i { font-size: 11px; transition: transform $t-normal ease; margin-left: 4px; }
     &:hover { color: $gold; }
     &:hover i { transform: translateX(4px); }
   }
@@ -66,10 +66,10 @@
 
   .race-day-label {
     display: block;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 12px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: $ls-label;
     color: $green;
     margin-bottom: 12px;
 
@@ -93,10 +93,10 @@
 
   .post-race-label {
     display: block;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 12px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
     margin-bottom: 12px;
 
@@ -108,10 +108,10 @@
 .pre-race-hero {
   .pre-race-label {
     display: block;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 12px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
     margin-bottom: 12px;
   }
@@ -122,31 +122,34 @@
   text-align: center;
   padding: 20px;
   margin-bottom: 24px;
-  border-left: 3px solid $text-secondary;
+  border-left: 2px solid var(--page-accent, $accent-red);
+  box-shadow: $shadow-md, inset 0 1px 0 rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
 
   .next-race-label {
     display: block;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 10px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
     margin-bottom: 8px;
   }
 
   h4 {
     margin: 0 0 4px;
-    font-size: 16px;
+    font-family: $headers-font;
+    font-size: $type-h3;
+    font-weight: $weight-semi;
 
     a {
       color: inherit;
-      transition: color 0.15s;
+      transition: color $t-fast;
       &:hover { color: var(--page-accent, $accent-red); }
     }
   }
 
   .next-race-meta {
-    font-size: 13px;
+    font-size: $type-small;
     color: $text-secondary;
   }
 }
@@ -163,23 +166,23 @@
 
     h4 {
       margin: 0;
-      font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-      font-size: 13px;
+      font-size: $type-label;
+      font-weight: $weight-semi;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: $ls-label;
       color: $text-secondary;
     }
 
     .last-race-link {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: $type-small;
+      font-weight: $weight-bold;
       display: flex;
       align-items: center;
       gap: 6px;
       color: $text-secondary;
-      transition: color 0.15s;
+      transition: color $t-fast;
 
-      i { font-size: 11px; transition: transform 0.2s ease; }
+      i { font-size: 11px; transition: transform $t-normal ease; }
       &:hover i { transform: translateX(4px); }
       &:hover { color: var(--page-accent, $accent-red); }
     }
@@ -198,15 +201,15 @@
       align-items: center;
       text-align: center;
       padding: 20px 12px 16px;
-      background: $light-gray;
+      background: $bg-surface;
       border-radius: $radius-md;
-      border: 1px solid transparent;
+      border: 1px solid $border-color;
       position: relative;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform $t-normal $ease-out, box-shadow $t-normal $ease-out;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        box-shadow: $shadow-lg;
       }
 
       // Constructor color accent bar at top
@@ -219,28 +222,30 @@
         height: 3px;
         border-radius: 0 0 2px 2px;
         background: var(--constructor-color, $text-secondary);
+        box-shadow: 0 2px 8px rgba(var(--constructor-color, $text-secondary), 0.3);
       }
 
       &.podium-p1 {
         grid-area: p1;
         padding: 28px 16px 20px;
-        background: linear-gradient(180deg, rgba($gold, 0.06) 0%, $light-gray 100%);
+        background: linear-gradient(180deg, rgba($gold, 0.08) 0%, $bg-surface 100%);
         border-color: rgba($gold, 0.15);
+        box-shadow: $shadow-md, 0 0 20px rgba($gold, 0.06);
       }
       &.podium-p2 {
         grid-area: p2;
-        background: linear-gradient(180deg, rgba($silver, 0.06) 0%, $light-gray 100%);
+        background: linear-gradient(180deg, rgba($silver, 0.06) 0%, $bg-surface 100%);
       }
       &.podium-p3 {
         grid-area: p3;
-        background: linear-gradient(180deg, rgba($bronze, 0.06) 0%, $light-gray 100%);
+        background: linear-gradient(180deg, rgba($bronze, 0.06) 0%, $bg-surface 100%);
       }
     }
 
     .podium-position {
-      font-family: 'Formula1-Wide', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
+      font-family: $mono-font;
+      font-size: $type-h2;
+      font-weight: $weight-bold;
       line-height: 1;
       margin-bottom: 8px;
 
@@ -248,15 +253,15 @@
     }
 
     .podium-driver {
-      font-weight: 700;
-      font-size: 14px;
+      font-weight: $weight-bold;
+      font-size: $type-body;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
       margin-bottom: 8px;
 
-      a { transition: color 0.15s; }
+      a { transition: color $t-fast; }
       a:hover { color: var(--page-accent, $accent-red); }
 
       .podium-p1 & {
@@ -288,10 +293,10 @@
 .elo-movers-card {
   h4 {
     margin: 0 0 16px;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 13px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
   }
 
@@ -307,24 +312,31 @@
     gap: 12px;
     padding: 10px 12px;
     border-radius: $radius-sm;
-    background: $light-gray;
-    transition: background-color 0.15s, transform 0.15s;
+    background: $bg-surface;
+    transition: background-color $t-fast $ease-out, transform $t-fast $ease-out, box-shadow $t-fast $ease-out;
 
     &:hover {
-      background: darken($light-gray, 3%);
-      transform: translateX(2px);
+      background: $bg-card-elevated;
+      transform: translateX(3px);
+      box-shadow: $shadow-sm;
     }
 
     .mover-rank {
-      font-family: 'Formula1-Wide', sans-serif;
-      font-size: 11px;
-      color: $text-secondary;
-      min-width: 16px;
+      font-size: $type-label;
+      font-weight: $weight-medium;
+      color: $text-tertiary;
+      min-width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: $bg-inset;
     }
 
     .mover-name {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: $type-small;
+      font-weight: $weight-bold;
       flex: 1;
       min-width: 0;
       overflow: hidden;
@@ -345,16 +357,32 @@
         transition: width 0.4s ease;
       }
 
-      &.gain .elo-bar { background: $green; }
-      &.loss .elo-bar { background: $red; }
+      &.gain .elo-bar {
+        background: linear-gradient(90deg, transparent, $green);
+        box-shadow: 0 0 6px rgba($green, 0.2);
+      }
+      &.loss .elo-bar {
+        background: linear-gradient(90deg, transparent, $accent-red);
+        box-shadow: 0 0 6px rgba($accent-red, 0.2);
+      }
     }
 
     .elo-badge {
-      font-size: 13px;
-      font-weight: 700;
+      font-family: $mono-font;
+      font-size: $type-small;
+      font-weight: $weight-bold;
       font-variant-numeric: tabular-nums;
       min-width: 40px;
       text-align: right;
+      padding: 2px 8px;
+      border-radius: $radius-sm;
+
+      &.text-green {
+        background: rgba($green, 0.1);
+      }
+      &.text-red {
+        background: rgba($accent-red, 0.1);
+      }
     }
   }
 }
@@ -371,28 +399,40 @@
     padding: 24px 16px 20px;
     overflow: hidden;
     position: relative;
-    border-top: 3px solid var(--page-accent, $accent-red);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid $border-color;
+    transition: transform $t-normal $ease-out, box-shadow $t-normal $ease-out;
+
+    // Gradient top accent
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--page-accent, $accent-red), transparent);
+    }
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: $shadow-lg;
     }
 
     .stat-label {
       display: block;
-      font-size: 10px;
+      font-size: $type-label;
+      font-weight: $weight-semi;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: $text-secondary;
+      letter-spacing: $ls-label;
+      color: $text-tertiary;
       margin-bottom: 8px;
     }
 
     .stat-value {
       display: block;
-      font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-      font-weight: 700;
-      font-size: 22px;
+      font-family: $mono-font;
+      font-weight: $weight-bold;
+      font-size: $type-stat;
       line-height: 1.2;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -400,13 +440,13 @@
     }
 
     .stat-fraction {
-      font-size: 14px;
+      font-size: $type-body;
       color: $text-secondary;
     }
 
     .stat-detail {
       display: block;
-      font-size: 13px;
+      font-size: $type-small;
       color: $text-secondary;
       margin-top: 4px;
       font-variant-numeric: tabular-nums;
@@ -426,15 +466,16 @@
     padding: 16px 12px;
     background: $bg-card;
     border-radius: $radius-md;
+    box-shadow: $shadow-md;
     border: 1px solid $border-color;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     overflow: hidden;
 
     .stat-label {
       display: block;
-      font-size: 11px;
+      font-size: $type-label;
+      font-weight: $weight-semi;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: $ls-label;
       color: $text-secondary;
       margin-bottom: 4px;
     }
@@ -442,7 +483,7 @@
     .stat-value {
       display: block;
       font-size: 16px;
-      font-weight: 700;
+      font-weight: $weight-bold;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -450,7 +491,7 @@
 
     .stat-detail {
       display: block;
-      font-size: 12px;
+      font-size: $type-small;
       color: $text-secondary;
       margin-top: 2px;
     }
@@ -463,7 +504,9 @@
 
     h1 { font-size: 28px; }
 
-    .hero-season-year { font-size: 100px; }
+    .hero-season-year { font-size: 120px; }
+
+    &::before { width: 300px; height: 200px; }
   }
 
   .last-race-card .podium-display {
@@ -500,7 +543,7 @@
     .podium-driver {
       flex: 1;
       margin-bottom: 0;
-      font-size: 14px;
+      font-size: $type-body;
     }
 
     .constructor-logo-sm {

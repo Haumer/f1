@@ -1,6 +1,10 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>World Champions</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><i class="fa-solid fa-trophy" style="color: #f0c850;"></i> Hall of Fame</span>
+            <h1 class="page-hero-title">World Champions</h1>
+        </div>
     </div>
     <div class="card">
         <%= custom_chart Graphs::Champions.new(race_results: @champ_race_results).champions_data %>
@@ -15,14 +19,14 @@
 
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-        <table class="current-driver-standings compact">
+        <table class="current-driver-standings compact" data-controller="sortable-table">
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th>Driver</th>
-                    <th class="text-center">Titles</th>
+                    <th data-sort="text">Driver</th>
+                    <th class="text-center" data-sort="num">Titles</th>
                     <th>Championship Years</th>
-                    <th class="text-center">Peak Elo</th>
+                    <th class="text-center" data-sort="num">Peak Elo</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +44,7 @@
                         </td>
                         <td class="text-center font-bold"><%= data[:count] %></td>
                         <td><%= data[:years].join(", ") %></td>
-                        <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                        <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
                     </tr>
                 <% end %>
             </tbody>

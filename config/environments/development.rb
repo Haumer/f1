@@ -68,4 +68,7 @@ Rails.application.configure do
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
+
+  # Use async adapter in dev (no worker process needed)
+  config.active_job.queue_adapter = :async
 end

@@ -1,7 +1,11 @@
 <div class="homepage-container">
-    <div class="table-header table-header-stacked">
-        <h3>Driver Achievements</h3>
-        <span class="circuit-meta"><%= @total_badges %> badges across <%= @total_drivers %> drivers</span>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Achievements</span>
+            <h1 class="page-hero-title">Driver Badges</h1>
+            <p class="page-hero-meta"><%= @total_badges %> badges across <%= @total_drivers %> drivers</p>
+        </div>
     </div>
 
     <% @badge_groups.each do |group| %>

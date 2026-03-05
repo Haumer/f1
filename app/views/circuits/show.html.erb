@@ -1,14 +1,16 @@
 <div class="homepage-container">
-    <div class="circuit-header">
-        <div class="table-header table-header-stacked">
-            <h3><%= @circuit.name %></h3>
-            <span class="circuit-meta"><%= @circuit.location %>, <%= @circuit.country %> · <%= @races.size %> races</span>
-        </div>
+    <div class="page-hero circuit-hero">
+        <div class="page-hero-bg"></div>
         <% if @circuit.track_image? %>
-            <div class="circuit-track-hero">
-                <%= image_tag @circuit.track_image_path, alt: "#{@circuit.name} track layout", class: "circuit-track-hero-svg" %>
+            <div class="circuit-hero-track">
+                <%= image_tag @circuit.track_image_path, alt: "#{@circuit.name} track layout", class: "circuit-hero-track-svg" %>
             </div>
         <% end %>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Circuit</span>
+            <h1 class="page-hero-title"><%= @circuit.name %></h1>
+            <p class="page-hero-meta"><%= @circuit.location %>, <%= @circuit.country %> · <%= @races.size %> races</p>
+        </div>
     </div>
 
     <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
@@ -32,19 +34,19 @@
         <% end %>
         <% if @most_successful_driver %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= @most_successful_driver.forename.first %>.<%= @most_successful_driver.surname %></div>
+                <div class="race-stat-value"><%= @most_successful_driver.forename&.first %>.<%= @most_successful_driver.surname %></div>
                 <div class="race-stat-label"><%= @most_successful_wins.size %> Win<%= @most_successful_wins.size > 1 ? 's' : '' %></div>
             </div>
         <% end %>
         <% if @highest_avg_elo_race %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= @highest_avg_elo_race.average_elo&.round %></div>
+                <div class="race-stat-value"><%= elo_link(@highest_avg_elo_race.average_elo) %></div>
                 <div class="race-stat-label">Highest Avg Elo (<%= @highest_avg_elo_race.season&.year %>)</div>
             </div>
         <% end %>
         <% if @record_elo_rr %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= @record_elo_rr.display_new_elo&.round %></div>
+                <div class="race-stat-value"><%= elo_link(@record_elo_rr.display_new_elo) %></div>
                 <div class="race-stat-label">Record Elo (<%= @record_elo_rr.driver.surname %>)</div>
             </div>
         <% end %>
@@ -52,13 +54,13 @@
 
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-        <table class="current-driver-standings compact">
+        <table class="current-driver-standings compact" data-controller="sortable-table">
             <thead>
                 <tr>
-                    <th>Year</th>
-                    <th>Round</th>
-                    <th>Winner</th>
-                    <th class="text-center">Avg Elo</th>
+                    <th data-sort="num">Year</th>
+                    <th data-sort="num">Round</th>
+                    <th data-sort="text">Winner</th>
+                    <th class="text-center" data-sort="num">Avg Elo</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,7 +74,7 @@
                         <td>
                             <% if winner&.driver %>
                                 <%= link_to driver_path(winner.driver) do %>
-                                    <%= winner.driver.forename[0] %>.<%= winner.driver.surname %>
+                                    <%= winner.driver.forename&.first %>.<%= winner.driver.surname %>
                                 <% end %>
                             <% end %>
                         </td>

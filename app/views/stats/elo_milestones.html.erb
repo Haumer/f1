@@ -1,6 +1,10 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>Elo Milestones</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Records</span>
+            <h1 class="page-hero-title">Elo Milestones</h1>
+        </div>
     </div>
 
     <%# Biggest Single-Race Elo Gain %>
@@ -140,7 +144,7 @@
                             </td>
                             <td><%= link_to rr.race.circuit.name, race_path(rr.race) %></td>
                             <td><%= rr.race.year %></td>
-                            <td class="text-center"><strong><%= rr.display_old_elo.round %></strong></td>
+                            <td class="text-center"><strong><%= elo_link(rr.display_old_elo) %></strong></td>
                         </tr>
                     <% end %>
                 </tbody>

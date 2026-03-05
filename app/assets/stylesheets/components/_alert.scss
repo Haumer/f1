@@ -2,5 +2,27 @@
   position: fixed;
   bottom: 16px;
   right: 16px;
-  z-index: 1000;
+  z-index: 1100;
+  padding: 12px 20px;
+  border-radius: $radius-md;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba($bg-card-elevated, 0.9);
+  border: 1px solid $border-accent;
+  box-shadow: $shadow-lg;
+  color: $text-primary;
+  font-size: $type-small;
+  max-width: 400px;
+  animation: alert-in 0.3s $ease-out both;
+}
+
+@keyframes alert-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,6 +1,10 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>Constructor Elo Rankings</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Team Rankings</span>
+            <h1 class="page-hero-title">Constructor Elo</h1>
+        </div>
     </div>
 
     <% if @top_constructors.any? %>
@@ -12,15 +16,15 @@
 
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-            <table class="current-driver-standings compact">
+            <table class="current-driver-standings compact" data-controller="sortable-table">
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
                         <th></th>
-                        <th>Constructor</th>
-                        <th class="text-center">Elo</th>
-                        <th class="text-center">Peak</th>
-                        <th>Nationality</th>
+                        <th data-sort="text">Constructor</th>
+                        <th class="text-center" data-sort="num">Elo</th>
+                        <th class="text-center" data-sort="num">Peak</th>
+                        <th data-sort="text">Nationality</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,8 +40,8 @@
                             <td>
                                 <%= link_to constructor.name, constructor_path(constructor) %>
                             </td>
-                            <td class="text-center"><%= constructor.display_elo&.round %></td>
-                            <td class="text-center"><%= constructor.display_peak_elo&.round %></td>
+                            <td class="text-center"><%= elo_link(constructor.display_elo) %></td>
+                            <td class="text-center"><%= elo_link(constructor.display_peak_elo) %></td>
                             <td class="text-secondary"><%= constructor.nationality %></td>
                         </tr>
                     <% end %>

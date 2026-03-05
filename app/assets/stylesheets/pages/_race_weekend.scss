@@ -5,21 +5,21 @@
   gap: 8px;
   margin-top: 20px;
   padding: 12px 24px;
-  background: $light-gray;
+  background: $bg-surface;
   border-radius: $radius-md;
 
   .countdown-timer-label {
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 11px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
   }
 
   .countdown-timer-value {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
+    font-family: $mono-font;
+    font-size: $type-h2;
+    font-weight: $weight-bold;
     line-height: 1;
     color: $text-primary;
     font-variant-numeric: tabular-nums;
@@ -35,15 +35,15 @@
 
 // Race Weekend Hero
 .race-weekend-hero {
-  @include hero-accent-line($red);
+  @include hero-accent-line(var(--page-accent, $accent-red));
 
   .race-weekend-label {
     display: block;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 12px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    color: $red;
+    letter-spacing: $ls-label;
+    color: var(--page-accent, $accent-red);
     margin-bottom: 12px;
 
     i {
@@ -124,20 +124,20 @@
   }
 
   .session-name {
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 11px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: $ls-label;
     color: $text-primary;
   }
 
   .session-date {
-    font-size: 11px;
+    font-size: $type-label;
     color: $text-secondary;
   }
 
   .session-time {
-    font-size: 11px;
+    font-size: $type-label;
     color: $text-secondary;
     font-variant-numeric: tabular-nums;
   }
@@ -149,14 +149,14 @@
 
   .badge-done {
     color: $green;
-    font-size: 11px;
+    font-size: $type-label;
   }
 
   .badge-today {
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
     font-size: 9px;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: $ls-label;
     color: $green;
 
     i {
@@ -197,22 +197,22 @@
   gap: 8px;
   margin-top: 20px;
   padding: 12px 24px;
-  background: $light-gray;
+  background: $bg-surface;
   border-radius: $radius-md;
 
   .countdown-number {
-    font-family: 'Formula1-Wide', sans-serif;
+    font-family: $mono-font;
     font-size: 32px;
-    font-weight: 700;
+    font-weight: $weight-bold;
     line-height: 1;
     color: $text-primary;
   }
 
   .countdown-label {
-    font-size: 13px;
+    font-size: $type-small;
     color: $text-secondary;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: $ls-label;
   }
 }
 
@@ -224,15 +224,15 @@
   gap: 8px;
 
   .race-time-label {
-    font-size: 11px;
+    font-size: $type-label;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
   }
 
   .race-time-value {
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 14px;
+    font-size: $type-body;
+    font-weight: $weight-bold;
     color: $text-primary;
     font-variant-numeric: tabular-nums;
   }
@@ -250,17 +250,16 @@
   border: 1px solid rgba($green, 0.15);
 
   .race-start-label {
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 10px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: $ls-label;
     color: $green;
   }
 
   .race-start-value {
-    font-family: 'Formula1-Wide', sans-serif;
     font-size: 20px;
-    font-weight: 700;
+    font-weight: $weight-bold;
     color: $text-primary;
     font-variant-numeric: tabular-nums;
   }
@@ -272,10 +271,10 @@
 
   .section-label {
     margin: 0 0 16px;
-    font-family: 'Formula1-Bold', 'Formula1', sans-serif;
-    font-size: 13px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
   }
 }
@@ -292,27 +291,28 @@
   justify-content: space-between;
   padding: 10px 12px;
   border-radius: $radius-sm;
-  background: $light-gray;
-  transition: background-color 0.15s;
+  background: $bg-surface;
+  transition: background-color 0.15s $ease-out;
 
-  &:hover { background: darken($light-gray, 3%); }
+  &:hover { background: $bg-card-elevated; }
 
   .mover-name {
-    font-size: 13px;
-    font-weight: 700;
+    font-size: $type-small;
+    font-weight: $weight-bold;
   }
 
   .elo-badge {
-    font-size: 13px;
-    font-weight: 700;
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
   }
 }
 
 // Podium Elo change overlay
 .podium-elo-change {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: $type-small;
+  font-weight: $weight-bold;
   margin-top: 4px;
   font-variant-numeric: tabular-nums;
 }

@@ -48,6 +48,19 @@ namespace :f1 do
     puts "Elo display switched to #{version}"
   end
 
+  desc "Enqueue post-race sync job (for Heroku Scheduler)"
+  task post_race_sync: :environment do
+    PostRaceSyncJob.perform_later
+    puts "PostRaceSyncJob enqueued."
+  end
+
+  desc "Fetch driver headshots from OpenF1 API"
+  task headshots: :environment do
+    puts "Fetching headshots from OpenF1..."
+    count = FetchDriverHeadshots.fetch_all
+    puts "Done. Updated #{count} driver headshots."
+  end
+
   desc "Compute and store driver badges/achievements"
   task badges: :environment do
     puts "Computing driver badges..."

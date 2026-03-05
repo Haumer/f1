@@ -50,7 +50,7 @@
                         <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
                     <% end %>
                 </div>
-                <span class="podium-elo"><%= elo %></span>
+                <span class="podium-elo"><%= elo_link(driver.display_elo) %></span>
             </div>
         <% end %>
     </div>
@@ -61,7 +61,7 @@
     <div class="stats-strip">
         <% if @highest_elo_driver %>
             <div class="stat-item">
-                <span class="stat-number"><%= @highest_elo_driver.display_elo&.round %></span>
+                <span class="stat-number"><%= elo_link(@highest_elo_driver.display_elo) %></span>
                 <span class="stat-caption">Highest Elo</span>
                 <span class="stat-sub"><%= link_to "#{@highest_elo_driver.forename[0]}.#{@highest_elo_driver.surname}", driver_path(@highest_elo_driver) %></span>
             </div>
@@ -104,7 +104,7 @@
                         <% if constructor&.logo_url.present? %>
                             <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="rank-logo" onerror="this.style.display='none'" loading="lazy">
                         <% end %>
-                        <span class="rank-elo"><%= driver.display_elo&.round %></span>
+                        <span class="rank-elo"><%= elo_link(driver.display_elo) %></span>
                     </div>
                 <% end %>
             </div>
@@ -130,7 +130,7 @@
                             <span class="rank-name">
                                 <%= link_to constructor.name, constructor_path(constructor) %>
                             </span>
-                            <span class="rank-elo"><%= constructor.display_elo&.round %></span>
+                            <span class="rank-elo"><%= elo_link(constructor.display_elo) %></span>
                         </div>
                     <% end %>
                 </div>

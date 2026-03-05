@@ -1,0 +1,1 @@
+RailsCharts.options[:theme] = "dark"

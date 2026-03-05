@@ -2,7 +2,7 @@ class PagesController < ApplicationController
   include StandingsData
 
   def home
-    SeasonSync.sync_if_stale!
+    set_current_champion_accent
 
     # Show the current year's season if it has standings OR we're within 1 month of its first race.
     # Otherwise fall back to latest season with data.
@@ -32,6 +32,16 @@ class PagesController < ApplicationController
 
       @standings_extras = @standings_season ? build_standings_extras(@standings_season) : {}
 
+      if @standings_season && @standings_season != @season
+        top3_standings = @standings_season.latest_driver_standings&.first(3)
+        if top3_standings&.any?
+          sd_index = SeasonDriver.where(season: @standings_season).includes(:constructor).index_by(&:driver_id)
+          @recap_constructors = top3_standings.each_with_object({}) do |ds, hash|
+            hash[ds.driver_id] = sd_index[ds.driver_id]&.constructor
+          end
+        end
+      end
+
       # Last Race Result widget (from standings season)
       @latest_race = @standings_season&.latest_race
       @podium_results = @latest_race&.race_results&.where(position_order: 1..3)
@@ -58,6 +68,27 @@ class PagesController < ApplicationController
       elo_col = Setting.elo_column(:elo)
       @highest_elo_driver = Driver.active.order(elo_col => :desc).first
       @most_wins = @standings_season&.latest_driver_standings&.max_by { |ds| ds.wins || 0 }
+
+      # Current season driver grid
+      elo_col_grid = Setting.elo_column(:elo)
+      lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
+      if lineup_season
+        @season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
+                            .includes(driver: :countries, constructor: [])
+                            .sort_by { |sd| -(sd.driver.send(elo_col_grid) || 0) }
+      end
+
+      # Season standings lookup for grid table
+      latest_standings = @season.latest_driver_standings
+      @grid_standings = latest_standings.index_by(&:driver_id)
+
+      # Previous race standings for position change
+      if @season.latest_race
+        prev_race = @season.races.where("round < ?", @season.latest_race.round).order(round: :desc).first
+        @grid_prev_standings = prev_race ? DriverStanding.where(race: prev_race).index_by(&:driver_id) : {}
+      else
+        @grid_prev_standings = {}
+      end
 
       # Find contextual race and next race
       @next_race = @season.next_race
@@ -88,6 +119,24 @@ class PagesController < ApplicationController
         end
       end
 
+      # Constructor top 3 for previous season recap (computed from race results)
+      if @standings_season && @standings_season != @season
+        race_ids = @standings_season.races.pluck(:id)
+        constructor_points = RaceResult.where(race_id: race_ids)
+                               .where.not(constructor_id: nil)
+                               .group(:constructor_id)
+                               .sum(:points)
+        constructor_wins = RaceResult.where(race_id: race_ids, position_order: 1)
+                             .where.not(constructor_id: nil)
+                             .group(:constructor_id)
+                             .count
+        top_ids = constructor_points.sort_by { |_, pts| -pts }.first(3).map(&:first)
+        constructors = Constructor.where(id: top_ids).index_by(&:id)
+        @constructor_top3 = top_ids.map do |cid|
+          { constructor: constructors[cid], points: constructor_points[cid], wins: constructor_wins[cid] || 0 }
+        end
+      end
+
       # Phase detection
       @contextual_race = find_contextual_race
       @homepage_phase = determine_homepage_phase
@@ -100,7 +149,7 @@ class PagesController < ApplicationController
     end
   end
 
-  def about
+  def elo
     peak_col = Setting.elo_column(:peak_elo)
     thresholds = Setting.use_elo_v2? ? [2600, 2450, 2300, 2100] : [1500, 1400, 1300, 1200]
     @tier_counts = {
@@ -112,6 +161,29 @@ class PagesController < ApplicationController
     }
     @total_drivers = Driver.where.not(peak_col => nil).count
     @total_races = Race.joins(:race_results).distinct.count
+
+    # Interactive race example
+    @recent_races = Race.joins(:race_results).distinct
+                        .includes(:circuit, :season)
+                        .order(date: :desc).limit(10)
+
+    @example_race = if params[:race_id].present?
+                      Race.find_by(id: params[:race_id])
+                    else
+                      @recent_races.first
+                    end
+
+    if @example_race
+      elo_diff_col = Setting.use_elo_v2? ? :elo_diff_v2 : :elo_diff
+      @example_results = @example_race.race_results
+                           .includes(driver: :countries, constructor: [])
+                           .order(:position_order)
+      old_elo_col = Setting.elo_column(:old_elo)
+      elo_values = @example_results.filter_map { |rr| rr.send(old_elo_col) }
+      @avg_field_elo = elo_values.any? ? (elo_values.sum / elo_values.size).round : nil
+      @example_biggest_gainer = @example_results.max_by { |rr| rr.display_elo_diff }
+      @example_biggest_loser = @example_results.min_by { |rr| rr.display_elo_diff }
+    end
   end
 
   private
@@ -176,14 +248,12 @@ class PagesController < ApplicationController
     when :race_weekend, :race_day
       @weekend_race = race
       @session_schedule = build_session_schedule(race)
-      @circuit_kings = DriverBadge.where("key = ?", "circuit_king_#{race.circuit_id}")
-                                  .includes(:driver).order(Arel.sql("CASE tier WHEN 'gold' THEN 0 WHEN 'silver' THEN 1 WHEN 'bronze' THEN 2 ELSE 3 END"))
+      @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
 
     when :pre_race
       @countdown_race = race
       @days_until_fp1 = (race.fp1_date - @today).to_i
-      @circuit_kings = DriverBadge.where("key = ?", "circuit_king_#{race.circuit_id}")
-                                  .includes(:driver).order(Arel.sql("CASE tier WHEN 'gold' THEN 0 WHEN 'silver' THEN 1 WHEN 'bronze' THEN 2 ELSE 3 END"))
+      @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
 
     when :season_start
       @first_race = @season.first_race
@@ -227,8 +297,7 @@ class PagesController < ApplicationController
 
     when :post_race
       @post_race = race
-      @circuit_kings = DriverBadge.where("key = ?", "circuit_king_#{race.circuit_id}")
-                                  .includes(:driver).order(Arel.sql("CASE tier WHEN 'gold' THEN 0 WHEN 'silver' THEN 1 WHEN 'bronze' THEN 2 ELSE 3 END"))
+      @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
       @podium_results_post = race.race_results
         .where(position_order: 1..3)
         .order(position_order: :asc)

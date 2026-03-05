@@ -1,6 +1,9 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>Drivers By Nationality</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <h1 class="page-hero-title">Drivers By Nationality</h1>
+        </div>
     </div>
 
     <% if @selected_nationality %>
@@ -40,14 +43,14 @@
                                         <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
                                     <% end %>
                                 </td>
-                                <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                                <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
                                 <td class="text-center">
                                     <% tier = elo_tier(driver.display_peak_elo) %>
                                     <% if tier %>
                                         <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
                                     <% end %>
                                 </td>
-                                <td class="text-center"><%= driver.active? ? driver.display_elo&.round : "—" %></td>
+                                <td class="text-center"><%= driver.active? ? elo_link(driver.display_elo) : "—" %></td>
                             </tr>
                         <% end %>
                     </tbody>
@@ -64,7 +67,7 @@
                     <span class="nationality-count"><%= nat[:count] %> driver<%= nat[:count] == 1 ? '' : 's' %></span>
                 </div>
                 <div class="nationality-top">
-                    <span class="nationality-top-name"><%= nat[:top_driver].forename[0] %>.<%= nat[:top_driver].surname %></span>
+                    <span class="nationality-top-name"><%= nat[:top_driver].forename&.first %>.<%= nat[:top_driver].surname %></span>
                     <span class="nationality-top-elo"><%= nat[:top_peak_elo] %></span>
                     <% tier = elo_tier(nat[:top_peak_elo]) %>
                     <% if tier %>

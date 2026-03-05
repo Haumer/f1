@@ -1,27 +1,35 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>All-Time Peak Elo Ratings</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Rankings</span>
+            <h1 class="page-hero-title">All-Time Peak Elo</h1>
+        </div>
     </div>
-    <div class="card">
-        <%= bar_chart @drivers.map { |driver| [driver.surname, driver.display_peak_elo.round(1)] }, {
-            options: {
-                yAxis: { min: 1250 }
-            }
-        } %>
+    <div class="chart-container">
+        <% min_elo = Setting.use_elo_v2? ? 2350 : 1250 %>
+        <%= custom_chart({
+            xAxis: { type: "category", data: @drivers.map(&:surname), axisLabel: { rotate: 45, fontSize: 10 } },
+            yAxis: { type: "value", min: min_elo },
+            series: [{ type: "bar", data: @drivers.map { |d| d.display_peak_elo.round(1) }, itemStyle: { color: "#e10600" } }],
+            tooltip: { trigger: "axis" },
+            grid: { bottom: 80 }
+        }) %>
     </div>
 
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-            <table class="current-driver-standings compact">
+            <table class="current-driver-standings compact" data-controller="sortable-table">
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
                         <th></th>
-                        <th>Driver</th>
+                        <th data-sort="text">Driver</th>
                         <th></th>
-                        <th class="text-center">Peak Elo</th>
-                        <th>Race</th>
-                        <th>Year</th>
+                        <th class="text-center" data-sort="num">Peak Elo</th>
+                        <th class="text-center" data-sort="text">Tier</th>
+                        <th data-sort="text">Race</th>
+                        <th data-sort="num">Year</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +52,13 @@
                                     <img src="<%= peak_rr.constructor.logo_url %>" alt="<%= peak_rr.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
                                 <% end %>
                             </td>
-                            <td class="text-center"><strong><%= driver.display_peak_elo.round %></strong></td>
+                            <td class="text-center"><strong><%= elo_link(driver.display_peak_elo) %></strong></td>
+                            <td class="text-center">
+                                <% tier = elo_tier(driver.display_peak_elo) %>
+                                <% if tier %>
+                                    <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
+                                <% end %>
+                            </td>
                             <td>
                                 <% if peak_rr %>
                                     <%= link_to peak_rr.race.circuit.name, race_path(peak_rr.race) %>

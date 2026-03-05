@@ -1,13 +1,3 @@
-// Race result grid (legacy - still used on some pages)
-.race-result {
-    &.grid {
-        align-items: center;
-        padding: 6px 0;
-        border-bottom: 1px solid $border-color;
-        font-size: 13px;
-    }
-}
-
 // Constructor logo utility classes
 .constructor-logo-sm { width: 32px; height: 32px; object-fit: contain; }
 .constructor-logo-xs { width: 24px; height: 24px; object-fit: contain; }
@@ -15,23 +5,27 @@
 // Race nav button styling
 .race-nav a {
     padding: 6px 12px;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     font-size: 13px;
-    border: 1px solid $border-color;
+    border: 1px solid $border-accent;
     color: $text-secondary;
-    transition: all 0.15s;
+    transition: all $t-fast;
     &:hover {
-        background: $light-gray;
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
         color: var(--page-accent, $text-primary);
-        border-color: var(--page-accent, darken($border-color, 10%));
+        border-color: var(--page-accent, $border-accent);
     }
 }
 
 // Podium highlighting on race results
 table.race-results {
-    tbody tr:nth-child(1) td:first-child { color: $gold; }
-    tbody tr:nth-child(2) td:first-child { color: $silver; }
-    tbody tr:nth-child(3) td:first-child { color: $bronze; }
+    tbody tr:nth-child(1) td:first-child { color: $gold; font-family: $mono-font; }
+    tbody tr:nth-child(2) td:first-child { color: $silver; font-family: $mono-font; }
+    tbody tr:nth-child(3) td:first-child { color: $bronze; font-family: $mono-font; }
+
+    tbody tr:nth-child(1) { background: linear-gradient(90deg, rgba($gold, 0.05), transparent 40%); }
+    tbody tr:nth-child(2) { background: linear-gradient(90deg, rgba($silver, 0.04), transparent 40%); }
+    tbody tr:nth-child(3) { background: linear-gradient(90deg, rgba($bronze, 0.04), transparent 40%); }
 }
 
 // Podium leaders table top 3
@@ -51,29 +45,53 @@ table.race-results {
     }
     input[type="date"] {
         padding: 6px 10px;
-        border: 1px solid $border-color;
-        border-radius: 4px;
-        font-family: 'Formula1', sans-serif;
+        border: 1px solid $border-accent;
+        border-radius: $radius-sm;
         font-size: 13px;
+        background: $bg-card;
+        color: $text-primary;
+        color-scheme: dark;
     }
     .race-date-submit {
         padding: 6px 12px;
         background: var(--page-accent, $accent-red);
-        color: white;
+        color: $text-on-accent;
         border: none;
-        border-radius: 4px;
-        font-family: 'Formula1', sans-serif;
+        border-radius: $radius-sm;
         font-size: 13px;
+        font-weight: $weight-semi;
         cursor: pointer;
+        transition: opacity $t-fast;
         &:hover { opacity: 0.85; }
     }
 }
 
 // Season year label hover
 .season-year-label a {
-    color: $text-secondary;
-    transition: color 0.15s;
+    color: $text-tertiary;
+    transition: color $t-fast;
     &:hover { color: var(--page-accent, $accent-red); }
+}
+
+// Driver teams cell (All Drivers table)
+.driver-teams-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    img { vertical-align: middle; }
+}
+.driver-team-tag {
+    font-size: 10px;
+    font-weight: $weight-semi;
+    color: var(--tc, $text-tertiary);
+    border: 1px solid var(--tc, $border-color);
+    padding: 1px 5px;
+    border-radius: 2px;
+    white-space: nowrap;
+    opacity: 0.8;
+    transition: opacity $t-fast;
+    &:hover { opacity: 1; }
 }
 
 // Driver index: grid and search styling
@@ -88,7 +106,8 @@ table.race-results {
     .constructor-tag {
         font-size: 11px;
         color: $text-secondary;
-        background: $light-gray;
+        background: $bg-surface;
+        border: 1px solid $border-color;
         padding: 2px 6px;
         border-radius: 3px;
         margin-right: 4px;
@@ -101,14 +120,18 @@ table.race-results {
 .driver-search-input {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid $border-color;
-    border-radius: 4px;
-    font-family: 'Formula1', sans-serif;
+    border: 1px solid $border-accent;
+    border-radius: $radius-sm;
     font-size: 13px;
+    background: $bg-card;
+    color: $text-primary;
     &:focus {
         outline: none;
         border-color: var(--page-accent, $accent-red);
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--page-accent, $accent-red) 10%, transparent);
+        box-shadow: 0 0 0 2px rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+    }
+    &::placeholder {
+        color: $text-tertiary;
     }
 }
 
@@ -117,6 +140,12 @@ table.race-results {
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 8px 12px;
+    background: $bg-card;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    transition: border-color $t-fast, background $t-fast;
+    a { font-size: 13px; }
     .peak-rank {
         font-size: 11px;
         color: $text-secondary;
@@ -124,8 +153,8 @@ table.race-results {
         min-width: 28px;
     }
     &:hover {
-        border-color: var(--page-accent, $accent-red);
-        background: color-mix(in srgb, var(--page-accent, $accent-red) 2%, transparent);
+        border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.03);
     }
 }
 
@@ -191,7 +220,8 @@ table.race-results {
     flex-shrink: 0;
     width: 120px;
     height: 120px;
-    background: $bg-dark;
+    background: $bg-inset;
+    border: 1px solid $border-color;
     border-radius: $radius-lg;
     padding: 16px;
     display: flex;
@@ -203,6 +233,7 @@ table.race-results {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    filter: brightness(0) invert(0.9);
 }
 
 @media (max-width: 480px) {
@@ -227,20 +258,27 @@ table.race-results {
     min-width: 100px;
     text-align: center;
     padding: 12px 8px;
-    background: $light-gray;
+    background: $bg-surface;
     border-radius: $radius-sm;
+    border: 1px solid $border-color;
     overflow: hidden;
+    transition: border-color $t-fast;
+
+    &:hover {
+        border-color: $border-accent;
+    }
+
     .race-stat-value {
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 18px;
-        font-weight: 700;
+        font-family: $mono-font;
+        font-size: $type-h3;
+        font-weight: $weight-bold;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
     .race-stat-label {
         font-size: 11px;
-        color: $text-secondary;
+        color: $text-tertiary;
         text-transform: uppercase;
         letter-spacing: 0.3px;
         margin-top: 2px;
@@ -251,7 +289,7 @@ table.race-results {
 }
 
 // Muted text for grid position unchanged
-.text-muted { color: $text-secondary; }
+.race-text-muted { color: $text-tertiary; }
 
 // Peak elo context text
 .peak-elo-info {
@@ -277,7 +315,7 @@ table.race-results {
 .flag-inline { vertical-align: middle; margin-right: 4px; }
 .title-count-inline { display: inline; font-size: 10px; padding: 1px 6px; margin-left: 4px; }
 .font-bold { font-weight: 700; }
-.text-upcoming { font-size: 12px; }
+.text-upcoming { font-size: 12px; color: $text-tertiary; }
 
 // Constructor active badge
 .constructor-active-badge {
@@ -291,4 +329,638 @@ table.race-results {
     letter-spacing: 0.3px;
     vertical-align: middle;
     margin-left: 8px;
+}
+
+// ═══════════════════════════════════════════
+// Page Hero Component
+// ═══════════════════════════════════════════
+.page-hero {
+    position: relative;
+    text-align: center;
+    padding: 48px 0 40px;
+    margin-bottom: 32px;
+    overflow: hidden;
+
+    .page-hero-bg {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 0%, rgba(var(--page-accent-rgb, 225, 6, 0), 0.06) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .page-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-hero-label {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--page-accent, #e10600);
+        margin-bottom: 12px;
+        padding: 4px 14px;
+        border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.25);
+        border-radius: 2px;
+    }
+
+    .page-hero-title {
+        font-family: 'Formula1', sans-serif;
+        font-size: 40px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        letter-spacing: -0.75px;
+        line-height: 1.1;
+        text-shadow: 0 0 40px rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    }
+
+    .page-hero-meta {
+        font-size: 14px;
+        color: #8a8a9a;
+        margin: 0;
+    }
+
+    .page-hero-link {
+        color: var(--page-accent, #e10600);
+        &:hover { color: lighten(#e10600, 10%); }
+    }
+
+    // Bottom accent line
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--page-accent, #e10600), transparent);
+        border-radius: 1px;
+        box-shadow: 0 0 12px rgba(var(--page-accent-rgb, 225, 6, 0), 0.2);
+    }
+}
+
+// Shared nav button (used in race hero, season hero)
+.race-nav-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #8a8a9a;
+    font-size: 14px;
+    transition: all 120ms;
+    &:hover {
+        border-color: var(--page-accent, #e10600);
+        color: var(--page-accent, #e10600);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
+    }
+}
+
+// Race Hero specifics
+.race-hero {
+    .race-nav {
+        position: absolute;
+        top: 24px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 16px;
+        z-index: 2;
+    }
+}
+
+// Circuit Hero specifics
+.circuit-hero {
+    .circuit-hero-track {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 280px;
+        height: 280px;
+        opacity: 0.04;
+        pointer-events: none;
+    }
+
+    .circuit-hero-track-svg {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(0.9);
+    }
+}
+
+// Compact variant for listing pages
+.page-hero-compact {
+    padding: 32px 0 28px;
+    margin-bottom: 24px;
+
+    .page-hero-title {
+        font-size: 32px;
+    }
+
+    &::after {
+        width: 80px;
+    }
+}
+
+// Season hero
+.season-hero {
+    .season-hero-watermark {
+        font-family: 'Formula1', sans-serif;
+        font-size: 200px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.02);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+    }
+
+    .season-hero-nav {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        display: flex;
+        justify-content: space-between;
+        padding: 0 16px;
+        z-index: 2;
+    }
+}
+
+// Season section divider
+.season-section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0 24px;
+}
+.season-section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, $border-color, transparent);
+}
+.season-section-label {
+    font-size: 11px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: $text-tertiary;
+    white-space: nowrap;
+}
+
+// Constructor hero
+.constructor-hero {
+    .page-hero-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+}
+
+// Season team grid (pre-season view)
+.season-team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.season-team-card {
+    padding: 16px 20px;
+    border-left: 3px solid var(--team-color, $border-accent);
+    transition: border-color $t-fast, box-shadow $t-fast;
+    &:hover {
+        box-shadow: $shadow-md;
+    }
+}
+.season-team-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.season-team-name {
+    font-weight: $weight-bold;
+    font-size: 14px;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+.season-team-drivers {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.season-team-driver {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    a { color: $text-secondary; &:hover { color: $text-primary; } }
+}
+.season-team-driver-elo {
+    margin-left: auto;
+    font-family: $mono-font;
+    font-size: 12px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Constructor team Elo in grid header
+.season-team-elo {
+    margin-left: auto;
+    font-family: $mono-font;
+    font-size: 12px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Calendar winner link
+.calendar-winner {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: $text-secondary;
+    i { font-size: 10px; color: $text-tertiary; }
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+.calendar-winner-name {
+    font-weight: $weight-semi;
+}
+
+// ═══════════════════════════════════════════
+// Race Calendar Grid
+// ═══════════════════════════════════════════
+.cal {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.cal-header {
+    display: grid;
+    grid-template-columns: 48px repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.cal-gutter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+}
+
+.cal-month {
+    font-size: 12px;
+    font-weight: $weight-bold;
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cal-day-name {
+    text-align: center;
+    font-size: 11px;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 4px 0;
+}
+
+.cal-week {
+    display: grid;
+    grid-template-columns: 48px repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.cal-cell {
+    min-height: 96px;
+    padding: 6px;
+    border-radius: $radius-sm;
+    background: $bg-surface;
+    border: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transition: border-color $t-fast;
+
+    &--active {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: $border-accent;
+    }
+
+    &--race-day {
+        border-color: var(--cell-accent, $border-accent);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    &--completed {
+        opacity: 0.65;
+        &:hover { opacity: 1; }
+    }
+
+    &--past {
+        opacity: 0.5;
+        &:hover { opacity: 0.8; }
+    }
+
+    &--focus {
+        border-color: var(--page-accent, $accent-red);
+        border-width: 2px;
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.05);
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    }
+
+    &--live {
+        border-color: $accent-red;
+        border-width: 2px;
+        background: rgba($accent-red, 0.08);
+        box-shadow: 0 0 12px rgba($accent-red, 0.15);
+    }
+}
+
+.cal-date {
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    color: $text-secondary;
+    font-variant-numeric: tabular-nums;
+    &--empty { color: $text-tertiary; opacity: 0.4; }
+}
+
+.cal-round {
+    font-family: $mono-font;
+    font-size: 10px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Session rows inside calendar cells
+.cal-sessions {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: auto;
+}
+.cal-session-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2px;
+}
+.cal-session-name {
+    font-size: 9px;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+.cal-session-time {
+    font-family: $mono-font;
+    font-size: 9px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+}
+.cal-session--past {
+    .cal-session-name,
+    .cal-session-time {
+        text-decoration: line-through;
+        opacity: 0.4;
+    }
+}
+.cal-session--next {
+    .cal-session-name {
+        color: var(--page-accent, $accent-red);
+        font-weight: $weight-bold;
+    }
+    .cal-session-time {
+        color: var(--page-accent, $accent-red);
+        opacity: 1;
+    }
+}
+
+// Countdown banner
+.cal-countdown-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    background: $bg-surface;
+    border: 1px solid $border-accent;
+    border-radius: $radius-md;
+    border-left: 3px solid var(--page-accent, $accent-red);
+}
+.cal-countdown-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+.cal-countdown-session {
+    font-weight: $weight-bold;
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+}
+.cal-countdown-circuit {
+    color: $text-primary;
+    font-weight: $weight-semi;
+}
+.cal-countdown-timer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    .countdown-timer-label {
+        font-size: 11px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        margin-right: 4px;
+    }
+    .countdown-timer-value {
+        font-size: 16px;
+        font-weight: $weight-bold;
+        color: $text-primary;
+        letter-spacing: 0.5px;
+    }
+}
+
+.cal-race-link {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.cal-circuit {
+    font-size: 11px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+    line-height: 1.2;
+    .cal-cell--completed & { color: $text-secondary; }
+}
+
+.cal-winner {
+    font-size: 10px;
+    color: var(--cell-accent, $text-secondary);
+    i { font-size: 9px; margin-right: 2px; }
+}
+
+.cal-badge-live {
+    font-size: 9px;
+    font-weight: $weight-bold;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    animation: pulse-live 2s ease-in-out infinite;
+}
+
+.cal-badge-next {
+    font-size: 9px;
+    font-weight: $weight-bold;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+// Break between non-consecutive race weeks
+.cal-break {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    margin: 2px 0;
+    margin-left: 48px;
+}
+.cal-break-line {
+    flex: 1;
+    height: 1px;
+    background: $border-color;
+    opacity: 0.4;
+}
+.cal-break-label {
+    font-size: 11px;
+    color: $text-tertiary;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+// Keep table variant badges for season show calendar
+.calendar-next-race {
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+    td { font-weight: $weight-semi; }
+}
+.calendar-live-badge {
+    font-size: 10px;
+    font-weight: $weight-bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulse-live 2s ease-in-out infinite;
+}
+.calendar-next-badge {
+    font-size: 10px;
+    font-weight: $weight-bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.calendar-winner {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: $text-secondary;
+    i { font-size: 10px; color: $text-tertiary; }
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+.calendar-winner-name { font-weight: $weight-semi; }
+
+@keyframes pulse-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@media (max-width: 768px) {
+    .cal-header, .cal-week {
+        grid-template-columns: 36px repeat(7, 1fr);
+        gap: 2px;
+    }
+    .cal-cell {
+        min-height: 60px;
+        padding: 4px;
+    }
+    .cal-circuit { font-size: 9px; }
+    .cal-winner { font-size: 9px; }
+    .cal-break { margin-left: 36px; }
+}
+
+@media (max-width: 480px) {
+    .cal-header, .cal-week {
+        grid-template-columns: 28px repeat(7, 1fr);
+        gap: 2px;
+    }
+    .cal-cell { min-height: 48px; padding: 3px; }
+    .cal-date { font-size: 9px; }
+    .cal-round { font-size: 8px; }
+    .cal-circuit { font-size: 8px; }
+    .cal-break { margin-left: 28px; }
+}
+
+@media (max-width: 768px) {
+    .season-team-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-hero {
+        padding: 32px 0 28px;
+        .page-hero-title { font-size: 28px; }
+    }
+    .page-hero-compact {
+        padding: 24px 0 20px;
+        .page-hero-title { font-size: 24px; }
+    }
+    .race-hero .race-nav {
+        position: relative;
+        top: 0;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding: 0;
+    }
 }

@@ -27,6 +27,24 @@
   </div>
 </div>
 
+<% if @alerts.any? %>
+<div class="admin-alerts-section">
+  <h3><i class="fa-solid fa-triangle-exclamation"></i> Alerts (<%= @alerts.size %>)</h3>
+  <% @alerts.each do |alert| %>
+    <div class="admin-alert admin-alert-<%= alert.severity %>">
+      <div class="admin-alert-header">
+        <strong><%= alert.title %></strong>
+        <span class="admin-alert-meta"><%= alert.source %> &middot; <%= time_ago_in_words(alert.created_at) %> ago</span>
+      </div>
+      <% if alert.message.present? %>
+        <pre class="admin-alert-message"><%= truncate(alert.message, length: 300) %></pre>
+      <% end %>
+      <%= button_to "Resolve", admin_alert_path(alert), method: :patch, class: "admin-btn admin-btn-sm" %>
+    </div>
+  <% end %>
+</div>
+<% end %>
+
 <div class="admin-cards-row">
   <div class="admin-card">
     <h3><i class="fa-solid fa-sliders"></i> Settings</h3>

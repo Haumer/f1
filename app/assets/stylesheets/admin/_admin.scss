@@ -1,3 +1,10 @@
+// Admin dark palette (scoped to admin only)
+$bg-dark-card: #1e1e2e;
+$text-on-dark: #f0f0f0;
+$text-on-dark-muted: rgba(#f0f0f0, 0.55);
+
+$admin-sidebar-width: 240px;
+
 // Admin Layout
 .admin-layout {
   display: flex;
@@ -5,9 +12,9 @@
 }
 
 .admin-sidebar {
-  width: 240px;
-  background: #1a1a2e;
-  color: #fff;
+  width: $admin-sidebar-width;
+  background: $bg-dark-card;
+  color: $text-on-dark;
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -20,11 +27,11 @@
 
 .admin-logo {
   padding: 20px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba($text-on-dark, 0.1);
   a {
-    font-family: 'Formula1-Wide', sans-serif;
+    font-family: 'Formula1', sans-serif;
     font-size: 18px;
-    color: #fff;
+    color: $text-on-dark;
     text-decoration: none;
   }
 }
@@ -35,7 +42,7 @@
   font-weight: 700;
   text-transform: uppercase;
   background: $accent-red;
-  color: #fff;
+  color: $text-on-dark;
   padding: 2px 6px;
   border-radius: 3px;
   margin-left: 8px;
@@ -52,30 +59,30 @@
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  color: rgba(255,255,255,0.7);
+  color: $text-on-dark-muted;
   text-decoration: none;
   font-size: 14px;
   transition: background 0.15s, color 0.15s;
   i { width: 18px; text-align: center; }
-  &:hover { background: rgba(255,255,255,0.08); color: #fff; }
-  &.active { background: rgba(255,255,255,0.12); color: #fff; border-left: 3px solid $accent-red; }
+  &:hover { background: rgba(255,255,255,0.08); color: $text-on-dark; }
+  &.active { background: rgba(255,255,255,0.12); color: $text-on-dark; border-left: 3px solid $accent-red; }
 }
 
 .admin-sidebar-footer {
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba($text-on-dark, 0.1);
   padding: 8px 0;
 }
 
 .admin-main {
   flex: 1;
-  margin-left: 240px;
+  margin-left: $admin-sidebar-width;
   padding: 32px 40px;
-  background: #f5f6f8;
+  background: $bg-page;
   min-height: 100vh;
 
   h2 {
-    font-family: 'Formula1-Wide', sans-serif;
     font-size: 20px;
+    font-weight: $weight-bold;
     margin: 0 0 24px;
   }
 }
@@ -89,24 +96,25 @@
 }
 
 .admin-stat-card {
-  background: #fff;
-  border-radius: 8px;
+  background: $bg-card;
+  border-radius: $radius-md;
   padding: 16px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: $shadow-md;
+  border: 1px solid $border-subtle;
 }
 
 .admin-stat-value {
-  font-family: 'Formula1-Wide', sans-serif;
-  font-size: 24px;
-  font-weight: 700;
+  font-family: $mono-font;
+  font-size: $type-h2;
+  font-weight: $weight-bold;
 }
 
 .admin-stat-label {
-  font-size: 12px;
-  color: $text-secondary;
+  font-size: $type-label;
+  color: $text-tertiary;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: $ls-label;
   margin-top: 4px;
 }
 
@@ -119,10 +127,11 @@
 }
 
 .admin-card {
-  background: #fff;
-  border-radius: 8px;
+  background: $bg-card;
+  border-radius: $radius-md;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: $shadow-md;
+  border: 1px solid $border-subtle;
   margin-bottom: 16px;
 
   h3 {
@@ -138,7 +147,7 @@
   display: inline-block;
   padding: 8px 20px;
   background: $accent-red;
-  color: #fff;
+  color: $text-on-dark;
   border: none;
   border-radius: 6px;
   font-size: 13px;
@@ -146,12 +155,12 @@
   cursor: pointer;
   text-decoration: none;
   transition: background 0.15s;
-  &:hover { background: darken($accent-red, 8%); color: #fff; }
+  &:hover { opacity: 0.85; color: $text-on-dark; }
 }
 
 .admin-btn-warning {
-  background: #d97706;
-  &:hover { background: darken(#d97706, 8%); }
+  background: $warning-orange;
+  &:hover { opacity: 0.85; }
 }
 
 // Settings Form
@@ -176,7 +185,7 @@
   input { margin-top: 3px; }
   strong { display: block; font-size: 14px; }
   &.selected { border-color: $accent-red; }
-  &:hover { border-color: lighten($accent-red, 20%); }
+  &:hover { border-color: $accent-red; }
 }
 
 .admin-radio-desc {
@@ -188,7 +197,7 @@
 .admin-params-table {
   width: 100%;
   font-size: 14px;
-  tr { border-bottom: 1px solid lighten($border-color, 5%); }
+  tr { border-bottom: 1px solid $border-color; }
   td { padding: 8px 0; }
   .param-label { font-weight: 600; width: 180px; }
   .param-value { font-family: monospace; width: 80px; }
@@ -218,28 +227,12 @@
 
 .admin-input {
   padding: 8px 12px;
-  border: 1px solid $border-color;
+  border: 1px solid $border-accent;
   border-radius: 6px;
   font-size: 14px;
   width: 100px;
-}
-
-// Flash Messages
-.flash {
-  padding: 10px 16px;
-  border-radius: 6px;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-.flash-notice {
-  background: rgba(#1f883d, 0.1);
-  color: #1f883d;
-  border: 1px solid rgba(#1f883d, 0.2);
-}
-.flash-alert {
-  background: rgba($accent-red, 0.1);
-  color: $accent-red;
-  border: 1px solid rgba($accent-red, 0.2);
+  background: $bg-card;
+  color: $text-primary;
 }
 
 // Mobile

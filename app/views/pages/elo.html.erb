@@ -3,8 +3,12 @@
 <% thresholds = v2 ? [2600, 2450, 2300, 2100] : [1500, 1400, 1300, 1200] %>
 
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>How Elo Ratings Work</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <h1 class="page-hero-title">How Elo Works</h1>
+            <p class="page-hero-meta">Understanding the rating system behind F1 Elo</p>
+        </div>
     </div>
 
     <div class="card about-section">
@@ -50,8 +54,9 @@
         </p>
     </div>
 
-    <div class="table-header">
+    <div class="table-header" id="tiers">
         <h3>Elo Tiers</h3>
+        <a href="#tiers" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
     </div>
 
     <div class="elo-tiers-grid">
@@ -118,7 +123,7 @@
                 <span class="tier-range"><%= thresholds[3] %>–<%= thresholds[2] - 1 %></span>
             </div>
             <p class="tier-description">
-                The bulk of the F1 field. Capable drivers who held their own in the sport.
+                Reliable competitors who carved out respectable F1 careers without reaching the top step.
                 <strong><%= @tier_counts[:average] %></strong> drivers
                 (<%= (@tier_counts[:average].to_f / @total_drivers * 100).round(1) %>%).
             </p>
@@ -130,7 +135,7 @@
                 <span class="tier-range">Below <%= thresholds[3] %></span>
             </div>
             <p class="tier-description">
-                Short careers, backmarkers, or drivers still building their rating. Many only raced a handful of grands prix.
+                The largest group — short careers, backmarkers, or drivers who never had the machinery to climb higher. Many only raced a handful of grands prix.
                 <strong><%= @tier_counts[:developing] %></strong> drivers
                 (<%= (@tier_counts[:developing].to_f / @total_drivers * 100).round(1) %>%).
             </p>
@@ -153,4 +158,92 @@
             <li><strong>Peak Elo</strong> — a driver's highest-ever rating, representing their best sustained form</li>
         </ul>
     </div>
+
+    <% if @example_race %>
+        <div class="table-header" id="in-action">
+            <h3>Elo In Action</h3>
+            <a href="#in-action" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+        </div>
+
+        <div class="elo-race-selector">
+            <span class="elo-race-selector-label">Pick a race:</span>
+            <% @recent_races.each do |race| %>
+                <%= link_to elo_path(race_id: race.id, anchor: "in-action"), class: "elo-race-option #{'active' if race.id == @example_race.id}" do %>
+                    <%= race.circuit.name %> <%= race.season.year %>
+                <% end %>
+            <% end %>
+        </div>
+
+        <div class="card about-section">
+            <h4><%= @example_race.circuit.name %> — <%= @example_race.season.year %> (Round <%= @example_race.round %>)</h4>
+            <% if @avg_field_elo %>
+                <p>Average field Elo: <strong><%= @avg_field_elo %></strong> &middot; Grid size: <strong><%= @example_results.size %></strong></p>
+            <% end %>
+            <% if @example_biggest_gainer %>
+                <p>
+                    <strong><%= @example_biggest_gainer.driver.forename[0] %>.<%= @example_biggest_gainer.driver.surname %></strong>
+                    gained <span class="text-green"><strong>+<%= @example_biggest_gainer.display_elo_diff.round(1) %></strong></span>
+                    by finishing P<%= @example_biggest_gainer.position_order %> against a field averaging <%= @avg_field_elo %> Elo.
+                </p>
+            <% end %>
+            <% if @example_biggest_loser %>
+                <p>
+                    <strong><%= @example_biggest_loser.driver.forename[0] %>.<%= @example_biggest_loser.driver.surname %></strong>
+                    dropped <span class="text-red"><strong><%= @example_biggest_loser.display_elo_diff.round(1) %></strong></span>
+                    after finishing P<%= @example_biggest_loser.position_order %> — underperforming relative to their <%= @example_biggest_loser.display_old_elo&.round %> Elo.
+                </p>
+            <% end %>
+        </div>
+
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact elo-example-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th></th>
+                            <th>Driver</th>
+                            <th></th>
+                            <th class="text-center">Elo Before</th>
+                            <th class="text-center">Elo After</th>
+                            <th class="text-center">Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @example_results.each do |rr| %>
+                            <% is_gainer = @example_biggest_gainer && rr.id == @example_biggest_gainer.id %>
+                            <% is_loser = @example_biggest_loser && rr.id == @example_biggest_loser.id %>
+                            <tr class="<%= 'elo-highlight-gainer' if is_gainer %><%= 'elo-highlight-loser' if is_loser %>">
+                                <td class="text-center"><%= rr.position_order %></td>
+                                <td class="icon-cell">
+                                    <% if rr.driver.country.present? %>
+                                        <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td>
+                                    <%= link_to driver_path(rr.driver) do %>
+                                        <%= rr.driver.forename[0] %>.<%= rr.driver.surname %>
+                                    <% end %>
+                                </td>
+                                <td class="icon-cell">
+                                    <% if rr.constructor&.logo_url.present? %>
+                                        <img src="<%= rr.constructor.logo_url %>" alt="<%= rr.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><%= rr.display_old_elo&.round %></td>
+                                <td class="text-center"><%= rr.display_new_elo&.round %></td>
+                                <td class="text-center">
+                                    <% if rr.display_gained_elo? %>
+                                        <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= rr.display_elo_diff.round(1) %></span>
+                                    <% else %>
+                                        <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= rr.display_elo_diff.round(1) %></span>
+                                    <% end %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
 </div>

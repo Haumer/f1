@@ -1,0 +1,74 @@
+// Circuit kings component
+.circuit-kings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.circuit-kings-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-secondary;
+    i { color: $gold; margin-right: 4px; }
+}
+
+.circuit-kings-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.circuit-king-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    background: $bg-surface;
+    color: $text-secondary;
+    position: relative;
+    cursor: default;
+
+    a { color: inherit; }
+
+    &.tier-gold   { @include tier-gold; }
+    &.tier-silver { @include tier-silver; }
+    &.tier-bronze { @include tier-bronze; }
+
+    .circuit-king-wins {
+        font-size: 10px;
+        font-weight: $weight-bold;
+        opacity: 0.7;
+    }
+
+    // Tooltip
+    &[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        background: $bg-card-elevated;
+        color: $text-primary;
+        border: 1px solid $border-accent;
+        font-size: 11px;
+        font-weight: 400;
+        padding: 5px 10px;
+        border-radius: $radius-sm;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s, transform 0.15s;
+        z-index: 9999;
+    }
+    &[data-tooltip]:hover::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}

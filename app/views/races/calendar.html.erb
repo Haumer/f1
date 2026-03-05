@@ -1,0 +1,119 @@
+<div class="homepage-container">
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><%= @season.year %> Season</span>
+            <h1 class="page-hero-title">Race Calendar</h1>
+            <p class="page-hero-meta"><%= @races.size %> races<% if @races.first&.date %> &middot; <%= @races.first.date.strftime("%B") %> &ndash; <%= @races.last.date.strftime("%B %Y") %><% end %> &middot; Times in UTC</p>
+        </div>
+    </div>
+
+    <%# Countdown banner for next session %>
+    <% if @next_session %>
+        <div class="cal-countdown-banner">
+            <span class="cal-countdown-label">
+                <span class="cal-countdown-session"><%= @next_session[:name] %></span>
+                <span class="cal-countdown-circuit"><%= @next_session[:race].circuit.name %></span>
+            </span>
+            <span data-controller="countdown"
+                  data-countdown-target-value="<%= @next_session[:starts_at].iso8601 %>"
+                  data-countdown-label-value="in"
+                  class="cal-countdown-timer"></span>
+        </div>
+    <% end %>
+
+    <%
+      races_by_week = @races.group_by { |r| r.date.beginning_of_week(:monday) }
+      sorted_weeks = races_by_week.keys.sort
+      focus_week = @focus_race&.date&.beginning_of_week(:monday)
+    %>
+
+    <div class="cal" data-controller="calendar">
+        <div class="cal-header">
+            <div class="cal-gutter"></div>
+            <% %w[Mon Tue Wed Thu Fri Sat Sun].each do |day| %>
+                <div class="cal-day-name"><%= day %></div>
+            <% end %>
+        </div>
+
+        <% sorted_weeks.each_with_index do |week_start, idx| %>
+            <% if idx > 0 %>
+                <% prev_week = sorted_weeks[idx - 1] %>
+                <% weeks_between = ((week_start - prev_week).to_i / 7) - 1 %>
+                <% if weeks_between > 0 %>
+                    <div class="cal-break">
+                        <span class="cal-break-line"></span>
+                        <span class="cal-break-label"><%= weeks_between %> week<%= weeks_between > 1 ? 's' : '' %> break</span>
+                        <span class="cal-break-line"></span>
+                    </div>
+                <% end %>
+            <% end %>
+
+            <% show_month = idx == 0 || week_start.month != sorted_weeks[idx - 1].month %>
+            <% week_races = races_by_week[week_start] %>
+            <% race_dates = {} %>
+            <% week_races.each do |race| %>
+                <% (race.fp1_date..race.date).each { |d| race_dates[d] = race } %>
+            <% end %>
+            <% is_focus_week = week_start == focus_week %>
+
+            <div class="cal-week" <%= 'data-cal-focus' if is_focus_week %>>
+                <div class="cal-gutter">
+                    <% if show_month %>
+                        <span class="cal-month"><%= week_start.strftime("%b") %></span>
+                    <% end %>
+                </div>
+                <% (0..6).each do |day_offset| %>
+                    <% date = week_start + day_offset.days %>
+                    <% race = race_dates[date] %>
+                    <% day_sessions = @sessions_by_date[date] %>
+                    <% if race %>
+                        <% is_race_day = date == race.date %>
+                        <% completed = race.has_results? %>
+                        <% day_in_past = date < @today %>
+                        <% has_next_session = day_sessions&.any? { |s| s == @next_session } %>
+                        <% winner = completed ? race.race_results.min_by(&:position_order) : nil %>
+                        <% color = winner ? (Constructor::COLORS[winner.constructor&.constructor_ref&.to_sym] || '#6c757d') : nil %>
+
+                        <div class="cal-cell cal-cell--active <%= 'cal-cell--race-day' if is_race_day %> <%= 'cal-cell--completed' if completed %> <%= 'cal-cell--past' if day_in_past && !completed %> <%= 'cal-cell--focus' if has_next_session %>"
+                             <% if color && is_race_day %>style="--cell-accent: <%= color %>"<% end %>>
+                            <span class="cal-date"><%= date.day %></span>
+
+                            <% if is_race_day %>
+                                <% if completed && winner %>
+                                    <%= link_to race_path(race), class: "cal-race-link" do %>
+                                        <span class="cal-circuit"><%= race.circuit.name.truncate(18) %></span>
+                                        <span class="cal-winner"><i class="fa-solid fa-flag-checkered"></i> <%= winner.driver.surname %></span>
+                                    <% end %>
+                                <% else %>
+                                    <%= link_to circuit_path(race.circuit), class: "cal-race-link" do %>
+                                        <span class="cal-circuit"><%= race.circuit.name.truncate(18) %></span>
+                                    <% end %>
+                                <% end %>
+                            <% end %>
+
+                            <% if day_sessions&.any? %>
+                                <div class="cal-sessions">
+                                    <% day_sessions.each do |session| %>
+                                        <% session_past = session[:starts_at].present? && session[:starts_at] < @now %>
+                                        <% is_next = session == @next_session %>
+                                        <div class="cal-session-row <%= 'cal-session--past' if session_past %> <%= 'cal-session--next' if is_next %>">
+                                            <span class="cal-session-name"><%= session[:name] %></span>
+                                            <% if session[:starts_at] %>
+                                                <span class="cal-session-time"><%= session[:starts_at].strftime("%H:%M") %></span>
+                                            <% end %>
+                                        </div>
+                                    <% end %>
+                                </div>
+                            <% end %>
+                        </div>
+                    <% else %>
+                        <div class="cal-cell">
+                            <span class="cal-date cal-date--empty"><%= date.day %></span>
+                        </div>
+                    <% end %>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+</div>

@@ -1,15 +1,18 @@
 <div class="homepage-container">
-    <p><%= link_to "&larr; All Constructors".html_safe, constructors_path %></p>
-    <div class="table-header">
-        <h3>
-            <% if @constructor.logo_url.present? %>
-                <img src="<%= @constructor.logo_url %>" alt="<%= @constructor.name %>" class="constructor-logo-sm constructor-logo-header">
-            <% end %>
-            <%= @constructor.name %>
-            <% if @constructor.active %>
-                <span class="constructor-active-badge">Active</span>
-            <% end %>
-        </h3>
+    <div class="page-hero constructor-hero">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Constructor</span>
+            <h1 class="page-hero-title">
+                <% if @constructor.logo_url.present? %>
+                    <img src="<%= @constructor.logo_url %>" alt="<%= @constructor.name %>" class="constructor-logo-sm constructor-logo-header">
+                <% end %>
+                <%= @constructor.name %>
+                <% if @constructor.active %>
+                    <span class="constructor-active-badge">Active</span>
+                <% end %>
+            </h1>
+        </div>
     </div>
 
     <div class="race-stats-row">
@@ -37,20 +40,20 @@
         <% end %>
         <% if @constructor.display_elo %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= @constructor.display_elo.round %></div>
+                <div class="race-stat-value"><%= elo_link(@constructor.display_elo) %></div>
                 <div class="race-stat-label">Current Elo</div>
             </div>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= @constructor.display_peak_elo&.round %></div>
+                <div class="race-stat-value"><%= elo_link(@constructor.display_peak_elo) %></div>
                 <div class="race-stat-label">Peak Elo</div>
             </div>
         <% end %>
     </div>
 
-    <div class="card">
-        <div class="chart-header">
-            <h4>Driver Elo Over Time</h4>
-        </div>
+    <div class="chart-header">
+        <h4>Elo Over Time</h4>
+    </div>
+    <div class="constructor-chart-full">
         <%= custom_chart Graphs::Constructor.new(constructor: @constructor).data %>
     </div>
 
@@ -79,7 +82,7 @@
                                             <% if driver.country.present? %>
                                                 <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
                                             <% end %>
-                                            <%= link_to "#{driver.forename.first}.#{driver.surname}", driver_path(driver) %>
+                                            <%= link_to "#{driver.forename&.first}.#{driver.surname}", driver_path(driver) %>
                                         </span>
                                     <% end %>
                                 </td>

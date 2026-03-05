@@ -6,17 +6,18 @@ Rails.application.routes.draw do
     root to: 'dashboard#index'
     resource :settings, only: [:show, :update]
     resources :operations, only: [:index, :create]
+    resources :alerts, only: [:update]
   end
-  get 'about', to: 'pages#about'
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  get 'elo', to: 'pages#elo', as: :elo
+  get 'about', to: redirect('/elo')
 
-  # Defines the root path route ("/")
-  # root "articles#index"
+  authenticate :user, ->(u) { u.admin? } do
+    mount Blazer::Engine, at: "blazer"
+  end
 
-  mount Blazer::Engine, at: "blazer"
-
-  resources :drivers do
+  resources :drivers, only: [:index, :show] do
     collection do
+      get 'grid', to: 'drivers#grid'
       get 'peak_elo', to: 'drivers#peak_elo'
       get 'current_active_elo', to: 'drivers#current_active_elo'
       get 'compare', to: 'drivers#compare'
@@ -24,23 +25,24 @@ Rails.application.routes.draw do
       get 'by_nationality', to: 'drivers#by_nationality'
     end
   end
-  resources :race_results
-  resources :races do
+  resources :races, only: [:index, :show] do
     collection do
+      get 'calendar', to: 'races#calendar'
       get 'highest_elo', to: 'races#highest_elo'
       get 'podiums', to: 'races#podiums'
       get 'winners', to: 'races#winners'
     end
   end
-  resources :constructors do
+  resources :constructors, only: [:index, :show] do
     collection do
+      get 'grid', to: 'constructors#grid'
       get 'elo_rankings', to: 'constructors#elo_rankings'
       get 'families', to: 'constructors#families'
       get 'best_pairings', to: 'constructors#best_pairings'
     end
   end
-  resources :seasons
-  resources :circuits
+  resources :seasons, only: [:index, :show]
+  resources :circuits, only: [:index, :show]
 
   get 'stats/elo_milestones', to: 'stats#elo_milestones', as: :elo_milestones
   get 'stats/badges', to: 'stats#badges', as: :badges
@@ -50,6 +52,7 @@ Rails.application.routes.draw do
       get :market
       post :buy
       post :sell
+      post :buy_team
     end
     collection do
       get :leaderboard

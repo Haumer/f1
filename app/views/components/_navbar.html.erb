@@ -1,6 +1,8 @@
 <nav class="navbar" data-controller="navbar" aria-label="Main navigation">
     <div class="home">
-        <%= link_to "F1 ELO", root_path %>
+        <%= link_to root_path do %>
+            <span class="logo-f1">F1</span><span class="logo-elo">ELO</span>
+        <% end %>
     </div>
     <button class="menu-toggle" data-action="click->navbar#toggleMenu" aria-label="Toggle navigation menu" aria-expanded="false" data-navbar-target="toggle">
         <i class="fa-solid fa-bars"></i>
@@ -13,11 +15,19 @@
                 Drivers <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "#{current_season.year} Grid", grid_drivers_path, class: ("active" if current_page?(grid_drivers_path)), role: "menuitem" %>
                 <%= link_to "All Drivers", drivers_path, class: ("active" if current_page?(drivers_path)), role: "menuitem" %>
-                <%= link_to "Peak Elo", peak_elo_drivers_path, class: ("active" if current_page?(peak_elo_drivers_path)), role: "menuitem" %>
-                <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
-                <%= link_to "Podium Leaders", podiums_races_path, class: ("active" if current_page?(podiums_races_path)), role: "menuitem" %>
                 <%= link_to "Compare", compare_drivers_path, class: ("active" if current_page?(compare_drivers_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/races') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Races <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "#{current_season.year} Calendar", calendar_races_path, class: ("active" if current_page?(calendar_races_path)), role: "menuitem" %>
+                <%= link_to "All Races", races_path, class: ("active" if current_page?(races_path)), role: "menuitem" %>
             </div>
         </div>
 
@@ -26,36 +36,47 @@
                 Constructors <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "#{current_season.year} Grid", grid_constructors_path, class: ("active" if current_page?(grid_constructors_path)), role: "menuitem" %>
                 <%= link_to "All Constructors", constructors_path, class: ("active" if current_page?(constructors_path)), role: "menuitem" %>
-                <%= link_to "Elo Rankings", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/seasons') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Seasons <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <% if current_season %>
+                    <%= link_to "#{current_season.year} Season", season_path(current_season), role: "menuitem" %>
+                <% end %>
+                <%= link_to "All Seasons", seasons_path, class: ("active" if current_page?(seasons_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/stats') || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Stats <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "Peak Elo", peak_elo_drivers_path, class: ("active" if current_page?(peak_elo_drivers_path)), role: "menuitem" %>
+                <%= link_to "Active Elo", current_active_elo_drivers_path, class: ("active" if current_page?(current_active_elo_drivers_path)), role: "menuitem" %>
+                <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Podium Leaders", podiums_races_path, class: ("active" if current_page?(podiums_races_path)), role: "menuitem" %>
+                <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
+                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
+                <%= link_to "Badges", badges_path, class: ("active" if current_page?(badges_path)), role: "menuitem" %>
+                <%= link_to "Circuits", circuits_path, class: ("active" if request.path.start_with?('/circuits')), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Constructor Elo", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
                 <%= link_to "Team Lineages", families_constructors_path, class: ("active" if current_page?(families_constructors_path)), role: "menuitem" %>
                 <%= link_to "Best Pairings", best_pairings_constructors_path, class: ("active" if current_page?(best_pairings_constructors_path)), role: "menuitem" %>
             </div>
         </div>
 
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/seasons') || current_page?(winners_races_path) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Seasons <i class="fa-solid fa-chevron-down"></i>
-            </a>
-            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "All Seasons", seasons_path, class: ("active" if current_page?(seasons_path)), role: "menuitem" %>
-                <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
-            </div>
-        </div>
-
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/stats') || current_page?(highest_elo_races_path) || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Stats <i class="fa-solid fa-chevron-down"></i>
-            </a>
-            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
-                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
-                <%= link_to "Badges", badges_path, class: ("active" if current_page?(badges_path)), role: "menuitem" %>
-                <%= link_to "Circuits", circuits_path, class: ("active" if request.path.start_with?('/circuits')), role: "menuitem" %>
-            </div>
-        </div>
-
-        <%= link_to "About", about_path, class: ("active" if current_page?(about_path)), role: "menuitem" %>
+        <%= link_to "Elo", elo_path, class: ("active" if current_page?(elo_path)), role: "menuitem" %>
         <% if current_user %>
             <%= link_to "Fantasy", new_fantasy_portfolio_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
         <% end %>

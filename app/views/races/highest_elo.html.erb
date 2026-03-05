@@ -1,20 +1,24 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>Highest Elo Race Results</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Records</span>
+            <h1 class="page-hero-title">Highest Elo Race Results</h1>
+        </div>
     </div>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-        <table class="current-driver-standings compact">
+        <table class="current-driver-standings compact" data-controller="sortable-table">
             <thead>
                 <tr>
                     <th class="text-center">#</th>
                     <th></th>
-                    <th>Driver</th>
+                    <th data-sort="text">Driver</th>
                     <th></th>
-                    <th class="text-center">Elo</th>
-                    <th class="text-center">Pos</th>
-                    <th>Circuit</th>
-                    <th>Year</th>
+                    <th class="text-center" data-sort="num">Elo</th>
+                    <th class="text-center" data-sort="num">Pos</th>
+                    <th data-sort="text">Circuit</th>
+                    <th data-sort="num">Year</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,7 +43,7 @@
                                 <% end %>
                             <% end %>
                         </td>
-                        <td class="text-center"><%= race_result.display_new_elo&.round %></td>
+                        <td class="text-center"><%= elo_link(race_result.display_new_elo) %></td>
                         <td class="text-center"><%= race_result.position_order %></td>
                         <td><%= link_to race_result.race.circuit.name, race_path(race_result.race) %></td>
                         <td><%= race_result.race.date.year %></td>

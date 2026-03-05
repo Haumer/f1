@@ -1,0 +1,127 @@
+// About / Elo explainer page
+.about-section {
+    h4 {
+        font-size: 16px;
+        font-weight: $weight-bold;
+        margin: 24px 0 8px;
+        &:first-child { margin-top: 0; }
+    }
+    p { line-height: 1.6; margin-bottom: 12px; color: $text-primary; }
+    ul {
+        margin: 8px 0 16px 20px;
+        li { line-height: 1.6; margin-bottom: 6px; }
+    }
+    code {
+        background: $bg-surface;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+}
+.elo-tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.elo-tier-card {
+    background: $bg-card;
+    border-radius: $radius-md;
+    border: 1px solid $border-color;
+    padding: 20px;
+    border-top: 2px solid $border-color;
+    &.tier-elite { border-top-color: $gold; }
+    &.tier-world-class { border-top-color: $silver; }
+    &.tier-strong { border-top-color: $green; }
+    &.tier-average { border-top-color: $blue; }
+    &.tier-developing { border-top-color: $orange; }
+    .tier-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .tier-range {
+        font-family: $mono-font;
+        font-size: 13px;
+        font-weight: 700;
+        color: $text-secondary;
+        font-variant-numeric: tabular-nums;
+    }
+    .tier-description {
+        font-size: 13px;
+        line-height: 1.5;
+        color: $text-secondary;
+        margin-bottom: 12px;
+    }
+    .tier-examples {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .tier-driver {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 8px;
+        background: $bg-surface;
+        border-radius: 3px;
+        &:hover { background: $bg-card-elevated; }
+    }
+    .tier-elo {
+        font-size: 11px;
+        color: $text-secondary;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+// Elo link styling (used across all views)
+.elo-link {
+    color: inherit;
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+    &:hover {
+        color: var(--page-accent, $accent-red);
+        text-decoration: none;
+    }
+}
+
+// Race selector for interactive example
+.elo-race-selector {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    .elo-race-selector-label {
+        font-size: 13px;
+        font-weight: $weight-bold;
+        color: $text-secondary;
+    }
+    .elo-race-option {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        background: $bg-surface;
+        border-radius: 4px;
+        color: $text-primary;
+        text-decoration: none;
+        &:hover { background: $bg-card-elevated; }
+        &.active {
+            background: $accent-red;
+            color: #fff;
+        }
+    }
+}
+
+// Example table row highlights
+.elo-highlight-gainer {
+    background: rgba($green, 0.06);
+}
+.elo-highlight-loser {
+    background: rgba($accent-red, 0.06);
+}
+
+@media (max-width: 768px) {
+    .elo-tiers-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -11,7 +11,7 @@
 
     h2 {
         margin: 0;
-        font-family: 'Formula1-Wide', sans-serif;
+        font-weight: $weight-bold;
     }
 }
 
@@ -44,7 +44,7 @@
         background: $accent-red;
         color: white;
         border-color: $accent-red;
-        &:hover { background: darken($accent-red, 8%); color: white; }
+        &:hover { opacity: 0.85; color: white; }
     }
 
     &-outline {
@@ -56,11 +56,11 @@
 
     &-danger {
         background: transparent;
-        color: $red;
-        border-color: $red;
+        color: $accent-red;
+        border-color: $accent-red;
         font-size: 12px;
         padding: 4px 12px;
-        &:hover { background: $red; color: white; }
+        &:hover { background: $accent-red; color: white; }
     }
 
     &-sm {
@@ -88,17 +88,17 @@
 
 .fantasy-stat-label {
     display: block;
-    font-size: 11px;
+    font-size: $type-label;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: $text-secondary;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
     margin-bottom: 4px;
 }
 
 .fantasy-stat-value {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
+    font-family: $mono-font;
+    font-size: $type-h2;
+    font-weight: $weight-bold;
 }
 
 // Transfer window indicator
@@ -119,9 +119,9 @@
     }
 
     &.closed {
-        background: rgba($red, 0.08);
-        color: $red;
-        border: 1px solid rgba($red, 0.2);
+        background: rgba($accent-red, 0.08);
+        color: $accent-red;
+        border: 1px solid rgba($accent-red, 0.2);
     }
 }
 
@@ -259,9 +259,9 @@
 }
 
 .fantasy-price-value {
-    font-family: 'Formula1-Wide', sans-serif;
+    font-family: $mono-font;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: $weight-bold;
 }
 
 .fantasy-market-actions {
@@ -293,17 +293,16 @@
         border-radius: 3px;
 
         &.fantasy-txn-buy {
-            background: rgba($red, 0.1);
-            color: $red;
+            background: rgba($accent-red, 0.1);
+            color: $accent-red;
         }
         &.fantasy-txn-sell {
             background: rgba($green, 0.1);
             color: $green;
         }
-        &.fantasy-txn-login_bonus,
-        &.fantasy-txn-interaction_bonus {
-            background: rgba($blue, 0.1);
-            color: $blue;
+        &.fantasy-txn-team_purchase {
+            background: rgba($gold, 0.1);
+            color: $gold;
         }
     }
 
@@ -355,8 +354,8 @@
 }
 
 .fantasy-leaderboard-value {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-weight: 700;
+    font-family: $mono-font;
+    font-weight: $weight-bold;
 }
 
 // Create page
@@ -370,14 +369,14 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-    h3 { margin: 0; font-family: 'Formula1-Wide', sans-serif; }
+    h3 { margin: 0; font-weight: $weight-bold; }
 }
 
 .fantasy-capital-preview {
     font-size: 14px;
     color: $text-secondary;
     strong {
-        font-family: 'Formula1-Wide', sans-serif;
+        font-weight: $weight-bold;
         color: $text-primary;
     }
 }
@@ -412,6 +411,147 @@
         font-size: 13px;
         color: $text-secondary;
     }
+}
+
+// Value delta on stat card
+.fantasy-stat-delta {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    i { margin-right: 2px; }
+}
+
+.fantasy-stat-sub {
+    display: block;
+    font-size: 11px;
+    color: $text-secondary;
+    margin-top: 4px;
+}
+
+// Buy team card
+.fantasy-buy-team-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.fantasy-buy-team-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+
+    > i {
+        color: $accent-red;
+        font-size: 20px;
+        margin-top: 2px;
+    }
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    > div > span {
+        font-size: 13px;
+        color: $text-secondary;
+        strong { display: inline; color: $text-primary; }
+    }
+}
+
+// Chart card
+.fantasy-chart-card {
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+// Achievements
+.fantasy-achievement-count {
+    font-size: 13px;
+    font-weight: 400;
+    color: $text-secondary;
+    margin-left: 6px;
+}
+
+.fantasy-achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.fantasy-achievement-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    background: $bg-card;
+    transition: border-color 0.15s;
+
+    &.locked {
+        opacity: 0.35;
+    }
+
+    &.earned {
+        opacity: 1;
+
+        &.tier-bronze { border-color: $bronze; }
+        &.tier-silver { border-color: $silver; }
+        &.tier-gold   { border-color: $gold; }
+    }
+}
+
+.fantasy-achievement-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: $bg-surface;
+    font-size: 15px;
+    flex-shrink: 0;
+
+    .earned.tier-bronze & { background: rgba($bronze, 0.12); color: $bronze; }
+    .earned.tier-silver & { background: rgba($silver, 0.12); color: $silver; }
+    .earned.tier-gold &   { background: rgba($gold, 0.12); color: $gold; }
+}
+
+.fantasy-achievement-info {
+    flex: 1;
+    min-width: 0;
+
+    strong {
+        display: block;
+        font-size: 13px;
+        line-height: 1.2;
+    }
+
+    span {
+        font-size: 11px;
+        color: $text-secondary;
+    }
+}
+
+.fantasy-achievement-tier {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+
+    &.tier-bronze { background: rgba($bronze, 0.12); color: $bronze; }
+    &.tier-silver { background: rgba($silver, 0.12); color: $silver; }
+    &.tier-gold   { background: rgba($gold, 0.12); color: $gold; }
 }
 
 // Mini portfolio card (homepage)
@@ -454,9 +594,8 @@
         color: $text-secondary;
     }
     .value {
-        font-family: 'Formula1-Wide', sans-serif;
         font-size: 16px;
-        font-weight: 700;
+        font-weight: $weight-bold;
     }
 }
 
@@ -470,6 +609,6 @@
     font-size: 12px;
     font-weight: 700;
     padding: 2px 8px;
-    background: $light-gray;
+    background: $bg-surface;
     border-radius: 3px;
 }

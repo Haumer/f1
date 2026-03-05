@@ -1,21 +1,25 @@
 <div class="homepage-container">
-    <div class="table-header">
-        <h3>Active Driver Elo Ratings</h3>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Current Grid</span>
+            <h1 class="page-hero-title">Active Driver Elo</h1>
+        </div>
     </div>
     <div class="card">
         <%= custom_chart Graphs::ActiveEloBar.new(drivers: @drivers).data %>
     </div>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-        <table class="current-driver-standings compact">
+        <table class="current-driver-standings compact" data-controller="sortable-table">
             <thead>
                 <tr>
                     <th class="text-center">#</th>
                     <th></th>
-                    <th>Driver</th>
+                    <th data-sort="text">Driver</th>
                     <th></th>
-                    <th class="text-center">Elo</th>
-                    <th class="text-center">Peak</th>
+                    <th class="text-center" data-sort="num">Elo</th>
+                    <th class="text-center" data-sort="num">Peak</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,8 +41,8 @@
                                 <img src="<%= driver.current_constructor.logo_url %>" alt="<%= driver.current_constructor.name %>" class="constructor-logo-xs">
                             <% end %>
                         </td>
-                        <td class="text-center"><%= driver.display_elo&.round %></td>
-                        <td class="text-center"><%= driver.display_peak_elo&.round %></td>
+                        <td class="text-center"><%= elo_link(driver.display_elo) %></td>
+                        <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
                     </tr>
                 <% end %>
             </tbody>

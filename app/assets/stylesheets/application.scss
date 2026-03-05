@@ -27,16 +27,12 @@
     src: url("fonts/Formula1-Bold-4.ttf") format("truetype");
     font-weight: 700;
 }
-@font-face {
-    font-family: "Formula1-Wide";
-    src: url("fonts/Formula1-Wide.ttf") format("truetype");
-    font-weight: 700;
-}
 
 // Turbo progress bar
 .turbo-progress-bar {
-    background-color: var(--page-accent, $accent-red);
+    background: linear-gradient(90deg, var(--page-accent, $accent-red), color-mix(in srgb, var(--page-accent, $accent-red) 60%, white));
     height: 3px;
+    box-shadow: 0 0 10px rgba(var(--page-accent-rgb, 225, 6, 0), 0.4);
 }
 
 // Global styles
@@ -46,7 +42,40 @@ body {
     font-family: $body-font;
     margin: 0;
     padding: 0;
-    overflow-x: hidden; // Prevent scrollbar from full-bleed sections
+    overflow-x: hidden;
+
+    // Subtle noise texture for depth
+    &::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.015;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    // Accent color gradient at top of page
+    &::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 400px;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(ellipse at 50% 0%, rgba(var(--page-accent-rgb, 225, 6, 0), 0.04) 0%, transparent 70%);
+    }
+}
+
+// Ensure content sits above pseudo-elements
+.container {
+    position: relative;
+    z-index: 1;
 }
 
 div, td, th, span, p, a {
@@ -56,28 +85,32 @@ div, td, th, span, p, a {
 a {
     color: $text-primary;
     text-decoration: none;
+    transition: color $t-fast $ease-out;
     &:hover { color: var(--page-accent, $accent-red); }
 }
 
 // Focus-visible for accessibility
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+input:focus-visible {
     outline: 2px solid var(--page-accent, $accent-red);
-    outline-offset: 2px;
+    outline-offset: 3px;
+    border-radius: 2px;
 }
 
 // Card component
 .card {
     background: $bg-card;
     border-radius: $radius-md;
-    // Layered shadow for depth
-    box-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.06),
-        0 4px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: $shadow-md;
     border: 1px solid $border-color;
-    padding: 24px;
-    margin-bottom: 16px;
-    transition: box-shadow 0.2s ease;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: box-shadow $t-normal $ease-out, border-color $t-normal $ease-out, transform $t-normal $ease-out;
+
+    &:hover {
+        border-color: $border-accent;
+    }
 }
 
 .card.card-flush {
@@ -85,28 +118,78 @@ button:focus-visible {
     overflow: hidden;
 }
 
+.card.card-glow {
+    border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+    box-shadow: $shadow-md, 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
+}
+
 // Table styles
 table {
     width: 100%;
     border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
 
     th, td {
-        padding: 8px 12px;
+        padding: 10px 14px;
         text-align: left;
     }
 
     thead th {
-        font-size: 11px;
+        font-size: $type-label;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: $text-secondary;
-        border-bottom: 2px solid $border-color;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
+        font-weight: $weight-semi;
+        border-bottom: 1px solid $border-accent;
+        padding-bottom: 12px;
+        background: $bg-inset;
     }
 
     tbody tr {
-        border-bottom: 1px solid lighten($border-color, 5%);
-        transition: background-color 0.15s;
-        &:hover { background-color: $light-gray; }
+        border-bottom: 1px solid $border-color;
+        transition: background-color $t-fast $ease-out;
+        &:hover { background-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.03); }
+    }
+}
+
+// Sortable table headers
+th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: color $t-fast;
+
+    &:hover {
+        color: var(--page-accent, $accent-red);
+    }
+
+    &::after {
+        content: '';
+        display: inline-block;
+        width: 0;
+        height: 0;
+        margin-left: 4px;
+        vertical-align: middle;
+        border-left: 3.5px solid transparent;
+        border-right: 3.5px solid transparent;
+        border-top: 4px solid $text-tertiary;
+        opacity: 0;
+        transition: opacity $t-fast, transform $t-fast;
+    }
+
+    &:hover::after {
+        opacity: 0.4;
+    }
+
+    &.sort-asc::after {
+        opacity: 1;
+        border-top: none;
+        border-bottom: 4px solid var(--page-accent, $accent-red);
+    }
+
+    &.sort-desc::after {
+        opacity: 1;
+        border-top: 4px solid var(--page-accent, $accent-red);
     }
 }
 
@@ -120,33 +203,20 @@ table {
 .layout-grid {
     display: grid;
     grid-template-columns: 280px 1fr;
-    gap: 24px;
+    gap: 28px;
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
     }
 }
 
-// 8-column race result grid
-.grid {
-    display: grid;
-    grid-template-rows: 1fr;
-    grid-template-columns: repeat(8, 1fr);
-}
-.grid-item {
-    padding: 4px 12px;
-}
-.old-elo, .new-elo {
-    width: 52px;
-}
-
 // Standings table
 .current-driver-standings {
     td {
-        padding: 6px 10px;
-        font-variant-numeric: tabular-nums;
+        padding: 8px 12px;
     }
-    tbody tr:nth-child(odd) { background-color: $light-gray; }
-    tbody tr:hover { background-color: darken($light-gray, 5%); }
+    tbody tr:hover {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+    }
 
     // Position column
     .position-cell {
@@ -178,14 +248,24 @@ table {
     }
 
     // Top-3 podium highlighting
-    tbody tr { border-left: 3px solid transparent; }
-    tbody tr.podium-p1 { border-left-color: $gold; }
-    tbody tr.podium-p2 { border-left-color: $silver; }
-    tbody tr.podium-p3 { border-left-color: $bronze; }
+    tbody tr {
+        border-left: 3px solid transparent;
+    }
+    tbody tr.podium-p1 {
+        border-left-color: $gold;
+        background: linear-gradient(90deg, rgba($gold, 0.06), transparent 50%);
+    }
+    tbody tr.podium-p2 {
+        border-left-color: $silver;
+        background: linear-gradient(90deg, rgba($silver, 0.04), transparent 50%);
+    }
+    tbody tr.podium-p3 {
+        border-left-color: $bronze;
+        background: linear-gradient(90deg, rgba($bronze, 0.04), transparent 50%);
+    }
 
     // Driver name hover
     td a:hover {
-        text-decoration: underline;
         color: var(--page-accent, $accent-red);
     }
 
@@ -205,57 +285,76 @@ table {
 // Elo diff bold
 .text-green, .text-red {
     font-weight: 700;
+    font-family: $mono-font;
 }
 
-// Home
+// Page container (used site-wide)
+.page-container,
 .homepage-container {
-    max-width: 1100px;
+    max-width: $max-page-width;
     margin: 0 auto;
     padding-bottom: 48px;
 }
 
+// Hero intro
 .hero-intro {
     text-align: center;
-    padding: 48px 0 40px;
-    margin-bottom: 40px;
+    padding: 56px 0 48px;
+    margin-bottom: 48px;
     position: relative;
 
-    // Thin accent line beneath hero
+    // Radial accent glow behind hero
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 300px;
+        background: radial-gradient(ellipse, rgba(var(--page-accent-rgb, 225, 6, 0), 0.08) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    // Gradient accent line beneath hero
     &::after {
         content: '';
         position: absolute;
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 64px;
-        height: 3px;
-        background: var(--page-accent, $accent-red);
-        border-radius: 2px;
+        width: 160px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--page-accent, $accent-red), transparent);
+        border-radius: 1px;
+        box-shadow: 0 0 12px rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
     }
 
     h1 {
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 40px;
-        margin: 0 0 8px;
-        letter-spacing: -0.5px;
-        line-height: 1.1;
+        font-family: 'Formula1', sans-serif;
+        font-size: $type-display;
+        margin: 0 0 10px;
+        letter-spacing: $ls-display;
+        line-height: $lh-tight;
+        text-shadow: 0 0 40px rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+        animation: hero-fade-in 0.5s $ease-out both;
     }
     .subtitle {
         font-size: 15px;
         color: $text-secondary;
-        margin: 0;
-        max-width: 480px;
-        margin-left: auto;
-        margin-right: auto;
-        line-height: 1.5;
+        margin: 0 auto;
+        max-width: 520px;
+        line-height: $lh-body;
+        animation: hero-fade-in 0.5s $ease-out 0.1s both;
     }
 
     // Season year as an oversized faded background element
     .hero-season-year {
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 160px;
+        font-family: 'Formula1', sans-serif;
+        font-size: 220px;
         font-weight: 700;
-        color: rgba(0, 0, 0, 0.03);
+        color: rgba(255, 255, 255, 0.02);
         position: absolute;
         top: 50%;
         left: 50%;
@@ -264,12 +363,35 @@ table {
         pointer-events: none;
         user-select: none;
         z-index: 0;
+        animation: watermark-fade 1.2s $ease-out both;
     }
 
     // Keep text above the watermark
     h1, .subtitle {
         position: relative;
         z-index: 1;
+    }
+}
+
+@keyframes hero-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes watermark-fade {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
 }
 
@@ -282,7 +404,8 @@ table {
     border-bottom: 1px solid $border-color;
     h3 {
         margin: 0;
-        font-family: 'Formula1-Bold', 'Formula1', sans-serif;
+        font-family: $headers-font;
+        font-weight: $weight-bold;
     }
 }
 
@@ -296,9 +419,48 @@ table {
         align-items: center;
         gap: 8px;
     }
-    i { font-size: 14px; transition: transform 0.15s; }
-    &:hover i { transform: translateX(4px); }
+    i { font-size: 14px; transition: transform $t-normal $ease-out; }
+    &:hover i { transform: translateX(5px); }
     &:hover h3 { color: var(--page-accent, $accent-red); }
+}
+
+// Anchor copy link (icon button next to section headers)
+.anchor-copy {
+    opacity: 0;
+    color: $text-tertiary;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: opacity $t-normal $ease-out, color $t-fast, background $t-fast;
+    &:hover {
+        opacity: 1;
+        color: var(--page-accent, $accent-red);
+        background: rgba(255,255,255,0.05);
+    }
+    &.copied {
+        opacity: 1;
+        color: $green;
+    }
+    .table-header:hover & { opacity: 0.6; }
+}
+
+// Subtle outline link button
+.btn-outline-subtle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: $weight-bold;
+    color: $text-secondary;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    transition: color $t-fast, border-color $t-fast;
+    &:hover {
+        color: var(--page-accent, $accent-red);
+        border-color: var(--page-accent, $accent-red);
+    }
+    i { font-size: 11px; }
 }
 
 // Empty state
@@ -327,15 +489,20 @@ table {
         font-weight: 700;
         padding: 8px 16px;
         border-radius: $radius-sm;
-        border: 1px solid $border-color;
-        transition: all 0.15s;
+        border: 1px solid $border-accent;
+        color: $text-secondary;
+        transition: all $t-fast;
         &:hover {
             border-color: var(--page-accent, $accent-red);
             color: var(--page-accent, $accent-red);
-            background: color-mix(in srgb, var(--page-accent, $accent-red) 4%, transparent);
+            background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
         }
     }
-    h2 { margin: 0; font-family: 'Formula1-Wide', sans-serif; }
+    h2 {
+        margin: 0;
+        font-family: $headers-font;
+        font-weight: $weight-bold;
+    }
 }
 
 // Chart container
@@ -343,9 +510,9 @@ table {
     background: $bg-card;
     border-radius: $radius-md;
     border: 1px solid $border-color;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: $shadow-md;
     padding: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
 // Video embed responsive wrapper
@@ -373,20 +540,20 @@ table {
 .season-card {
     text-align: center;
     padding: 16px;
-    border-top: 3px solid var(--card-accent, transparent);
-    transition: border-color 0.15s, box-shadow 0.15s;
+    border-top: 2px solid var(--card-accent, transparent);
+    transition: border-color $t-normal $ease-out, box-shadow $t-normal $ease-out, transform $t-normal $ease-out;
     &:hover {
         border-color: var(--card-accent, var(--page-accent, $accent-red));
         border-top-color: var(--card-accent, var(--page-accent, $accent-red));
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: $shadow-lg;
+        transform: translateY(-2px);
         .season-year { color: var(--card-accent, var(--page-accent, $accent-red)); }
-        .season-stats { color: darken($text-secondary, 15%); }
     }
     .season-year {
         display: block;
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 20px;
-        font-weight: 700;
+        font-family: $mono-font;
+        font-size: 18px;
+        font-weight: $weight-bold;
         margin-bottom: 8px;
     }
     .season-stats {
@@ -401,7 +568,8 @@ table {
         border-color: var(--card-accent, var(--page-accent, $accent-red));
         border-top-color: var(--card-accent, var(--page-accent, $accent-red));
         border-width: 2px;
-        border-top-width: 3px;
+        border-top-width: 2px;
+        box-shadow: 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
         position: relative;
         &::after {
             content: 'Current';
@@ -409,7 +577,7 @@ table {
             top: -8px;
             right: 8px;
             background: var(--card-accent, var(--page-accent, $accent-red));
-            color: white;
+            color: $text-on-accent;
             font-size: 10px;
             font-weight: 700;
             padding: 2px 6px;
@@ -428,10 +596,9 @@ table {
 .season-year-label {
     writing-mode: vertical-lr;
     transform: rotate(180deg);
-    font-family: 'Formula1-Wide', sans-serif;
     font-size: 20px;
-    font-weight: 700;
-    color: $text-secondary;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
     display: flex;
     align-items: center;
     min-width: 40px;
@@ -450,7 +617,10 @@ table {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    h2 { margin: 0; }
+    h2 {
+        margin: 0;
+        font-family: $headers-font;
+    }
 }
 .race-nav {
     display: flex;
@@ -470,14 +640,6 @@ table.race-results {
     gap: 8px;
     margin-top: 16px;
 }
-.peak-elo-driver {
-    padding: 8px 12px;
-    background: $bg-card;
-    border-radius: $radius-sm;
-    border: 1px solid $border-color;
-    a { font-size: 13px; }
-}
-
 // Season champion on season cards
 .season-champion {
     font-size: 11px;
@@ -492,323 +654,19 @@ table.race-results {
 
 // Chart title
 .chart-title {
-    font-size: 14px;
+    font-size: $type-label;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: $ls-label;
     color: $text-secondary;
     margin: 0 0 8px;
 }
 
-// Compare page
-.compare-search-card {
-    position: relative;
-    margin-bottom: 24px;
-}
-.compare-input-wrapper {
-    position: relative;
-}
-.compare-suggestions {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: $bg-card;
-    border: 1px solid $border-color;
-    border-top: none;
-    border-radius: 0 0 $radius-md $radius-md;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    max-height: 300px;
-    overflow-y: auto;
-    &.open { display: block; }
-}
-.suggestion-item {
-    padding: 10px 12px;
-    cursor: pointer;
-    font-size: 13px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    &:hover { background: $light-gray; color: var(--page-accent, $accent-red); }
-    .suggestion-elo {
-        font-size: 11px;
-        color: $text-secondary;
-        font-variant-numeric: tabular-nums;
-    }
-}
-.compare-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-}
-.compare-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: color-mix(in srgb, var(--page-accent, $accent-red) 8%, transparent);
-    color: var(--page-accent, $accent-red);
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    button {
-        background: none;
-        border: none;
-        color: var(--page-accent, $accent-red);
-        font-size: 16px;
-        cursor: pointer;
-        padding: 0;
-        line-height: 1;
-        &:hover { opacity: 0.7; }
-    }
-}
-.compare-hint {
-    color: $text-secondary;
-    font-size: 13px;
-    margin: 12px 0 0;
-}
-
-// Constructor index grid
-.constructors-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-}
-.constructor-grid-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 20px 16px;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    &:hover {
-        border-color: var(--page-accent, $accent-red);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-}
-.constructor-grid-logo {
-    width: 64px;
-    height: 64px;
-    object-fit: contain;
-    margin-bottom: 12px;
-}
-.constructor-grid-name {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-.constructor-grid-nationality {
-    font-size: 12px;
-    color: $text-secondary;
-}
-
-// About / Elo explainer page
-.about-section {
+// Chart header
+.chart-header {
     h4 {
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 16px;
-        margin: 24px 0 8px;
-        &:first-child { margin-top: 0; }
+        font-family: $headers-font;
+        font-weight: $weight-bold;
     }
-    p { line-height: 1.6; margin-bottom: 12px; color: $text-primary; }
-    ul {
-        margin: 8px 0 16px 20px;
-        li { line-height: 1.6; margin-bottom: 6px; }
-    }
-    code {
-        background: $light-gray;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-size: 12px;
-    }
-}
-.elo-tiers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-}
-.elo-tier-card {
-    background: $bg-card;
-    border-radius: $radius-md;
-    border: 1px solid $border-color;
-    padding: 20px;
-    border-top: 3px solid $border-color;
-    &.tier-elite { border-top-color: $gold; }
-    &.tier-world-class { border-top-color: $silver; }
-    &.tier-strong { border-top-color: $green; }
-    .tier-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-    .tier-range {
-        font-size: 13px;
-        font-weight: 700;
-        color: $text-secondary;
-        font-variant-numeric: tabular-nums;
-    }
-    .tier-description {
-        font-size: 13px;
-        line-height: 1.5;
-        color: $text-secondary;
-        margin-bottom: 12px;
-    }
-    .tier-examples {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-    .tier-driver {
-        font-size: 12px;
-        font-weight: 700;
-        padding: 3px 8px;
-        background: $light-gray;
-        border-radius: 3px;
-        &:hover { background: darken($light-gray, 5%); }
-    }
-    .tier-elo {
-        font-size: 11px;
-        color: $text-secondary;
-        font-variant-numeric: tabular-nums;
-    }
-}
-
-// Constructor families / lineages
-.lineage-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-.lineage-card {
-    padding: 20px 24px;
-}
-.lineage-name {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-size: 15px;
-    margin: 0 0 16px;
-}
-.lineage-chain {
-    display: flex;
-    flex-direction: column;
-}
-.lineage-step {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.lineage-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    border: 2px solid $bg-card;
-    box-shadow: 0 0 0 1px $border-color;
-}
-.lineage-step-content {
-    display: flex;
-    flex-direction: column;
-    .lineage-team-name {
-        font-weight: 700;
-        font-size: 13px;
-    }
-    .lineage-years {
-        font-size: 11px;
-        color: $text-secondary;
-    }
-}
-.lineage-connector {
-    width: 2px;
-    height: 12px;
-    background: $border-color;
-    margin-left: 5px;
-}
-
-.families-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
-}
-.family-card {
-    padding: 16px 20px;
-}
-.family-name {
-    font-size: 14px;
-    font-weight: 700;
-    margin: 0 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid $border-color;
-}
-.family-members {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.family-member {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    padding: 4px 0;
-    &:hover .family-member-name { color: var(--page-accent, $accent-red); }
-}
-.family-member-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-.family-member-name {
-    transition: color 0.15s;
-}
-
-// Nationality Grid
-.nationality-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
-}
-.nationality-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    text-decoration: none;
-    color: $text-primary;
-    transition: box-shadow 0.15s, border-color 0.15s;
-    &:hover { border-color: var(--page-accent, $accent-red); color: $text-primary; }
-}
-.nationality-flag {
-    font-size: 24px;
-    flex-shrink: 0;
-}
-.nationality-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    strong { font-size: 14px; }
-}
-.nationality-count {
-    font-size: 12px;
-    color: $text-secondary;
-}
-.nationality-top {
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-}
-.nationality-top-name {
-    font-size: 12px;
-    color: $text-secondary;
-}
-.nationality-top-elo {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
 }
 
 // Back link
@@ -820,310 +678,122 @@ table.race-results {
     &:hover { color: var(--page-accent, $accent-red); }
 }
 
-// Calendar Grid (Circuits index)
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.calendar-race-card {
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-
+// Elo link styling
+.elo-link {
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
     &:hover {
-        border-color: var(--page-accent, $accent-red);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        transform: translateY(-2px);
-        color: $text-primary;
+        color: var(--page-accent, $accent-red);
     }
+}
 
-    &.calendar-past {
-        opacity: 0.65;
-        &:hover { opacity: 1; }
-    }
-
-    .calendar-accent {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        border-radius: 8px 8px 0 0;
-    }
-
-    .calendar-track {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 56px;
-        height: 56px;
-        opacity: 0.12;
-        pointer-events: none;
-        transition: opacity 0.2s;
-    }
-
-    .calendar-track-svg {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        filter: brightness(0);
-    }
-
-    &:hover .calendar-track { opacity: 0.25; }
-
-
-    .calendar-round {
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 11px;
-        color: $text-secondary;
-        margin-bottom: 8px;
-    }
-
-    .calendar-info {
-        display: flex;
+// Footer
+.site-footer {
+    border-top: 1px solid $border-color;
+    margin-top: 80px;
+    position: relative;
+    z-index: 1;
+    background: $bg-surface;
+}
+.site-footer-inner {
+    max-width: $max-page-width;
+    margin: 0 auto;
+    padding: 48px 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    gap: 48px;
+    @media (max-width: 768px) {
         flex-direction: column;
-        flex: 1;
-    }
-
-    .calendar-circuit {
-        font-weight: 700;
-        font-size: 14px;
-        margin-bottom: 2px;
-    }
-
-    .calendar-location {
-        font-size: 12px;
-        color: $text-secondary;
-    }
-
-    .calendar-date {
-        font-size: 12px;
-        font-weight: 600;
-        color: $text-secondary;
-        margin-top: 8px;
-    }
-
-    .calendar-winner {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid $border-color;
-        font-size: 12px;
-        font-weight: 700;
+        gap: 32px;
     }
 }
-
-// Circuit table track thumbnails
-.circuit-name-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.circuit-table-track {
-    display: inline-flex;
-    width: 28px;
-    height: 28px;
-    background: $bg-dark;
-    border-radius: $radius-sm;
-    padding: 4px;
-    flex-shrink: 0;
-}
-
-.circuit-table-track-svg {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-// Badges index page
-.badge-group {
-    background: $bg-card;
-    border: 1px solid $border-color;
-    border-radius: $radius-lg;
-    margin-bottom: 16px;
-    overflow: hidden;
-}
-
-.badge-group-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    border-bottom: 1px solid $border-color;
-    background: $light-gray;
-}
-
-.badge-group-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: $radius-md;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.badge-group-title {
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0;
-}
-
-.badge-group-count {
-    font-size: 12px;
-    color: $text-secondary;
-}
-
-.badge-group-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.badge-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 20px;
-    border-bottom: 1px solid lighten($border-color, 5%);
-    font-size: 13px;
-
-    &:last-child { border-bottom: none; }
-    &:hover { background: $light-gray; }
-
-    &.badge-row-gold   { background: rgba($gold, 0.06); }
-    &.badge-row-silver { background: rgba($silver, 0.06); }
-    &.badge-row-bronze { background: rgba($bronze, 0.06); }
-}
-
-.badge-row-rank {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-size: 10px;
-    color: $text-secondary;
-    min-width: 20px;
-    text-align: right;
-    flex-shrink: 0;
-}
-
-.badge-row-value {
-    font-family: 'Formula1-Wide', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    min-width: 48px;
-    text-align: center;
-    padding: 3px 8px;
-    border-radius: $radius-sm;
-    flex-shrink: 0;
-}
-
-.badge-row-name {
-    font-weight: 700;
-    white-space: nowrap;
-    min-width: 140px;
-    a { color: $text-primary; &:hover { color: var(--page-accent, $accent-red); } }
-}
-
-.badge-tier-medal {
-    font-size: 12px;
-    margin-right: 2px;
-    &.tier-gold   { color: $gold; }
-    &.tier-silver { color: $silver; }
-    &.tier-bronze { color: $bronze; }
-}
-
-.badge-row-desc {
-    color: $text-secondary;
-    font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-    .badge-row-desc { display: none; }
-    .badge-row-name { min-width: auto; }
-    .badge-row-rank { display: none; }
-}
-
-// Circuit kings component
-.circuit-kings {
+.footer-brand {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 8px;
-    margin: 16px 0;
 }
-
-.circuit-kings-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: $text-secondary;
-    i { color: $gold; margin-right: 4px; }
+.footer-logo {
+    font-size: 22px;
+    color: $text-primary;
 }
-
-.circuit-kings-list {
+.footer-tagline {
+    font-size: $type-small;
+    color: $text-tertiary;
+    max-width: 200px;
+    line-height: 1.4;
+}
+.footer-links-grid {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 48px;
+    @media (max-width: 768px) {
+        gap: 32px;
+    }
+}
+.footer-col {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+    a {
+        font-size: $type-small;
+        color: $text-secondary;
+        &:hover { color: var(--page-accent, $accent-red); }
+    }
+}
+.footer-col-title {
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    margin-bottom: 4px;
+}
+.footer-bottom {
+    max-width: $max-page-width;
+    margin: 0 auto;
+    padding: 16px;
+    border-top: 1px solid $border-color;
+    text-align: center;
+    font-size: $type-label;
+    color: $text-tertiary;
 }
 
-.circuit-king-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: $radius-sm;
-    background: $light-gray;
-    color: $text-secondary;
-    position: relative;
-    cursor: default;
+// Flash messages — glass-morphism
+.flash {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1100;
+    padding: 12px 20px;
+    border-radius: $radius-md;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: $type-small;
+    font-weight: $weight-medium;
+    animation: flash-in 0.3s $ease-out both;
+    max-width: 400px;
+}
+.flash-notice {
+    background: rgba($green, 0.15);
+    border: 1px solid rgba($green, 0.3);
+    color: $green;
+}
+.flash-alert {
+    background: rgba($accent-red, 0.15);
+    border: 1px solid rgba($accent-red, 0.3);
+    color: $accent-red;
+}
 
-    a { color: inherit; }
-
-    &.tier-gold   { @include tier-gold; }
-    &.tier-silver { @include tier-silver; }
-    &.tier-bronze { @include tier-bronze; }
-
-    .circuit-king-wins {
-        font-family: 'Formula1-Wide', sans-serif;
-        font-size: 10px;
-        opacity: 0.7;
-    }
-
-    // Tooltip
-    &[data-tooltip]::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: calc(100% + 6px);
-        left: 50%;
-        transform: translateX(-50%) translateY(4px);
-        background: $text-primary;
-        color: #fff;
-        font-size: 11px;
-        font-weight: 400;
-        padding: 5px 10px;
-        border-radius: $radius-sm;
-        white-space: nowrap;
-        pointer-events: none;
+@keyframes flash-in {
+    from {
         opacity: 0;
-        transition: opacity 0.15s, transform 0.15s;
-        z-index: 9999;
+        transform: translateX(20px);
     }
-    &[data-tooltip]:hover::after {
+    to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(0);
     }
 }
+
+// Font utility
+.font-mono { font-family: $mono-font; font-variant-numeric: tabular-nums; }
+.font-display { font-family: 'Formula1', sans-serif; }

@@ -1,17 +1,32 @@
 // Import Google fonts
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;700&display=swap');
 
 // Define fonts for body and headers
-$body-font: "Inter", "Helvetica", "sans-serif";
-$headers-font: "Inter", "Helvetica", "sans-serif";
+$body-font: "IBM Plex Sans", "Helvetica", sans-serif;
+$headers-font: "DM Sans", "Helvetica", sans-serif;
+$mono-font: "IBM Plex Mono", "SF Mono", "Consolas", monospace;
 
-// To use a font file (.woff) uncomment following lines
-// @font-face {
-//   font-family: "Font Name";
-//   src: font-url('FontFile.eot');
-//   src: font-url('FontFile.eot?#iefix') format('embedded-opentype'),
-//        font-url('FontFile.woff') format('woff'),
-//        font-url('FontFile.ttf') format('truetype')
-// }
-// $my-font: "Font Name";
+// Type scale
+$type-display: 48px;   // Formula1 — hero h1 only
+$type-stat:    32px;   // Mono — large stat values
+$type-h2:      26px;   // DM Sans 700 — stat values, section headers
+$type-h3:      19px;   // DM Sans 600 — card titles, driver names
+$type-body:    15px;   // IBM Plex Sans 400 — body text, table cells
+$type-small:   12px;   // IBM Plex Sans 500 — meta, badges
+$type-label:   11px;   // IBM Plex Sans 600 uppercase — all labels
 
+// Weights
+$weight-regular: 400;
+$weight-medium:  500;
+$weight-semi:    600;
+$weight-bold:    700;
+
+// Letter-spacing
+$ls-label:   0.6px;
+$ls-display: -0.75px;
+$ls-heading: -0.3px;
+
+// Line-height
+$lh-body:    1.6;
+$lh-heading: 1.2;
+$lh-tight:   1.1;

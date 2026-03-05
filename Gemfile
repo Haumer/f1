@@ -12,6 +12,8 @@ gem 'blazer'
 gem 'yt'
 gem 'pg_search'
 gem 'devise'
+gem 'pundit'
+gem 'solid_queue'
 gem 'wikipedia-client'
 gem "rails_live_reload"
 

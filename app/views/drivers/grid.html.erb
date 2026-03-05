@@ -1,0 +1,16 @@
+<div class="homepage-container">
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><%= @season_year %> Season</span>
+            <h1 class="page-hero-title">Driver Grid</h1>
+            <p class="page-hero-meta"><%= @season_drivers.size %> drivers &middot; Ranked by Elo</p>
+        </div>
+    </div>
+
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <%= render 'drivers/grid_table', season_drivers: @season_drivers, grid_standings: @grid_standings, grid_prev_standings: @grid_prev_standings %>
+        </div>
+    </div>
+</div>

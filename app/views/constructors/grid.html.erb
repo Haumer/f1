@@ -1,0 +1,39 @@
+<div class="homepage-container">
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><%= @season_year %> Season</span>
+            <h1 class="page-hero-title">Constructor Grid</h1>
+            <p class="page-hero-meta"><%= @team_grid.size %> teams &middot; <%= @team_grid.sum { |t| t[:drivers].size } %> drivers</p>
+        </div>
+    </div>
+
+    <div class="constructors-grid">
+        <% @team_grid.each do |entry| %>
+            <% constructor = entry[:constructor] %>
+            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+            <div class="constructor-grid-item card" style="--team-color: <%= color %>">
+                <% if constructor.logo_url.present? %>
+                    <%= link_to constructor_path(constructor) do %>
+                        <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-grid-logo" loading="lazy" onerror="this.style.display='none'">
+                    <% end %>
+                <% end %>
+                <%= link_to constructor.name, constructor_path(constructor), class: "constructor-grid-name" %>
+                <span class="constructor-grid-nationality"><%= constructor.nationality %></span>
+                <div class="constructor-grid-drivers">
+                    <% entry[:drivers].each do |driver| %>
+                        <div class="constructor-grid-driver">
+                            <% if driver.country.present? %>
+                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                            <% end %>
+                            <%= link_to "#{driver.forename[0]}. #{driver.surname}", driver_path(driver) %>
+                            <% if driver.display_elo %>
+                                <span class="constructor-grid-driver-elo"><%= driver.display_elo.round %></span>
+                            <% end %>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        <% end %>
+    </div>
+</div>

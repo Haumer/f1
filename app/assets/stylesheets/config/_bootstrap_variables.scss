@@ -1,17 +1,19 @@
 // This is where you override default Bootstrap variables
-// 1. Find all Bootstrap variables that you can override at the end of each component's documentation under the `Sass variables` anchor
-// e.g. here are the ones you can override for the navbar https://getbootstrap.com/docs/5.2/components/navbar/#sass-variables
-// 2. These variables are defined with default value (see https://robots.thoughtbot.com/sass-default)
-// 3. You can override them below!
 
 // General style
 $font-family-sans-serif: $body-font;
 $headings-font-family:   $headers-font;
-$body-bg:                $light-gray;
+$body-bg:                $bg-page;
 $font-size-base:         1rem;
 
-// Colors
-$body-color: $gray;
+// Colors (Bootstrap-specific)
+$blue:    #3b82f6;
+$yellow:  #FFC65A;
+$orange:  #E67E22;
+$red:     #e10600;
+$warning-orange: #d97706;
+
+$body-color: $text-primary;
 $primary:    $blue;
 $success:    $green;
 $info:       $yellow;
@@ -23,4 +25,20 @@ $border-radius:    $radius-sm;
 $border-radius-lg: $radius-sm;
 $border-radius-sm: $radius-sm;
 
-// Override other variables below!
+// Dark overrides for Bootstrap components
+$input-bg: $bg-card;
+$input-color: $text-primary;
+$input-border-color: $border-accent;
+$input-focus-border-color: var(--page-accent, $accent-red);
+$input-placeholder-color: $text-tertiary;
+$table-color: $text-primary;
+$table-bg: transparent;
+$table-hover-bg: rgba(255, 255, 255, 0.02);
+$card-bg: $bg-card;
+$card-border-color: $border-color;
+$modal-content-bg: $bg-card-elevated;
+$modal-content-border-color: $border-accent;
+$dropdown-bg: $bg-card-elevated;
+$dropdown-border-color: $border-accent;
+$dropdown-link-color: $text-primary;
+$dropdown-link-hover-bg: rgba(255, 255, 255, 0.04);

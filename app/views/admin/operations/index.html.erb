@@ -23,11 +23,11 @@
   </div>
 
   <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-building"></i> Recalculate Constructor Elo</h3>
-    <p>Recalculate all constructor Elo ratings from scratch based on race results.</p>
+    <h3><i class="fa-solid fa-building"></i> Re-simulate Constructor Elo V2</h3>
+    <p>Run full Constructor Elo V2 simulation from scratch using combined position metric.</p>
     <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="constructor_elo">
-      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="Recalculate all constructor Elo? Continue?">Recalculate</button>
+      <input type="hidden" name="operation" value="constructor_elo_v2">
+      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="Re-simulate all Constructor Elo V2? Continue?">Re-simulate</button>
     <% end %>
   </div>
 

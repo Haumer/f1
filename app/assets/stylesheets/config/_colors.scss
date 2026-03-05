@@ -1,63 +1,132 @@
 // Core palette
-$red: #e10600;
-$blue: #0D6EFD;
-$yellow: #FFC65A;
-$orange: #E67E22;
-$green: #1f883d;
-$gray: #6c757d;
-$light-gray: #f5f5f5;
-$gold: #C9B037;
-$silver: #808080;
-$bronze: #cc6633;
+$green: #00d26a;
+$gray: #8a8a9a;
+$light-gray: #1a1a24;
+$gold: #f0c850;
+$silver: #a0a0b0;
+$bronze: #d4844a;
 
-// Design system
-$bg-page: #f0f1f3;
-$bg-card: #ffffff;
-$border-color: #e0e0e0;
-$text-primary: #1a1a2e;
-$text-secondary: #6c757d;
+// Design system — dark foundation
+$bg-page: #0a0a0f;
+$bg-surface: #12121a;
+$bg-card: #1a1a24;
+$bg-card-elevated: #22222e;
+$bg-inset: #0e0e16;
+$border-color: rgba(255, 255, 255, 0.06);
+$border-subtle: rgba(255, 255, 255, 0.03);
+$border-accent: rgba(255, 255, 255, 0.12);
+$text-primary: #e8e8ed;
+$text-secondary: #8a8a9a;
+$text-tertiary: #55556a;
+$text-on-accent: #ffffff;
 $accent-red: #e10600;
 
-// Dark palette (hero, stats strip)
-$bg-dark: #0d0d1a;
-$bg-dark-card: #1a1a2e;
-$text-on-dark: #ffffff;
-$text-on-dark-muted: rgba(255, 255, 255, 0.5);
+// Shadows (dark-optimized)
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.05);
+$shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.06);
+$shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.08);
+
+// Glow
+$glow-accent: 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+
+// Easing
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+// Timing
+$t-fast: 120ms;
+$t-normal: 200ms;
+$t-slow: 350ms;
+
+// Spacing
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 16px;
+$space-lg: 24px;
+$space-xl: 40px;
+$space-2xl: 64px;
+
+// Layout
+$max-page-width: 1100px;
 
 // Border radius scale
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 16px;
 
 // Tier mixins (reusable across badges, chips, etc.)
 @mixin tier-gold {
-    background: rgba($gold, 0.15);
-    color: darken($gold, 10%);
-    box-shadow: 0 0 0 1px $gold;
+    background: rgba($gold, 0.12);
+    color: $gold;
+    box-shadow: 0 0 0 1px rgba($gold, 0.3);
 }
 @mixin tier-silver {
-    background: rgba($silver, 0.15);
-    color: darken($silver, 35%);
-    box-shadow: 0 0 0 1px $silver;
+    background: rgba($silver, 0.12);
+    color: $silver;
+    box-shadow: 0 0 0 1px rgba($silver, 0.3);
 }
 @mixin tier-bronze {
-    background: rgba($bronze, 0.15);
-    color: darken($bronze, 10%);
-    box-shadow: 0 0 0 1px $bronze;
+    background: rgba($bronze, 0.12);
+    color: $bronze;
+    box-shadow: 0 0 0 1px rgba($bronze, 0.3);
 }
 
 // Hero accent line mixin
-@mixin hero-accent-line($color, $width: 96px) {
+@mixin hero-accent-line($color, $width: 160px) {
     &::after {
-        background: $color;
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 2px;
+        border-radius: 1px;
+        background: linear-gradient(90deg, transparent, $color, transparent);
         width: $width;
+        box-shadow: 0 0 12px rgba($color, 0.3);
     }
 }
 
 // Utility classes
 .text-green { color: $green; }
-.text-red { color: $red; }
+.text-red { color: $accent-red; }
 
 .place-1 { color: $gold; }
 .place-2 { color: $silver; }
 .place-3 { color: $bronze; }
+
+// Glow utilities
+.glow-accent { box-shadow: $glow-accent; }
+.glow-gold { box-shadow: 0 0 20px rgba($gold, 0.15); }
+.glow-green { box-shadow: 0 0 20px rgba($green, 0.15); }
+
+// Elo change pills
+.elo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+
+    &.gain { background: rgba($green, 0.1); color: $green; }
+    &.loss { background: rgba($accent-red, 0.1); color: $accent-red; }
+}
+
+// Position pills
+.position-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-sm;
+    font-weight: $weight-bold;
+    font-size: $type-small;
+
+    &.p1 { background: rgba($gold, 0.15); color: $gold; }
+    &.p2 { background: rgba($silver, 0.15); color: $silver; }
+    &.p3 { background: rgba($bronze, 0.15); color: $bronze; }
+}

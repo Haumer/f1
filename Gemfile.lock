@@ -199,6 +199,8 @@ GEM
     public_suffix (5.0.5)
     puma (5.6.8)
       nio4r (~> 2.0)
+    pundit (2.5.2)
+      activesupport (>= 3.0.0)
     racc (1.8.1)
     rack (2.2.22)
     rack-test (2.2.0)
@@ -267,6 +269,8 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    solid_queue (0.1.2)
+      rails (>= 7.0.3.1)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -327,12 +331,14 @@ DEPENDENCIES
   pg (~> 1.1)
   pg_search
   puma (~> 5.0)
+  pundit
   rails (~> 7.0.8)
   rails_charts
   rails_live_reload
   sassc-rails
   selenium-webdriver
   simple_form!
+  solid_queue
   sprockets-rails
   stimulus-rails
   turbo-rails
