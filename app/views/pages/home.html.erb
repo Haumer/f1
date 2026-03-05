@@ -87,9 +87,7 @@
                                 <span class="podium-position place-<%= ds.position %>">P<%= ds.position %></span>
                                 <span class="podium-driver"><%= link_to "#{ds.driver.forename&.first}.#{ds.driver.surname}", driver_path(ds.driver) %></span>
                                 <span class="stat-detail"><%= ds.points&.round %> pts · <%= ds.wins || 0 %> wins</span>
-                                <% if constructor&.logo_url.present? %>
-                                    <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= constructor_logo_or_name(constructor) %>
                             </div>
                         <% end %>
                     </div>
@@ -113,9 +111,7 @@
                                     <%= link_to constructor.name, constructor_path(constructor) %>
                                 </span>
                                 <span class="stat-detail"><%= entry[:points]&.round %> pts · <%= entry[:wins] %> wins</span>
-                                <% if constructor&.logo_url.present? %>
-                                    <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= constructor_logo_or_name(constructor) %>
                             </div>
                         <% end %>
                     </div>

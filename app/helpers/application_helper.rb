@@ -37,4 +37,14 @@ module ApplicationHelper
         "#{hex[0..1].to_i(16)}, #{hex[2..3].to_i(16)}, #{hex[4..5].to_i(16)}"
     end
 
+    def constructor_logo_or_name(constructor, size: "sm")
+        return "" unless constructor
+        if constructor.logo_url.present?
+            tag.img(src: constructor.logo_url, alt: constructor.name, class: "constructor-logo-#{size}", loading: "lazy", onerror: "this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='inline')") +
+            tag.span(constructor.name, class: "constructor-name-fallback", style: "display:none")
+        else
+            tag.span(constructor.name, class: "constructor-name-fallback")
+        end
+    end
+
 end

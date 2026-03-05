@@ -48,9 +48,7 @@
                             <span class="podium-position place-<%= ds.position %>">P<%= ds.position %></span>
                             <span class="podium-driver"><%= link_to "#{ds.driver.forename&.first}.#{ds.driver.surname}", driver_path(ds.driver) %></span>
                             <span class="stat-detail"><%= ds.points&.round %> pts · <%= ds.wins || 0 %> wins</span>
-                            <% if constructor&.logo_url.present? %>
-                                <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                            <% end %>
+                            <%= constructor_logo_or_name(constructor) %>
                         </div>
                     <% end %>
                 </div>
@@ -73,9 +71,7 @@
                                     <%= link_to constructor.name, constructor_path(constructor) %>
                                 </span>
                                 <span class="stat-detail"><%= entry[:points]&.round %> pts · <%= entry[:wins] %> wins</span>
-                                <% if constructor&.logo_url.present? %>
-                                    <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= constructor_logo_or_name(constructor) %>
                             </div>
                         <% end %>
                     </div>
@@ -147,9 +143,7 @@
                              style="--constructor-color: <%= Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>">
                             <span class="podium-position place-<%= result.position_order %>">P<%= result.position_order %></span>
                             <span class="podium-driver"><%= link_to "#{result.driver.forename&.first}.#{result.driver.surname}", driver_path(result.driver) %></span>
-                            <% if result.constructor&.logo_url.present? %>
-                                <img src="<%= result.constructor.logo_url %>" alt="<%= result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                            <% end %>
+                            <%= constructor_logo_or_name(result.constructor) %>
                         </div>
                     <% end %>
                 </div>

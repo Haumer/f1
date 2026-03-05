@@ -7,9 +7,7 @@
         <%= link_to "#{@champion.forename} #{@champion.surname}", driver_path(@champion) %>
     </h1>
     <div class="champion-details">
-        <% if @champion_constructor&.logo_url.present? %>
-            <img src="<%= @champion_constructor.logo_url %>" alt="<%= @champion_constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-        <% end %>
+        <%= constructor_logo_or_name(@champion_constructor) %>
         <span class="champion-stats">
             <%= @champion_standing.points&.round %> pts
             <% if @champion_standing.wins.to_i > 0 %> · <%= @champion_standing.wins %> wins<% end %>

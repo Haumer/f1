@@ -95,6 +95,14 @@ $radius-lg: 16px;
 .place-2 { color: $silver; }
 .place-3 { color: $bronze; }
 
+// Constructor name fallback (when logo missing)
+.constructor-name-fallback {
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    letter-spacing: 0.3px;
+}
+
 // Glow utilities
 .glow-accent { box-shadow: $glow-accent; }
 .glow-gold { box-shadow: 0 0 20px rgba($gold, 0.15); }

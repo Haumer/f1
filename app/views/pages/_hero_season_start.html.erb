@@ -43,9 +43,7 @@
                     <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
                 </span>
                 <div class="podium-meta">
-                    <% if constructor&.logo_url.present? %>
-                        <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="podium-constructor-logo" onerror="this.style.display='none'" loading="lazy">
-                    <% end %>
+                    <%= constructor_logo_or_name(constructor) %>
                     <% if tier %>
                         <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
                     <% end %>
@@ -101,9 +99,7 @@
                         <span class="rank-name">
                             <%= link_to "#{driver.forename[0]}.#{driver.surname}", driver_path(driver) %>
                         </span>
-                        <% if constructor&.logo_url.present? %>
-                            <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="rank-logo" onerror="this.style.display='none'" loading="lazy">
-                        <% end %>
+                        <%= constructor_logo_or_name(constructor, size: "xs") %>
                         <span class="rank-elo"><%= elo_link(driver.display_elo) %></span>
                     </div>
                 <% end %>
@@ -124,9 +120,7 @@
                         <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
                         <div class="rank-row constructor-row" style="--constructor-color: <%= color %>; --rank: <%= idx %>">
                             <span class="rank-pos"><%= idx + 1 %></span>
-                            <% if constructor.logo_url.present? %>
-                                <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="rank-logo" onerror="this.style.display='none'" loading="lazy">
-                            <% end %>
+                            <%= constructor_logo_or_name(constructor, size: "xs") %>
                             <span class="rank-name">
                                 <%= link_to constructor.name, constructor_path(constructor) %>
                             </span>
