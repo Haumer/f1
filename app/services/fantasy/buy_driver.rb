@@ -9,9 +9,10 @@ module Fantasy
     def call
       return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
       return { error: "Driver is already on your roster" } if @portfolio.has_driver?(@driver)
-      return { error: "Roster is full (max 2 drivers)" } if @portfolio.roster_full?
+      return { error: "Roster is full (#{@portfolio.roster_slots} seats)" } if @portfolio.roster_full?
 
       price = @driver.elo_v2
+      return { error: "Driver has no Elo rating" } unless price
       return { error: "Not enough cash (need #{price.round(0)}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < price
 
       ActiveRecord::Base.transaction do

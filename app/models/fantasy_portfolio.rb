@@ -4,6 +4,8 @@ class FantasyPortfolio < ApplicationRecord
 
   has_many :roster_entries, class_name: "FantasyRosterEntry", dependent: :destroy
   has_many :transactions, class_name: "FantasyTransaction", dependent: :destroy
+  has_many :snapshots, class_name: "FantasySnapshot", dependent: :destroy
+  has_many :achievements, class_name: "FantasyAchievement", dependent: :destroy
 
   validates :user_id, uniqueness: { scope: :season_id }
   validates :cash, :starting_capital, presence: true
@@ -26,7 +28,7 @@ class FantasyPortfolio < ApplicationRecord
 
   def can_trade?(race)
     return false unless race&.starts_at
-    race.starts_at > Time.current && swaps_this_race(race) < 1
+    race.starts_at > Time.current && swaps_this_race(race) < max_swaps_per_race
   end
 
   def swaps_this_race(race)
@@ -34,12 +36,38 @@ class FantasyPortfolio < ApplicationRecord
   end
 
   def roster_full?
-    active_roster_entries.count >= 2
+    active_roster_entries.count >= roster_slots
+  end
+
+  def max_swaps_per_race
+    roster_slots / SLOTS_PER_TEAM  # 1 swap per team
+  end
+
+  def teams_owned
+    roster_slots / SLOTS_PER_TEAM
+  end
+
+  def can_buy_team?
+    teams_owned < MAX_TEAMS
+  end
+
+  def team_cost
+    avg = Driver.where(active: true).average(:elo_v2) || 0
+    avg.round(0)
   end
 
   def has_driver?(driver)
     active_roster_entries.exists?(driver_id: driver.id)
   end
+
+  def has_achievement?(key)
+    achievements.exists?(key: key.to_s)
+  end
+
+  STARTING_SLOTS = 2
+  SLOTS_PER_TEAM = 2
+  MAX_TEAMS = 3
+  MAX_ROSTER_SIZE = MAX_TEAMS * SLOTS_PER_TEAM  # 6
 
   def held_races_for(driver)
     entry = active_roster_entries.find_by(driver_id: driver.id)
@@ -50,47 +78,9 @@ class FantasyPortfolio < ApplicationRecord
     current_round - bought_round
   end
 
-  # Login streak bonus: streak * 5, capped at 50
-  LOGIN_BONUS_PER_DAY = 5
-  LOGIN_BONUS_CAP = 50
-
-  def record_login!
-    today = Date.current
-    return if last_login_date == today
-
-    if last_login_date == today - 1
-      self.login_streak += 1
-    else
-      self.login_streak = 1
-    end
-
-    bonus = [login_streak * LOGIN_BONUS_PER_DAY, LOGIN_BONUS_CAP].min
-    self.cash += bonus
-    self.last_login_date = today
-
-    save!
-    transactions.create!(kind: "login_bonus", amount: bonus, note: "Day #{login_streak} streak")
-    bonus
-  end
-
-  # Interaction bonus: 10 per interaction, max 3/day
-  INTERACTION_BONUS = 10
-  MAX_INTERACTIONS_PER_DAY = 3
-
-  def record_interaction!
-    today = Date.current
-
-    if last_interaction_date != today
-      self.interactions_today = 0
-      self.last_interaction_date = today
-    end
-
-    return false if interactions_today >= MAX_INTERACTIONS_PER_DAY
-
-    self.interactions_today += 1
-    self.cash += INTERACTION_BONUS
-    save!
-    transactions.create!(kind: "interaction_bonus", amount: INTERACTION_BONUS, note: "Interaction #{interactions_today}/#{MAX_INTERACTIONS_PER_DAY}")
-    true
+  def value_change_since_last_race
+    last_two = snapshots.order(created_at: :desc).limit(2).to_a
+    return nil if last_two.size < 2
+    last_two[0].value - last_two[1].value
   end
 end

@@ -25,17 +25,20 @@
         <% @drivers.each do |driver| %>
             <% on_roster = @active_driver_ids.include?(driver.id) %>
             <% can_afford = @portfolio.cash >= (driver.elo_v2 || 0) %>
+            <% constructor = @constructors_by_driver[driver.id] %>
             <div class="card fantasy-market-card <%= 'on-roster' if on_roster %>">
                 <div class="fantasy-market-driver">
-                    <% if driver.image_url.present? %>
-                        <img src="<%= driver.image_url %>" alt="<%= driver.fullname %>" class="fantasy-market-img">
-                    <% end %>
                     <div class="fantasy-market-info">
-                        <h4><%= link_to driver.fullname, driver_path(driver) %></h4>
-                        <span class="fantasy-market-constructor"><%= driver.current_constructor&.name %></span>
-                        <% if driver.country %>
-                            <span class="fantasy-market-flag fi fi-<%= driver.country.two_letter_country_code&.downcase %>"></span>
+                        <% if driver.country.present? %>
+                            <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" style="vertical-align: middle; margin-right: 4px;">
                         <% end %>
+                        <h4><%= link_to driver.fullname, driver_path(driver) %></h4>
+                        <span class="fantasy-market-constructor">
+                            <% if constructor&.logo_url.present? %>
+                                <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" style="vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none'">
+                            <% end %>
+                            <%= constructor&.name %>
+                        </span>
                     </div>
                 </div>
                 <div class="fantasy-market-price">

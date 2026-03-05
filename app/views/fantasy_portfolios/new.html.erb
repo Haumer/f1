@@ -16,21 +16,21 @@
             <div class="fantasy-rule">
                 <i class="fa-solid fa-users"></i>
                 <div>
-                    <strong>2 Driver Roster</strong>
-                    <span>Pick any 2 active drivers at their current Elo V2 price</span>
+                    <strong>Start with <%= FantasyPortfolio::STARTING_SLOTS %> Driver Seats</strong>
+                    <span>Buy additional teams to expand — up to <%= FantasyPortfolio::MAX_ROSTER_SIZE %> seats</span>
                 </div>
             </div>
             <div class="fantasy-rule">
                 <i class="fa-solid fa-arrow-right-arrow-left"></i>
                 <div>
-                    <strong>1 Swap Per Race</strong>
-                    <span>Sell and buy before each race starts. Must hold for 1+ race.</span>
+                    <strong>1 Swap Per Team</strong>
+                    <span>Each team you own grants 1 swap per race weekend</span>
                 </div>
             </div>
             <div class="fantasy-rule">
                 <i class="fa-solid fa-percent"></i>
                 <div>
-                    <strong>1% Sell Fee</strong>
+                    <strong><%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>% Sell Fee</strong>
                     <span>A small fee applies when selling a driver</span>
                 </div>
             </div>

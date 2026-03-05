@@ -19,6 +19,12 @@
         <div class="card fantasy-stat-card">
             <span class="fantasy-stat-label">Portfolio Value</span>
             <span class="fantasy-stat-value"><%= @portfolio.portfolio_value.round(0) %></span>
+            <% if @value_delta %>
+                <span class="fantasy-stat-delta <%= @value_delta >= 0 ? 'text-green' : 'text-red' %>">
+                    <i class="fa-solid fa-<%= @value_delta >= 0 ? 'caret-up' : 'caret-down' %>"></i>
+                    <%= @value_delta >= 0 ? '+' : '' %><%= @value_delta.round(0) %> last race
+                </span>
+            <% end %>
         </div>
         <div class="card fantasy-stat-card">
             <span class="fantasy-stat-label">Cash</span>
@@ -32,8 +38,9 @@
             </span>
         </div>
         <div class="card fantasy-stat-card">
-            <span class="fantasy-stat-label">Starting Capital</span>
-            <span class="fantasy-stat-value"><%= @portfolio.starting_capital.round(0) %></span>
+            <span class="fantasy-stat-label">Roster</span>
+            <span class="fantasy-stat-value"><%= @portfolio.active_roster_entries.count %>/<%= @portfolio.roster_slots %></span>
+            <span class="fantasy-stat-sub"><%= @portfolio.teams_owned %> team<%= @portfolio.teams_owned == 1 ? '' : 's' %> &middot; <%= @portfolio.max_swaps_per_race %> swap<%= @portfolio.max_swaps_per_race == 1 ? '' : 's' %>/race</span>
         </div>
     </div>
 
@@ -49,6 +56,65 @@
         </div>
     <% end %>
 
+    <%# Buy Team %>
+    <% if @portfolio.can_buy_team? %>
+        <div class="card fantasy-buy-team-card">
+            <div class="fantasy-buy-team-info">
+                <i class="fa-solid fa-users-rectangle"></i>
+                <div>
+                    <strong>Expand Your Roster</strong>
+                    <span>Purchase another team for <strong><%= @portfolio.team_cost %></strong> — adds <%= FantasyPortfolio::SLOTS_PER_TEAM %> driver seats and 1 swap per race</span>
+                </div>
+            </div>
+            <%= form_with url: buy_team_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
+                <%= submit_tag "Buy Team (#{@portfolio.team_cost})", class: "fantasy-btn fantasy-btn-primary", data: { confirm: "Purchase a new team for #{@portfolio.team_cost}? You'll have #{@portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM} seats." } %>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# Portfolio Value Chart %>
+    <% if @snapshots.size >= 2 %>
+        <div class="table-header">
+            <h3>Portfolio Value</h3>
+        </div>
+        <div class="card card-flush fantasy-chart-card">
+            <%= custom_chart({
+                tooltip: { trigger: "axis" },
+                grid: { left: 60, right: 20, top: 20, bottom: 40 },
+                xAxis: {
+                    type: "category",
+                    data: @snapshots.map { |s| "R#{s.race.round}" },
+                    axisLabel: { color: "#999" },
+                    axisLine: { lineStyle: { color: "#333" } }
+                },
+                yAxis: {
+                    type: "value",
+                    axisLabel: { color: "#999" },
+                    splitLine: { lineStyle: { color: "#222" } }
+                },
+                series: [
+                    {
+                        name: "Portfolio Value",
+                        type: "line",
+                        data: @snapshots.map { |s| s.value.round(0) },
+                        smooth: true,
+                        lineStyle: { color: "#e10600", width: 3 },
+                        itemStyle: { color: "#e10600" },
+                        areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.25)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
+                    },
+                    {
+                        name: "Cash",
+                        type: "line",
+                        data: @snapshots.map { |s| s.cash.round(0) },
+                        smooth: true,
+                        lineStyle: { color: "#888", width: 1, type: "dashed" },
+                        itemStyle: { color: "#888" }
+                    }
+                ]
+            }, style: "width:100%; height:280px;") %>
+        </div>
+    <% end %>
+
     <%# Active Roster %>
     <div class="table-header">
         <h3>Your Roster</h3>
@@ -59,12 +125,12 @@
             <% @active_entries.each do |entry| %>
                 <div class="card fantasy-driver-card">
                     <div class="fantasy-driver-info">
-                        <% if entry.driver.image_url.present? %>
-                            <img src="<%= entry.driver.image_url %>" alt="<%= entry.driver.fullname %>" class="fantasy-driver-img">
+                        <% if entry.driver.country.present? %>
+                            <img src="https://flagsapi.com/<%= entry.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= entry.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
                         <% end %>
                         <div>
                             <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
-                            <span class="fantasy-driver-constructor"><%= entry.driver.current_constructor&.name %></span>
+                            <span class="fantasy-driver-constructor"><%= @constructors_by_driver[entry.driver.id]&.name %></span>
                         </div>
                     </div>
                     <div class="fantasy-driver-stats">
@@ -87,7 +153,7 @@
                     <% if @can_trade && @portfolio.held_races_for(entry.driver) >= 1 %>
                         <%= form_with url: sell_fantasy_portfolio_path(@portfolio), method: :post, local: true, class: "fantasy-sell-form" do %>
                             <%= hidden_field_tag :driver_id, entry.driver.id %>
-                            <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger", data: { confirm: "Sell #{entry.driver.fullname} at #{entry.current_value.round(0)} (1% fee)?" } %>
+                            <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger", data: { confirm: "Sell #{entry.driver.fullname} at #{entry.current_value.round(0)} (#{(Fantasy::SellDriver::SELL_FEE * 100).round(0)}% fee)?" } %>
                         <% end %>
                     <% end %>
                 </div>
@@ -100,6 +166,28 @@
             <p>Visit the <%= link_to "Driver Market", market_fantasy_portfolio_path(@portfolio) %> to build your roster.</p>
         </div>
     <% end %>
+
+    <%# Achievements %>
+    <div class="table-header">
+        <h3>Achievements <span class="fantasy-achievement-count"><%= @achievements.size %>/<%= FantasyAchievement::DEFINITIONS.size %></span></h3>
+    </div>
+    <div class="fantasy-achievements-grid">
+        <% FantasyAchievement::DEFINITIONS.each do |key, defn| %>
+            <% earned = @achievements.find { |a| a.key == key.to_s } %>
+            <div class="fantasy-achievement-card <%= earned ? "earned tier-#{defn[:tier]}" : 'locked' %>">
+                <div class="fantasy-achievement-icon">
+                    <i class="fa-solid <%= defn[:icon] %>"></i>
+                </div>
+                <div class="fantasy-achievement-info">
+                    <strong><%= defn[:name] %></strong>
+                    <span><%= defn[:description] %></span>
+                </div>
+                <% if earned %>
+                    <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
 
     <%# Transaction History %>
     <% if @transactions.any? %>

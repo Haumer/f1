@@ -15,7 +15,7 @@ module Fantasy
       return { error: "Driver is not on your roster" } unless entry
       return { error: "Must hold driver for at least 1 race" } if @portfolio.held_races_for(@driver) < 1
 
-      sell_price = @driver.elo_v2
+      sell_price = @driver.elo_v2 || 0
       fee = (sell_price * SELL_FEE).round(1)
       net = sell_price - fee
 
