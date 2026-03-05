@@ -36,8 +36,9 @@ class Graphs::Ranking
                 end
             end
 
-            # Fill nil gaps: carry forward last known position, backfill start
-            fill_nil_gaps!(raw_data, driver_name)
+            # Forward-fill mid-season gaps only (carry last known position)
+            # Do NOT backfill — lines should start when the driver first appears
+            forward_fill!(raw_data, driver_name)
 
             {
                 data: raw_data,
@@ -52,6 +53,7 @@ class Graphs::Ranking
                 },
                 lineStyle: { width: 2 },
                 smooth: true,
+                connectNulls: true,
                 symbolSize: 8,
             }
         end
@@ -96,11 +98,8 @@ class Graphs::Ranking
 
     private
 
-    # Fill nil gaps in standings data:
-    # - Forward-fill: carry last known position through subsequent nils
-    # - Backfill: fill leading nils with the first known position
-    def fill_nil_gaps!(data, driver_name)
-        # Forward fill
+    # Forward-fill: carry last known position through mid-season nil gaps
+    def forward_fill!(data, driver_name)
         last_known = nil
         data.each_with_index do |entry, i|
             if entry
@@ -108,15 +107,6 @@ class Graphs::Ranking
             elsif last_known
                 data[i] = { name: driver_name, value: last_known }
             end
-        end
-
-        # Backfill leading nils with first known value
-        first_known = data.find { |e| e }&.dig(:value)
-        return unless first_known
-
-        data.each_with_index do |entry, i|
-            break if entry && entry[:value] != first_known
-            data[i] = { name: driver_name, value: first_known } unless entry
         end
     end
 end
