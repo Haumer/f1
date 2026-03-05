@@ -1,6 +1,4 @@
 class Graphs::Ranking
-    TOP_N_VISIBLE = 10  # show top 10 by final standings, rest togglable
-
     def initialize(season:)
         @season = season
         @races = @season.races.sorted.includes(:circuit)
@@ -22,29 +20,14 @@ class Graphs::Ranking
                                              .order(:id)
                                              .group_by(&:driver_id)
                                              .transform_values { |sds| sds.last.constructor }
-
-        # Determine final standings position per driver (last race with data)
-        last_race = @races.last
-        @final_positions = if last_race
-            (standings_by_race[last_race.id] || [])
-                .sort_by { |ds| ds.position || 999 }
-                .each_with_object({}) { |ds, h| h[ds.driver_id] = ds.position }
-        else
-            {}
-        end
     end
 
     def season_driver_standings_data
-        legend_selected = {}
-
         @series_data = @drivers.map do |driver|
             driver_name = "#{driver.forename.first}.#{driver.surname}"
             constructor = @constructor_by_driver[driver.id]
             team_color = constructor && Constructor::COLORS[constructor.constructor_ref.to_sym]
             line_color = team_color || driver.color || '#888888'
-
-            final_pos = @final_positions[driver.id]
-            legend_selected[driver_name] = final_pos.present? && final_pos <= TOP_N_VISIBLE
 
             raw_data = @races.map do |race|
                 driver_standing = @standings_lookup[[race.id, driver.id]]&.first
@@ -73,8 +56,7 @@ class Graphs::Ranking
             }
         end
 
-        visible_positions = @final_positions.values.select { |p| p <= TOP_N_VISIBLE }
-        max_position = (visible_positions.max || TOP_N_VISIBLE) + 2
+        max_position = @standings_lookup.values.flatten.filter_map(&:position).max || 20
 
         {
             backgroundColor: 'transparent',
@@ -108,7 +90,6 @@ class Graphs::Ranking
             legend: {
                 type: 'scroll',
                 itemGap: 4,
-                selected: legend_selected,
             },
         }
     end
