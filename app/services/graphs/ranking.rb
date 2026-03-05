@@ -17,6 +17,7 @@ class Graphs::Ranking
             driver_name = "#{driver.forename.first}.#{driver.surname}"
             constructor = @constructor_by_driver[driver.id]
             team_color = constructor && Constructor::COLORS[constructor.constructor_ref.to_sym]
+            line_color = team_color || driver.color || '#888888'
             {
                 data: @races.map do |race|
                     driver_standing = @standings_lookup[[race.id, driver.id]]&.first
@@ -28,16 +29,19 @@ class Graphs::Ranking
                 end,
                 type: 'line',
                 name: driver_name,
-                color: team_color || driver.color,
+                color: line_color,
                 emphasis: { focus: 'series' },
                 endLabel: {
                     show: true,
                     formatter: '{a}',
-                    distance: 20
+                    distance: 20,
+                    fontSize: 12,
+                    color: line_color,
                 },
+                lineStyle: { width: 2 },
                 smooth: true,
                 connectNulls: false,
-                symbolSize: 8,
+                symbolSize: 6,
             }
         end
 
@@ -47,6 +51,9 @@ class Graphs::Ranking
             label: {
                 show: false,
                 position: "right"
+            },
+            grid: {
+                right: 120,
             },
             xAxis: {
                 type: 'category',
@@ -67,10 +74,10 @@ class Graphs::Ranking
                     filterMode: 'filter'
                 }
             ],
-            height: "400px",
+            height: "500px",
             legend: {
-                type: 'plain',
-                itemGap: 2,
+                type: 'scroll',
+                itemGap: 4,
             },
         }
     end
