@@ -35,8 +35,6 @@ class Graphs::Ranking
                     show: true,
                     formatter: '{a}',
                     distance: 20,
-                    fontSize: 12,
-                    color: line_color,
                 },
                 lineStyle: { width: 2 },
                 smooth: true,
