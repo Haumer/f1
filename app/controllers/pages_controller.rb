@@ -388,7 +388,7 @@ class PagesController < ApplicationController
                                          elsif prev[:status] == :done && session[:status] == :today
                                            100
                                          elsif prev[:status] == :done && session[:status] == :upcoming
-                                           100
+                                           connector_gap_progress(prev, session)
                                          elsif prev[:status] == :today && session[:status] == :upcoming
                                            connector_time_progress(prev, session)
                                          elsif prev[:status] == :today && session[:status] == :today
@@ -411,5 +411,22 @@ class PagesController < ApplicationController
 
     pct = ((elapsed / total) * 100).clamp(0, 100).round
     [pct, 10].max # Show at least 10% so it's visible
+  end
+
+  # Progress in the gap between a finished session and the next upcoming one.
+  # E.g. FP1 ended at 14:00, FP2 starts at 18:00 — show how far through the gap we are.
+  def connector_gap_progress(prev_session, next_session)
+    return 100 unless prev_session[:starts_at] && next_session[:starts_at]
+
+    now = Time.current
+    prev_duration = SESSION_DURATIONS[prev_session[:key]] || 1.hour
+    gap_start = prev_session[:starts_at] + prev_duration
+    gap_end = next_session[:starts_at]
+    total = (gap_end - gap_start).to_f
+    return 100 if total <= 0
+
+    elapsed = (now - gap_start).to_f
+    pct = ((elapsed / total) * 100).clamp(0, 100).round
+    [pct, 10].max
   end
 end
