@@ -73,9 +73,9 @@ class RacesController < ApplicationController
       @races = base_scope.sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: []).offset((@page - 1) * @per_page).limit(@per_page)
       @total_races = base_scope.count
     else
-      base_scope = Race.where(year: 2000..Date.current.year)
+      base_scope = Race.joins(:race_results).where(year: 2000..Date.current.year).distinct
       @races = base_scope.sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: []).offset((@page - 1) * @per_page).limit(@per_page)
-      @total_races = Race.joins(:season).where("seasons.year >= '2000'").count
+      @total_races = base_scope.count
     end
     @seasons_by_year = Season.all.index_by { |s| s.year.to_i }
   end
