@@ -8,7 +8,7 @@
             <%= link_to market_fantasy_stock_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                 <i class="fa-solid fa-chart-line"></i> Market
             <% end %>
-            <%= link_to leaderboard_fantasy_stock_portfolios_path, class: "fantasy-btn fantasy-btn-outline" do %>
+            <%= link_to combined_leaderboard_path(tab: "stocks"), class: "fantasy-btn fantasy-btn-outline" do %>
                 <i class="fa-solid fa-ranking-star"></i> Leaderboard
             <% end %>
         </div>

@@ -60,6 +60,8 @@ class ConstructorsController < ApplicationController
     end.compact.sort_by { |d| [-d[:wins], -d[:podiums], -d[:races]] }
 
     @most_winning_driver = @top_drivers.first
+    @supporter_count = @constructor.supporters.count
+    @user_supports = current_user&.supported_constructor_id == @constructor.id
 
     # Driver roster grouped by season (most recent first)
     @roster_by_season = @constructor.season_drivers
@@ -157,6 +159,18 @@ class ConstructorsController < ApplicationController
 
     @pairings.sort_by! { |p| [-p[:one_two_pct], -p[:win_pct], -p[:races_together]] }
     @pairings = @pairings.first(50)
+  end
+
+  def support
+    authenticate_user!
+    constructor = Constructor.find(params[:id])
+    if current_user.supported_constructor_id == constructor.id
+      current_user.update!(supported_constructor_id: nil)
+      redirect_back fallback_location: constructor_path(constructor), notice: "No longer supporting #{constructor.name}."
+    else
+      current_user.update!(supported_constructor_id: constructor.id)
+      redirect_back fallback_location: constructor_path(constructor), notice: "You are now supporting #{constructor.name}!"
+    end
   end
 
   def families

@@ -1,0 +1,212 @@
+<div class="homepage-container">
+    <div class="fantasy-dashboard-header">
+        <div class="fantasy-dashboard-title">
+            <h2>Leaderboard</h2>
+            <span class="fantasy-season"><%= @season.year %> Season</span>
+        </div>
+        <div class="fantasy-header-actions">
+            <% portfolio = current_user&.fantasy_portfolio_for(@season) %>
+            <% if portfolio %>
+                <%= link_to fantasy_portfolio_path(portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+                    <i class="fa-solid fa-briefcase"></i> My Portfolio
+                <% end %>
+            <% end %>
+        </div>
+    </div>
+
+    <div class="fantasy-tab-bar">
+        <%= link_to combined_leaderboard_path(tab: "combined"), class: "fantasy-tab #{@tab == 'combined' ? 'active' : ''}" do %>
+            <i class="fa-solid fa-trophy"></i> Combined
+        <% end %>
+        <%= link_to combined_leaderboard_path(tab: "roster"), class: "fantasy-tab #{@tab == 'roster' ? 'active' : ''}" do %>
+            <i class="fa-solid fa-users"></i> Roster
+        <% end %>
+        <% if Setting.fantasy_stock_market? %>
+            <%= link_to combined_leaderboard_path(tab: "stocks"), class: "fantasy-tab #{@tab == 'stocks' ? 'active' : ''}" do %>
+                <i class="fa-solid fa-chart-line"></i> Stocks
+            <% end %>
+        <% end %>
+    </div>
+
+    <% if @tab == "combined" %>
+        <% if @combined_entries.any? %>
+            <div class="card card-flush">
+                <div class="table-scroll-wrapper">
+                    <table class="fantasy-leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Player</th>
+                                <th class="text-end">Roster</th>
+                                <th class="text-end">Stocks</th>
+                                <th class="text-end">Total Value</th>
+                                <th class="text-end">Avg P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @combined_entries.each_with_index do |entry, idx| %>
+                                <% is_me = current_user && entry[:user].id == current_user.id %>
+                                <% color = entry[:user].team_color %>
+                                <% total_value = [entry[:roster_value], entry[:stock_value]].compact.sum %>
+                                <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
+                                    <td class="text-center position-cell"><%= idx + 1 %></td>
+                                    <td>
+                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= entry[:user].display_name %></strong>
+                                        <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                        <% if entry[:user].supported_constructor %>
+                                            <% logo = entry[:user].supported_constructor.logo_url %>
+                                            <% if logo.present? %>
+                                                <img src="<%= logo %>" alt="" class="constructor-logo-xs" onerror="this.style.display='none'">
+                                            <% end %>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end">
+                                        <% if entry[:roster_value] %>
+                                            <div class="leaderboard-value-cell">
+                                                <span><%= number_with_delimiter(entry[:roster_value].round(0)) %></span>
+                                                <span class="leaderboard-pl-sub <%= entry[:roster_pl_pct] >= 0 ? 'text-green' : 'text-red' %>">
+                                                    <%= entry[:roster_pl_pct] >= 0 ? '+' : '' %><%= entry[:roster_pl_pct].round(1) %>%
+                                                </span>
+                                            </div>
+                                        <% else %>
+                                            <span class="text-secondary">&mdash;</span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end">
+                                        <% if entry[:stock_value] %>
+                                            <div class="leaderboard-value-cell">
+                                                <span><%= number_with_delimiter(entry[:stock_value].round(0)) %></span>
+                                                <span class="leaderboard-pl-sub <%= entry[:stock_pl_pct] >= 0 ? 'text-green' : 'text-red' %>">
+                                                    <%= entry[:stock_pl_pct] >= 0 ? '+' : '' %><%= entry[:stock_pl_pct].round(1) %>%
+                                                </span>
+                                            </div>
+                                        <% else %>
+                                            <span class="text-secondary">&mdash;</span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(total_value.round(0)) %></td>
+                                    <td class="text-end">
+                                        <span class="<%= entry[:combined_pct] >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= entry[:combined_pct] >= 0 ? '+' : '' %><%= entry[:combined_pct].round(1) %>%
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <% else %>
+            <div class="card empty-state">
+                <i class="fa-solid fa-ranking-star"></i>
+                <h3>No portfolios yet</h3>
+                <p>Be the first to <%= link_to "create a fantasy portfolio", new_fantasy_portfolio_path %>!</p>
+            </div>
+        <% end %>
+
+    <% elsif @tab == "roster" %>
+        <% if @roster_entries.any? %>
+            <div class="card card-flush">
+                <div class="table-scroll-wrapper">
+                    <table class="fantasy-leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Player</th>
+                                <th>Roster</th>
+                                <th class="text-end">Value</th>
+                                <th class="text-end">P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @roster_entries.each_with_index do |entry, idx| %>
+                                <% portfolio = entry[:portfolio] %>
+                                <% is_me = current_user && portfolio.user_id == current_user.id %>
+                                <% pl = entry[:value] - portfolio.starting_capital %>
+                                <% color = portfolio.user.team_color %>
+                                <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
+                                    <td class="text-center position-cell"><%= idx + 1 %></td>
+                                    <td>
+                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= portfolio.user.display_name %></strong>
+                                        <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                    </td>
+                                    <td>
+                                        <% portfolio.roster_entries.select(&:active?).each do |re| %>
+                                            <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(0)) %></td>
+                                    <td class="text-end">
+                                        <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <% else %>
+            <div class="card empty-state">
+                <i class="fa-solid fa-ranking-star"></i>
+                <h3>No roster portfolios yet</h3>
+                <p>Be the first to <%= link_to "create a fantasy portfolio", new_fantasy_portfolio_path %>!</p>
+            </div>
+        <% end %>
+
+    <% elsif @tab == "stocks" %>
+        <% if @stock_entries.any? %>
+            <div class="card card-flush">
+                <div class="table-scroll-wrapper">
+                    <table class="fantasy-leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Player</th>
+                                <th>Holdings</th>
+                                <th class="text-end">Value</th>
+                                <th class="text-end">P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @stock_entries.each_with_index do |entry, idx| %>
+                                <% p = entry[:portfolio] %>
+                                <% is_me = current_user && p.user_id == current_user.id %>
+                                <% pl = entry[:value] - p.starting_capital %>
+                                <% color = p.user.team_color %>
+                                <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
+                                    <td class="text-center position-cell"><%= idx + 1 %></td>
+                                    <td>
+                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= p.user.display_name %></strong>
+                                        <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                    </td>
+                                    <td>
+                                        <% p.holdings.select(&:active).each do |h| %>
+                                            <span class="fantasy-leaderboard-driver">
+                                                <i class="fa-solid fa-<%= h.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>" style="font-size:9px"></i>
+                                                <%= h.quantity %>x <%= link_to h.driver.surname, driver_path(h.driver) %>
+                                            </span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(1)) %></td>
+                                    <td class="text-end">
+                                        <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= pl >= 0 ? '+' : '' %><%= pl.round(1) %>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <% else %>
+            <div class="card empty-state">
+                <i class="fa-solid fa-chart-line"></i>
+                <h3>No stock portfolios yet</h3>
+                <p>Be the first to <%= link_to "start trading", new_fantasy_stock_portfolio_path %>!</p>
+            </div>
+        <% end %>
+    <% end %>
+</div>

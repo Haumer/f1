@@ -1,5 +1,5 @@
 class FantasyPortfoliosController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_user!, except: [:combined_leaderboard]
   before_action :set_portfolio, only: [:show, :market, :buy, :buy_multiple, :sell, :buy_team]
   before_action :set_next_race, only: [:show, :market, :buy, :buy_multiple, :sell, :buy_team]
 
@@ -104,6 +104,44 @@ class FantasyPortfoliosController < ApplicationController
   def leaderboard
     @season = Season.sorted_by_year.first
     @entries = Fantasy::Leaderboard.new(season: @season).call
+    @tab = "roster"
+  end
+
+  def combined_leaderboard
+    @season = Season.sorted_by_year.first
+    @tab = params[:tab] || "combined"
+
+    @roster_entries = Fantasy::Leaderboard.new(season: @season).call
+    @stock_entries = stock_leaderboard_entries
+
+    # Combined: normalize P&L as percentage of starting capital, then rank
+    combined = []
+    @roster_entries.each do |e|
+      p = e[:portfolio]
+      pct = p.starting_capital > 0 ? ((e[:value] - p.starting_capital) / p.starting_capital * 100) : 0
+      combined << { user: p.user, roster_value: e[:value], roster_pl_pct: pct, stock_value: nil, stock_pl_pct: nil }
+    end
+    @stock_entries.each do |e|
+      p = e[:portfolio]
+      pct = p.starting_capital > 0 ? ((e[:value] - p.starting_capital) / p.starting_capital * 100) : 0
+      existing = combined.find { |c| c[:user].id == p.user_id }
+      if existing
+        existing[:stock_value] = e[:value]
+        existing[:stock_pl_pct] = pct
+      else
+        combined << { user: p.user, roster_value: nil, roster_pl_pct: nil, stock_value: e[:value], stock_pl_pct: pct }
+      end
+    end
+
+    # Combined score = average of available P&L percentages
+    combined.each do |c|
+      pcts = [c[:roster_pl_pct], c[:stock_pl_pct]].compact
+      c[:combined_pct] = pcts.any? ? (pcts.sum / pcts.size) : 0
+    end
+
+    @combined_entries = combined.sort_by { |c| -c[:combined_pct] }
+
+    render "fantasy_portfolios/combined_leaderboard"
   end
 
   private
@@ -149,6 +187,15 @@ class FantasyPortfoliosController < ApplicationController
     end
 
     entries.transform_values(&:constructor)
+  end
+
+  def stock_leaderboard_entries
+    return [] unless Setting.fantasy_stock_market?
+    FantasyStockPortfolio.where(season: @season)
+      .includes(:user, :snapshots, holdings: :driver)
+      .to_a
+      .map { |p| { portfolio: p, value: p.portfolio_value } }
+      .sort_by { |e| -e[:value] }
   end
 
   # Returns { driver_id => [+12, -5, +3, +8, -2] } (last 5 elo diffs, newest first)

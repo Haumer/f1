@@ -35,6 +35,9 @@ Rails.application.routes.draw do
     end
   end
   resources :constructors, only: [:index, :show] do
+    member do
+      post :support
+    end
     collection do
       get 'grid', to: 'constructors#grid'
       get 'elo_rankings', to: 'constructors#elo_rankings'
@@ -73,4 +76,6 @@ Rails.application.routes.draw do
       get :leaderboard
     end
   end
+
+  get 'leaderboard', to: 'fantasy_portfolios#combined_leaderboard', as: :combined_leaderboard
 end

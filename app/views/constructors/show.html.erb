@@ -48,7 +48,25 @@
                 <div class="race-stat-label">Peak Elo</div>
             </div>
         <% end %>
+        <% if @supporter_count > 0 %>
+            <div class="race-stat-card">
+                <div class="race-stat-value"><%= @supporter_count %></div>
+                <div class="race-stat-label">Supporters</div>
+            </div>
+        <% end %>
     </div>
+
+    <% if current_user %>
+        <div class="constructor-support-action">
+            <%= link_to support_constructor_path(@constructor), method: :post, class: "fantasy-btn #{@user_supports ? 'fantasy-btn-primary' : 'fantasy-btn-outline'}" do %>
+                <% if @user_supports %>
+                    <i class="fa-solid fa-heart"></i> Supporting
+                <% else %>
+                    <i class="fa-regular fa-heart"></i> Support this team
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
 
     <div class="chart-header">
         <h4>Elo Over Time</h4>

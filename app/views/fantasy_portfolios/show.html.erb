@@ -8,7 +8,7 @@
             <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                 <i class="fa-solid fa-store"></i> Market
             <% end %>
-            <%= link_to leaderboard_fantasy_portfolios_path, class: "fantasy-btn fantasy-btn-outline" do %>
+            <%= link_to combined_leaderboard_path(tab: "roster"), class: "fantasy-btn fantasy-btn-outline" do %>
                 <i class="fa-solid fa-ranking-star"></i> Leaderboard
             <% end %>
         </div>
@@ -47,6 +47,21 @@
                 <span class="detail-value"><%= @portfolio.teams_owned %></span>
             </div>
         </div>
+    </div>
+
+    <%# Team Allegiance %>
+    <div class="fantasy-allegiance">
+        <span class="fantasy-allegiance-label">Your team:</span>
+        <% Constructor.where(active: true).order(:name).each do |c| %>
+            <% team_color = Constructor::COLORS[c.constructor_ref.to_sym] %>
+            <% is_selected = current_user.supported_constructor_id == c.id %>
+            <%= link_to support_constructor_path(c), method: :post, class: "fantasy-allegiance-badge #{is_selected ? 'selected' : ''}", style: is_selected ? "border-color: #{team_color}; background: #{team_color}22" : "", title: c.name do %>
+                <% if c.logo_url.present? %>
+                    <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="constructor-logo-xs" onerror="this.style.display='none'">
+                <% end %>
+                <span><%= c.name %></span>
+            <% end %>
+        <% end %>
     </div>
 
     <%# Transfer Window %>

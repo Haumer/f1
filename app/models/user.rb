@@ -18,6 +18,7 @@ class User < ApplicationRecord
 
   has_many :fantasy_portfolios, dependent: :destroy
   has_many :fantasy_stock_portfolios, dependent: :destroy
+  belongs_to :supported_constructor, class_name: "Constructor", optional: true
 
   def to_param
     username
@@ -33,6 +34,11 @@ class User < ApplicationRecord
 
   def display_name
     username
+  end
+
+  def team_color
+    return nil unless supported_constructor
+    Constructor::COLORS[supported_constructor.constructor_ref.to_sym]
   end
 
   private

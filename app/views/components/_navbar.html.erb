@@ -79,14 +79,23 @@
         </div>
 
         <%= link_to "Elo", elo_path, class: "mobile-nav-item #{"active" if current_page?(elo_path)}", role: "menuitem" %>
-        <% if current_user %>
-            <% fantasy_path = current_user.fantasy_portfolio_for(current_season)&.then { |p| fantasy_portfolio_path(p) } || new_fantasy_portfolio_path %>
-            <%= link_to "Fantasy", fantasy_path, class: "mobile-nav-item #{"active" if request.path.start_with?('/fantasy')}", role: "menuitem" %>
-            <% if Setting.fantasy_stock_market? %>
-                <% stocks_path = current_user.fantasy_stock_portfolio_for(current_season)&.then { |p| fantasy_stock_portfolio_path(p) } || new_fantasy_stock_portfolio_path %>
-                <%= link_to "Stocks", stocks_path, class: "mobile-nav-item #{"active" if request.path.start_with?('/stocks')}", role: "menuitem" %>
-            <% end %>
-        <% end %>
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') || request.path.start_with?('/leaderboard') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Fantasy <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <% if current_user %>
+                    <% roster_path = current_user.fantasy_portfolio_for(current_season)&.then { |p| fantasy_portfolio_path(p) } || new_fantasy_portfolio_path %>
+                    <%= link_to "Roster", roster_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+                    <% if Setting.fantasy_stock_market? %>
+                        <% stocks_path = current_user.fantasy_stock_portfolio_for(current_season)&.then { |p| fantasy_stock_portfolio_path(p) } || new_fantasy_stock_portfolio_path %>
+                        <%= link_to "Stocks", stocks_path, class: ("active" if request.path.start_with?('/stocks')), role: "menuitem" %>
+                    <% end %>
+                    <div class="nav-dropdown-divider"></div>
+                <% end %>
+                <%= link_to "Leaderboard", combined_leaderboard_path, class: ("active" if request.path.start_with?('/leaderboard')), role: "menuitem" %>
+            </div>
+        </div>
         <% if current_user&.admin? %>
             <%= link_to admin_root_path, class: "admin-link mobile-nav-item", "aria-label": "Admin panel" do %>
                 <i class="fa-solid fa-lock"></i>
