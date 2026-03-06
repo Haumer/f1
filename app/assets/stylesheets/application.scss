@@ -496,7 +496,8 @@ th[data-sort] {
     color: $text-secondary;
     i { font-size: 32px; margin-bottom: 12px; display: block; }
     h3 { margin: 0 0 8px; color: $text-primary; }
-    p { margin: 0; font-size: 14px; }
+    p { margin: 0 0 16px; font-size: 14px; }
+    .fantasy-btn { display: inline-flex; }
 }
 
 // Underline for peak elo
