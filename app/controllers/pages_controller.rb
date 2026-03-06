@@ -344,25 +344,20 @@ class PagesController < ApplicationController
     end
   end
 
+  SESSION_DURATIONS = {
+    fp1: 1.hour, fp2: 1.hour, fp3: 1.hour,
+    quali: 1.hour, sprint_quali: 1.hour,
+    sprint: 1.hour, race: 2.hours + 30.minutes
+  }.freeze
+
   def build_session_schedule(race)
     now = Time.current
     sessions = race.session_schedule.map.with_index do |session, idx|
-      # Use starts_at for time-aware status; fall back to date comparison
-      next_session_start = race.session_schedule[idx + 1]&.dig(:starts_at)
       session_start = session[:starts_at]
+      duration = SESSION_DURATIONS[session[:key]] || 1.hour
 
-      status = if session_start && next_session_start
-                 # Session is done if the next session has already started
-                 if next_session_start <= now
-                   :done
-                 elsif session_start <= now
-                   :today # currently live or just finished (before next starts)
-                 else
-                   :upcoming
-                 end
-               elsif session_start
-                 # Last session (Race): done if 2h past start, live if started
-                 if session_start + 2.hours <= now
+      status = if session_start
+                 if session_start + duration <= now
                    :done
                  elsif session_start <= now
                    :today
