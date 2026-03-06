@@ -199,7 +199,7 @@ class FantasyPortfoliosController < ApplicationController
         existing[:stock_value] = e[:value]
         existing[:total_starting] = (existing[:total_starting] || 0) + p.starting_capital
       else
-        combined << { user: p.user, roster_net: nil, stock_net: nil, roster_value: nil, stock_value: e[:value], total_starting: p.starting_capital, stock_net: stock_net }
+        combined << { user: p.user, roster_net: nil, stock_net: stock_net, roster_value: nil, stock_value: e[:value], total_starting: p.starting_capital }
       end
     end
 
