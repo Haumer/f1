@@ -27,10 +27,10 @@
         <% end %>
     </div>
 
-    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-leaderboard-explainer">
+    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-leaderboard-explainer-v2">
         <div class="fantasy-info-banner-content">
             <i class="fa-solid fa-trophy"></i>
-            <p>Rankings are based on <strong>Total Value</strong> (holdings + cash). The <strong>P&L</strong> column shows your overall return on starting capital.</p>
+            <p>Rankings are based on <strong>Net Value</strong> &mdash; the profit or loss you've generated from your starting capital. Everyone starts equal, so whoever generates the most value wins.</p>
         </div>
         <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
             <i class="fa-solid fa-xmark"></i>
@@ -46,11 +46,11 @@
                             <tr>
                                 <th class="text-center">#</th>
                                 <th>Player</th>
-                                <th class="text-end d-none d-md-table-cell">Roster</th>
-                                <th class="text-end d-none d-md-table-cell">Stocks</th>
-                                <th class="text-end d-none d-md-table-cell">Cash</th>
-                                <th class="text-end">Total Value</th>
-                                <th class="text-end">P&L</th>
+                                <th class="text-end d-none d-md-table-cell">Roster P&L</th>
+                                <th class="text-end d-none d-md-table-cell">Stocks P&L</th>
+                                <th class="text-end">Net Value</th>
+                                <th class="text-end d-none d-sm-table-cell">Last Race</th>
+                                <th class="text-end d-none d-sm-table-cell">Total Value</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -58,7 +58,7 @@
                                 <% is_me = current_user && entry[:user].id == current_user.id %>
                                 <% support = @supports_by_user[entry[:user].id] %>
                                 <% color = support ? Constructor::COLORS[support.constructor.constructor_ref.to_sym] : nil %>
-                                <% total_value = [entry[:roster_value], entry[:stock_value]].compact.sum %>
+                                <% last_race = entry[:last_race] || 0 %>
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
                                     <td>
@@ -73,36 +73,38 @@
                                         <% end %>
                                     </td>
                                     <td class="text-end d-none d-md-table-cell">
-                                        <% if entry[:roster_holdings] %>
-                                            <div class="leaderboard-value-cell">
-                                                <span><%= number_with_delimiter(entry[:roster_holdings].round(0)) %></span>
-                                                <span class="leaderboard-pl-sub <%= entry[:roster_pl_pct] >= 0 ? 'text-green' : 'text-red' %>">
-                                                    <%= entry[:roster_pl_pct] >= 0 ? '+' : '' %><%= entry[:roster_pl_pct].round(1) %>%
-                                                </span>
-                                            </div>
+                                        <% if entry[:roster_net] %>
+                                            <span class="<%= entry[:roster_net] >= 0 ? 'text-green' : 'text-red' %>">
+                                                <%= entry[:roster_net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:roster_net].round(0)) %>
+                                            </span>
                                         <% else %>
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
                                     <td class="text-end d-none d-md-table-cell">
-                                        <% if entry[:stock_holdings] %>
-                                            <div class="leaderboard-value-cell">
-                                                <span><%= number_with_delimiter(entry[:stock_holdings].round(0)) %></span>
-                                                <span class="leaderboard-pl-sub <%= entry[:stock_pl_pct] >= 0 ? 'text-green' : 'text-red' %>">
-                                                    <%= entry[:stock_pl_pct] >= 0 ? '+' : '' %><%= entry[:stock_pl_pct].round(1) %>%
-                                                </span>
-                                            </div>
+                                        <% if entry[:stock_net] %>
+                                            <span class="<%= entry[:stock_net] >= 0 ? 'text-green' : 'text-red' %>">
+                                                <%= entry[:stock_net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:stock_net].round(0)) %>
+                                            </span>
                                         <% else %>
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:cash].round(0)) %></td>
-                                    <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:total_value].round(0)) %></td>
-                                    <td class="text-end">
-                                        <span class="<%= entry[:combined_pct] >= 0 ? 'text-green' : 'text-red' %>">
-                                            <%= entry[:combined_pct] >= 0 ? '+' : '' %><%= entry[:combined_pct].round(1) %>%
+                                    <td class="text-end fantasy-leaderboard-value">
+                                        <span class="<%= entry[:net_value] >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= entry[:net_value] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:net_value].round(0)) %>
                                         </span>
                                     </td>
+                                    <td class="text-end d-none d-sm-table-cell">
+                                        <% if last_race != 0 %>
+                                            <span class="<%= last_race >= 0 ? 'text-green' : 'text-red' %>">
+                                                <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %>
+                                            </span>
+                                        <% else %>
+                                            <span class="text-secondary">&mdash;</span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:total_value].round(0)) %></td>
                                 </tr>
                             <% end %>
                         </tbody>
@@ -127,17 +129,19 @@
                                 <th class="text-center">#</th>
                                 <th>Player</th>
                                 <th class="d-none d-md-table-cell">Roster</th>
-                                <th class="text-end">Value</th>
-                                <th class="text-end">P&L</th>
+                                <th class="text-end">Net Value</th>
+                                <th class="text-end d-none d-sm-table-cell">Last Race</th>
+                                <th class="text-end d-none d-sm-table-cell">Total Value</th>
                             </tr>
                         </thead>
                         <tbody>
                             <% @roster_entries.each_with_index do |entry, idx| %>
                                 <% portfolio = entry[:portfolio] %>
                                 <% is_me = current_user && portfolio.user_id == current_user.id %>
-                                <% pl = entry[:value] - portfolio.starting_capital %>
+                                <% pl = entry[:net] %>
                                 <% r_support = @supports_by_user[portfolio.user_id] %>
                                 <% color = r_support ? Constructor::COLORS[r_support.constructor.constructor_ref.to_sym] : nil %>
+                                <% r_delta = @roster_deltas[portfolio.id] || 0 %>
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
                                     <td>
@@ -153,12 +157,21 @@
                                             <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
                                         <% end %>
                                     </td>
-                                    <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(0)) %></td>
-                                    <td class="text-end">
+                                    <td class="text-end fantasy-leaderboard-value">
                                         <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
-                                            <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+                                            <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                                         </span>
                                     </td>
+                                    <td class="text-end d-none d-sm-table-cell">
+                                        <% if r_delta != 0 %>
+                                            <span class="<%= r_delta >= 0 ? 'text-green' : 'text-red' %>">
+                                                <%= r_delta >= 0 ? '+' : '' %><%= number_with_delimiter(r_delta.round(0)) %>
+                                            </span>
+                                        <% else %>
+                                            <span class="text-secondary">&mdash;</span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:value].round(0)) %></td>
                                 </tr>
                             <% end %>
                         </tbody>
@@ -183,17 +196,19 @@
                                 <th class="text-center">#</th>
                                 <th>Player</th>
                                 <th class="d-none d-md-table-cell">Holdings</th>
-                                <th class="text-end">Value</th>
-                                <th class="text-end">P&L</th>
+                                <th class="text-end">Net Value</th>
+                                <th class="text-end d-none d-sm-table-cell">Last Race</th>
+                                <th class="text-end d-none d-sm-table-cell">Total Value</th>
                             </tr>
                         </thead>
                         <tbody>
                             <% @stock_entries.each_with_index do |entry, idx| %>
                                 <% p = entry[:portfolio] %>
                                 <% is_me = current_user && p.user_id == current_user.id %>
-                                <% pl = entry[:value] - p.starting_capital %>
+                                <% pl = entry[:net] %>
                                 <% s_support = @supports_by_user[p.user_id] %>
                                 <% color = s_support ? Constructor::COLORS[s_support.constructor.constructor_ref.to_sym] : nil %>
+                                <% s_delta = @stock_deltas[p.id] || 0 %>
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
                                     <td>
@@ -212,12 +227,21 @@
                                             </span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(1)) %></td>
-                                    <td class="text-end">
+                                    <td class="text-end fantasy-leaderboard-value">
                                         <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
-                                            <%= pl >= 0 ? '+' : '' %><%= pl.round(1) %>
+                                            <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                                         </span>
                                     </td>
+                                    <td class="text-end d-none d-sm-table-cell">
+                                        <% if s_delta != 0 %>
+                                            <span class="<%= s_delta >= 0 ? 'text-green' : 'text-red' %>">
+                                                <%= s_delta >= 0 ? '+' : '' %><%= number_with_delimiter(s_delta.round(0)) %>
+                                            </span>
+                                        <% else %>
+                                            <span class="text-secondary">&mdash;</span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:value].round(1)) %></td>
                                 </tr>
                             <% end %>
                         </tbody>

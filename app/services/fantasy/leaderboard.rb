@@ -11,8 +11,8 @@ module Fantasy
         .to_a
 
       portfolios
-        .map { |p| { portfolio: p, value: p.portfolio_value } }
-        .sort_by { |entry| -entry[:value] }
+        .map { |p| { portfolio: p, value: p.portfolio_value, net: p.profit_loss } }
+        .sort_by { |entry| -entry[:net] }
     end
   end
 end

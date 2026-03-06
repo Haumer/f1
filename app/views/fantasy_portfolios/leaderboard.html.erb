@@ -28,16 +28,15 @@
                             <%= portfolio.user.display_name %>
                             <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                         </strong>
-                        <span class="fantasy-podium-value"><%= number_with_delimiter(entry[:value].round(0)) %></span>
+                        <% pl = entry[:net] %>
+                        <span class="fantasy-podium-value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                            <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
+                        </span>
                         <div class="fantasy-podium-drivers">
                             <% portfolio.roster_entries.select(&:active?).each do |re| %>
                                 <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-podium-driver" %>
                             <% end %>
                         </div>
-                        <% pl = entry[:value] - portfolio.starting_capital %>
-                        <span class="fantasy-podium-pl <%= pl >= 0 ? 'text-green' : 'text-red' %>">
-                            <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
-                        </span>
                     </div>
                 <% end %>
             </div>
@@ -52,15 +51,17 @@
                             <th class="text-center">#</th>
                             <th>Player</th>
                             <th class="d-none d-md-table-cell">Roster</th>
-                            <th class="text-end">Value</th>
-                            <th class="text-end">P&L</th>
+                            <th class="text-end">Net Value</th>
+                            <th class="text-end d-none d-sm-table-cell">Last Race</th>
+                            <th class="text-end d-none d-sm-table-cell">Total Value</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% @entries.each_with_index do |entry, idx| %>
                             <% portfolio = entry[:portfolio] %>
                             <% is_me = current_user && portfolio.user_id == current_user.id %>
-                            <% pl = entry[:value] - portfolio.starting_capital %>
+                            <% pl = entry[:net] %>
+                            <% r_delta = @roster_deltas[portfolio.id] || 0 %>
                             <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                 <td class="text-center position-cell"><%= idx + 1 %></td>
                                 <td>
@@ -72,12 +73,21 @@
                                         <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
                                     <% end %>
                                 </td>
-                                <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(0)) %></td>
-                                <td class="text-end">
+                                <td class="text-end fantasy-leaderboard-value">
                                     <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
-                                        <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+                                        <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                                     </span>
                                 </td>
+                                <td class="text-end d-none d-sm-table-cell">
+                                    <% if r_delta != 0 %>
+                                        <span class="<%= r_delta >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= r_delta >= 0 ? '+' : '' %><%= number_with_delimiter(r_delta.round(0)) %>
+                                        </span>
+                                    <% else %>
+                                        <span class="text-secondary">&mdash;</span>
+                                    <% end %>
+                                </td>
+                                <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:value].round(0)) %></td>
                             </tr>
                         <% end %>
                     </tbody>

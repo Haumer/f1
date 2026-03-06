@@ -170,6 +170,7 @@ class FantasyPortfoliosController < ApplicationController
   def leaderboard
     @season = Season.sorted_by_year.first
     @entries = Fantasy::Leaderboard.new(season: @season).call
+    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, @entries.map { |e| e[:portfolio].id })
     @tab = "roster"
   end
 
@@ -183,31 +184,45 @@ class FantasyPortfoliosController < ApplicationController
     combined = []
     @roster_entries.each do |e|
       p = e[:portfolio]
-      pct = p.starting_capital > 0 ? ((e[:value] - p.starting_capital) / p.starting_capital * 100) : 0
-      driver_holdings = e[:value] - p.cash
-      combined << { user: p.user, roster_holdings: driver_holdings, roster_pl_pct: pct, stock_holdings: nil, stock_pl_pct: nil, cash: p.cash }
+      roster_net = e[:value] - p.starting_capital
+      combined << { user: p.user, roster_net: roster_net, stock_net: nil, roster_value: e[:value], stock_value: nil, total_starting: p.starting_capital }
     end
     @stock_entries.each do |e|
       p = e[:portfolio]
-      pct = p.starting_capital > 0 ? ((e[:value] - p.starting_capital) / p.starting_capital * 100) : 0
-      stock_holdings = e[:value] - p.cash
+      stock_net = e[:value] - p.starting_capital
       existing = combined.find { |c| c[:user].id == p.user_id }
       if existing
-        existing[:stock_holdings] = stock_holdings
-        existing[:stock_pl_pct] = pct
-        existing[:cash] = (existing[:cash] || 0) + p.cash
+        existing[:stock_net] = stock_net
+        existing[:stock_value] = e[:value]
+        existing[:total_starting] = (existing[:total_starting] || 0) + p.starting_capital
       else
-        combined << { user: p.user, roster_holdings: nil, roster_pl_pct: nil, stock_holdings: stock_holdings, stock_pl_pct: pct, cash: p.cash }
+        combined << { user: p.user, roster_net: nil, stock_net: nil, roster_value: nil, stock_value: e[:value], total_starting: p.starting_capital, stock_net: stock_net }
       end
     end
 
     combined.each do |c|
-      pcts = [c[:roster_pl_pct], c[:stock_pl_pct]].compact
-      c[:combined_pct] = pcts.any? ? (pcts.sum / pcts.size) : 0
-      c[:total_value] = (c[:roster_holdings] || 0) + (c[:stock_holdings] || 0) + (c[:cash] || 0)
+      c[:net_value] = (c[:roster_net] || 0) + (c[:stock_net] || 0)
+      c[:total_value] = (c[:roster_value] || 0) + (c[:stock_value] || 0)
     end
 
-    @combined_entries = combined.sort_by { |c| -c[:combined_pct] }
+    # Last race deltas
+    roster_ids = @roster_entries.map { |e| e[:portfolio].id }
+    stock_ids = @stock_entries.map { |e| e[:portfolio].id }
+    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids)
+    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids)
+
+    # Map deltas to users for combined view
+    roster_by_user = @roster_entries.index_by { |e| e[:portfolio].user_id }
+    stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
+    combined.each do |c|
+      r_entry = roster_by_user[c[:user].id]
+      s_entry = stock_by_user[c[:user].id]
+      r_delta = r_entry ? (@roster_deltas[r_entry[:portfolio].id] || 0) : 0
+      s_delta = s_entry ? (@stock_deltas[s_entry[:portfolio].id] || 0) : 0
+      c[:last_race] = r_delta + s_delta
+    end
+
+    @combined_entries = combined.sort_by { |c| -c[:net_value] }
 
     user_ids = @combined_entries.map { |c| c[:user].id }
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
@@ -310,13 +325,33 @@ class FantasyPortfoliosController < ApplicationController
     entries.transform_values(&:constructor)
   end
 
+  # Returns { portfolio_id => delta } for the most recent race snapshot
+  def last_race_deltas(snapshot_class, fk, portfolio_ids)
+    return {} if portfolio_ids.empty?
+
+    # Get the two most recent snapshots per portfolio
+    snapshots = snapshot_class.where(fk => portfolio_ids)
+                              .joins(:race)
+                              .order("races.date DESC")
+                              .to_a
+                              .group_by(&fk)
+
+    snapshots.each_with_object({}) do |(pid, snaps), hash|
+      if snaps.size >= 2
+        hash[pid] = snaps[0].value - snaps[1].value
+      else
+        hash[pid] = 0
+      end
+    end
+  end
+
   def stock_leaderboard_entries
     return [] unless Setting.fantasy_stock_market?
     FantasyStockPortfolio.where(season: @season)
       .includes(:user, :snapshots, holdings: :driver)
       .to_a
-      .map { |p| { portfolio: p, value: p.portfolio_value } }
-      .sort_by { |e| -e[:value] }
+      .map { |p| { portfolio: p, value: p.portfolio_value, net: p.profit_loss } }
+      .sort_by { |e| -e[:net] }
   end
 
   def elo_trends_for(driver_ids)
