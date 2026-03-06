@@ -27,7 +27,7 @@ class UpdateDriverCareer
     end
 
     def set_attributes
-        results = @driver.race_results.includes(:status).to_a
+        results = @driver.race_results.includes(:status, :race).to_a
         # Exclude DNS (did not qualify / did not start) from race count
         started = results.reject { |rr| rr.status.did_not_start? }
         @career_attributes[:number_of_races] = started.size
@@ -36,6 +36,14 @@ class UpdateDriverCareer
             races(race_result)
         end
         @career_attributes[:podiums] = @career_attributes[:wins] + @career_attributes[:second_places] + @career_attributes[:third_places]
+
+        # Update first/last race dates from actual race results
+        race_dates = results.filter_map { |rr| rr.race.date }
+        if race_dates.any?
+            @career_attributes[:first_race_date] = race_dates.min
+            @career_attributes[:last_race_date] = race_dates.max
+        end
+
         self
     end
 
