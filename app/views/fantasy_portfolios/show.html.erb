@@ -329,29 +329,6 @@
             </div>
         <% end %>
 
-        <%# Stock Achievements %>
-        <div class="table-header">
-            <h3>Achievements</h3>
-            <span class="table-header-sub"><%= @stock_achievements.size %>/<%= FantasyStockAchievement::DEFINITIONS.size %></span>
-        </div>
-        <div class="fantasy-achievements-grid">
-            <% FantasyStockAchievement::DEFINITIONS.each do |key, defn| %>
-                <% earned = @stock_achievements.find { |a| a.key == key.to_s } %>
-                <div class="fantasy-achievement-card <%= earned ? "earned tier-#{defn[:tier]}" : 'locked' %>">
-                    <div class="fantasy-achievement-icon">
-                        <i class="fa-solid <%= defn[:icon] %>"></i>
-                    </div>
-                    <div class="fantasy-achievement-info">
-                        <strong><%= defn[:name] %></strong>
-                        <span><%= defn[:description] %></span>
-                    </div>
-                    <% if earned %>
-                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
-                    <% end %>
-                </div>
-            <% end %>
-        </div>
-
         <%# Stock Transactions %>
         <% if @stock_transactions.any? %>
             <div class="table-header"><h3>Recent Transactions</h3></div>
@@ -384,6 +361,29 @@
                 </div>
             </div>
         <% end %>
+
+        <%# Stock Achievements %>
+        <div class="table-header">
+            <h3>Achievements</h3>
+            <span class="table-header-sub"><%= @stock_achievements.size %>/<%= FantasyStockAchievement::DEFINITIONS.size %></span>
+        </div>
+        <div class="fantasy-achievements-grid">
+            <% FantasyStockAchievement::DEFINITIONS.each do |key, defn| %>
+                <% earned = @stock_achievements.find { |a| a.key == key.to_s } %>
+                <div class="fantasy-achievement-card <%= earned ? "earned tier-#{defn[:tier]}" : 'locked' %>">
+                    <div class="fantasy-achievement-icon">
+                        <i class="fa-solid <%= defn[:icon] %>"></i>
+                    </div>
+                    <div class="fantasy-achievement-info">
+                        <strong><%= defn[:name] %></strong>
+                        <span><%= defn[:description] %></span>
+                    </div>
+                    <% if earned %>
+                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+                    <% end %>
+                </div>
+            <% end %>
+        </div>
 
     <% else %>
         <%# ══════════════════════════════════ %>
@@ -573,29 +573,6 @@
             </div>
         <% end %>
 
-        <%# Roster Achievements %>
-        <div class="table-header">
-            <h3>Achievements</h3>
-            <span class="table-header-sub"><%= @achievements.size %>/<%= FantasyAchievement::DEFINITIONS.size %></span>
-        </div>
-        <div class="fantasy-achievements-grid">
-            <% FantasyAchievement::DEFINITIONS.each do |key, defn| %>
-                <% earned = @achievements.find { |a| a.key == key.to_s } %>
-                <div class="fantasy-achievement-card <%= earned ? "earned tier-#{defn[:tier]}" : 'locked' %>">
-                    <div class="fantasy-achievement-icon">
-                        <i class="fa-solid <%= defn[:icon] %>"></i>
-                    </div>
-                    <div class="fantasy-achievement-info">
-                        <strong><%= defn[:name] %></strong>
-                        <span><%= defn[:description] %></span>
-                    </div>
-                    <% if earned %>
-                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
-                    <% end %>
-                </div>
-            <% end %>
-        </div>
-
         <%# Roster Transactions %>
         <% if @transactions.any? %>
             <div class="table-header"><h3>Recent Transactions</h3></div>
@@ -628,5 +605,28 @@
                 </div>
             </div>
         <% end %>
+
+        <%# Roster Achievements %>
+        <div class="table-header">
+            <h3>Achievements</h3>
+            <span class="table-header-sub"><%= @achievements.size %>/<%= FantasyAchievement::DEFINITIONS.size %></span>
+        </div>
+        <div class="fantasy-achievements-grid">
+            <% FantasyAchievement::DEFINITIONS.each do |key, defn| %>
+                <% earned = @achievements.find { |a| a.key == key.to_s } %>
+                <div class="fantasy-achievement-card <%= earned ? "earned tier-#{defn[:tier]}" : 'locked' %>">
+                    <div class="fantasy-achievement-icon">
+                        <i class="fa-solid <%= defn[:icon] %>"></i>
+                    </div>
+                    <div class="fantasy-achievement-info">
+                        <strong><%= defn[:name] %></strong>
+                        <span><%= defn[:description] %></span>
+                    </div>
+                    <% if earned %>
+                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+                    <% end %>
+                </div>
+            <% end %>
+        </div>
     <% end %>
 </div>
