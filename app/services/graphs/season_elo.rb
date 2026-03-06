@@ -20,20 +20,35 @@ class Graphs::SeasonElo
 
     def season_elo_data
         new_elo_col = Setting.elo_column(:new_elo).to_sym
+        old_elo_col = Setting.elo_column(:old_elo).to_sym
         @series_data = @drivers.map do |driver|
             driver_name = "#{driver.forename.first}.#{driver.surname}"
             constructor = @constructor_by_driver[driver.id]
             team_color = constructor && Constructor::COLORS[constructor.constructor_ref.to_sym]
+
+            # Build data with carry-forward: if a driver missed a race,
+            # use their old_elo from the next race they did participate in
+            # (which equals their Elo going into that weekend, unchanged).
+            raw = @races.map do |race|
+                rr = @race_results_lookup[[race.id, driver.id]]&.first
+                elo_val = rr&.send(new_elo_col)
+                old_val = rr&.send(old_elo_col)
+                { name: driver_name, new_elo: elo_val&.round, old_elo: old_val&.round }
+            end
+
+            # Forward-fill gaps: carry new_elo from last race through missed races
+            last_elo = nil
+            filled = raw.map do |entry|
+                if entry[:new_elo]
+                    last_elo = entry[:new_elo]
+                    { name: entry[:name], value: entry[:new_elo] }
+                elsif last_elo
+                    { name: entry[:name], value: last_elo }
+                end
+            end
+
             {
-                data: @races.map do |race|
-                    race_result = @race_results_lookup[[race.id, driver.id]]&.first
-                    elo_val = race_result&.send(new_elo_col)
-                    if elo_val
-                        { name: driver_name, value: elo_val.round }
-                    else
-                        '-'
-                    end
-                end,
+                data: filled,
                 type: 'line',
                 name: driver_name,
                 color: team_color || driver.color,
@@ -44,7 +59,7 @@ class Graphs::SeasonElo
                     distance: 20
                 },
                 smooth: true,
-                connectNulls: false,
+                connectNulls: true,
                 symbolSize: 8,
             }
         end
