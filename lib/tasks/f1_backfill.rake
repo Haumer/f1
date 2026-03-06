@@ -158,9 +158,9 @@ def load_results(archive)
     status = Status.find_by(kaggle_id: row['statusId'].to_i)
     next unless race && driver && constructor && status
 
-    RaceResult.find_or_create_by(kaggle_id: row['resultId'].to_i) do |rr|
-      rr.race = race
-      rr.driver = driver
+    rr = RaceResult.find_or_initialize_by(race: race, driver: driver)
+    if rr.new_record?
+      rr.kaggle_id = row['resultId'].to_i
       rr.constructor = constructor
       rr.status = status
       rr.number = null_safe(row['number'])&.to_i
@@ -174,6 +174,7 @@ def load_results(archive)
       rr.fastest_lap = null_safe(row['fastestLap'])&.to_i
       rr.fastest_lap_time = null_safe(row['fastestLapTime'])
       rr.fastest_lap_speed = null_safe(row['fastestLapSpeed'])&.to_f
+      rr.save!
       count += 1
     end
 
