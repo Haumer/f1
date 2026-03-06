@@ -117,7 +117,8 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def set_next_race
-    @next_race = @portfolio.season.next_race
+    @next_race = @portfolio.season.next_race ||
+                 Race.where("date >= ?", Date.current).order(:date).first
   end
 
   def compute_starting_capital
