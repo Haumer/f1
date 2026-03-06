@@ -23,15 +23,25 @@
         </span>
     </div>
 
+    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-stock-market-explainer">
+        <div class="fantasy-info-banner-content">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>Go <strong>long</strong> if you think a driver's Elo will rise, or <strong>short</strong> to bet on a decline. Use +/&minus; to set quantity. Long holders earn dividends from race finishes.</p>
+        </div>
+        <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
             <table class="fantasy-market-table">
                 <thead>
                     <tr>
                         <th>Driver</th>
-                        <th>Form</th>
+                        <th class="d-none d-md-table-cell">Form</th>
                         <th class="text-end">Price</th>
-                        <th class="text-end">Your Position</th>
+                        <th class="text-end d-none d-md-table-cell">Your Position</th>
                         <% if @can_trade %>
                             <th class="text-center" style="width:160px">Trade</th>
                         <% end %>
@@ -60,7 +70,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 <% if trends.any? %>
                                     <div class="fantasy-elo-trend">
                                         <div class="fantasy-elo-trend-dots">
@@ -82,7 +92,7 @@
                             <td class="text-end">
                                 <span class="fantasy-market-price-cell"><%= price.round(1) %></span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end d-none d-md-table-cell">
                                 <% if long_holding %>
                                     <span class="stock-direction-badge stock-long">
                                         <i class="fa-solid fa-arrow-trend-up"></i> <%= long_holding.quantity %>x

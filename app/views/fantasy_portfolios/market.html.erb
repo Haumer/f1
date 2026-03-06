@@ -24,6 +24,16 @@
         <% end %>
     </div>
 
+    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-roster-market-explainer">
+        <div class="fantasy-info-banner-content">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>Browse available drivers and tap <strong>+</strong> to add them to your cart. Review your selections, then confirm to buy. Prices are based on each driver's current Elo rating.</p>
+        </div>
+        <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
     <div class="fantasy-market-layout">
         <%# Driver List %>
         <div class="fantasy-market-main">
@@ -33,7 +43,7 @@
                         <thead>
                             <tr>
                                 <th>Driver</th>
-                                <th>Form</th>
+                                <th class="d-none d-md-table-cell">Form</th>
                                 <th class="text-end">Price</th>
                                 <th class="text-center" style="width:80px"></th>
                             </tr>
@@ -65,7 +75,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-md-table-cell">
                                         <% if trends.any? %>
                                             <div class="fantasy-elo-trend">
                                                 <div class="fantasy-elo-trend-dots">

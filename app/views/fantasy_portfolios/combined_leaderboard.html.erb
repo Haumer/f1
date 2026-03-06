@@ -27,6 +27,16 @@
         <% end %>
     </div>
 
+    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-leaderboard-explainer">
+        <div class="fantasy-info-banner-content">
+            <i class="fa-solid fa-trophy"></i>
+            <p>Rankings are based on <strong>Total Value</strong> (holdings + cash). The <strong>P&L</strong> column shows your overall return on starting capital.</p>
+        </div>
+        <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
     <% if @tab == "combined" %>
         <% if @combined_entries.any? %>
             <div class="card card-flush">
@@ -36,11 +46,11 @@
                             <tr>
                                 <th class="text-center">#</th>
                                 <th>Player</th>
-                                <th class="text-end">Roster</th>
-                                <th class="text-end">Stocks</th>
-                                <th class="text-end">Cash</th>
+                                <th class="text-end d-none d-md-table-cell">Roster</th>
+                                <th class="text-end d-none d-md-table-cell">Stocks</th>
+                                <th class="text-end d-none d-md-table-cell">Cash</th>
                                 <th class="text-end">Total Value</th>
-                                <th class="text-end">Avg P&L</th>
+                                <th class="text-end">P&L</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,7 +72,7 @@
                                             <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs" onerror="this.style.display='none'">
                                         <% end %>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end d-none d-md-table-cell">
                                         <% if entry[:roster_holdings] %>
                                             <div class="leaderboard-value-cell">
                                                 <span><%= number_with_delimiter(entry[:roster_holdings].round(0)) %></span>
@@ -74,7 +84,7 @@
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end d-none d-md-table-cell">
                                         <% if entry[:stock_holdings] %>
                                             <div class="leaderboard-value-cell">
                                                 <span><%= number_with_delimiter(entry[:stock_holdings].round(0)) %></span>
@@ -86,7 +96,7 @@
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end"><%= number_with_delimiter(entry[:cash].round(0)) %></td>
+                                    <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:cash].round(0)) %></td>
                                     <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:total_value].round(0)) %></td>
                                     <td class="text-end">
                                         <span class="<%= entry[:combined_pct] >= 0 ? 'text-green' : 'text-red' %>">
@@ -116,7 +126,7 @@
                             <tr>
                                 <th class="text-center">#</th>
                                 <th>Player</th>
-                                <th>Roster</th>
+                                <th class="d-none d-md-table-cell">Roster</th>
                                 <th class="text-end">Value</th>
                                 <th class="text-end">P&L</th>
                             </tr>
@@ -138,7 +148,7 @@
                                         <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-md-table-cell">
                                         <% portfolio.roster_entries.select(&:active?).each do |re| %>
                                             <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
                                         <% end %>
@@ -172,7 +182,7 @@
                             <tr>
                                 <th class="text-center">#</th>
                                 <th>Player</th>
-                                <th>Holdings</th>
+                                <th class="d-none d-md-table-cell">Holdings</th>
                                 <th class="text-end">Value</th>
                                 <th class="text-end">P&L</th>
                             </tr>
@@ -194,7 +204,7 @@
                                         <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-md-table-cell">
                                         <% p.holdings.select(&:active).each do |h| %>
                                             <span class="fantasy-leaderboard-driver">
                                                 <i class="fa-solid fa-<%= h.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>" style="font-size:9px"></i>

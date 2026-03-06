@@ -61,6 +61,16 @@
         </div>
     <% end %>
 
+    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-stock-portfolio-explainer">
+        <div class="fantasy-info-banner-content">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>Your stock positions gain or lose value as driver Elo ratings change after each race. Long positions also earn <strong>dividends</strong> for top finishes. Close positions during market windows to lock in profits.</p>
+        </div>
+        <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
     <%# Chart %>
     <% if @snapshots.size >= 2 %>
         <div class="table-header"><h3>Portfolio Value</h3></div>
@@ -109,9 +119,9 @@
                         <tr>
                             <th>Driver</th>
                             <th>Type</th>
-                            <th class="text-end">Qty</th>
-                            <th class="text-end">Entry</th>
-                            <th class="text-end">Current</th>
+                            <th class="text-end d-none d-sm-table-cell">Qty</th>
+                            <th class="text-end d-none d-md-table-cell">Entry</th>
+                            <th class="text-end d-none d-md-table-cell">Current</th>
                             <th class="text-end">P&L</th>
                             <% if @can_trade %><th></th><% end %>
                         </tr>
@@ -141,9 +151,9 @@
                                         <%= holding.direction.upcase %>
                                     </span>
                                 </td>
-                                <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.quantity %></span></td>
-                                <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
-                                <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
+                                <td class="text-end d-none d-sm-table-cell"><span class="fantasy-market-price-cell"><%= holding.quantity %></span></td>
+                                <td class="text-end d-none d-md-table-cell"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
+                                <td class="text-end d-none d-md-table-cell"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
                                 <td class="text-end">
                                     <span class="<%= gl >= 0 ? 'text-green' : 'text-red' %>" style="font-weight:700; font-size:13px;">
                                         <%= gl >= 0 ? '+' : '' %><%= gl.round(1) %>
@@ -223,7 +233,7 @@
                             <th>Date</th>
                             <th>Type</th>
                             <th>Amount</th>
-                            <th>Note</th>
+                            <th class="d-none d-md-table-cell">Note</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -236,7 +246,7 @@
                                 <td class="<%= txn.amount >= 0 ? 'text-green' : 'text-red' %>">
                                     <%= txn.amount >= 0 ? '+' : '' %><%= txn.amount.round(1) %>
                                 </td>
-                                <td class="fantasy-txn-note"><%= txn.note %></td>
+                                <td class="fantasy-txn-note d-none d-md-table-cell"><%= txn.note %></td>
                             </tr>
                         <% end %>
                     </tbody>
