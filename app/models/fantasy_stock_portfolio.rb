@@ -56,7 +56,7 @@ class FantasyStockPortfolio < ApplicationRecord
     return false unless race
     cutoff = race.starts_at || race.date&.beginning_of_day
     return false unless cutoff
-    cutoff > Time.current
+    (cutoff - 1.minute) > Time.current
   end
 
   def total_collateral

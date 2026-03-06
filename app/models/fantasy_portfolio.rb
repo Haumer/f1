@@ -28,7 +28,7 @@ class FantasyPortfolio < ApplicationRecord
 
   def can_trade?(race)
     return false unless race&.starts_at
-    race.starts_at > Time.current && swaps_this_race(race) < max_swaps_per_race
+    (race.starts_at - 1.minute) > Time.current && swaps_this_race(race) < max_swaps_per_race
   end
 
   def swaps_this_race(race)
