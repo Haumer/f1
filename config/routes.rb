@@ -49,6 +49,7 @@ Rails.application.routes.draw do
   resources :seasons, only: [:index, :show]
   resources :circuits, only: [:index, :show]
 
+  get 'stats', to: 'stats#index', as: :stats
   get 'stats/elo_milestones', to: 'stats#elo_milestones', as: :elo_milestones
   get 'stats/badges', to: 'stats#badges', as: :badges
   get 'stats/fan_standings', to: 'stats#fan_standings', as: :fan_standings

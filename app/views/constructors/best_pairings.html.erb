@@ -9,20 +9,20 @@
 
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-            <table class="current-driver-standings compact">
+            <table class="current-driver-standings compact" data-controller="sortable-table">
                 <thead>
                     <tr>
-                        <th class="text-center">#</th>
+                        <th class="text-center" data-sort="num">#</th>
                         <th></th>
-                        <th>Driver 1</th>
+                        <th data-sort="text">Driver 1</th>
                         <th></th>
-                        <th>Driver 2</th>
+                        <th data-sort="text">Driver 2</th>
                         <th></th>
-                        <th class="text-center">Races</th>
-                        <th class="text-center">Wins</th>
-                        <th class="text-center">Win %</th>
-                        <th class="text-center">1-2s</th>
-                        <th class="text-center">1-2 %</th>
+                        <th class="text-center" data-sort="num">Races</th>
+                        <th class="text-center" data-sort="num">Wins</th>
+                        <th class="text-center" data-sort="num">Win %</th>
+                        <th class="text-center" data-sort="num">1-2s</th>
+                        <th class="text-center" data-sort="num">1-2 %</th>
                     </tr>
                 </thead>
                 <tbody>

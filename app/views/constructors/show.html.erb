@@ -83,19 +83,19 @@
 
     <% if @top_drivers.present? %>
         <div class="card card-flush">
-            <div class="roster-section-header">
-                <div class="section-label">Top Drivers for <%= @constructor.name %></div>
+            <div class="table-header" style="padding: 16px 24px 8px;">
+                <h4>Top Drivers for <%= @constructor.name %></h4>
             </div>
             <div class="table-scroll-wrapper">
-                <table class="current-driver-standings compact">
+                <table class="current-driver-standings compact" data-controller="sortable-table">
                     <thead>
                         <tr>
                             <th></th>
-                            <th>Driver</th>
-                            <th class="text-center">Races</th>
-                            <th class="text-center">Wins</th>
-                            <th class="text-center">Podiums</th>
-                            <th class="text-center">Win %</th>
+                            <th data-sort="text">Driver</th>
+                            <th class="text-center" data-sort="num">Races</th>
+                            <th class="text-center" data-sort="num">Wins</th>
+                            <th class="text-center" data-sort="num">Podiums</th>
+                            <th class="text-center" data-sort="num">Win %</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,8 +125,8 @@
 
     <% if @roster_by_season.present? %>
         <div class="card card-flush">
-            <div class="roster-section-header">
-                <div class="section-label">Driver Roster History</div>
+            <div class="table-header" style="padding: 16px 24px 8px;">
+                <h4>Driver Roster History</h4>
             </div>
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact">

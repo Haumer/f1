@@ -17,15 +17,15 @@
 
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
-                <table class="current-driver-standings compact">
+                <table class="current-driver-standings compact" data-controller="sortable-table">
                     <thead>
                         <tr>
-                            <th class="text-center">#</th>
-                            <th>Driver</th>
+                            <th class="text-center" data-sort="num">#</th>
+                            <th data-sort="text">Driver</th>
                             <th class="d-none d-md-table-cell"></th>
-                            <th class="text-center">Peak Elo</th>
-                            <th class="text-center d-none d-sm-table-cell">Tier</th>
-                            <th class="text-center d-none d-md-table-cell">Current Elo</th>
+                            <th class="text-center" data-sort="num">Peak Elo</th>
+                            <th class="text-center d-none d-sm-table-cell" data-sort="text">Tier</th>
+                            <th class="text-center d-none d-md-table-cell" data-sort="num">Current Elo</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -25,12 +25,12 @@
         <div class="table-header" style="margin-top: 16px;"><h4>Historical Constructors</h4></div>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
-                <table class="current-driver-standings compact">
+                <table class="current-driver-standings compact" data-controller="sortable-table">
                     <thead>
                         <tr>
-                            <th>Constructor</th>
-                            <th>Nationality</th>
-                            <th class="text-center">Races</th>
+                            <th data-sort="text">Constructor</th>
+                            <th data-sort="text">Nationality</th>
+                            <th class="text-center" data-sort="num">Races</th>
                         </tr>
                     </thead>
                     <tbody>

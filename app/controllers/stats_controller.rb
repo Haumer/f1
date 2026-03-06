@@ -1,4 +1,8 @@
 class StatsController < ApplicationController
+  def index
+    set_current_champion_accent
+  end
+
   def elo_milestones
     new_elo_col = Setting.elo_column(:new_elo)
     old_elo_col = Setting.elo_column(:old_elo)

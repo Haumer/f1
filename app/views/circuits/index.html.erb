@@ -42,13 +42,13 @@
     </div>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
-            <table class="current-driver-standings compact">
+            <table class="current-driver-standings compact" data-controller="sortable-table">
                 <thead>
                     <tr>
-                        <th>Circuit</th>
-                        <th>Location</th>
-                        <th>Country</th>
-                        <th class="text-center">Races</th>
+                        <th data-sort="text">Circuit</th>
+                        <th data-sort="text">Location</th>
+                        <th data-sort="text">Country</th>
+                        <th class="text-center" data-sort="num">Races</th>
                         <th class="text-center"><%= @season_year %></th>
                     </tr>
                 </thead>

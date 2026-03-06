@@ -60,17 +60,17 @@
 
     <% if @circuit_winners.present? && @circuit_winners.first[:wins] > 1 %>
         <div class="card card-flush">
-            <div class="roster-section-header">
-                <div class="section-label">Most Wins at <%= @circuit.name %></div>
+            <div class="table-header" style="padding: 16px 24px 8px;">
+                <h4>Most Wins at <%= @circuit.name %></h4>
             </div>
             <div class="table-scroll-wrapper">
-                <table class="current-driver-standings compact">
+                <table class="current-driver-standings compact" data-controller="sortable-table">
                     <thead>
                         <tr>
                             <th></th>
-                            <th>Driver</th>
-                            <th class="text-center">Wins</th>
-                            <th>Years</th>
+                            <th data-sort="text">Driver</th>
+                            <th class="text-center" data-sort="num">Wins</th>
+                            <th data-sort="text">Years</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,8 +94,8 @@
     <% end %>
 
     <div class="card card-flush">
-        <div class="roster-section-header">
-            <div class="section-label">Race History</div>
+        <div class="table-header" style="padding: 16px 24px 8px;">
+            <h4>Race History</h4>
         </div>
         <div class="table-scroll-wrapper">
         <table class="current-driver-standings compact" data-controller="sortable-table">

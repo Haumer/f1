@@ -60,6 +60,8 @@
                 Stats <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "Stats Hub", stats_path, class: ("active" if current_page?(stats_path)), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
                 <%= link_to "Peak Elo", peak_elo_drivers_path, class: ("active" if current_page?(peak_elo_drivers_path)), role: "menuitem" %>
                 <%= link_to "Active Elo", current_active_elo_drivers_path, class: ("active" if current_page?(current_active_elo_drivers_path)), role: "menuitem" %>
                 <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>

@@ -1,0 +1,123 @@
+<div class="homepage-container">
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Explore</span>
+            <h1 class="page-hero-title">Stats Hub</h1>
+            <p class="page-hero-meta">Rankings, records, and achievements across 75 years of Formula 1</p>
+        </div>
+    </div>
+
+    <%# Driver Stats %>
+    <div class="table-header"><h4><i class="fa-solid fa-user-helmet-safety" style="margin-right: 6px;"></i> Driver Stats</h4></div>
+    <div class="stats-hub-grid">
+        <%= link_to peak_elo_drivers_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-mountain-sun"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Peak Elo Rankings</span>
+                <span class="stats-hub-desc">All-time greatest by peak Elo rating</span>
+            </div>
+        <% end %>
+        <%= link_to current_active_elo_drivers_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Active Driver Elo</span>
+                <span class="stats-hub-desc">Current grid ranked by live Elo</span>
+            </div>
+        <% end %>
+        <%= link_to compare_drivers_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Driver Comparison</span>
+                <span class="stats-hub-desc">Head-to-head career comparison tool</span>
+            </div>
+        <% end %>
+        <%= link_to by_nationality_drivers_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-earth-americas"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">By Nationality</span>
+                <span class="stats-hub-desc">Drivers grouped by country of origin</span>
+            </div>
+        <% end %>
+        <%= link_to badges_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-medal"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Driver Badges</span>
+                <span class="stats-hub-desc">Achievements and career milestones</span>
+            </div>
+        <% end %>
+    </div>
+
+    <%# Race Stats %>
+    <div class="table-header" style="margin-top: 8px;"><h4><i class="fa-solid fa-flag-checkered" style="margin-right: 6px;"></i> Race Stats</h4></div>
+    <div class="stats-hub-grid">
+        <%= link_to podiums_races_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-trophy"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Podium Leaders</span>
+                <span class="stats-hub-desc">Most podium finishes in F1 history</span>
+            </div>
+        <% end %>
+        <%= link_to winners_races_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-crown"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">World Champions</span>
+                <span class="stats-hub-desc">Every championship winner and title count</span>
+            </div>
+        <% end %>
+        <%= link_to highest_elo_races_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-arrow-up-9-1"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Highest Race Elos</span>
+                <span class="stats-hub-desc">Top Elo ratings achieved in a single race</span>
+            </div>
+        <% end %>
+        <%= link_to elo_milestones_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Elo Milestones</span>
+                <span class="stats-hub-desc">Biggest gains, drops, and fastest risers</span>
+            </div>
+        <% end %>
+        <%= link_to circuits_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-road"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Circuits</span>
+                <span class="stats-hub-desc">All tracks with race history and kings</span>
+            </div>
+        <% end %>
+    </div>
+
+    <%# Constructor Stats %>
+    <div class="table-header" style="margin-top: 8px;"><h4><i class="fa-solid fa-warehouse" style="margin-right: 6px;"></i> Constructor Stats</h4></div>
+    <div class="stats-hub-grid">
+        <%= link_to elo_rankings_constructors_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-ranking-star"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Constructor Elo</span>
+                <span class="stats-hub-desc">Active teams ranked by constructor Elo</span>
+            </div>
+        <% end %>
+        <%= link_to families_constructors_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-sitemap"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Team Lineages</span>
+                <span class="stats-hub-desc">Historical team families and predecessors</span>
+            </div>
+        <% end %>
+        <%= link_to best_pairings_constructors_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-handshake"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Best Pairings</span>
+                <span class="stats-hub-desc">Most successful teammate combinations</span>
+            </div>
+        <% end %>
+        <%= link_to fan_standings_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-heart"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Fan Standings</span>
+                <span class="stats-hub-desc">Constructor support leaderboard</span>
+            </div>
+        <% end %>
+    </div>
+</div>
