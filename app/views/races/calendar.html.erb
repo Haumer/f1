@@ -53,7 +53,7 @@
             <% week_races = races_by_week[week_start] %>
             <% race_dates = {} %>
             <% week_races.each do |race| %>
-                <% (race.fp1_date..race.date).each { |d| race_dates[d] = race } %>
+                <% ((race.fp1_date || race.date)..race.date).each { |d| race_dates[d] = race } %>
             <% end %>
             <% is_focus_week = week_start == focus_week %>
 

@@ -311,50 +311,62 @@ class PagesController < ApplicationController
   end
 
   def build_session_schedule(race)
-    sessions = race.session_schedule.map do |session|
-      status = if session[:date] < @today
-                 :done
-               elsif session[:date] == @today
-                 :today
+    now = Time.current
+    sessions = race.session_schedule.map.with_index do |session, idx|
+      # Use starts_at for time-aware status; fall back to date comparison
+      next_session_start = race.session_schedule[idx + 1]&.dig(:starts_at)
+      session_start = session[:starts_at]
+
+      status = if session_start && next_session_start
+                 # Session is done if the next session has already started
+                 if next_session_start <= now
+                   :done
+                 elsif session_start <= now
+                   :today # currently live or just finished (before next starts)
+                 else
+                   :upcoming
+                 end
+               elsif session_start
+                 # Last session (Race): done if 2h past start, live if started
+                 if session_start + 2.hours <= now
+                   :done
+                 elsif session_start <= now
+                   :today
+                 else
+                   :upcoming
+                 end
                else
-                 :upcoming
+                 # No timestamps, fall back to date
+                 if session[:date] < @today
+                   :done
+                 elsif session[:date] == @today
+                   :today
+                 else
+                   :upcoming
+                 end
                end
       session.merge(status: status)
     end
 
-    # Compute connector fill percentages for progress bar effect.
-    # Each session gets :connector_before_fill and :connector_after_fill (0–100).
+    # Compute connector fill between each pair of sessions.
+    # connector_before_fill on session[i] = fill % of the line between session[i-1] and session[i].
     sessions.each_with_index do |session, i|
-      prev_session = i > 0 ? sessions[i - 1] : nil
-      next_session = i < sessions.length - 1 ? sessions[i + 1] : nil
-
-      # Connector before this dot
-      session[:connector_before_fill] = if prev_session.nil?
+      prev = i > 0 ? sessions[i - 1] : nil
+      session[:connector_before_fill] = if prev.nil?
                                            0
-                                         elsif prev_session[:status] == :done && session[:status] != :upcoming
+                                         elsif prev[:status] == :done && session[:status] == :done
                                            100
-                                         elsif prev_session[:status] == :today && session[:status] == :upcoming
-                                           0
+                                         elsif prev[:status] == :done && session[:status] == :today
+                                           100
+                                         elsif prev[:status] == :done && session[:status] == :upcoming
+                                           100
+                                         elsif prev[:status] == :today && session[:status] == :upcoming
+                                           connector_time_progress(prev, session)
+                                         elsif prev[:status] == :today && session[:status] == :today
+                                           100
                                          else
                                            0
                                          end
-
-      # Connector after this dot
-      session[:connector_after_fill] = if next_session.nil?
-                                          0
-                                        elsif session[:status] == :done && next_session[:status] != :upcoming
-                                          100
-                                        elsif session[:status] == :done && next_session[:status] == :upcoming
-                                          # Done → upcoming: fill the after half fully (progress is past this dot)
-                                          100
-                                        elsif session[:status] == :today && next_session[:status] == :upcoming
-                                          # Today → upcoming: time-based progress within this half
-                                          connector_time_progress(session, next_session)
-                                        elsif session[:status] == :today && next_session[:status] == :today
-                                          100
-                                        else
-                                          0
-                                        end
     end
 
     sessions

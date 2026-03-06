@@ -1,0 +1,42 @@
+<div class="devise-container">
+    <div class="devise-card">
+        <div class="devise-header">
+            <h2>Sign In</h2>
+            <p class="devise-subtitle">Welcome back to F1 Elo</p>
+        </div>
+
+        <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+            <div class="devise-form">
+                <div class="devise-field">
+                    <label for="user_email">Email</label>
+                    <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "you@example.com", class: "devise-input" %>
+                </div>
+
+                <div class="devise-field">
+                    <label for="user_password">Password</label>
+                    <%= f.password_field :password, autocomplete: "current-password", placeholder: "Your password", class: "devise-input" %>
+                </div>
+
+                <% if devise_mapping.rememberable? %>
+                    <div class="devise-checkbox">
+                        <%= f.check_box :remember_me %>
+                        <label for="user_remember_me">Remember me</label>
+                    </div>
+                <% end %>
+
+                <div class="devise-actions">
+                    <%= f.submit "Sign In", class: "devise-btn devise-btn-primary" %>
+                </div>
+            </div>
+        <% end %>
+
+        <div class="devise-links">
+            <% if devise_mapping.registerable? %>
+                <%= link_to "Create an account", new_registration_path(resource_name) %>
+            <% end %>
+            <% if devise_mapping.recoverable? %>
+                <%= link_to "Forgot password?", new_password_path(resource_name) %>
+            <% end %>
+        </div>
+    </div>
+</div>

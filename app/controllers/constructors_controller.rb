@@ -58,6 +58,7 @@ class ConstructorsController < ApplicationController
   def best_pairings
     # Group season_drivers by (season, constructor) to find teammates
     grouped = SeasonDriver.where(standin: [false, nil])
+                 .joins(:season).where("seasons.year >= '1990'")
                  .includes(:driver, :season, :constructor)
                  .group_by { |sd| [sd.season_id, sd.constructor_id] }
 

@@ -13,9 +13,12 @@ module Fantasy
 
       entry = @portfolio.active_roster_entries.find_by(driver_id: @driver.id)
       return { error: "Driver is not on your roster" } unless entry
-      return { error: "Must hold driver for at least 1 race" } if @portfolio.held_races_for(@driver) < 1
+      # Must hold for at least 1 race once the season has started
+      if @portfolio.season.latest_race.present? && @portfolio.held_races_for(@driver) < 1
+        return { error: "Must hold driver for at least 1 race" }
+      end
 
-      sell_price = @driver.elo_v2 || 0
+      sell_price = Fantasy::Pricing.price_for(@driver, @portfolio.season)
       fee = (sell_price * SELL_FEE).round(1)
       net = sell_price - fee
 

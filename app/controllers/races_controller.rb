@@ -60,15 +60,22 @@ class RacesController < ApplicationController
   end
 
   def index
+    @page = (params[:page] || 1).to_i
+    @per_page = 50
+
     if params[:search].present? && params[:search][:date].present?
       begin
         search_date = Date.parse(params[:search][:date])
       rescue ArgumentError
         search_date = Date.new(1930,1,1)
       end
-      @races = Race.where(date: search_date..Date.today).sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: [])
+      base_scope = Race.where(date: search_date..Date.today)
+      @races = base_scope.sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: []).offset((@page - 1) * @per_page).limit(@per_page)
+      @total_races = base_scope.count
     else
-      @races = Race.where(year: 2000..Date.current.year).sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: [])
+      base_scope = Race.where(year: 2000..Date.current.year)
+      @races = base_scope.sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: []).offset((@page - 1) * @per_page).limit(@per_page)
+      @total_races = Race.joins(:season).where("seasons.year >= '2000'").count
     end
     @seasons_by_year = Season.all.index_by { |s| s.year.to_i }
   end

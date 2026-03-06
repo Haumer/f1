@@ -1,6 +1,6 @@
 module Fantasy
   class CreatePortfolio
-    CAPITAL_MULTIPLIER = 1.97
+    CAPITAL_MULTIPLIER = 2.2
 
     def initialize(user:, season:)
       @user = user
@@ -24,7 +24,10 @@ module Fantasy
     private
 
     def compute_starting_capital
-      avg_elo = Driver.where(active: true).average(:elo_v2) || 0
+      avg_elo = Driver.where.not(elo_v2: nil)
+                      .joins(:season_drivers)
+                      .where(season_drivers: { season_id: @season.id })
+                      .average(:elo_v2) || 0
       (avg_elo * CAPITAL_MULTIPLIER).round(1)
     end
   end

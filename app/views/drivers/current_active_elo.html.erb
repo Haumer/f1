@@ -37,8 +37,8 @@
                             <% end %>
                         </td>
                         <td>
-                            <% if driver.current_constructor %>
-                                <img src="<%= driver.current_constructor.logo_url %>" alt="<%= driver.current_constructor.name %>" class="constructor-logo-xs">
+                            <% if driver.current_constructor&.logo_url.present? %>
+                                <img src="<%= driver.current_constructor.logo_url %>" alt="<%= driver.current_constructor.name %>" class="constructor-logo-xs" onerror="this.style.display='none'">
                             <% end %>
                         </td>
                         <td class="text-center"><%= elo_link(driver.display_elo) %></td>

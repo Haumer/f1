@@ -61,67 +61,86 @@
   padding: 24px;
 }
 
+// Grid-based timeline: dots and labels share exact column positions
 .session-timeline {
-  display: flex;
-  justify-content: space-between;
-  gap: 0;
+  display: grid;
+  row-gap: 10px;
+  // Columns set via inline style: repeat(N, 1fr) where N = session count
 }
 
-.session-item {
+// Track row: dots connected by lines, all in one grid row
+.session-track {
+  grid-row: 1;
+  display: contents; // children participate in the parent grid
+}
+
+.session-track-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.session-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid $border-color;
+  background: $bg-card;
+  z-index: 2;
+  flex-shrink: 0;
+
+  &-done {
+    background: $green;
+    border-color: $green;
+  }
+
+  &-today {
+    background: $green;
+    border-color: $green;
+    box-shadow: 0 0 0 4px rgba($green, 0.15);
+  }
+}
+
+// Connector line extends from center of this dot to center of the next dot
+.session-connector-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  // Width spans to center of next column (100% of one grid column)
+  width: 100%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: $border-color;
+  z-index: 1;
+  overflow: hidden;
+
+  &.session-connector-done {
+    background: $green;
+  }
+}
+
+.session-connector-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: $green;
+  transition: width 0.6s ease;
+}
+
+// Labels row
+.session-labels {
+  grid-row: 2;
+  display: contents;
+}
+
+.session-label-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
   text-align: center;
-
-  .session-dot-row {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 12px;
-    position: relative;
-    height: 16px;
-  }
-
-  .session-status-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid $border-color;
-    background: $bg-card;
-    z-index: 1;
-    flex-shrink: 0;
-  }
-
-  .session-connector {
-    height: 2px;
-    flex: 1;
-    background: $border-color;
-    position: relative;
-    overflow: hidden;
-
-    &-before { margin-right: 0; }
-    &-after { margin-left: 0; }
-  }
-
-  .session-connector-fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: $green;
-    transition: width 0.6s ease;
-  }
-
-  &:first-child .session-connector-before { display: none; }
-  &:last-child .session-connector-after { display: none; }
-
-  .session-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+  gap: 2px;
 
   .session-name {
     font-size: $type-label;
@@ -142,14 +161,10 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .session-badge {
-    margin-top: 6px;
-    min-height: 18px;
-  }
-
   .badge-done {
     color: $green;
     font-size: $type-label;
+    margin-top: 2px;
   }
 
   .badge-today {
@@ -158,6 +173,7 @@
     text-transform: uppercase;
     letter-spacing: $ls-label;
     color: $green;
+    margin-top: 2px;
 
     i {
       font-size: 6px;
@@ -167,27 +183,9 @@
     }
   }
 
-  // Status variants
-  &.session-done {
-    .session-status-dot {
-      background: $green;
-      border-color: $green;
-    }
-    .session-name { color: $text-secondary; }
-  }
-
-  &.session-today {
-    .session-status-dot {
-      background: $green;
-      border-color: $green;
-      box-shadow: 0 0 0 4px rgba($green, 0.15);
-    }
-    .session-name { color: $green; }
-  }
-
-  &.session-upcoming {
-    .session-name { color: $text-secondary; }
-  }
+  &.session-done .session-name { color: $text-secondary; }
+  &.session-today .session-name { color: $green; }
+  &.session-upcoming .session-name { color: $text-secondary; }
 }
 
 // Countdown Badge (pre-race)
@@ -317,42 +315,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-// Mobile
+// Mobile: keep horizontal but allow scroll
 @media (max-width: 768px) {
-  .session-timeline {
-    flex-direction: column;
-    gap: 0;
+  .session-schedule-card {
+    padding: 16px;
+    overflow-x: auto;
   }
 
-  .session-item {
-    flex-direction: row;
-    text-align: left;
-    gap: 12px;
-    padding: 6px 0;
-
-    .session-dot-row {
-      flex-direction: column;
-      width: 16px;
-      height: auto;
-      margin-bottom: 0;
-    }
-
-    .session-connector {
-      width: 2px;
-      height: 12px;
-      flex: none;
-    }
-
-    .session-info {
-      flex: 1;
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .session-badge {
-      margin-top: 0;
-    }
+  .session-timeline {
+    min-width: 400px;
   }
 
   .countdown-badge {

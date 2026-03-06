@@ -4,6 +4,7 @@ class DriverBadges
   BADGE_ORDER = %i[
     circuit_king consecutive_wins consecutive_podiums pole_to_win
     comeback_king recovery_drive elo_rocket elo_freefall
+    rookie_win rookie_podium
     one_hit_wonder century_club finishes_milestone loyal_servant dynamic_duo
     iron_man points_machine clean_racer
     crash_king mechanical_magnet backmarker lapped
@@ -96,6 +97,8 @@ class DriverBadges
     check_comeback_king
     check_elo_rocket
     check_elo_freefall
+    check_rookie_win
+    check_rookie_podium
     check_one_hit_wonder
     check_century_club
     check_finishes_milestone
@@ -272,6 +275,52 @@ class DriverBadges
       icon: "fa-solid fa-meteor",
       color: "crimson",
       value: worst.display_elo_diff.round(1)
+    )
+  end
+
+  # ── ROOKIE SEASON ───────────────────────────────────
+
+  def rookie_season_results
+    @rookie_season_results ||= begin
+      # Use ALL results (unfiltered by min_year) to find actual debut year
+      all_sorted = @driver.race_results.to_a.sort_by { |rr| rr.race.date }
+      return [] if all_sorted.empty?
+      debut_year = all_sorted.first.race.date.year
+      # Only award if debut is within the badge filter window
+      return [] if debut_year < @min_year
+      @sorted_results.select { |rr| rr.race.date.year == debut_year }
+    end
+  end
+
+  def check_rookie_win
+    wins = rookie_season_results.select { |rr| rr.position_order == 1 }
+    return unless wins.any?
+
+    first_win = wins.first
+    @badges << Badge.new(
+      key: :rookie_win,
+      label: "Rookie Winner",
+      description: "#{wins.size} win#{'s' if wins.size > 1} in debut season (#{first_win.race.date.year})",
+      icon: "fa-solid fa-seedling",
+      color: "gold",
+      value: wins.size
+    )
+  end
+
+  def check_rookie_podium
+    podiums = rookie_season_results.select { |rr| rr.position_order && rr.position_order <= 3 }
+    return unless podiums.any?
+    # Skip if they already have a rookie win — podium is implied
+    wins = podiums.count { |rr| rr.position_order == 1 }
+    return if wins > 0
+
+    @badges << Badge.new(
+      key: :rookie_podium,
+      label: "Rookie Podium",
+      description: "#{podiums.size} podium#{'s' if podiums.size > 1} in debut season (#{podiums.first.race.date.year})",
+      icon: "fa-solid fa-seedling",
+      color: "green",
+      value: podiums.size
     )
   end
 

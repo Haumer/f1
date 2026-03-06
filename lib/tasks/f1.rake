@@ -67,4 +67,19 @@ namespace :f1 do
     count = DriverBadges.compute_all_drivers!
     puts "Done. #{count} badges computed for #{DriverBadge.select(:driver_id).distinct.count} drivers."
   end
+
+  desc "Settle stock market for a race (pays dividends, charges borrow fees, snapshots)"
+  task :settle_stock_market, [:race_id] => :environment do |_t, args|
+    unless Setting.fantasy_stock_market?
+      puts "Fantasy stock market is disabled. Enable it in Settings first."
+      next
+    end
+
+    race = Race.find(args.fetch(:race_id))
+    puts "Settling stock market for #{race.name}..."
+    Fantasy::Stock::SettleRace.new(race: race).call
+
+    settled = FantasyStockSnapshot.where(race: race).count
+    puts "Done. #{settled} portfolios settled."
+  end
 end

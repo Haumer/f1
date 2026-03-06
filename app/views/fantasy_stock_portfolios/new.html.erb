@@ -1,0 +1,39 @@
+<div class="homepage-container fantasy-hero">
+    <div class="page-hero-bg"></div>
+    <div class="fantasy-onboard">
+        <div class="fantasy-onboard-capital">
+            <span class="fantasy-onboard-capital-label">Starting Capital</span>
+            <span class="fantasy-onboard-capital-value"><%= number_with_delimiter(@starting_capital.round(0)) %></span>
+            <span class="fantasy-onboard-capital-sub">Trade driver shares on the F1 stock market</span>
+        </div>
+
+        <div class="fantasy-rules-grid">
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <strong>Buy & Sell</strong>
+                <span>Go long on drivers you believe in. Price = Elo / 10.</span>
+            </div>
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                <strong>Short Selling</strong>
+                <span>Bet against drivers. Profit when their Elo drops.</span>
+            </div>
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-coins"></i></div>
+                <strong>Dividends</strong>
+                <span>Earn 5/3/1 per share when your drivers finish P1/P2-3/P4-10.</span>
+            </div>
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-lock"></i></div>
+                <strong>Max 6 Positions</strong>
+                <span>Long + short combined. Shorts require collateral.</span>
+            </div>
+        </div>
+
+        <%= form_with url: fantasy_stock_portfolios_path, method: :post, local: true do %>
+            <button type="submit" class="fantasy-btn fantasy-btn-primary fantasy-btn-lg">
+                <i class="fa-solid fa-rocket"></i> Start Trading
+            </button>
+        <% end %>
+    </div>
+</div>

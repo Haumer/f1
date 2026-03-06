@@ -1,0 +1,230 @@
+// ═══════════════════════════════════════
+// DEVISE AUTH PAGES
+// ═══════════════════════════════════════
+
+.devise-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 60vh;
+    padding: 40px 16px;
+}
+
+.devise-card {
+    width: 100%;
+    max-width: 420px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+
+    // Subtle accent glow at top
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent 10%, var(--page-accent, $accent-red) 50%, transparent 90%);
+        opacity: 0.6;
+    }
+}
+
+.devise-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    h2 {
+        font-family: $headers-font;
+        font-weight: $weight-bold;
+        font-size: 24px;
+        letter-spacing: $ls-heading;
+        color: $text-primary;
+        margin: 0 0 6px;
+    }
+}
+
+.devise-subtitle {
+    font-size: $type-small;
+    color: $text-tertiary;
+    margin: 0;
+}
+
+.devise-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.devise-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label {
+        font-size: $type-label;
+        font-weight: $weight-semi;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-secondary;
+    }
+}
+
+.devise-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: $type-body;
+    font-family: $body-font;
+    color: $text-primary;
+    background: $bg-inset;
+    border: 1px solid $border-accent;
+    border-radius: $radius-sm;
+    outline: none;
+    transition: border-color $t-fast $ease-out, box-shadow $t-fast $ease-out;
+
+    &::placeholder {
+        color: $text-tertiary;
+    }
+
+    &:focus {
+        border-color: var(--page-accent, $accent-red);
+        box-shadow: 0 0 0 3px rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    }
+}
+
+.devise-hint {
+    font-size: $type-label;
+    color: $text-tertiary;
+}
+
+.devise-required {
+    color: $accent-red;
+}
+
+.devise-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type="checkbox"] {
+        accent-color: var(--page-accent, $accent-red);
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    label {
+        font-size: $type-small;
+        color: $text-secondary;
+        cursor: pointer;
+        margin: 0;
+    }
+}
+
+.devise-actions {
+    margin-top: 4px;
+}
+
+.devise-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: $weight-bold;
+    font-family: $body-font;
+    border-radius: $radius-sm;
+    border: none;
+    cursor: pointer;
+    transition: all $t-fast $ease-out;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.devise-btn-primary {
+        width: 100%;
+        background: var(--page-accent, $accent-red);
+        color: $text-on-accent;
+        box-shadow: 0 2px 8px rgba(var(--page-accent-rgb, 225, 6, 0), 0.25);
+
+        &:hover {
+            box-shadow: 0 4px 16px rgba(var(--page-accent-rgb, 225, 6, 0), 0.4);
+            transform: translateY(-1px);
+        }
+    }
+
+    &.devise-btn-danger {
+        background: rgba($accent-red, 0.12);
+        color: $accent-red;
+        border: 1px solid rgba($accent-red, 0.3);
+
+        &:hover {
+            background: rgba($accent-red, 0.2);
+        }
+    }
+}
+
+.devise-links {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    a {
+        font-size: $type-small;
+        color: $text-tertiary;
+        transition: color $t-fast;
+
+        &:hover {
+            color: var(--page-accent, $accent-red);
+        }
+    }
+}
+
+.devise-errors {
+    background: rgba($accent-red, 0.08);
+    border: 1px solid rgba($accent-red, 0.2);
+    border-radius: $radius-sm;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+
+    p {
+        margin: 0;
+        padding: 4px 0;
+        font-size: $type-small;
+        color: $accent-red;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        i { font-size: 12px; }
+    }
+}
+
+.devise-danger-zone {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba($accent-red, 0.15);
+
+    h3 {
+        font-family: $headers-font;
+        font-size: 14px;
+        font-weight: $weight-bold;
+        color: $accent-red;
+        margin: 0 0 6px;
+    }
+
+    p {
+        font-size: $type-small;
+        color: $text-tertiary;
+        margin: 0 0 12px;
+    }
+}
+

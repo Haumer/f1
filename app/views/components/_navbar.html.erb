@@ -78,11 +78,25 @@
 
         <%= link_to "Elo", elo_path, class: ("active" if current_page?(elo_path)), role: "menuitem" %>
         <% if current_user %>
-            <%= link_to "Fantasy", new_fantasy_portfolio_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+            <% fantasy_path = current_user.fantasy_portfolio_for(current_season)&.then { |p| fantasy_portfolio_path(p) } || new_fantasy_portfolio_path %>
+            <%= link_to "Fantasy", fantasy_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+            <% if Setting.fantasy_stock_market? %>
+                <% stocks_path = current_user.fantasy_stock_portfolio_for(current_season)&.then { |p| fantasy_stock_portfolio_path(p) } || new_fantasy_stock_portfolio_path %>
+                <%= link_to "Stocks", stocks_path, class: ("active" if request.path.start_with?('/stocks')), role: "menuitem" %>
+            <% end %>
         <% end %>
         <% if current_user&.admin? %>
             <%= link_to admin_root_path, class: "admin-link", "aria-label": "Admin panel" do %>
                 <i class="fa-solid fa-lock"></i>
+            <% end %>
+        <% end %>
+        <% if current_user %>
+            <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link", role: "menuitem" do %>
+                <i class="fa-solid fa-right-from-bracket"></i> <span class="nav-auth-label">Sign Out</span>
+            <% end %>
+        <% else %>
+            <%= link_to new_user_session_path, class: "nav-auth-link", role: "menuitem" do %>
+                <i class="fa-solid fa-right-to-bracket"></i> <span class="nav-auth-label">Sign In</span>
             <% end %>
         <% end %>
     </div>

@@ -27,6 +27,12 @@ class PostRaceSyncJob < ApplicationJob
         Fantasy::CheckAchievements.new(portfolio: portfolio, race: latest_race).call
       end
       Rails.logger.info "[PostRaceSyncJob] Fantasy achievements checked"
+
+      # Settle stock market (dividends, borrow fees, margin calls, snapshots)
+      if Setting.fantasy_stock_market?
+        Fantasy::Stock::SettleRace.new(race: latest_race).call
+        Rails.logger.info "[PostRaceSyncJob] Stock market settled for race #{latest_race.id}"
+      end
     end
   end
 end

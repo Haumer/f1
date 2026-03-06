@@ -1,5 +1,6 @@
 class EloSimulateJob < ApplicationJob
   include Alertable
+  limits_concurrency to: 1, key: "elo_simulate"
 
   queue_as :default
 

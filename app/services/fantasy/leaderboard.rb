@@ -7,7 +7,7 @@ module Fantasy
     def call
       portfolios = FantasyPortfolio
         .where(season: @season)
-        .includes(:user, roster_entries: :driver)
+        .includes(:user, :snapshots, roster_entries: :driver)
         .to_a
 
       portfolios

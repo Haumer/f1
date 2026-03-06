@@ -15,7 +15,7 @@ gem 'devise'
 gem 'pundit'
 gem 'solid_queue'
 gem 'wikipedia-client'
-gem "rails_live_reload"
+gem "rails_live_reload", group: :development
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.0.8"

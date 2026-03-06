@@ -19,7 +19,7 @@ class FantasyPortfolio < ApplicationRecord
   end
 
   def portfolio_value
-    cash + active_roster_entries.includes(:driver).sum { |e| e.driver.elo_v2 || 0 }
+    cash + active_roster_entries.includes(:driver).sum { |e| Fantasy::Pricing.price_for(e.driver, season) }
   end
 
   def profit_loss
@@ -52,7 +52,10 @@ class FantasyPortfolio < ApplicationRecord
   end
 
   def team_cost
-    avg = Driver.where(active: true).average(:elo_v2) || 0
+    avg = Driver.where.not(elo_v2: nil)
+                .joins(:season_drivers)
+                .where(season_drivers: { season_id: season_id })
+                .average(:elo_v2) || 0
     avg.round(0)
   end
 
@@ -73,9 +76,13 @@ class FantasyPortfolio < ApplicationRecord
     entry = active_roster_entries.find_by(driver_id: driver.id)
     return 0 unless entry
 
-    bought_round = entry.bought_race&.round || 0
-    current_round = season.latest_race&.round || 0
-    current_round - bought_round
+    bought_race = entry.bought_race
+    return 0 unless bought_race
+
+    latest = season.latest_race
+    return 0 unless latest
+
+    latest.round - bought_race.round
   end
 
   def value_change_since_last_race

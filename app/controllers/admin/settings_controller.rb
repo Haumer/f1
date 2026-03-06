@@ -4,6 +4,7 @@ module Admin
       @elo_version = Setting.elo_version
       @simulated_date = Setting.get("simulated_date")
       @badge_min_year = Setting.badge_min_year
+      @fantasy_stock_market = Setting.fantasy_stock_market?
       latest_season = Season.sorted_by_year.first
       @race_dates = latest_season&.races&.sorted&.includes(:circuit)&.map { |r| { round: r.round, date: r.date, circuit: r.circuit.name } } || []
     end
@@ -25,6 +26,10 @@ module Admin
       elsif params[:badge_min_year].present?
         Setting.set("badge_min_year", params[:badge_min_year])
         redirect_to admin_settings_path, notice: "Badge minimum year set to #{params[:badge_min_year]}."
+      elsif params[:fantasy_stock_market].present?
+        value = params[:fantasy_stock_market] == "enabled" ? "enabled" : "disabled"
+        Setting.set("fantasy_stock_market", value)
+        redirect_to admin_settings_path, notice: "Fantasy Stock Market #{value}."
       else
         redirect_to admin_settings_path, alert: "No changes made."
       end

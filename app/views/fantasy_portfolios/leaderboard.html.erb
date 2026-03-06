@@ -1,6 +1,6 @@
 <div class="homepage-container">
-    <div class="fantasy-header">
-        <div>
+    <div class="fantasy-dashboard-header">
+        <div class="fantasy-dashboard-title">
             <h2>Fantasy Leaderboard</h2>
             <span class="fantasy-season"><%= @season.year %> Season</span>
         </div>
@@ -15,36 +15,66 @@
     </div>
 
     <% if @entries.any? %>
+        <%# Podium Top 3 %>
+        <% if @entries.size >= 3 %>
+            <div class="fantasy-podium">
+                <% [1, 0, 2].each do |i| %>
+                    <% entry = @entries[i] %>
+                    <% next unless entry %>
+                    <% portfolio = entry[:portfolio] %>
+                    <% is_me = portfolio.user_id == current_user.id %>
+                    <div class="fantasy-podium-card podium-p<%= i + 1 %> <%= 'is-me' if is_me %>">
+                        <span class="fantasy-podium-rank"><%= i + 1 %></span>
+                        <strong class="fantasy-podium-name">
+                            <%= portfolio.user.display_name %>
+                            <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                        </strong>
+                        <span class="fantasy-podium-value"><%= number_with_delimiter(entry[:value].round(0)) %></span>
+                        <div class="fantasy-podium-drivers">
+                            <% portfolio.roster_entries.select(&:active?).each do |re| %>
+                                <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-podium-driver" %>
+                            <% end %>
+                        </div>
+                        <% pl = entry[:value] - portfolio.starting_capital %>
+                        <span class="fantasy-podium-pl <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                            <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
+                        </span>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+
+        <%# Full Table %>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <table class="fantasy-leaderboard-table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th class="text-center">#</th>
                             <th>Player</th>
-                            <th>Drivers</th>
-                            <th>Portfolio Value</th>
-                            <th>P&L</th>
+                            <th>Roster</th>
+                            <th class="text-end">Value</th>
+                            <th class="text-end">P&L</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% @entries.each_with_index do |entry, idx| %>
                             <% portfolio = entry[:portfolio] %>
                             <% is_me = portfolio.user_id == current_user.id %>
-                            <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= 'podium-p1' if idx == 0 %> <%= 'podium-p2' if idx == 1 %> <%= 'podium-p3' if idx == 2 %>">
-                                <td class="position-cell"><%= idx + 1 %></td>
+                            <% pl = entry[:value] - portfolio.starting_capital %>
+                            <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
+                                <td class="text-center position-cell"><%= idx + 1 %></td>
                                 <td>
                                     <strong><%= portfolio.user.display_name %></strong>
                                     <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                 </td>
                                 <td>
-                                    <% portfolio.active_roster_entries.each do |re| %>
+                                    <% portfolio.roster_entries.select(&:active?).each do |re| %>
                                         <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
                                     <% end %>
                                 </td>
-                                <td class="fantasy-leaderboard-value"><%= entry[:value].round(0) %></td>
-                                <td>
-                                    <% pl = entry[:value] - portfolio.starting_capital %>
+                                <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(0)) %></td>
+                                <td class="text-end">
                                     <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
                                         <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
                                     </span>

@@ -77,6 +77,31 @@
 </div>
 
 <div class="admin-card">
+  <h3>Fantasy Stock Market</h3>
+  <p>Enable the stock market game mode where drivers are traded as stocks with dividends and short selling.</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
+    <div class="admin-radio-group">
+      <label class="admin-radio <%= 'selected' unless @fantasy_stock_market %>">
+        <input type="radio" name="fantasy_stock_market" value="disabled" <%= 'checked' unless @fantasy_stock_market %>>
+        <div>
+          <strong>Disabled</strong>
+          <span class="admin-radio-desc">Stock market hidden from users</span>
+        </div>
+      </label>
+      <label class="admin-radio <%= 'selected' if @fantasy_stock_market %>">
+        <input type="radio" name="fantasy_stock_market" value="enabled" <%= 'checked' if @fantasy_stock_market %>>
+        <div>
+          <strong>Enabled</strong>
+          <span class="admin-radio-desc">Users can create stock portfolios and trade driver shares</span>
+        </div>
+      </label>
+    </div>
+    <button type="submit" class="admin-btn">Save</button>
+  <% end %>
+</div>
+
+<div class="admin-card">
   <h3>V2 Parameters</h3>
   <table class="admin-params-table">
     <tbody>

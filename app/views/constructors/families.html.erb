@@ -17,7 +17,7 @@
                             <% ref = info[:chain][i] %>
                             <% constructor = @constructors_by_ref[ref] %>
                             <div class="lineage-step">
-                                <div class="lineage-dot" style="background: <%= Constructor::COLORS[ref.to_sym] || Constructor::COLORS[ref.tr('-', '_').to_sym] || '#999' %>;"></div>
+                                <div class="lineage-dot" style="background: <%= ref ? (Constructor::COLORS[ref.to_sym] || Constructor::COLORS[ref.tr('-', '_').to_sym] || '#999') : '#999' %>;"></div>
                                 <div class="lineage-step-content">
                                     <% if constructor %>
                                         <%= link_to constructor.name, constructor_path(constructor), class: "lineage-team-name" %>
@@ -46,7 +46,8 @@
                     <div class="family-members">
                         <% constructors.each do |constructor| %>
                             <%= link_to constructor_path(constructor), class: "family-member" do %>
-                                <span class="family-member-dot" style="background: <%= Constructor::COLORS[constructor.constructor_ref.to_sym] || Constructor::COLORS[constructor.constructor_ref.tr('-', '_').to_sym] || '#999' %>;"></span>
+                                <% cref = constructor.constructor_ref %>
+                                <span class="family-member-dot" style="background: <%= cref ? (Constructor::COLORS[cref.to_sym] || Constructor::COLORS[cref.tr('-', '_').to_sym] || '#999') : '#999' %>;"></span>
                                 <span class="family-member-name"><%= constructor.name %></span>
                             <% end %>
                         <% end %>

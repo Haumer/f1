@@ -87,11 +87,19 @@ class UpdateRaceResult
                 DriverCountry.find_or_create_by(driver: driver, country: country)
             end
 
-            RaceResult.find_or_create_by(
+            status = all_statuses[race_result['status']]
+            unless status
+                puts "Unknown status '#{race_result['status']}' for driver #{driver.driver_ref} in race #{@race.id}, skipping"
+                next
+            end
+
+            result = RaceResult.find_or_initialize_by(
                 driver: driver,
-                race: @race,
+                race: @race
+            )
+            result.update!(
                 constructor: constructor,
-                status: all_statuses[race_result['status']],
+                status: status,
                 position: race_result['position'],
                 position_order: race_result['positionOrder'] || race_result['position'],
                 points: race_result['points'],
@@ -104,6 +112,7 @@ class UpdateRaceResult
                 grid: race_result['grid'],
                 number: race_result['number'],
             )
+            result
         end
     end
 

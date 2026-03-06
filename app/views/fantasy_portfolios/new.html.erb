@@ -1,51 +1,47 @@
 <div class="homepage-container">
-    <div class="hero-intro">
-        <h1>Fantasy F1</h1>
-        <p class="subtitle">Build your dream roster. Buy drivers at their Elo rating, track their performance, and grow your portfolio.</p>
+    <div class="page-hero fantasy-hero">
+        <div class="page-hero-bg"></div>
+        <div class="hero-glow"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Fantasy F1</span>
+            <h1 class="page-hero-title">Build Your Grid</h1>
+            <p class="page-hero-meta">Buy drivers at their Elo rating. Track performance. Grow your portfolio.</p>
+        </div>
     </div>
 
-    <div class="card fantasy-create-card">
-        <div class="fantasy-create-header">
-            <h3><%= @season.year %> Season</h3>
-            <span class="fantasy-capital-preview">
-                Starting Capital: <strong><%= @starting_capital %></strong>
-            </span>
+    <div class="fantasy-onboard">
+        <div class="fantasy-onboard-capital">
+            <span class="fantasy-onboard-capital-label"><%= @season.year %> Season</span>
+            <span class="fantasy-onboard-capital-value"><%= number_with_delimiter(@starting_capital) %></span>
+            <span class="fantasy-onboard-capital-sub">Starting Capital</span>
         </div>
 
-        <div class="fantasy-rules">
-            <div class="fantasy-rule">
-                <i class="fa-solid fa-users"></i>
-                <div>
-                    <strong>Start with <%= FantasyPortfolio::STARTING_SLOTS %> Driver Seats</strong>
-                    <span>Buy additional teams to expand — up to <%= FantasyPortfolio::MAX_ROSTER_SIZE %> seats</span>
-                </div>
+        <div class="fantasy-rules-grid">
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-users"></i></div>
+                <strong><%= FantasyPortfolio::STARTING_SLOTS %> Driver Seats</strong>
+                <span>Buy additional teams to expand up to <%= FantasyPortfolio::MAX_ROSTER_SIZE %> seats</span>
             </div>
-            <div class="fantasy-rule">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                <div>
-                    <strong>1 Swap Per Team</strong>
-                    <span>Each team you own grants 1 swap per race weekend</span>
-                </div>
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                <strong>1 Swap Per Team</strong>
+                <span>Each team grants 1 swap per race weekend</span>
             </div>
-            <div class="fantasy-rule">
-                <i class="fa-solid fa-percent"></i>
-                <div>
-                    <strong><%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>% Sell Fee</strong>
-                    <span>A small fee applies when selling a driver</span>
-                </div>
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-percent"></i></div>
+                <strong><%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>% Sell Fee</strong>
+                <span>A small fee applies when selling a driver</span>
             </div>
-            <div class="fantasy-rule">
-                <i class="fa-solid fa-chart-line"></i>
-                <div>
-                    <strong>Portfolio Value</strong>
-                    <span>Your score = cash + current Elo of your drivers</span>
-                </div>
+            <div class="fantasy-rule-card">
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <strong>Portfolio Value</strong>
+                <span>Cash + current Elo of your drivers</span>
             </div>
         </div>
 
         <%= form_with url: fantasy_portfolios_path, method: :post, local: true do %>
             <%= hidden_field_tag :season_id, @season.id %>
-            <%= submit_tag "Start Fantasy Season", class: "fantasy-btn fantasy-btn-primary" %>
+            <%= submit_tag "Start #{@season.year} Fantasy Season", class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" %>
         <% end %>
     </div>
 </div>

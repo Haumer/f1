@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_05_194643) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -297,6 +297,66 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_05_194643) do
     t.index ["race_id"], name: "index_fantasy_snapshots_on_race_id"
   end
 
+  create_table "fantasy_stock_holdings", force: :cascade do |t|
+    t.bigint "fantasy_stock_portfolio_id", null: false
+    t.bigint "driver_id", null: false
+    t.integer "quantity", default: 1, null: false
+    t.string "direction", null: false
+    t.float "entry_price", null: false
+    t.float "collateral", default: 0.0
+    t.bigint "opened_race_id", null: false
+    t.bigint "closed_race_id"
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["closed_race_id"], name: "index_fantasy_stock_holdings_on_closed_race_id"
+    t.index ["driver_id"], name: "index_fantasy_stock_holdings_on_driver_id"
+    t.index ["fantasy_stock_portfolio_id", "driver_id", "direction", "active"], name: "idx_stock_holdings_portfolio_driver_dir_active"
+    t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_holdings_on_fantasy_stock_portfolio_id"
+    t.index ["opened_race_id"], name: "index_fantasy_stock_holdings_on_opened_race_id"
+  end
+
+  create_table "fantasy_stock_portfolios", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "season_id", null: false
+    t.float "cash", default: 0.0, null: false
+    t.float "starting_capital", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["season_id"], name: "index_fantasy_stock_portfolios_on_season_id"
+    t.index ["user_id", "season_id"], name: "index_fantasy_stock_portfolios_on_user_id_and_season_id", unique: true
+    t.index ["user_id"], name: "index_fantasy_stock_portfolios_on_user_id"
+  end
+
+  create_table "fantasy_stock_snapshots", force: :cascade do |t|
+    t.bigint "fantasy_stock_portfolio_id", null: false
+    t.bigint "race_id", null: false
+    t.float "value"
+    t.float "cash"
+    t.integer "rank"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fantasy_stock_portfolio_id", "race_id"], name: "idx_stock_snapshots_portfolio_race", unique: true
+    t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_snapshots_on_fantasy_stock_portfolio_id"
+    t.index ["race_id"], name: "index_fantasy_stock_snapshots_on_race_id"
+  end
+
+  create_table "fantasy_stock_transactions", force: :cascade do |t|
+    t.bigint "fantasy_stock_portfolio_id", null: false
+    t.bigint "driver_id"
+    t.bigint "race_id"
+    t.string "kind", null: false
+    t.integer "quantity"
+    t.float "price"
+    t.float "amount", null: false
+    t.string "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["driver_id"], name: "index_fantasy_stock_transactions_on_driver_id"
+    t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_transactions_on_fantasy_stock_portfolio_id"
+    t.index ["race_id"], name: "index_fantasy_stock_transactions_on_race_id"
+  end
+
   create_table "fantasy_transactions", force: :cascade do |t|
     t.bigint "fantasy_portfolio_id", null: false
     t.string "kind", null: false
@@ -347,10 +407,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_05_194643) do
     t.float "old_constructor_elo_v2"
     t.float "new_constructor_elo_v2"
     t.index ["constructor_id"], name: "index_race_results_on_constructor_id"
-    t.index ["driver_id", "race_id"], name: "index_race_results_on_driver_id_and_race_id"
     t.index ["driver_id"], name: "index_race_results_on_driver_id"
     t.index ["position_order"], name: "index_race_results_on_position_order"
-    t.index ["race_id", "driver_id"], name: "index_race_results_on_race_id_and_driver_id"
+    t.index ["race_id", "driver_id"], name: "index_race_results_on_race_id_and_driver_id", unique: true
     t.index ["race_id"], name: "index_race_results_on_race_id"
     t.index ["status_id"], name: "index_race_results_on_status_id"
   end
@@ -548,6 +607,17 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_05_194643) do
   add_foreign_key "fantasy_roster_entries", "races", column: "sold_race_id"
   add_foreign_key "fantasy_snapshots", "fantasy_portfolios"
   add_foreign_key "fantasy_snapshots", "races"
+  add_foreign_key "fantasy_stock_holdings", "drivers"
+  add_foreign_key "fantasy_stock_holdings", "fantasy_stock_portfolios"
+  add_foreign_key "fantasy_stock_holdings", "races", column: "closed_race_id"
+  add_foreign_key "fantasy_stock_holdings", "races", column: "opened_race_id"
+  add_foreign_key "fantasy_stock_portfolios", "seasons"
+  add_foreign_key "fantasy_stock_portfolios", "users"
+  add_foreign_key "fantasy_stock_snapshots", "fantasy_stock_portfolios"
+  add_foreign_key "fantasy_stock_snapshots", "races"
+  add_foreign_key "fantasy_stock_transactions", "drivers"
+  add_foreign_key "fantasy_stock_transactions", "fantasy_stock_portfolios"
+  add_foreign_key "fantasy_stock_transactions", "races"
   add_foreign_key "fantasy_transactions", "drivers"
   add_foreign_key "fantasy_transactions", "fantasy_portfolios"
   add_foreign_key "fantasy_transactions", "races"

@@ -38,7 +38,7 @@
                                     <% end %>
                                 </td>
                                 <td class="icon-cell">
-                                    <% constructor = driver.current_constructor || driver.season_drivers.last&.constructor %>
+                                    <% constructor = driver.current_constructor || driver.season_drivers.sort_by { |sd| -(sd.season&.year.to_i) }.first&.constructor %>
                                     <% if constructor&.logo_url.present? %>
                                         <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
                                     <% end %>

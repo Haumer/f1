@@ -1,33 +1,32 @@
-<div class="session-timeline">
+<div class="session-timeline" style="grid-template-columns: repeat(<%= sessions.length %>, 1fr)">
+    <%# Row 1: Dots with connector lines %>
     <% sessions.each_with_index do |session, idx| %>
-        <div class="session-item session-<%= session[:status] %>">
-            <div class="session-dot-row">
-                <% if idx > 0 %>
-                    <div class="session-connector session-connector-before">
-                        <div class="session-connector-fill" style="width: <%= session[:connector_before_fill] %>%"></div>
-                    </div>
-                <% end %>
-                <div class="session-status-dot"></div>
-                <% if idx < sessions.length - 1 %>
-                    <div class="session-connector session-connector-after">
-                        <div class="session-connector-fill" style="width: <%= session[:connector_after_fill] %>%"></div>
-                    </div>
-                <% end %>
-            </div>
-            <div class="session-info">
-                <span class="session-name"><%= session[:name] %></span>
-                <span class="session-date"><%= session[:date].strftime("%a") %></span>
-                <% if session[:starts_at] %>
-                    <span class="session-time"><%= session[:starts_at].strftime("%H:%M") %></span>
-                <% end %>
-            </div>
-            <div class="session-badge">
-                <% if session[:status] == :done %>
-                    <span class="badge-done"><i class="fa-solid fa-check"></i></span>
-                <% elsif session[:status] == :today %>
-                    <span class="badge-today"><i class="fa-solid fa-circle"></i> Today</span>
-                <% end %>
-            </div>
+        <% is_last = idx == sessions.length - 1 %>
+        <% next_fill = is_last ? 0 : sessions[idx + 1][:connector_before_fill] %>
+        <% connector_done = next_fill == 100 %>
+        <div class="session-track-dot" style="grid-column: <%= idx + 1 %>; grid-row: 1">
+            <div class="session-dot session-dot-<%= session[:status] %>"></div>
+            <% unless is_last %>
+                <div class="session-connector-line<%= ' session-connector-done' if connector_done %>">
+                    <div class="session-connector-fill" style="width: <%= next_fill %>%"></div>
+                </div>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# Row 2: Labels %>
+    <% sessions.each_with_index do |session, idx| %>
+        <div class="session-label-item session-<%= session[:status] %>" style="grid-column: <%= idx + 1 %>; grid-row: 2">
+            <span class="session-name"><%= session[:name] %></span>
+            <span class="session-date"><%= session[:date].strftime("%a") %></span>
+            <% if session[:starts_at] %>
+                <span class="session-time"><%= session[:starts_at].strftime("%H:%M") %></span>
+            <% end %>
+            <% if session[:status] == :done %>
+                <span class="badge-done"><i class="fa-solid fa-check"></i></span>
+            <% elsif session[:status] == :today %>
+                <span class="badge-today"><i class="fa-solid fa-circle"></i> Now</span>
+            <% end %>
         </div>
     <% end %>
 </div>

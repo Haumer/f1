@@ -13,6 +13,10 @@ class FantasyPortfolioPolicy < ApplicationPolicy
     owner?
   end
 
+  def buy_multiple?
+    owner?
+  end
+
   def sell?
     owner?
   end

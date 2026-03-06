@@ -43,6 +43,10 @@ class Setting < ApplicationRecord
         get("badge_min_year", "1996").to_i
     end
 
+    def self.fantasy_stock_market?
+        get("fantasy_stock_market", "disabled") == "enabled"
+    end
+
     def self.simulated_date
         val = get("simulated_date")
         Date.parse(val) if val.present?

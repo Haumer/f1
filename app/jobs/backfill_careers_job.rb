@@ -1,5 +1,6 @@
 class BackfillCareersJob < ApplicationJob
   include Alertable
+  limits_concurrency to: 1, key: "backfill_careers"
 
   queue_as :default
 

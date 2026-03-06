@@ -51,8 +51,22 @@ Rails.application.routes.draw do
     member do
       get :market
       post :buy
+      post :buy_multiple
       post :sell
       post :buy_team
+    end
+    collection do
+      get :leaderboard
+    end
+  end
+
+  resources :fantasy_stock_portfolios, path: 'stocks', only: [:new, :create, :show] do
+    member do
+      get :market
+      post :buy
+      post :sell
+      post :short_open
+      post :short_close
     end
     collection do
       get :leaderboard

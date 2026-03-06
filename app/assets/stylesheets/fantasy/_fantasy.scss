@@ -1,14 +1,16 @@
 // Fantasy F1 Styles
 
-// Header
-.fantasy-header {
+// Dashboard header
+.fantasy-dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: $space-lg;
     flex-wrap: wrap;
     gap: 12px;
+}
 
+.fantasy-dashboard-title {
     h2 {
         margin: 0;
         font-weight: $weight-bold;
@@ -37,71 +39,215 @@
     font-weight: 700;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all $t-fast;
     text-decoration: none;
 
     &-primary {
-        background: $accent-red;
+        background: var(--page-accent, $accent-red);
         color: white;
-        border-color: $accent-red;
+        border-color: var(--page-accent, $accent-red);
         &:hover { opacity: 0.85; color: white; }
     }
 
     &-outline {
         background: transparent;
         color: $text-primary;
-        border-color: $border-color;
-        &:hover { border-color: $accent-red; color: $accent-red; }
+        border-color: $border-accent;
+        &:hover { border-color: var(--page-accent, $accent-red); color: var(--page-accent, $accent-red); }
     }
 
     &-danger {
         background: transparent;
         color: $accent-red;
-        border-color: $accent-red;
+        border-color: rgba($accent-red, 0.3);
         font-size: 12px;
         padding: 4px 12px;
         &:hover { background: $accent-red; color: white; }
     }
 
-    &-sm {
-        padding: 4px 12px;
-        font-size: 12px;
-    }
+    &-sm { padding: 4px 12px; font-size: 12px; }
+    &-lg { padding: 12px 28px; font-size: 15px; }
 }
 
-// Stats row
-.fantasy-stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
+// ═══════════════════════════════════════
+// ONBOARDING / NEW PAGE
+// ═══════════════════════════════════════
 
-    @media (max-width: 768px) {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.fantasy-hero {
+    position: relative;
+    .page-hero-bg { background: linear-gradient(135deg, rgba(var(--page-accent-rgb, 225, 6, 0), 0.15), transparent 60%); }
 }
 
-.fantasy-stat-card {
+.fantasy-onboard {
+    max-width: 640px;
+    margin: 0 auto;
     text-align: center;
-    padding: 16px;
 }
 
-.fantasy-stat-label {
-    display: block;
+.fantasy-onboard-capital {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: $space-xl;
+    padding: $space-lg;
+}
+
+.fantasy-onboard-capital-label {
     font-size: $type-label;
     text-transform: uppercase;
     letter-spacing: $ls-label;
     color: $text-tertiary;
-    margin-bottom: 4px;
+    margin-bottom: $space-xs;
 }
 
-.fantasy-stat-value {
+.fantasy-onboard-capital-value {
     font-family: $mono-font;
-    font-size: $type-h2;
+    font-size: 48px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    letter-spacing: -1px;
+}
+
+.fantasy-onboard-capital-sub {
+    font-size: $type-body;
+    color: $text-secondary;
+    margin-top: $space-xs;
+}
+
+.fantasy-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-md;
+    margin-bottom: $space-xl;
+    text-align: left;
+
+    @media (max-width: 500px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-rule-card {
+    padding: $space-md;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    span {
+        font-size: 12px;
+        color: $text-secondary;
+    }
+}
+
+.fantasy-rule-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    color: var(--page-accent, $accent-red);
+    font-size: 14px;
+    margin-bottom: $space-sm;
+}
+
+// ═══════════════════════════════════════
+// PORTFOLIO VALUE HERO
+// ═══════════════════════════════════════
+
+.fantasy-value-hero {
+    display: flex;
+    align-items: center;
+    gap: $space-xl;
+    padding: $space-lg;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+    margin-bottom: $space-lg;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $space-md;
+    }
+}
+
+.fantasy-value-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+}
+
+.fantasy-value-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+}
+
+.fantasy-value-number {
+    font-family: $mono-font;
+    font-size: 36px;
+    font-weight: $weight-bold;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+.fantasy-value-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+    i { font-size: 10px; }
+}
+
+.fantasy-value-details {
+    display: flex;
+    gap: $space-lg;
+    flex-wrap: wrap;
+    margin-left: auto;
+
+    @media (max-width: 768px) {
+        margin-left: 0;
+    }
+}
+
+.fantasy-detail {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    min-width: 64px;
+}
+
+.detail-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-family: $mono-font;
+    font-size: $type-h3;
     font-weight: $weight-bold;
 }
 
-// Transfer window indicator
+// ═══════════════════════════════════════
+// TRANSFER WINDOW
+// ═══════════════════════════════════════
+
 .fantasy-transfer-status {
     display: flex;
     align-items: center;
@@ -110,52 +256,63 @@
     border-radius: $radius-sm;
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 24px;
+    margin-bottom: $space-lg;
 
     &.open {
-        background: rgba($green, 0.08);
+        background: rgba($green, 0.06);
         color: $green;
-        border: 1px solid rgba($green, 0.2);
+        border: 1px solid rgba($green, 0.15);
     }
 
     &.closed {
-        background: rgba($accent-red, 0.08);
+        background: rgba($accent-red, 0.06);
         color: $accent-red;
-        border: 1px solid rgba($accent-red, 0.2);
+        border: 1px solid rgba($accent-red, 0.15);
     }
 }
 
-// Roster grid
+.fantasy-swaps-remaining {
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+// ═══════════════════════════════════════
+// ROSTER GRID
+// ═══════════════════════════════════════
+
 .fantasy-roster-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: $space-lg;
 }
 
 .fantasy-driver-card {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    border-left: 3px solid var(--constructor-color, $border-color);
+    transition: border-color $t-fast;
+}
+
+.fantasy-driver-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $space-sm;
 }
 
 .fantasy-driver-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 
     h4 {
         margin: 0;
         font-size: 15px;
-        a { color: $text-primary; &:hover { color: $accent-red; } }
+        a { color: $text-primary; &:hover { color: var(--page-accent, $accent-red); } }
     }
-}
-
-.fantasy-driver-img {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
 }
 
 .fantasy-driver-constructor {
@@ -166,7 +323,7 @@
 
 .fantasy-driver-stats {
     display: flex;
-    gap: 16px;
+    gap: $space-md;
     flex-wrap: wrap;
 }
 
@@ -186,82 +343,183 @@
     }
 }
 
-.fantasy-sell-form {
+.fantasy-driver-actions {
     margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid $border-subtle;
 }
 
-// Market grid
-.fantasy-market-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 12px;
+// Empty roster slot
+.fantasy-empty-slot {
+    border: 1px dashed $border-accent;
+    background: transparent;
+    min-height: 120px;
 }
 
-.fantasy-market-card {
+.fantasy-empty-slot-content {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    transition: border-color 0.15s;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: $space-sm;
+    color: $text-tertiary;
+
+    i { font-size: 24px; }
+}
+
+.fantasy-empty-slot-link {
+    font-size: 13px;
+    color: $text-secondary;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
+// ═══════════════════════════════════════
+// MARKET TABLE
+// ═══════════════════════════════════════
+
+// ═══════════════════════════════════════
+// MARKET LAYOUT (table + sticky sidebar)
+// ═══════════════════════════════════════
+
+.fantasy-market-layout {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: $space-lg;
+    align-items: start;
+
+    @media (max-width: 860px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-market-main {
+    min-width: 0;
+}
+
+.fantasy-market-sidebar {
+    position: sticky;
+    top: 80px; // below navbar
+
+    @media (max-width: 860px) {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        z-index: 100;
+        padding: 0 $space-md $space-md;
+    }
+}
+
+// Market table
+.fantasy-market-table {
+    width: 100%;
+
+    th {
+        font-size: $type-label;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
+        font-weight: $weight-semi;
+    }
+}
+
+.fantasy-market-row {
+    border-left: 3px solid transparent;
+    transition: background $t-fast;
+
+    &:hover { background: rgba(255, 255, 255, 0.02); }
 
     &.on-roster {
-        border-color: $green;
+        border-left-color: $green;
         background: rgba($green, 0.03);
     }
 
-    &:hover { border-color: $accent-red; }
+    &.in-cart {
+        border-left-color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+
+        .fantasy-market-add-btn {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    }
 }
 
-.fantasy-market-driver {
+.fantasy-market-driver-cell {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.fantasy-market-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
+.fantasy-market-color-pip {
+    width: 3px;
+    height: 24px;
+    border-radius: 2px;
+    flex-shrink: 0;
 }
 
-.fantasy-market-info {
-    h4 {
-        margin: 0;
-        font-size: 14px;
-        a { color: $text-primary; &:hover { color: $accent-red; } }
+.fantasy-market-driver-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.fantasy-market-driver-name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    font-size: 14px;
+
+    img { flex-shrink: 0; }
+    a {
+        color: $text-primary;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &:hover { color: var(--page-accent, $accent-red); }
     }
 }
 
-.fantasy-market-constructor {
+.fantasy-market-team-name {
     font-size: 11px;
-    color: $text-secondary;
-    display: block;
+    color: $text-tertiary;
 }
 
-.fantasy-market-flag {
-    margin-left: auto;
-}
-
-.fantasy-market-price {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-top: 1px solid $border-color;
-    border-bottom: 1px solid $border-color;
-}
-
-.fantasy-price-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: $text-secondary;
-}
-
-.fantasy-price-value {
+.fantasy-market-price-cell {
     font-family: $mono-font;
-    font-size: 16px;
     font-weight: $weight-bold;
+    font-size: 14px;
+}
+
+// Compact add button — just a + icon
+.fantasy-market-add-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    border: 1px solid $border-accent;
+    background: transparent;
+    color: $text-secondary;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all $t-fast;
+
+    &:hover {
+        border-color: var(--page-accent, $accent-red);
+        color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
+    }
+
+    &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        &:hover { border-color: $border-accent; color: $text-secondary; background: transparent; }
+    }
 }
 
 .fantasy-market-actions {
@@ -270,18 +528,289 @@
 }
 
 .fantasy-badge-on-roster {
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
     color: $green;
-    i { margin-right: 4px; }
 }
 
 .fantasy-badge-cant-afford {
+    font-size: 11px;
+    color: $text-tertiary;
+}
+
+// Elo trend (shared between market rows)
+.fantasy-elo-trend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fantasy-elo-trend-dots {
+    display: flex;
+    gap: 2px;
+}
+
+.fantasy-elo-dot {
+    font-size: 11px;
+    line-height: 1;
+
+    &.up { color: $green; }
+    &.down { color: $accent-red; }
+    &.flat { color: $text-tertiary; }
+}
+
+.fantasy-elo-trend-net {
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-bold;
+
+    &.up { color: $green !important; }
+    &.down { color: $accent-red !important; }
+    &.flat { color: $text-tertiary !important; }
+}
+
+
+// ═══════════════════════════════════════
+// SHOPPING CART PANEL
+// ═══════════════════════════════════════
+
+.fantasy-cart-panel {
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+    padding: $space-md;
+    margin-bottom: $space-lg;
+}
+
+.fantasy-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-md;
+}
+
+.fantasy-cart-header-left {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    font-size: 14px;
+
+    i { color: var(--page-accent, $accent-red); }
+}
+
+.fantasy-cart-badge {
+    font-size: 11px;
+    font-weight: $weight-bold;
+    background: $bg-surface;
+    color: $text-secondary;
+    padding: 1px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.fantasy-cart-clear {
+    background: none;
+    border: none;
+    color: $text-tertiary;
     font-size: 12px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: all $t-fast;
+
+    &:hover { color: $accent-red; background: rgba($accent-red, 0.06); }
+}
+
+// Empty state
+.fantasy-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: $space-md 0;
+    gap: $space-xs;
+
+    > i {
+        font-size: 20px;
+        color: $text-tertiary;
+        margin-bottom: $space-xs;
+    }
+
+    > span:first-of-type {
+        font-size: 13px;
+        color: $text-secondary;
+    }
+}
+
+.fantasy-cart-empty-meta {
+    font-size: 11px;
+    color: $text-tertiary;
+}
+
+// Filled state
+.fantasy-cart-filled {
+    display: flex;
+    flex-direction: column;
+    gap: $space-sm;
+}
+
+.fantasy-cart-item {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: 8px 12px;
+    background: $bg-surface;
+    border-radius: $radius-sm;
+    font-size: 13px;
+}
+
+.fantasy-cart-item-name {
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fantasy-cart-item-price {
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
     color: $text-secondary;
 }
 
-// Transactions table
+.fantasy-cart-remove {
+    background: none;
+    border: none;
+    color: $text-tertiary;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    line-height: 1;
+    border-radius: 3px;
+    transition: all $t-fast;
+
+    &:hover { color: $accent-red; background: rgba($accent-red, 0.06); }
+}
+
+.fantasy-cart-summary {
+    border-top: 1px solid $border-color;
+    padding-top: $space-sm;
+}
+
+.fantasy-cart-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 3px 0;
+
+    span:first-child { color: $text-secondary; }
+}
+
+.fantasy-cart-row-value {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+}
+
+.fantasy-cart-confirm {
+    width: 100%;
+    justify-content: center;
+    margin-top: $space-xs;
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+}
+
+// Reason badge shown on cards that become unaffordable
+.fantasy-cart-reason {
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-tertiary;
+    padding: 2px 8px;
+    background: $bg-surface;
+    border-radius: 3px;
+}
+
+// Cash display at bottom of cart
+.fantasy-cart-cash-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: $space-md;
+    padding-top: $space-sm;
+    border-top: 1px solid $border-color;
+    font-size: 12px;
+    color: $text-tertiary;
+}
+
+.fantasy-cart-cash-value {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    font-size: 14px;
+    color: $text-primary;
+}
+
+// Remaining row emphasis
+.fantasy-cart-row-remaining {
+    .fantasy-cart-row-value {
+        font-size: 14px;
+    }
+}
+
+// ═══════════════════════════════════════
+// BUY TEAM CARD
+// ═══════════════════════════════════════
+
+.fantasy-buy-team-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: $space-lg;
+    flex-wrap: wrap;
+}
+
+.fantasy-buy-team-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+
+    > i {
+        color: var(--page-accent, $accent-red);
+        font-size: 20px;
+        margin-top: 2px;
+    }
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    > div > span {
+        font-size: 13px;
+        color: $text-secondary;
+        strong { display: inline; color: $text-primary; }
+    }
+}
+
+// ═══════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════
+
+.fantasy-chart-card {
+    padding: 16px;
+    margin-bottom: $space-lg;
+}
+
+// ═══════════════════════════════════════
+// TRANSACTIONS TABLE
+// ═══════════════════════════════════════
+
 .fantasy-transactions-table {
     width: 100%;
 
@@ -312,7 +841,133 @@
     }
 }
 
-// Leaderboard
+// ═══════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════
+
+// Podium cards
+.fantasy-podium {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: $space-md;
+    margin-bottom: $space-xl;
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.fantasy-podium-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: $space-lg $space-md;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+    flex: 1;
+    max-width: 220px;
+    transition: border-color $t-fast;
+
+    &.podium-p1 {
+        border-color: rgba($gold, 0.3);
+        order: 2;
+        padding-top: $space-xl;
+        padding-bottom: $space-xl;
+
+        .fantasy-podium-rank {
+            background: rgba($gold, 0.15);
+            color: $gold;
+        }
+    }
+
+    &.podium-p2 {
+        border-color: rgba($silver, 0.2);
+        order: 1;
+
+        .fantasy-podium-rank {
+            background: rgba($silver, 0.12);
+            color: $silver;
+        }
+    }
+
+    &.podium-p3 {
+        border-color: rgba($bronze, 0.2);
+        order: 3;
+
+        .fantasy-podium-rank {
+            background: rgba($bronze, 0.12);
+            color: $bronze;
+        }
+    }
+
+    &.is-me {
+        box-shadow: 0 0 0 1px rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+    }
+
+    @media (max-width: 640px) {
+        max-width: none;
+        order: unset !important;
+        flex-direction: row;
+        text-align: left;
+        gap: $space-md;
+        padding: $space-md;
+    }
+}
+
+.fantasy-podium-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: $weight-bold;
+    font-size: 16px;
+    margin-bottom: $space-sm;
+
+    @media (max-width: 640px) { margin-bottom: 0; }
+}
+
+.fantasy-podium-name {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.fantasy-podium-value {
+    font-family: $mono-font;
+    font-size: $type-h3;
+    font-weight: $weight-bold;
+    margin-bottom: $space-sm;
+}
+
+.fantasy-podium-drivers {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.fantasy-podium-driver {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    background: $bg-surface;
+    border-radius: 3px;
+    color: $text-secondary;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
+.fantasy-podium-pl {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+// Table
 .fantasy-leaderboard-table {
     width: 100%;
 
@@ -332,15 +987,15 @@
 }
 
 .fantasy-leaderboard-me {
-    background: rgba($accent-red, 0.04);
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
 }
 
 .fantasy-you-badge {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    color: $accent-red;
-    background: rgba($accent-red, 0.1);
+    color: var(--page-accent, $accent-red);
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
     padding: 1px 6px;
     border-radius: 3px;
     margin-left: 6px;
@@ -350,7 +1005,7 @@
     font-size: 12px;
     color: $text-secondary;
     margin-right: 8px;
-    &:hover { color: $accent-red; }
+    &:hover { color: var(--page-accent, $accent-red); }
 }
 
 .fantasy-leaderboard-value {
@@ -358,131 +1013,15 @@
     font-weight: $weight-bold;
 }
 
-// Create page
-.fantasy-create-card {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.fantasy-create-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    h3 { margin: 0; font-weight: $weight-bold; }
-}
-
-.fantasy-capital-preview {
-    font-size: 14px;
-    color: $text-secondary;
-    strong {
-        font-weight: $weight-bold;
-        color: $text-primary;
-    }
-}
-
-.fantasy-rules {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.fantasy-rule {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-
-    i {
-        color: $accent-red;
-        font-size: 16px;
-        margin-top: 2px;
-        width: 20px;
-        text-align: center;
-    }
-
-    strong {
-        display: block;
-        font-size: 14px;
-        margin-bottom: 2px;
-    }
-
-    span {
-        font-size: 13px;
-        color: $text-secondary;
-    }
-}
-
-// Value delta on stat card
-.fantasy-stat-delta {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    margin-top: 4px;
-    i { margin-right: 2px; }
-}
-
-.fantasy-stat-sub {
-    display: block;
-    font-size: 11px;
-    color: $text-secondary;
-    margin-top: 4px;
-}
-
-// Buy team card
-.fantasy-buy-team-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
-
-.fantasy-buy-team-info {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    flex: 1;
-
-    > i {
-        color: $accent-red;
-        font-size: 20px;
-        margin-top: 2px;
-    }
-
-    strong {
-        display: block;
-        font-size: 14px;
-        margin-bottom: 2px;
-    }
-
-    > div > span {
-        font-size: 13px;
-        color: $text-secondary;
-        strong { display: inline; color: $text-primary; }
-    }
-}
-
-// Chart card
-.fantasy-chart-card {
-    padding: 16px;
-    margin-bottom: 24px;
-}
-
-// Achievements
-.fantasy-achievement-count {
-    font-size: 13px;
-    font-weight: 400;
-    color: $text-secondary;
-    margin-left: 6px;
-}
+// ═══════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════
 
 .fantasy-achievements-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 8px;
-    margin-bottom: 24px;
+    margin-bottom: $space-lg;
 }
 
 .fantasy-achievement-card {
@@ -493,7 +1032,7 @@
     border-radius: $radius-sm;
     border: 1px solid $border-color;
     background: $bg-card;
-    transition: border-color 0.15s;
+    transition: border-color $t-fast;
 
     &.locked {
         opacity: 0.35;
@@ -501,10 +1040,9 @@
 
     &.earned {
         opacity: 1;
-
-        &.tier-bronze { border-color: $bronze; }
-        &.tier-silver { border-color: $silver; }
-        &.tier-gold   { border-color: $gold; }
+        &.tier-bronze { border-color: rgba($bronze, 0.4); }
+        &.tier-silver { border-color: rgba($silver, 0.4); }
+        &.tier-gold   { border-color: rgba($gold, 0.4); }
     }
 }
 
@@ -554,16 +1092,19 @@
     &.tier-gold   { background: rgba($gold, 0.12); color: $gold; }
 }
 
-// Mini portfolio card (homepage)
+// ═══════════════════════════════════════
+// MINI PORTFOLIO CARD (HOMEPAGE)
+// ═══════════════════════════════════════
+
 .fantasy-mini-card {
     display: block;
     text-decoration: none;
     color: $text-primary;
-    transition: border-color 0.15s;
-    margin-bottom: 24px;
+    transition: border-color $t-fast;
+    margin-bottom: $space-lg;
 
     &:hover {
-        border-color: $accent-red;
+        border-color: var(--page-accent, $accent-red);
         color: $text-primary;
     }
 }
@@ -575,7 +1116,7 @@
     font-weight: 700;
     font-size: 14px;
     margin-bottom: 12px;
-    i { color: $accent-red; }
+    i { color: var(--page-accent, $accent-red); }
 }
 
 .fantasy-mini-stats {
@@ -611,4 +1152,179 @@
     padding: 2px 8px;
     background: $bg-surface;
     border-radius: 3px;
+}
+
+// ═══════════════════════════════════════
+// TABLE HEADER SUB
+// ═══════════════════════════════════════
+
+.table-header-sub {
+    font-size: 13px;
+    font-weight: 400;
+    color: $text-secondary;
+}
+
+// ═══════════════════════════════════════
+// STOCK MARKET
+// ═══════════════════════════════════════
+
+.stock-direction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+
+    &.stock-long {
+        background: rgba($green, 0.1);
+        color: $green;
+    }
+
+    &.stock-short {
+        background: rgba($accent-red, 0.1);
+        color: $accent-red;
+    }
+}
+
+.stock-trade-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+}
+
+.stock-qty-stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid $border-accent;
+    border-radius: $radius-sm;
+    overflow: hidden;
+    height: 28px;
+}
+
+.stock-qty-btn {
+    width: 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $bg-surface;
+    border: none;
+    color: $text-secondary;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all $t-fast;
+    padding: 0;
+    line-height: 1;
+
+    &:hover {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
+        color: var(--page-accent, $accent-red);
+    }
+
+    &:active {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+    }
+
+    &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        &:hover { background: $bg-surface; color: $text-secondary; }
+    }
+}
+
+.stock-cost-preview {
+    font-family: $mono-font;
+    font-size: 11px;
+    color: $text-tertiary;
+    min-width: 52px;
+    text-align: left;
+
+    &.text-red { color: $accent-red !important; }
+}
+
+.stock-qty-input {
+    width: 32px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-left: 1px solid $border-accent;
+    border-right: 1px solid $border-accent;
+    background: transparent;
+    color: $text-primary;
+    font-size: 13px;
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    text-align: center;
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    &:focus { outline: none; }
+}
+
+.stock-trade-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: $radius-sm;
+    border: 1px solid transparent;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all $t-fast;
+    background: transparent;
+
+    &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    &.stock-trade-buy {
+        color: $green;
+        border-color: rgba($green, 0.3);
+        &:hover:not(:disabled) { background: rgba($green, 0.08); border-color: $green; }
+    }
+
+    &.stock-trade-short {
+        color: $accent-red;
+        border-color: rgba($accent-red, 0.3);
+        &:hover:not(:disabled) { background: rgba($accent-red, 0.08); border-color: $accent-red; }
+    }
+}
+
+// Stock-specific transaction kinds
+.fantasy-txn-short_open {
+    background: rgba($accent-red, 0.1);
+    color: $accent-red;
+}
+
+.fantasy-txn-short_close {
+    background: rgba($green, 0.1);
+    color: $green;
+}
+
+.fantasy-txn-dividend {
+    background: rgba($green, 0.1);
+    color: $green;
+}
+
+.fantasy-txn-borrow_fee {
+    background: rgba($gold, 0.1);
+    color: $gold;
+}
+
+.fantasy-txn-liquidation {
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
 }

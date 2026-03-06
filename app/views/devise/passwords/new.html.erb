@@ -1,0 +1,27 @@
+<div class="devise-container">
+    <div class="devise-card">
+        <div class="devise-header">
+            <h2>Reset Password</h2>
+            <p class="devise-subtitle">We'll send you a link to reset it</p>
+        </div>
+
+        <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
+            <%= render "devise/shared/error_messages", resource: resource %>
+
+            <div class="devise-form">
+                <div class="devise-field">
+                    <label for="user_email">Email</label>
+                    <%= f.email_field :email, autofocus: true, autocomplete: "email", placeholder: "you@example.com", class: "devise-input" %>
+                </div>
+
+                <div class="devise-actions">
+                    <%= f.submit "Send Reset Link", class: "devise-btn devise-btn-primary" %>
+                </div>
+            </div>
+        <% end %>
+
+        <div class="devise-links">
+            <%= link_to "Back to sign in", new_session_path(resource_name) %>
+        </div>
+    </div>
+</div>

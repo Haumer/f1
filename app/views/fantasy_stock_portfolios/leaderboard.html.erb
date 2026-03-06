@@ -1,0 +1,101 @@
+<div class="homepage-container">
+    <div class="fantasy-dashboard-header">
+        <div class="fantasy-dashboard-title">
+            <h2>Stock Market Leaderboard</h2>
+            <span class="fantasy-season"><%= @season.year %> Season</span>
+        </div>
+        <div class="fantasy-header-actions">
+            <% portfolio = current_user.fantasy_stock_portfolio_for(@season) %>
+            <% if portfolio %>
+                <%= link_to fantasy_stock_portfolio_path(portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+                    <i class="fa-solid fa-arrow-left"></i> My Portfolio
+                <% end %>
+            <% end %>
+        </div>
+    </div>
+
+    <% if @entries.any? %>
+        <%# Podium Top 3 %>
+        <% if @entries.size >= 3 %>
+            <div class="fantasy-podium">
+                <% [1, 0, 2].each do |i| %>
+                    <% entry = @entries[i] %>
+                    <% next unless entry %>
+                    <% p = entry[:portfolio] %>
+                    <% is_me = p.user_id == current_user.id %>
+                    <div class="fantasy-podium-card podium-p<%= i + 1 %> <%= 'is-me' if is_me %>">
+                        <span class="fantasy-podium-rank"><%= i + 1 %></span>
+                        <strong class="fantasy-podium-name">
+                            <%= p.user.display_name %>
+                            <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                        </strong>
+                        <span class="fantasy-podium-value"><%= number_with_delimiter(entry[:value].round(1)) %></span>
+                        <div class="fantasy-podium-drivers">
+                            <% p.holdings.select(&:active).each do |h| %>
+                                <span class="fantasy-podium-driver">
+                                    <i class="fa-solid fa-<%= h.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>" style="font-size:9px"></i>
+                                    <%= h.quantity %>x <%= h.driver.surname %>
+                                </span>
+                            <% end %>
+                        </div>
+                        <% pl = entry[:value] - p.starting_capital %>
+                        <span class="fantasy-podium-pl <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                            <%= pl >= 0 ? '+' : '' %><%= pl.round(1) %>
+                        </span>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+
+        <%# Full Table %>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="fantasy-leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>Player</th>
+                            <th>Holdings</th>
+                            <th class="text-end">Value</th>
+                            <th class="text-end">P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @entries.each do |entry| %>
+                            <% p = entry[:portfolio] %>
+                            <% is_me = p.user_id == current_user.id %>
+                            <% pl = entry[:value] - p.starting_capital %>
+                            <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{entry[:rank]}" if entry[:rank] <= 3 %>">
+                                <td class="text-center position-cell"><%= entry[:rank] %></td>
+                                <td>
+                                    <strong><%= p.user.display_name %></strong>
+                                    <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                </td>
+                                <td>
+                                    <% p.holdings.select(&:active).each do |h| %>
+                                        <span class="fantasy-leaderboard-driver">
+                                            <i class="fa-solid fa-<%= h.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>" style="font-size:9px"></i>
+                                            <%= h.quantity %>x <%= link_to h.driver.surname, driver_path(h.driver) %>
+                                        </span>
+                                    <% end %>
+                                </td>
+                                <td class="text-end fantasy-leaderboard-value"><%= number_with_delimiter(entry[:value].round(1)) %></td>
+                                <td class="text-end">
+                                    <span class="<%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                                        <%= pl >= 0 ? '+' : '' %><%= pl.round(1) %>
+                                    </span>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% else %>
+        <div class="card empty-state">
+            <i class="fa-solid fa-chart-line"></i>
+            <h3>No stock portfolios yet</h3>
+            <p>Be the first to <%= link_to "start trading", new_fantasy_stock_portfolio_path %>!</p>
+        </div>
+    <% end %>
+</div>

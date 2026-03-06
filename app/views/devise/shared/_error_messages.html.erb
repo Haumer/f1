@@ -1,0 +1,7 @@
+<% if resource.errors.any? %>
+    <div class="devise-errors">
+        <% resource.errors.full_messages.each do |message| %>
+            <p><i class="fa-solid fa-circle-exclamation"></i> <%= message %></p>
+        <% end %>
+    </div>
+<% end %>

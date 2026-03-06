@@ -5,9 +5,14 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   has_many :fantasy_portfolios, dependent: :destroy
+  has_many :fantasy_stock_portfolios, dependent: :destroy
 
   def fantasy_portfolio_for(season)
     fantasy_portfolios.find_by(season: season)
+  end
+
+  def fantasy_stock_portfolio_for(season)
+    fantasy_stock_portfolios.find_by(season: season)
   end
 
   def display_name

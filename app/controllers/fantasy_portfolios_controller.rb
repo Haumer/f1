@@ -1,7 +1,7 @@
 class FantasyPortfoliosController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_portfolio, only: [:show, :market, :buy, :sell, :buy_team]
-  before_action :set_next_race, only: [:show, :market, :buy, :sell, :buy_team]
+  before_action :set_portfolio, only: [:show, :market, :buy, :buy_multiple, :sell, :buy_team]
+  before_action :set_next_race, only: [:show, :market, :buy, :buy_multiple, :sell, :buy_team]
 
   def new
     current_season = Season.sorted_by_year.first
@@ -16,7 +16,7 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def create
-    season = Season.find(params[:season_id])
+    season = Season.sorted_by_year.first
     result = Fantasy::CreatePortfolio.new(user: current_user, season: season).call
 
     if result[:error]
@@ -37,13 +37,14 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def market
-    @drivers = Driver.where(active: true)
-                     .where.not(elo_v2: nil)
-                     .order(elo_v2: :desc)
+    @drivers = Driver.joins(:season_drivers)
+                     .where(season_drivers: { season_id: @portfolio.season_id })
+                     .order(Arel.sql("COALESCE(drivers.elo_v2, 0) DESC"))
                      .includes(:countries)
     @active_driver_ids = @portfolio.active_roster_entries.pluck(:driver_id)
     @can_trade = @next_race && @portfolio.can_trade?(@next_race)
     @constructors_by_driver = constructors_for_drivers(@drivers)
+    @elo_trends = elo_trends_for(@drivers.map(&:id))
   end
 
   def buy
@@ -54,6 +55,28 @@ class FantasyPortfoliosController < ApplicationController
       redirect_to market_fantasy_portfolio_path(@portfolio), alert: result[:error]
     else
       redirect_to fantasy_portfolio_path(@portfolio), notice: "#{driver.fullname} added to your roster!"
+    end
+  end
+
+  def buy_multiple
+    driver_ids = Array(params[:driver_ids]).map(&:to_i).uniq
+    errors = []
+    bought = []
+
+    driver_ids.each do |driver_id|
+      driver = Driver.find(driver_id)
+      result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
+      if result[:error]
+        errors << "#{driver.fullname}: #{result[:error]}"
+      else
+        bought << driver.fullname
+      end
+    end
+
+    if errors.any?
+      redirect_to market_fantasy_portfolio_path(@portfolio), alert: errors.join(". ")
+    else
+      redirect_to fantasy_portfolio_path(@portfolio), notice: "#{bought.join(' & ')} added to your roster!"
     end
   end
 
@@ -96,7 +119,11 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def compute_starting_capital
-    avg_elo = Driver.where(active: true).average(:elo_v2) || 0
+    season = Season.sorted_by_year.first
+    avg_elo = Driver.where.not(elo_v2: nil)
+                    .joins(:season_drivers)
+                    .where(season_drivers: { season_id: season.id })
+                    .average(:elo_v2) || 0
     (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(0)
   end
 
@@ -122,5 +149,18 @@ class FantasyPortfoliosController < ApplicationController
     end
 
     entries.transform_values(&:constructor)
+  end
+
+  # Returns { driver_id => [+12, -5, +3, +8, -2] } (last 5 elo diffs, newest first)
+  def elo_trends_for(driver_ids)
+    results = RaceResult.where(driver_id: driver_ids)
+                        .where.not(old_elo_v2: nil, new_elo_v2: nil)
+                        .joins(:race)
+                        .order("races.date DESC")
+                        .select(:driver_id, :old_elo_v2, :new_elo_v2)
+
+    results.group_by(&:driver_id).transform_values do |rrs|
+      rrs.first(5).map { |rr| (rr.new_elo_v2 - rr.old_elo_v2).round(0) }
+    end
   end
 end

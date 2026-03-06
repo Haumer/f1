@@ -10,7 +10,7 @@ class FantasyRosterEntry < ApplicationRecord
   validates :bought_at_elo, presence: true
 
   def current_value
-    driver.elo_v2 || 0
+    Fantasy::Pricing.price_for(driver, fantasy_portfolio.season)
   end
 
   def gain_loss

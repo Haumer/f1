@@ -1,0 +1,174 @@
+<div class="homepage-container">
+    <div class="fantasy-dashboard-header">
+        <div class="fantasy-dashboard-title">
+            <h2>Stock Market</h2>
+        </div>
+        <div class="fantasy-header-actions">
+            <%= link_to fantasy_stock_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-arrow-left"></i> Portfolio
+            <% end %>
+        </div>
+    </div>
+
+    <div class="fantasy-transfer-status <%= @can_trade ? 'open' : 'closed' %>">
+        <i class="fa-solid fa-<%= @can_trade ? 'lock-open' : 'lock' %>"></i>
+        <% if @can_trade %>
+            Market open &mdash; closes at <%= @next_race.starts_at&.strftime("%b %d, %H:%M UTC") || @next_race.date.strftime("%b %d") %>
+        <% else %>
+            Market closed
+        <% end %>
+        <span class="fantasy-swaps-remaining">
+            Cash: <strong><%= number_with_delimiter(@portfolio.available_cash.round(1)) %></strong>
+            &middot; Positions: <strong><%= @portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></strong>
+        </span>
+    </div>
+
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="fantasy-market-table">
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        <th>Form</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Your Position</th>
+                        <% if @can_trade %>
+                            <th class="text-center" style="width:160px">Trade</th>
+                        <% end %>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @drivers.each do |driver| %>
+                        <% price = @portfolio.share_price(driver) %>
+                        <% constructor = @constructors_by_driver[driver.id] %>
+                        <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                        <% trends = @elo_trends[driver.id] || [] %>
+                        <% holdings = @holdings_by_driver[driver.id] || [] %>
+                        <% long_holding = holdings.find { |h| h.direction == "long" } %>
+                        <% short_holding = holdings.find { |h| h.direction == "short" } %>
+                        <tr style="border-left: 3px solid <%= color %>">
+                            <td>
+                                <div class="fantasy-market-driver-cell">
+                                    <div class="fantasy-market-driver-info">
+                                        <span class="fantasy-market-driver-name">
+                                            <% if driver.country.present? %>
+                                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
+                                            <% end %>
+                                            <%= link_to driver.fullname, driver_path(driver) %>
+                                        </span>
+                                        <span class="fantasy-market-team-name"><%= constructor&.name %></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <% if trends.any? %>
+                                    <div class="fantasy-elo-trend">
+                                        <div class="fantasy-elo-trend-dots">
+                                            <% trends.reverse.each do |diff| %>
+                                                <span class="fantasy-elo-dot <%= diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat') %>" title="<%= diff > 0 ? '+' : '' %><%= diff %>">
+                                                    <i class="fa-solid fa-caret-<%= diff >= 0 ? 'up' : 'down' %>"></i>
+                                                </span>
+                                            <% end %>
+                                        </div>
+                                        <% net = trends.sum %>
+                                        <span class="fantasy-elo-trend-net <%= net > 0 ? 'up' : (net < 0 ? 'down' : 'flat') %>">
+                                            <%= net > 0 ? '+' : '' %><%= net %>
+                                        </span>
+                                    </div>
+                                <% else %>
+                                    <span class="text-tertiary" style="font-size:11px">Rookie</span>
+                                <% end %>
+                            </td>
+                            <td class="text-end">
+                                <span class="fantasy-market-price-cell"><%= price.round(1) %></span>
+                            </td>
+                            <td class="text-end">
+                                <% if long_holding %>
+                                    <span class="stock-direction-badge stock-long">
+                                        <i class="fa-solid fa-arrow-trend-up"></i> <%= long_holding.quantity %>x
+                                    </span>
+                                <% elsif short_holding %>
+                                    <span class="stock-direction-badge stock-short">
+                                        <i class="fa-solid fa-arrow-trend-down"></i> <%= short_holding.quantity %>x
+                                    </span>
+                                <% else %>
+                                    <span class="text-tertiary" style="font-size:11px">&mdash;</span>
+                                <% end %>
+                            </td>
+                            <% if @can_trade %>
+                                <td class="text-center">
+                                    <% can_afford = @portfolio.available_cash >= price %>
+                                    <% max_qty = can_afford ? (@portfolio.available_cash / price).floor : 0 %>
+                                    <% can_open_new = !@portfolio.positions_full? || long_holding || short_holding %>
+                                    <% if can_open_new && can_afford %>
+                                        <% can_long = !short_holding %>
+                                        <% can_short = !long_holding %>
+                                        <div class="stock-trade-actions"
+                                             data-controller="stock-qty"
+                                             data-stock-qty-price-value="<%= price %>"
+                                             data-stock-qty-max-value="<%= max_qty %>"
+                                             data-stock-qty-can-long-value="<%= can_long %>"
+                                             data-stock-qty-can-short-value="<%= can_short %>">
+                                            <div class="stock-qty-stepper">
+                                                <button type="button" class="stock-qty-btn"
+                                                        data-stock-qty-target="minus"
+                                                        data-action="click->stock-qty#decrement">&minus;</button>
+                                                <input type="number" min="1" max="<%= max_qty %>" value="1"
+                                                       class="stock-qty-input"
+                                                       data-stock-qty-target="input" readonly>
+                                                <button type="button" class="stock-qty-btn"
+                                                        data-stock-qty-target="plus"
+                                                        data-action="click->stock-qty#increment">+</button>
+                                            </div>
+                                            <span class="stock-cost-preview" data-stock-qty-target="cost">= <%= price.round(1) %></span>
+                                            <%= form_with url: buy_fantasy_stock_portfolio_path(@portfolio), method: :post, local: true, style: "display:inline" do %>
+                                                <%= hidden_field_tag :driver_id, driver.id %>
+                                                <%= hidden_field_tag :quantity, 1 %>
+                                                <button type="submit" class="stock-trade-btn stock-trade-buy" title="Buy long"
+                                                        data-stock-qty-target="buyBtn">
+                                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                                </button>
+                                            <% end %>
+                                            <%= form_with url: short_open_fantasy_stock_portfolio_path(@portfolio), method: :post, local: true, style: "display:inline" do %>
+                                                <%= hidden_field_tag :driver_id, driver.id %>
+                                                <%= hidden_field_tag :quantity, 1 %>
+                                                <button type="submit" class="stock-trade-btn stock-trade-short" title="Open short"
+                                                        data-stock-qty-target="shortBtn">
+                                                    <i class="fa-solid fa-arrow-trend-down"></i>
+                                                </button>
+                                            <% end %>
+                                        </div>
+                                    <% elsif !can_afford %>
+                                        <span class="fantasy-cart-reason">Insufficient funds</span>
+                                    <% else %>
+                                        <span class="fantasy-cart-reason">Max positions</span>
+                                    <% end %>
+                                </td>
+                            <% end %>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <%# Dividend table %>
+    <div class="table-header" style="margin-top: 32px"><h3>Dividend Schedule</h3></div>
+    <div class="card card-flush">
+        <table class="fantasy-market-table">
+            <thead>
+                <tr><th>Finish</th><th>Per Share</th><th>Note</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>P1 (Win)</td><td class="text-green"><strong>+5</strong></td><td class="fantasy-txn-note">Paid to long holders after each race</td></tr>
+                <tr><td>P2 &ndash; P3</td><td class="text-green"><strong>+3</strong></td><td class="fantasy-txn-note">Podium finish</td></tr>
+                <tr><td>P4 &ndash; P10</td><td class="text-green"><strong>+1</strong></td><td class="fantasy-txn-note">Points finish</td></tr>
+                <tr><td>P11+ / DNF</td><td>0</td><td class="fantasy-txn-note">No dividend</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-tertiary" style="font-size: 12px; margin-top: 12px;">
+        Short positions pay a 2% borrow fee per race. Max loss on shorts capped at 2x entry price (auto-liquidation).
+    </p>
+</div>
