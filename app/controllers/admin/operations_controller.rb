@@ -24,6 +24,11 @@ module Admin
       when "compute_badges"
         ComputeBadgesJob.perform_later
         redirect_to admin_operations_path, notice: "Badge computation job enqueued."
+      when "full_data_sync"
+        start_year = (params[:start_year].presence || 1950).to_i
+        end_year = (params[:end_year].presence || Date.current.year).to_i
+        FullDataSyncJob.perform_later(start_year: start_year, end_year: end_year)
+        redirect_to admin_operations_path, notice: "Full data sync job enqueued (#{start_year}-#{end_year}). This will take several minutes."
       when "recapitalize_fantasy"
         season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
         avg_elo = Driver.where.not(elo_v2: nil)

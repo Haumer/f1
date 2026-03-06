@@ -80,16 +80,18 @@ class Constructor < ApplicationRecord
     }
 
     LOGOS = {
-        'mclaren'      => 'https://media.formula1.com/content/dam/fom-website/teams/2025/mclaren-logo.png',
-        'red_bull'     => 'https://media.formula1.com/content/dam/fom-website/teams/2025/red-bull-racing-logo.png',
-        'mercedes'     => 'https://media.formula1.com/content/dam/fom-website/teams/2025/mercedes-logo.png',
-        'williams'     => 'https://media.formula1.com/content/dam/fom-website/teams/2025/williams-logo.png',
-        'aston_martin' => 'https://media.formula1.com/content/dam/fom-website/teams/2025/aston-martin-logo.png',
+        'mclaren'      => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/mclaren/2026mclarenlogowhite.webp',
+        'red_bull'     => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/redbullracing/2026redbullracinglogowhite.webp',
+        'mercedes'     => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/mercedes/2026mercedeslogowhite.webp',
+        'williams'     => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/williams/2026williamslogowhite.webp',
+        'aston_martin' => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/astonmartin/2026astonmartinlogowhite.webp',
+        'audi'         => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/audi/2026audilogowhite.webp',
+        'cadillac'     => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/cadillac/2026cadillaclogowhite.webp',
+        'ferrari'      => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/ferrari/2026ferrarilogowhite.webp',
+        'alpine'       => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/alpine/2026alpinelogowhite.webp',
+        'rb'           => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/racingbulls/2026racingbullslogowhite.webp',
+        'haas'         => 'https://media.formula1.com/image/upload/c_fit,h_64/q_auto/v1740000000/common/f1/2026/haas/2026haaslogowhite.webp',
         'sauber'       => 'https://media.formula1.com/content/dam/fom-website/teams/2024/kick-sauber-logo.png',
-        'ferrari'      => 'https://media.formula1.com/content/dam/fom-website/teams/2025/ferrari-logo.png',
-        'alpine'       => 'https://media.formula1.com/content/dam/fom-website/teams/2025/alpine-logo.png',
-        'rb'           => 'https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png',
-        'haas'         => 'https://media.formula1.com/content/dam/fom-website/teams/2025/haas-logo.png',
         'alphatauri'   => 'https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png',
         'alfa'         => 'https://media.formula1.com/content/dam/fom-website/teams/2024/alfa-romeo-logo.png',
     }

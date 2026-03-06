@@ -133,6 +133,13 @@ namespace :f1 do
     puts "Done. #{created} new SeasonDriver records created. #{driver_ids.size} drivers marked active."
   end
 
+  desc "Full data sync: sync all seasons, Elo, careers, standings, logos, badges"
+  task full_sync: :environment do
+    start_year = ENV.fetch("START", "1950").to_i
+    end_year = ENV.fetch("END", Date.current.year.to_s).to_i
+    FullDataSyncJob.perform_now(start_year: start_year, end_year: end_year)
+  end
+
   desc "Settle stock market for a race (pays dividends, charges borrow fees, snapshots)"
   task :settle_stock_market, [:race_id] => :environment do |_t, args|
     unless Setting.fantasy_stock_market?

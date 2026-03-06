@@ -13,6 +13,12 @@ class PostRaceSyncJob < ApplicationJob
       UpdateDriverCareer.new(driver: driver).update
     end
 
+    # Mark season_end standings on last race of each completed season
+    last_race = season.races.order(round: :desc).first
+    if last_race&.race_results&.exists?
+      DriverStanding.where(race: last_race).update_all(season_end: true)
+    end
+
     DriverBadges.compute_all_drivers!
     UpdateActiveDrivers.update_season
 
