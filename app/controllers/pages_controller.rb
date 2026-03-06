@@ -121,21 +121,28 @@ class PagesController < ApplicationController
         end
       end
 
-      # Constructor top 3 for previous season recap (computed from race results)
+      # Constructor top 3 for previous season recap (from driver standings which include sprint points)
       if @standings_season && @standings_season != @season
-        race_ids = @standings_season.races.pluck(:id)
-        constructor_points = RaceResult.where(race_id: race_ids)
-                               .where.not(constructor_id: nil)
-                               .group(:constructor_id)
-                               .sum(:points)
-        constructor_wins = RaceResult.where(race_id: race_ids, position_order: 1)
-                             .where.not(constructor_id: nil)
-                             .group(:constructor_id)
-                             .count
-        top_ids = constructor_points.sort_by { |_, pts| -pts }.first(3).map(&:first)
-        constructors = Constructor.where(id: top_ids).index_by(&:id)
-        @constructor_top3 = top_ids.map do |cid|
-          { constructor: constructors[cid], points: constructor_points[cid], wins: constructor_wins[cid] || 0 }
+        last_race = @standings_season.races.order(:round).last
+        if last_race
+          latest_ds = DriverStanding.where(race: last_race).includes(:driver)
+          # Map each driver to their constructor for this season
+          driver_constructors = SeasonDriver.where(season: @standings_season)
+                                  .pluck(:driver_id, :constructor_id).to_h
+          # Sum points and wins by constructor from driver standings
+          constructor_points = Hash.new(0)
+          constructor_wins = Hash.new(0)
+          latest_ds.each do |ds|
+            cid = driver_constructors[ds.driver_id]
+            next unless cid
+            constructor_points[cid] += (ds.points || 0)
+            constructor_wins[cid] += (ds.wins || 0)
+          end
+          top_ids = constructor_points.sort_by { |_, pts| -pts }.first(3).map(&:first)
+          constructors = Constructor.where(id: top_ids).index_by(&:id)
+          @constructor_top3 = top_ids.map do |cid|
+            { constructor: constructors[cid], points: constructor_points[cid].round, wins: constructor_wins[cid] }
+          end
         end
       end
 
