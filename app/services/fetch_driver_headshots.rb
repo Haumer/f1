@@ -21,6 +21,8 @@ class FetchDriverHeadshots
       driver = find_driver(full_name, of1)
       next unless driver
 
+      # Use higher resolution (2col instead of 1col)
+      headshot_url = headshot_url.gsub("1col", "2col")
       driver.update!(image_url: headshot_url)
       updated += 1
       Rails.logger.info("Updated headshot for #{driver.fullname}")
