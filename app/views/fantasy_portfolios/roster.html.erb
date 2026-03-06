@@ -230,7 +230,7 @@
             <h3>No drivers yet</h3>
             <% if @is_owner %>
                 <p>You have <strong><%= number_with_delimiter(@portfolio.cash.round(0)) %></strong> to build your team.</p>
-                <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" do %>
+                <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                     <i class="fa-solid fa-store"></i> Get your first driver
                 <% end %>
             <% end %>

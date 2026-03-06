@@ -197,7 +197,7 @@
             <h3>No positions yet</h3>
             <% if @is_owner %>
                 <p>You have <strong><%= number_with_delimiter(@stock_portfolio.available_cash.round(0)) %></strong> available to invest.</p>
-                <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" do %>
+                <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                     <i class="fa-solid fa-chart-line"></i> Open your first position
                 <% end %>
             <% end %>

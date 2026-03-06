@@ -497,7 +497,11 @@ th[data-sort] {
     i { font-size: 32px; margin-bottom: 12px; display: block; }
     h3 { margin: 0 0 8px; color: $text-primary; }
     p { margin: 0 0 16px; font-size: 14px; }
-    .fantasy-btn { display: inline-flex; }
+    .fantasy-btn {
+        display: inline-flex;
+        font-size: 13px;
+        padding: 8px 20px;
+    }
 }
 
 // Underline for peak elo
