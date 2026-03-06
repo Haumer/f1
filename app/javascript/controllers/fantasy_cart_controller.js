@@ -51,11 +51,24 @@ export default class extends Controller {
   confirm(event) {
     if (this.cart.length === 0) { event.preventDefault(); return }
 
+    event.preventDefault()
     const names = this.cart.map(d => d.name).join(", ")
     const total = this.cart.reduce((s, d) => s + d.price, 0)
-    if (!window.confirm(`Buy ${names} for ${Math.round(total)} total?`)) {
-      event.preventDefault()
-    }
+    const form = this.confirmBtnTarget.closest("form")
+
+    window.Swal.fire({
+      text: `Buy ${names} for ${Math.round(total)} total?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Buy Drivers",
+      cancelButtonText: "Cancel",
+      background: "#1a1a1a",
+      color: "#e0e0e0",
+      confirmButtonColor: "#e10600",
+      cancelButtonColor: "#333",
+    }).then((result) => {
+      if (result.isConfirmed && form) form.requestSubmit()
+    })
   }
 
   update() {

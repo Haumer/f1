@@ -25,6 +25,10 @@ class FantasyStockPortfolioPolicy < ApplicationPolicy
     owner?
   end
 
+  def buy_batch?
+    owner?
+  end
+
   private
 
   def owner?

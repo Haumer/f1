@@ -174,13 +174,13 @@
                                             <%= form_with url: sell_fantasy_stock_portfolio_path(@stock_portfolio), method: :post, local: true, style: "display:inline" do %>
                                                 <%= hidden_field_tag :driver_id, holding.driver_id %>
                                                 <%= hidden_field_tag :quantity, holding.quantity %>
-                                                <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { confirm: "Sell all #{holding.quantity}x #{holding.driver.fullname}?" } %>
+                                                <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Sell all #{holding.quantity}x #{holding.driver.fullname}?" } %>
                                             <% end %>
                                         <% else %>
                                             <%= form_with url: short_close_fantasy_stock_portfolio_path(@stock_portfolio), method: :post, local: true, style: "display:inline" do %>
                                                 <%= hidden_field_tag :driver_id, holding.driver_id %>
                                                 <%= hidden_field_tag :quantity, holding.quantity %>
-                                                <%= submit_tag "Close", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { confirm: "Close short on #{holding.driver.fullname}?" } %>
+                                                <%= submit_tag "Close", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Close short on #{holding.driver.fullname}?" } %>
                                             <% end %>
                                         <% end %>
                                     </td>
