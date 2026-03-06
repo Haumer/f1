@@ -59,28 +59,26 @@ class SeasonsController < ApplicationController
       @champion_constructor = @champion.constructor_for(@season)
     end
 
-    # Constructor leader (computed from race_results since ConstructorStanding may not exist)
-    if race_ids.any?
-      constructor_pts = RaceResult.where(race_id: race_ids)
-                          .where.not(constructor_id: nil)
-                          .group(:constructor_id)
-                          .sum(:points)
-      constructor_wins_map = RaceResult.where(race_id: race_ids, position_order: 1)
-                               .where.not(constructor_id: nil)
-                               .group(:constructor_id)
-                               .count
-      if constructor_pts.any?
-        leader_id = constructor_pts.max_by { |_, pts| pts }.first
-        leader_constructor = Constructor.find(leader_id)
-        @constructor_leader = OpenStruct.new(
-          constructor: leader_constructor,
-          points: constructor_pts[leader_id],
-          wins: constructor_wins_map[leader_id] || 0
-        )
-        # Store for reuse in constructor_top3
-        @_constructor_pts = constructor_pts
-        @_constructor_wins_map = constructor_wins_map
-      end
+    # Constructor standings computed from driver standings (includes sprint points)
+    sd_index = SeasonDriver.where(season: @season).includes(:constructor).index_by(&:driver_id)
+    constructor_pts = {}
+    constructor_wins_map = {}
+    latest_standings.each do |ds|
+      c = sd_index[ds.driver_id]&.constructor
+      next unless c
+      constructor_pts[c.id] = (constructor_pts[c.id] || 0) + (ds.points || 0)
+      constructor_wins_map[c.id] = (constructor_wins_map[c.id] || 0) + (ds.wins || 0)
+    end
+    if constructor_pts.any?
+      leader_id = constructor_pts.max_by { |_, pts| pts }.first
+      leader_constructor = Constructor.find(leader_id)
+      @constructor_leader = OpenStruct.new(
+        constructor: leader_constructor,
+        points: constructor_pts[leader_id],
+        wins: constructor_wins_map[leader_id] || 0
+      )
+      @_constructor_pts = constructor_pts
+      @_constructor_wins_map = constructor_wins_map
     end
 
     # Is this the current season?
@@ -125,18 +123,11 @@ class SeasonsController < ApplicationController
     # Season podiums (when season is complete)
     if @champion
       @season_top3 = latest_standings.first(3)
-      season_driver_index = SeasonDriver.where(season: @season).includes(:constructor).index_by(&:driver_id)
       @season_top3_constructors = @season_top3.each_with_object({}) do |ds, hash|
-        hash[ds.driver_id] = season_driver_index[ds.driver_id]&.constructor
+        hash[ds.driver_id] = sd_index[ds.driver_id]&.constructor
       end
-      constructor_points = @_constructor_pts || RaceResult.where(race_id: race_ids)
-                             .where.not(constructor_id: nil)
-                             .group(:constructor_id)
-                             .sum(:points)
-      constructor_wins = @_constructor_wins_map || RaceResult.where(race_id: race_ids, position_order: 1)
-                           .where.not(constructor_id: nil)
-                           .group(:constructor_id)
-                           .count
+      constructor_points = @_constructor_pts || {}
+      constructor_wins = @_constructor_wins_map || {}
       top_ids = constructor_points.sort_by { |_, pts| -pts }.first(3).map(&:first)
       constructors = Constructor.where(id: top_ids).index_by(&:id)
       @constructor_top3 = top_ids.map do |cid|
