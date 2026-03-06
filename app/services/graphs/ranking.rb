@@ -29,12 +29,22 @@ class Graphs::Ranking
             end
         end
 
-        # Fill in nil positions by ranking drivers by points per race
+        # Fill in nil positions: assign after the last real position,
+        # ordered by race result finish position to break ties
         standings_by_race = all_standings.group_by(&:race_id)
-        standings_by_race.each do |_race_id, standings|
-            sorted = standings.sort_by { |ds| [-(ds.points || 0), -(ds.wins || 0)] }
-            sorted.each_with_index do |ds, idx|
-                ds.position ||= idx + 1
+        standings_by_race.each do |race_id, standings|
+            with_pos = standings.select(&:position)
+            without_pos = standings.reject(&:position)
+            next if without_pos.empty?
+
+            next_position = (with_pos.map(&:position).max || 0) + 1
+            # Order nil-position drivers by their race result finish
+            result_order = (race_results_by_race[race_id] || []).each_with_object({}) do |rr, h|
+                h[rr.driver_id] = rr.position_order || 999
+            end
+            without_pos.sort_by { |ds| result_order[ds.driver_id] || 999 }.each do |ds|
+                ds.position = next_position
+                next_position += 1
             end
         end
 
