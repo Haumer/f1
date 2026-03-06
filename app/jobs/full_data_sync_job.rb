@@ -67,7 +67,9 @@ class FullDataSyncJob < ApplicationJob
       next unless last_race.race_results.exists? # only if race has been run
 
       DriverStanding.where(race: last_race).update_all(season_end: true)
-      ConstructorStanding.where(race: last_race).update_all(season_end: true) if defined?(ConstructorStanding)
+      if defined?(ConstructorStanding) && ConstructorStanding.column_names.include?("season_end")
+        ConstructorStanding.where(race: last_race).update_all(season_end: true)
+      end
     end
   end
 
