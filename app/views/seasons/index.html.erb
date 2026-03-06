@@ -1,14 +1,39 @@
 <div class="homepage-container">
-    <div class="page-hero page-hero-compact">
-        <div class="page-hero-bg"></div>
-        <div class="page-hero-content">
-            <h1 class="page-hero-title">All Seasons</h1>
+    <div class="table-header">
+        <h3>All Seasons</h3>
+        <% if @filtered %>
+            <%= link_to "Clear filter", seasons_path, class: "race-filter-clear" %>
+        <% end %>
+    </div>
+
+    <div class="race-filter-bar">
+        <%= form_tag seasons_path, method: :get, class: "race-filter-form" do %>
+            <label class="race-filter-label">From</label>
+            <%= select_tag :from_year,
+                options_for_select(
+                    @all_years.reverse.map { |y| [y, y] },
+                    @from_year || @all_years.last
+                ),
+                class: "race-filter-select" %>
+            <label class="race-filter-label">To</label>
+            <%= select_tag :to_year,
+                options_for_select(
+                    @all_years.reverse.map { |y| [y, y] },
+                    @to_year || @all_years.first
+                ),
+                class: "race-filter-select" %>
+            <%= submit_tag "Filter", class: "race-filter-submit" %>
+        <% end %>
+        <div class="season-quick-filters">
+            <%= link_to "Modern Era", seasons_path(from_year: 1996, to_year: @all_years.first), class: "race-filter-submit" %>
+            <%= link_to "Classic", seasons_path(from_year: 1950, to_year: 1995), class: "race-filter-submit" %>
         </div>
     </div>
+
     <div class="seasons-grid">
         <% @seasons.each do |season| %>
             <% card_color = @champion_colors[season.id] %>
-            <%= link_to season_path(season), class: "season-card card #{'is-current' if season == @seasons.first}", style: (card_color ? "--card-accent: #{card_color};" : nil) do %>
+            <%= link_to season_path(season), class: "season-card card #{'is-current' if !@filtered && season == @seasons.first}", style: (card_color ? "--card-accent: #{card_color};" : nil) do %>
                 <span class="season-year"><%= season.year %></span>
                 <div class="season-stats">
                     <span><%= season.drivers.size %> drivers</span>

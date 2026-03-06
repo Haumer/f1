@@ -147,8 +147,21 @@ class PagesController < ApplicationController
       # Fantasy portfolio for logged-in users
       if current_user
         @fantasy_portfolio = current_user.fantasy_portfolio_for(@season)
+        @fantasy_stock_portfolio = current_user.fantasy_stock_portfolio_for(@season)
+        if @fantasy_portfolio
+          @fantasy_support = ConstructorSupport.current_for(current_user, @season)
+          @fantasy_rank = @fantasy_portfolio.snapshots.order(created_at: :desc).first&.rank
+        end
       end
     end
+  end
+
+  def about
+    set_current_champion_accent
+  end
+
+  def fantasy_guide
+    set_current_champion_accent
   end
 
   def elo

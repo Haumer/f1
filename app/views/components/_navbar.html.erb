@@ -75,6 +75,7 @@
                 <%= link_to "Constructor Elo", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
                 <%= link_to "Team Lineages", families_constructors_path, class: ("active" if current_page?(families_constructors_path)), role: "menuitem" %>
                 <%= link_to "Best Pairings", best_pairings_constructors_path, class: ("active" if current_page?(best_pairings_constructors_path)), role: "menuitem" %>
+                <%= link_to "Fan Standings", fan_standings_path, class: ("active" if current_page?(fan_standings_path)), role: "menuitem" %>
             </div>
         </div>
 
@@ -85,15 +86,17 @@
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <% if current_user %>
-                    <% roster_path = current_user.fantasy_portfolio_for(current_season)&.then { |p| fantasy_portfolio_path(p) } || new_fantasy_portfolio_path %>
-                    <%= link_to "Roster", roster_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
-                    <% if Setting.fantasy_stock_market? %>
-                        <% stocks_path = current_user.fantasy_stock_portfolio_for(current_season)&.then { |p| fantasy_stock_portfolio_path(p) } || new_fantasy_stock_portfolio_path %>
-                        <%= link_to "Stocks", stocks_path, class: ("active" if request.path.start_with?('/stocks')), role: "menuitem" %>
+                    <% roster = current_user.fantasy_portfolio_for(current_season) %>
+                    <% if roster %>
+                        <%= link_to "My Portfolio", fantasy_portfolio_path(roster), class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+                    <% else %>
+                        <%= link_to "Create Portfolio", new_fantasy_portfolio_path, role: "menuitem" %>
                     <% end %>
                     <div class="nav-dropdown-divider"></div>
                 <% end %>
                 <%= link_to "Leaderboard", combined_leaderboard_path, class: ("active" if request.path.start_with?('/leaderboard')), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
+                <%= link_to "How it Works", fantasy_guide_path, class: ("active" if current_page?(fantasy_guide_path)), role: "menuitem" %>
             </div>
         </div>
         <% if current_user&.admin? %>

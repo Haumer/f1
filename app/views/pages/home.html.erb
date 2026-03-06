@@ -121,7 +121,11 @@
 
         <%# 6. Fantasy portfolio card %>
         <% if current_user && @fantasy_portfolio %>
-            <%= render "fantasy_portfolios/portfolio_card", portfolio: @fantasy_portfolio %>
+            <%= render "fantasy_portfolios/portfolio_card",
+                       portfolio: @fantasy_portfolio,
+                       stock_portfolio: @fantasy_stock_portfolio,
+                       support: @fantasy_support,
+                       rank: @fantasy_rank %>
         <% end %>
     <% else %>
         <div class="empty-state">

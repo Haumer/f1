@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_06_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -109,6 +109,21 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
     t.datetime "updated_at", null: false
     t.index ["constructor_id"], name: "index_constructor_standings_on_constructor_id"
     t.index ["race_id"], name: "index_constructor_standings_on_race_id"
+  end
+
+  create_table "constructor_supports", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "constructor_id", null: false
+    t.bigint "season_id", null: false
+    t.boolean "active", default: true, null: false
+    t.boolean "bonus_granted", default: false, null: false
+    t.datetime "ended_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["constructor_id"], name: "index_constructor_supports_on_constructor_id"
+    t.index ["season_id"], name: "index_constructor_supports_on_season_id"
+    t.index ["user_id", "season_id", "active"], name: "idx_one_active_support_per_user_season", unique: true, where: "(active = true)"
+    t.index ["user_id"], name: "index_constructor_supports_on_user_id"
   end
 
   create_table "constructors", force: :cascade do |t|
@@ -295,6 +310,17 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
     t.index ["fantasy_portfolio_id", "race_id"], name: "index_fantasy_snapshots_on_fantasy_portfolio_id_and_race_id", unique: true
     t.index ["fantasy_portfolio_id"], name: "index_fantasy_snapshots_on_fantasy_portfolio_id"
     t.index ["race_id"], name: "index_fantasy_snapshots_on_race_id"
+  end
+
+  create_table "fantasy_stock_achievements", force: :cascade do |t|
+    t.bigint "fantasy_stock_portfolio_id", null: false
+    t.string "key"
+    t.string "tier"
+    t.datetime "earned_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fantasy_stock_portfolio_id", "key"], name: "idx_stock_achievements_portfolio_key", unique: true
+    t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_achievements_on_fantasy_stock_portfolio_id"
   end
 
   create_table "fantasy_stock_holdings", force: :cascade do |t|
@@ -576,10 +602,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "username", null: false
-    t.bigint "supported_constructor_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
-    t.index ["supported_constructor_id"], name: "index_users_on_supported_constructor_id"
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
@@ -596,6 +620,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
 
   add_foreign_key "constructor_standings", "constructors"
   add_foreign_key "constructor_standings", "races"
+  add_foreign_key "constructor_supports", "constructors"
+  add_foreign_key "constructor_supports", "seasons"
+  add_foreign_key "constructor_supports", "users"
   add_foreign_key "driver_badges", "drivers"
   add_foreign_key "driver_countries", "countries"
   add_foreign_key "driver_countries", "drivers"
@@ -610,6 +637,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
   add_foreign_key "fantasy_roster_entries", "races", column: "sold_race_id"
   add_foreign_key "fantasy_snapshots", "fantasy_portfolios"
   add_foreign_key "fantasy_snapshots", "races"
+  add_foreign_key "fantasy_stock_achievements", "fantasy_stock_portfolios"
   add_foreign_key "fantasy_stock_holdings", "drivers"
   add_foreign_key "fantasy_stock_holdings", "fantasy_stock_portfolios"
   add_foreign_key "fantasy_stock_holdings", "races", column: "closed_race_id"
@@ -638,5 +666,4 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_120002) do
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "users", "constructors", column: "supported_constructor_id"
 end

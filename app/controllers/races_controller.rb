@@ -60,24 +60,29 @@ class RacesController < ApplicationController
   end
 
   def index
-    @page = (params[:page] || 1).to_i
-    @per_page = 50
+    @all_seasons = Season.sorted_by_year.to_a
+    @seasons_by_year = @all_seasons.index_by { |s| s.year.to_i }
 
-    if params[:search].present? && params[:search][:date].present?
-      begin
-        search_date = Date.parse(params[:search][:date])
-      rescue ArgumentError
-        search_date = Date.new(1930,1,1)
-      end
-      base_scope = Race.where(date: search_date..Date.today)
-      @races = base_scope.sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: []).offset((@page - 1) * @per_page).limit(@per_page)
-      @total_races = base_scope.count
+    if params[:from_year].present?
+      # Filter mode: show all races from the given year onwards
+      from = params[:from_year].to_i
+      to = params[:to_year].present? ? params[:to_year].to_i : Date.current.year
+      @from_year = from
+      @to_year = to
+      @filtered = true
+      base_scope = Race.joins(:race_results).where(year: from..to).distinct
+      @races = base_scope.sorted_by_most_recent
+                .includes(race_results: { driver: :countries, constructor: [] }, circuit: [])
     else
-      base_scope = Race.joins(:race_results).where(year: 2000..Date.current.year).distinct
-      @races = base_scope.sorted_by_most_recent.includes(race_results: { driver: :countries, constructor: [] }, circuit: []).offset((@page - 1) * @per_page).limit(@per_page)
-      @total_races = base_scope.count
+      # Default: current season + last 3 seasons, with load more
+      @seasons_shown = (params[:seasons] || 4).to_i
+      current_year = current_season.year.to_i
+      years = (current_year - @seasons_shown + 1..current_year).to_a
+      base_scope = Race.joins(:race_results).where(year: years).distinct
+      @races = base_scope.sorted_by_most_recent
+                .includes(race_results: { driver: :countries, constructor: [] }, circuit: [])
+      @has_more = @all_seasons.any? { |s| s.year.to_i < years.min }
     end
-    @seasons_by_year = Season.all.index_by { |s| s.year.to_i }
   end
 
   def highest_elo

@@ -28,12 +28,20 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def show
+    roster = current_user.fantasy_portfolio_for(@portfolio.season)
+    if roster
+      redirect_to fantasy_portfolio_path(roster, tab: "stocks")
+      return
+    end
+
+    # Fallback for users with only a stock portfolio (no roster)
     @holdings = @portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price)
     @transactions = @portfolio.transactions.order(created_at: :desc).limit(20)
     @can_trade = @next_race && @portfolio.can_trade?(@next_race)
     @snapshots = @portfolio.snapshots.joins(:race).order("races.date ASC")
     @value_delta = @portfolio.value_change_since_last_race
     @constructors_by_driver = constructors_for_drivers(@holdings.map(&:driver))
+    @achievements = @portfolio.achievements.to_a
   end
 
   def market

@@ -58,12 +58,18 @@
 
     <% if current_user %>
         <div class="constructor-support-action">
-            <%= link_to support_constructor_path(@constructor), data: { turbo_method: :post }, class: "fantasy-btn #{@user_supports ? 'fantasy-btn-primary' : 'fantasy-btn-outline'}" do %>
-                <% if @user_supports %>
-                    <i class="fa-solid fa-heart"></i> Supporting
-                <% else %>
-                    <i class="fa-regular fa-heart"></i> Support this team
+            <% if @user_supports %>
+                <span class="fantasy-btn fantasy-btn-primary" style="cursor: default;">
+                    <i class="fa-solid fa-shield-halved"></i> Supporting
+                </span>
+            <% elsif ConstructorSupport.can_change?(current_user, current_season) %>
+                <%= link_to support_constructor_path(@constructor), data: { turbo_method: :post, turbo_confirm: "Support #{@constructor.name}? This is locked until mid-season." }, class: "fantasy-btn fantasy-btn-outline" do %>
+                    <i class="fa-solid fa-shield-halved"></i> Support this team
                 <% end %>
+            <% else %>
+                <span class="fantasy-btn fantasy-btn-outline" style="cursor: not-allowed; opacity: 0.5;">
+                    <i class="fa-solid fa-lock"></i> Allegiance locked
+                </span>
             <% end %>
         </div>
     <% end %>
@@ -175,6 +181,18 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    <% end %>
+
+    <% if @fans.any? %>
+        <div class="table-header"><h3>Fans</h3></div>
+        <div class="constructor-fans-grid">
+            <% @fans.each do |fan| %>
+                <div class="constructor-fan-badge">
+                    <i class="fa-solid fa-user"></i>
+                    <span><%= fan.display_name %></span>
+                </div>
+            <% end %>
         </div>
     <% end %>
 </div>

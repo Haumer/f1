@@ -55,6 +55,9 @@ class Graphs::Constructor
             }
         end
 
+        # Sort series: highlighted (recent) drivers first, then alphabetical
+        series.sort_by! { |s| [legend_selected[s[:name]] ? 0 : 1, s[:name]] }
+
         # Add constructor Elo V2 line (always visible, thicker)
         constructor_elo_data = @races.map do |race|
             rr = @race_results.find { |r| r.race_id == race.id && r.new_constructor_elo_v2.present? }

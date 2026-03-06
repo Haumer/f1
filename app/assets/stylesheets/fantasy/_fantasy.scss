@@ -61,6 +61,17 @@
     i { font-size: 11px; }
 }
 
+.fantasy-tab-new {
+    font-size: 9px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--page-accent, $accent-red);
+    color: white;
+    margin-left: 4px;
+}
+
 // Tiny constructor logo for leaderboard
 .constructor-logo-xs {
     width: 16px;
@@ -71,7 +82,7 @@
     opacity: 0.7;
 }
 
-// Team allegiance picker
+// Team allegiance
 .fantasy-allegiance {
     display: flex;
     flex-wrap: wrap;
@@ -83,6 +94,80 @@
     border-radius: $radius-md;
     border: 1px solid $border-color;
 }
+
+// Locked state — showing current team
+.fantasy-allegiance-locked {
+    gap: 10px;
+
+    i { font-size: 16px; }
+}
+
+.fantasy-allegiance-team-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    font-size: 15px;
+
+    .constructor-logo-xs { width: 20px; height: 20px; }
+
+    &:hover { text-decoration: underline; }
+}
+
+.fantasy-allegiance-lock-hint {
+    margin-left: auto;
+    font-size: 11px;
+    color: $text-tertiary;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    i { font-size: 10px; }
+}
+
+// Swap row
+.fantasy-allegiance-swap {
+    background: rgba(255, 255, 255, 0.02);
+    border-style: dashed;
+}
+
+// Picker state — choosing for first time
+.fantasy-allegiance-picker {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+}
+
+.fantasy-allegiance-prompt {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    > i {
+        font-size: 18px;
+        color: var(--page-accent, $accent-red);
+        margin-top: 2px;
+    }
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    > div > span {
+        font-size: 12px;
+        color: $text-secondary;
+        strong { display: inline; color: $green; }
+    }
+}
+
+.fantasy-allegiance-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .fantasy-allegiance-label {
     font-size: $type-small;
     font-weight: $weight-bold;
@@ -91,6 +176,7 @@
     color: $text-secondary;
     margin-right: 4px;
 }
+
 .fantasy-allegiance-badge {
     display: inline-flex;
     align-items: center;
@@ -939,6 +1025,10 @@
             background: rgba($gold, 0.1);
             color: $gold;
         }
+        &.fantasy-txn-bonus {
+            background: rgba($green, 0.1);
+            color: $green;
+        }
     }
 
     .fantasy-txn-note {
@@ -1202,12 +1292,18 @@
 // MINI PORTFOLIO CARD (HOMEPAGE)
 // ═══════════════════════════════════════
 
+.fantasy-mini-card-wrapper {
+    margin-bottom: $space-lg;
+}
+
 .fantasy-mini-card {
     display: block;
     text-decoration: none;
     color: $text-primary;
     transition: border-color $t-fast;
-    margin-bottom: $space-lg;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-bottom: 0;
 
     &:hover {
         border-color: var(--page-accent, $accent-red);
@@ -1218,17 +1314,40 @@
 .fantasy-mini-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-md;
+}
+
+.fantasy-mini-title {
+    display: flex;
+    align-items: center;
     gap: 8px;
     font-weight: 700;
     font-size: 14px;
-    margin-bottom: 12px;
     i { color: var(--page-accent, $accent-red); }
+}
+
+.fantasy-mini-rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+    color: $gold;
+    background: rgba($gold, 0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+
+    i { font-size: 10px; }
 }
 
 .fantasy-mini-stats {
     display: flex;
-    align-items: center;
-    gap: 20px;
+    align-items: flex-start;
+    gap: $space-lg;
+    flex-wrap: wrap;
+    margin-bottom: $space-md;
 }
 
 .fantasy-mini-stat {
@@ -1241,23 +1360,158 @@
         color: $text-secondary;
     }
     .value {
-        font-size: 16px;
+        font-family: $mono-font;
+        font-size: 18px;
         font-weight: $weight-bold;
+        font-variant-numeric: tabular-nums;
     }
 }
 
-.fantasy-mini-drivers {
+.fantasy-mini-allegiance {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
     margin-left: auto;
+
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+    }
+
+    @media (max-width: 480px) {
+        margin-left: 0;
+    }
 }
 
-.fantasy-mini-driver {
-    font-size: 12px;
+.fantasy-mini-team-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+
+    .constructor-logo-xs {
+        width: 16px;
+        height: 16px;
+        opacity: 0.85;
+        margin-left: 0;
+    }
+}
+
+.fantasy-mini-roster {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: $space-md;
+}
+
+.fantasy-mini-pill {
+    font-size: 11px;
     font-weight: 700;
-    padding: 2px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 3px 10px;
     background: $bg-surface;
+    border-radius: 20px;
+    border-left: 3px solid var(--pill-color, $border-color);
+    color: $text-secondary;
+    transition: color $t-fast;
+
+    .fantasy-mini-card:hover & {
+        color: $text-primary;
+    }
+}
+
+.fantasy-mini-stocks-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: $bg-surface;
+    border-radius: $radius-sm;
+    font-size: 13px;
+
+    > i {
+        color: $text-tertiary;
+        font-size: 12px;
+    }
+}
+
+.fantasy-mini-stocks-label {
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fantasy-mini-positions {
+    display: flex;
+    gap: 4px;
+}
+
+.fantasy-mini-pos-badge {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: $mono-font;
+    padding: 1px 6px;
     border-radius: 3px;
+
+    &.pos-long {
+        background: rgba($green, 0.1);
+        color: $green;
+    }
+    &.pos-short {
+        background: rgba($accent-red, 0.1);
+        color: $accent-red;
+    }
+}
+
+.fantasy-mini-stock-pl {
+    margin-left: auto;
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+}
+
+// Secondary links bar
+.fantasy-mini-links {
+    display: flex;
+    gap: 0;
+    border: 1px solid $border-color;
+    border-top: none;
+    border-radius: 0 0 $radius-md $radius-md;
+    overflow: hidden;
+    background: $bg-card;
+}
+
+.fantasy-mini-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px $space-sm;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-tertiary;
+    text-decoration: none;
+    transition: all $t-fast;
+    border-right: 1px solid $border-color;
+
+    &:last-child { border-right: none; }
+
+    i { font-size: 10px; }
+
+    &:hover {
+        color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+        text-decoration: none;
+    }
 }
 
 // ═══════════════════════════════════════

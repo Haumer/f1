@@ -25,6 +25,18 @@ class StatsController < ApplicationController
     @fastest_risers = compute_fastest_risers(new_elo_col, old_elo_col)
   end
 
+  def fan_standings
+    season = current_season
+    @constructors = Constructor.where(active: true).order(:name).map do |c|
+      fans = User.joins(:constructor_supports)
+                 .where(constructor_supports: { constructor: c, active: true, season: season })
+                 .distinct.to_a
+      { constructor: c, fans: fans, count: fans.size }
+    end
+    @constructors.sort_by! { |c| [-c[:count], c[:constructor].name] }
+    @total_fans = @constructors.sum { |c| c[:count] }
+  end
+
   def badges
     # Group badges by type, sorted by value (descending where numeric)
     all_badges = DriverBadge.includes(:driver).order(:key, :id)

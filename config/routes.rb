@@ -10,7 +10,8 @@ Rails.application.routes.draw do
     resources :alerts, only: [:update]
   end
   get 'elo', to: 'pages#elo', as: :elo
-  get 'about', to: redirect('/elo')
+  get 'about', to: 'pages#about', as: :about
+  get 'fantasy_guide', to: 'pages#fantasy_guide', as: :fantasy_guide
 
   authenticate :user, ->(u) { u.admin? } do
     mount Blazer::Engine, at: "blazer"
@@ -50,6 +51,7 @@ Rails.application.routes.draw do
 
   get 'stats/elo_milestones', to: 'stats#elo_milestones', as: :elo_milestones
   get 'stats/badges', to: 'stats#badges', as: :badges
+  get 'stats/fan_standings', to: 'stats#fan_standings', as: :fan_standings
 
   resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create, :show] do
     member do

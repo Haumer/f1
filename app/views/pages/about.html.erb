@@ -1,0 +1,82 @@
+<div class="homepage-container">
+    <div class="table-header"><h3>About F1 Elo</h3></div>
+
+    <div class="elo-explanation">
+        <p>
+            F1 Elo is an independent project that applies the
+            <strong>Elo rating system</strong>&mdash;originally designed for chess&mdash;to
+            every Formula 1 race since the 1950 British Grand Prix. The goal is to provide a
+            single, continuous metric that captures how drivers and constructors perform
+            <em>relative to each other</em>, across eras.
+        </p>
+
+        <div class="table-header"><h3>Why Elo?</h3></div>
+        <p>
+            Championship points are great for ranking drivers within a single season, but they
+            change format regularly and can't compare across decades. Elo ratings solve this:
+            every driver starts at the same baseline, and ratings adjust after each race based
+            on head-to-head pairwise comparisons against every other finisher. A race win
+            against strong opponents earns more than a win against weaker fields, and vice versa.
+        </p>
+        <p>
+            The result is a number that rises when a driver outperforms expectations and falls
+            when they underperform&mdash;regardless of era, car advantage, or points system.
+            Learn more on the <%= link_to "Elo explanation page", elo_path %>.
+        </p>
+
+        <div class="table-header"><h3>Why Does the Color Change?</h3></div>
+        <p>
+            You may notice the accent color of this site shifts as you navigate. This is
+            intentional: each page is tinted with the <strong>constructor color</strong>
+            of the relevant driver or team.
+        </p>
+        <ul class="about-color-list">
+            <li>
+                <strong>Driver pages</strong> use the color of the driver's current or most recent team.
+            </li>
+            <li>
+                <strong>Race pages</strong> are tinted to the race winner's constructor.
+            </li>
+            <li>
+                <strong>Season pages</strong> use the world champion's team color.
+            </li>
+            <li>
+                <strong>Constructor pages</strong> use that team's brand color directly.
+            </li>
+            <li>
+                <strong>Home &amp; stats pages</strong> default to the current world champion's color,
+                or F1 red if no champion is determined yet.
+            </li>
+        </ul>
+        <p>
+            This creates a subtle sense of immersion: browsing Ferrari history feels red,
+            reviewing a Mercedes-dominant era shifts to teal, and exploring classic Lotus
+            seasons turns green. The color affects links, hover states, progress bars, hero
+            sections, and focus outlines across the entire page.
+        </p>
+
+        <div class="table-header"><h3>Modern Era</h3></div>
+        <p>
+            Since around 1996, Formula 1 has had more standardised regulations, consistent race
+            formats, and richer data. Many of our badges and statistical comparisons focus on this
+            &ldquo;modern era&rdquo; to keep things fair. You can filter
+            <%= link_to "all seasons", seasons_path(from_year: 1996, to_year: Date.current.year) %>
+            to just the modern era, or explore the full history back to 1950.
+        </p>
+
+        <div class="table-header"><h3>Data &amp; Sources</h3></div>
+        <p>
+            Historical data (1950&ndash;2024) comes from the Ergast/Jolpica F1 dataset.
+            Current-season results are synced from the Jolpica API after each race weekend.
+            Driver headshots are sourced from the OpenF1 API. All Elo calculations are
+            computed locally&mdash;no external rating service is used.
+        </p>
+
+        <div class="table-header"><h3>Open Source</h3></div>
+        <p>
+            This project is built with Rails 7, PostgreSQL, and Bootstrap 5. The full source
+            code is available on GitHub. Contributions, bug reports, and feature ideas are
+            welcome.
+        </p>
+    </div>
+</div>

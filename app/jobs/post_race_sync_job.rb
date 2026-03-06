@@ -38,6 +38,12 @@ class PostRaceSyncJob < ApplicationJob
       if Setting.fantasy_stock_market?
         Fantasy::Stock::SettleRace.new(race: latest_race).call
         Rails.logger.info "[PostRaceSyncJob] Stock market settled for race #{latest_race.id}"
+
+        # Check stock achievements
+        FantasyStockPortfolio.where(season: season).find_each do |portfolio|
+          Fantasy::Stock::CheckAchievements.new(portfolio: portfolio, race: latest_race).call
+        end
+        Rails.logger.info "[PostRaceSyncJob] Stock achievements checked"
       end
     end
   end

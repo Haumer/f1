@@ -1,26 +1,103 @@
 <% if portfolio %>
-    <%= link_to fantasy_portfolio_path(portfolio), class: "card fantasy-mini-card" do %>
-        <div class="fantasy-mini-header">
-            <i class="fa-solid fa-chess-knight"></i>
-            <span>Fantasy F1</span>
-        </div>
-        <div class="fantasy-mini-stats">
-            <div class="fantasy-mini-stat">
-                <span class="label">Value</span>
-                <span class="value"><%= portfolio.portfolio_value.round(0) %></span>
-            </div>
-            <div class="fantasy-mini-stat">
-                <span class="label">P&L</span>
-                <% pl = portfolio.profit_loss %>
-                <span class="value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
-                    <%= pl >= 0 ? '+' : '' %><%= pl.round(0) %>
-                </span>
-            </div>
-            <div class="fantasy-mini-drivers">
-                <% portfolio.active_roster_entries.includes(:driver).each do |entry| %>
-                    <span class="fantasy-mini-driver"><%= entry.driver.surname %></span>
+    <% stock_portfolio ||= nil %>
+    <% support ||= nil %>
+    <% rank ||= nil %>
+
+    <div class="fantasy-mini-card-wrapper">
+        <%= link_to fantasy_portfolio_path(portfolio), class: "card fantasy-mini-card" do %>
+            <%# Header row: title + rank badge %>
+            <div class="fantasy-mini-header">
+                <div class="fantasy-mini-title">
+                    <i class="fa-solid fa-chess-knight"></i>
+                    <span>Fantasy F1</span>
+                </div>
+                <% if rank %>
+                    <span class="fantasy-mini-rank">
+                        <i class="fa-solid fa-trophy"></i> #<%= rank %>
+                    </span>
                 <% end %>
             </div>
+
+            <%# Stats row: Value, P&L, and optional team allegiance %>
+            <div class="fantasy-mini-stats">
+                <div class="fantasy-mini-stat">
+                    <span class="label">Portfolio</span>
+                    <span class="value"><%= number_with_delimiter(portfolio.portfolio_value.round(0)) %></span>
+                </div>
+                <div class="fantasy-mini-stat">
+                    <span class="label">P&L</span>
+                    <% pl = portfolio.profit_loss %>
+                    <span class="value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                        <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
+                    </span>
+                </div>
+
+                <% if support&.constructor %>
+                    <div class="fantasy-mini-allegiance">
+                        <span class="label">Team</span>
+                        <span class="fantasy-mini-team-badge">
+                            <% if support.constructor.logo_url.present? %>
+                                <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs" loading="lazy" onerror="this.style.display='none'">
+                            <% end %>
+                            <span><%= support.constructor.name %></span>
+                        </span>
+                    </div>
+                <% end %>
+            </div>
+
+            <%# Roster driver pills with constructor color borders %>
+            <% entries = portfolio.active_roster_entries.includes(:driver) %>
+            <% if entries.any? %>
+                <% sd_index = SeasonDriver.where(season: portfolio.season, driver_id: entries.map(&:driver_id)).includes(:constructor).index_by(&:driver_id) %>
+                <div class="fantasy-mini-roster">
+                    <% entries.each do |entry| %>
+                        <% constructor = sd_index[entry.driver_id]&.constructor %>
+                        <% color = constructor ? (Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d') : '#6c757d' %>
+                        <span class="fantasy-mini-pill" style="--pill-color: <%= color %>">
+                            <%= entry.driver.surname %>
+                        </span>
+                    <% end %>
+                </div>
+            <% end %>
+
+            <%# Stock positions summary (if user has a stock portfolio) %>
+            <% if stock_portfolio %>
+                <% longs_count = stock_portfolio.active_longs.count %>
+                <% shorts_count = stock_portfolio.active_shorts.count %>
+                <% if longs_count > 0 || shorts_count > 0 %>
+                    <div class="fantasy-mini-stocks-row">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span class="fantasy-mini-stocks-label">Stocks</span>
+                        <div class="fantasy-mini-positions">
+                            <% if longs_count > 0 %>
+                                <span class="fantasy-mini-pos-badge pos-long"><%= longs_count %>L</span>
+                            <% end %>
+                            <% if shorts_count > 0 %>
+                                <span class="fantasy-mini-pos-badge pos-short"><%= shorts_count %>S</span>
+                            <% end %>
+                        </div>
+                        <% stock_pl = stock_portfolio.profit_loss %>
+                        <span class="fantasy-mini-stock-pl <%= stock_pl >= 0 ? 'text-green' : 'text-red' %>">
+                            <%= stock_pl >= 0 ? '+' : '' %><%= number_with_delimiter(stock_pl.round(0)) %>
+                        </span>
+                    </div>
+                <% end %>
+            <% end %>
+        <% end %>
+
+        <%# Secondary links row (outside main link to avoid nested <a> tags) %>
+        <div class="fantasy-mini-links">
+            <%= link_to fantasy_portfolio_path(portfolio), class: "fantasy-mini-link" do %>
+                <i class="fa-solid fa-users"></i> Roster
+            <% end %>
+            <% if stock_portfolio %>
+                <%= link_to fantasy_portfolio_path(portfolio, tab: "stocks"), class: "fantasy-mini-link" do %>
+                    <i class="fa-solid fa-chart-line"></i> Stocks
+                <% end %>
+            <% end %>
+            <%= link_to combined_leaderboard_path, class: "fantasy-mini-link" do %>
+                <i class="fa-solid fa-ranking-star"></i> Leaderboard
+            <% end %>
         </div>
-    <% end %>
+    </div>
 <% end %>

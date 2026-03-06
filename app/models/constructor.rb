@@ -6,7 +6,8 @@ class Constructor < ApplicationRecord
     has_many :constructor_standings
     has_many :season_drivers
     has_many :seasons, through: :season_drivers
-    has_many :supporters, class_name: "User", foreign_key: :supported_constructor_id
+    has_many :constructor_supports, -> { where(active: true) }
+    has_many :supporters, through: :constructor_supports, source: :user
 
     validates :name, :constructor_ref, presence: true
 

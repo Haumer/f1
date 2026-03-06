@@ -2,7 +2,19 @@ class SeasonsController < ApplicationController
   include StandingsData
 
   def index
-    @seasons = Season.includes(:drivers, :races).sorted_by_year
+    all_seasons = Season.includes(:drivers, :races).sorted_by_year
+    @all_years = all_seasons.map { |s| s.year.to_i }
+
+    if params[:from_year].present?
+      from = params[:from_year].to_i
+      to = params[:to_year].present? ? params[:to_year].to_i : @all_years.first
+      @from_year = from
+      @to_year = to
+      @filtered = true
+      @seasons = all_seasons.select { |s| y = s.year.to_i; y >= from && y <= to }
+    else
+      @seasons = all_seasons
+    end
 
     # Champion name per season
     @champions_by_season = DriverStanding.where(season_end: true, position: 1)

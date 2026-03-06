@@ -1,11 +1,28 @@
 <div class="homepage-container">
     <div class="table-header">
         <h3>All Races</h3>
+        <% if @filtered %>
+            <%= link_to "Clear filter", races_path, class: "race-filter-clear" %>
+        <% end %>
     </div>
-    <div class="race-search-form">
-        <%= simple_form_for :search, url: races_path, method: :get do |f| %>
-            <%= f.input :date, as: :date, html5: true, input_html: { class: "race-date-input" } %>
-            <%= f.submit "Filter", class: "race-date-submit" %>
+
+    <div class="race-filter-bar">
+        <%= form_tag races_path, method: :get, class: "race-filter-form" do %>
+            <label class="race-filter-label">From</label>
+            <%= select_tag :from_year,
+                options_for_select(
+                    @all_seasons.map { |s| [s.year, s.year.to_i] },
+                    @from_year || @all_seasons.last&.year.to_i
+                ),
+                class: "race-filter-select" %>
+            <label class="race-filter-label">To</label>
+            <%= select_tag :to_year,
+                options_for_select(
+                    @all_seasons.map { |s| [s.year, s.year.to_i] },
+                    @to_year || @all_seasons.first&.year.to_i
+                ),
+                class: "race-filter-select" %>
+            <%= submit_tag "Filter", class: "race-filter-submit" %>
         <% end %>
     </div>
 
@@ -60,6 +77,14 @@
                 </table>
                 </div>
             </div>
+        </div>
+    <% end %>
+
+    <% if !@filtered && @has_more %>
+        <div class="race-load-more">
+            <%= link_to races_path(seasons: @seasons_shown + 4), class: "race-load-more-btn" do %>
+                <i class="fa-solid fa-angles-down"></i> Load more seasons
+            <% end %>
         </div>
     <% end %>
 </div>

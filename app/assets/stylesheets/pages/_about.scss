@@ -296,6 +296,86 @@
     }
 }
 
+// Elo explanation prose block (used on about, fantasy guide, elo pages)
+.elo-explanation {
+    p {
+        font-size: 15px;
+        line-height: 1.7;
+        color: $text-primary;
+        margin-bottom: 14px;
+    }
+    strong { color: $text-primary; }
+    em { color: $text-secondary; font-style: italic; }
+}
+
+// About page color list
+.about-color-list {
+    margin: 8px 0 20px 20px;
+    li {
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 6px;
+        color: $text-primary;
+    }
+}
+
+// Step cards (used in fantasy guide)
+.elo-step {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background: $bg-surface;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    .elo-step-pip {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: $weight-bold;
+        color: #fff;
+        flex-shrink: 0;
+    }
+    .elo-step-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        strong { font-size: 14px; color: $text-primary; }
+        span { font-size: 13px; color: $text-secondary; line-height: 1.5; }
+    }
+}
+
+// Result cards with label / value / sub
+.elo-result-card {
+    .elo-result-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+        padding: 12px 14px 0;
+    }
+    .elo-result-value {
+        font-size: 18px;
+        font-weight: $weight-bold;
+        color: $text-primary;
+        padding: 4px 14px 0;
+        font-family: $mono-font;
+    }
+    .elo-result-sub {
+        display: block;
+        font-size: 12px;
+        color: $text-secondary;
+        padding: 4px 14px 12px;
+        line-height: 1.4;
+    }
+}
+.elo-results-grid-3 {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
 @media (max-width: 768px) {
     .elo-tiers-grid {
         grid-template-columns: 1fr;

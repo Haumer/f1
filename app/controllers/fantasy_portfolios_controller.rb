@@ -34,6 +34,22 @@ class FantasyPortfoliosController < ApplicationController
     @achievements = @portfolio.achievements.order(created_at: :desc)
     @value_delta = @portfolio.value_change_since_last_race
     @constructors_by_driver = constructors_for_drivers(@active_entries.map(&:driver))
+    @current_support = ConstructorSupport.current_for(current_user, @portfolio.season)
+    @can_change_support = ConstructorSupport.can_change?(current_user, @portfolio.season)
+
+    # Stock portfolio (for unified view)
+    @stock_portfolio = current_user.fantasy_stock_portfolio_for(@portfolio.season)
+    if @stock_portfolio
+      @stock_holdings = @stock_portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price)
+      @stock_transactions = @stock_portfolio.transactions.order(created_at: :desc).limit(20)
+      @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
+      @stock_snapshots = @stock_portfolio.snapshots.joins(:race).order("races.date ASC")
+      @stock_achievements = @stock_portfolio.achievements.to_a
+      @stock_value_delta = @stock_portfolio.value_change_since_last_race
+      @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))
+    end
+
+    @tab = params[:tab] || "roster"
   end
 
   def market
@@ -114,22 +130,25 @@ class FantasyPortfoliosController < ApplicationController
     @roster_entries = Fantasy::Leaderboard.new(season: @season).call
     @stock_entries = stock_leaderboard_entries
 
-    # Combined: normalize P&L as percentage of starting capital, then rank
+    # Combined: roster = driver holdings, stocks = stock holdings, cash = leftover cash
     combined = []
     @roster_entries.each do |e|
       p = e[:portfolio]
       pct = p.starting_capital > 0 ? ((e[:value] - p.starting_capital) / p.starting_capital * 100) : 0
-      combined << { user: p.user, roster_value: e[:value], roster_pl_pct: pct, stock_value: nil, stock_pl_pct: nil }
+      driver_holdings = e[:value] - p.cash
+      combined << { user: p.user, roster_holdings: driver_holdings, roster_pl_pct: pct, stock_holdings: nil, stock_pl_pct: nil, cash: p.cash }
     end
     @stock_entries.each do |e|
       p = e[:portfolio]
       pct = p.starting_capital > 0 ? ((e[:value] - p.starting_capital) / p.starting_capital * 100) : 0
+      stock_holdings = e[:value] - p.cash
       existing = combined.find { |c| c[:user].id == p.user_id }
       if existing
-        existing[:stock_value] = e[:value]
+        existing[:stock_holdings] = stock_holdings
         existing[:stock_pl_pct] = pct
+        existing[:cash] = (existing[:cash] || 0) + p.cash
       else
-        combined << { user: p.user, roster_value: nil, roster_pl_pct: nil, stock_value: e[:value], stock_pl_pct: pct }
+        combined << { user: p.user, roster_holdings: nil, roster_pl_pct: nil, stock_holdings: stock_holdings, stock_pl_pct: pct, cash: p.cash }
       end
     end
 
@@ -137,9 +156,15 @@ class FantasyPortfoliosController < ApplicationController
     combined.each do |c|
       pcts = [c[:roster_pl_pct], c[:stock_pl_pct]].compact
       c[:combined_pct] = pcts.any? ? (pcts.sum / pcts.size) : 0
+      c[:total_value] = (c[:roster_holdings] || 0) + (c[:stock_holdings] || 0) + (c[:cash] || 0)
     end
 
     @combined_entries = combined.sort_by { |c| -c[:combined_pct] }
+
+    # Preload constructor supports for leaderboard display
+    user_ids = @combined_entries.map { |c| c[:user].id }
+    @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
+                          .includes(:constructor).index_by(&:user_id)
 
     render "fantasy_portfolios/combined_leaderboard"
   end

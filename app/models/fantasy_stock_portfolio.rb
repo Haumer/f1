@@ -5,6 +5,7 @@ class FantasyStockPortfolio < ApplicationRecord
   has_many :holdings, class_name: "FantasyStockHolding", dependent: :destroy
   has_many :transactions, class_name: "FantasyStockTransaction", dependent: :destroy
   has_many :snapshots, class_name: "FantasyStockSnapshot", dependent: :destroy
+  has_many :achievements, class_name: "FantasyStockAchievement", dependent: :destroy
 
   validates :user_id, uniqueness: { scope: :season_id }
   validates :cash, :starting_capital, presence: true
@@ -65,6 +66,10 @@ class FantasyStockPortfolio < ApplicationRecord
 
   def available_cash
     cash - total_collateral
+  end
+
+  def has_achievement?(key)
+    achievements.exists?(key: key.to_s)
   end
 
   def value_change_since_last_race

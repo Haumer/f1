@@ -18,7 +18,7 @@ class User < ApplicationRecord
 
   has_many :fantasy_portfolios, dependent: :destroy
   has_many :fantasy_stock_portfolios, dependent: :destroy
-  belongs_to :supported_constructor, class_name: "Constructor", optional: true
+  has_many :constructor_supports, dependent: :destroy
 
   def to_param
     username
@@ -36,9 +36,15 @@ class User < ApplicationRecord
     username
   end
 
-  def team_color
-    return nil unless supported_constructor
-    Constructor::COLORS[supported_constructor.constructor_ref.to_sym]
+  def supported_constructor(season = nil)
+    season ||= Season.sorted_by_year.first
+    ConstructorSupport.current_for(self, season)&.constructor
+  end
+
+  def team_color(season = nil)
+    c = supported_constructor(season)
+    return nil unless c
+    Constructor::COLORS[c.constructor_ref.to_sym]
   end
 
   private

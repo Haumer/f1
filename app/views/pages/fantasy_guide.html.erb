@@ -1,0 +1,148 @@
+<div class="homepage-container">
+    <div class="table-header"><h3>How Fantasy Works</h3></div>
+
+    <div class="elo-explanation">
+        <p>
+            Fantasy F1 lets you build a portfolio of drivers and compete against other players.
+            There are two modes: <strong>Roster</strong> (pick drivers) and <strong>Stocks</strong> (trade driver shares).
+            Your goal is to grow your fantasy cash by making smart picks.
+        </p>
+
+        <%# ═══ ROSTER MODE ═══ %>
+        <div class="table-header"><h3>Roster Mode</h3></div>
+        <p>
+            Draft real F1 drivers onto your roster. Each driver's price equals their current Elo rating.
+            When a driver performs well and their Elo rises, so does your portfolio value.
+        </p>
+
+        <div class="elo-worked-example">
+            <div class="elo-step-grid">
+                <div class="elo-step">
+                    <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">1</div>
+                    <div class="elo-step-content">
+                        <strong>Starting Capital</strong>
+                        <span>You receive fantasy cash equal to the average driver Elo &times; <%= Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER %>. This is your budget.</span>
+                    </div>
+                </div>
+                <div class="elo-step">
+                    <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">2</div>
+                    <div class="elo-step-content">
+                        <strong>Buy Drivers</strong>
+                        <span>Purchase drivers from the market at their Elo price. You start with <%= FantasyPortfolio::STARTING_SLOTS %> roster slots.</span>
+                    </div>
+                </div>
+                <div class="elo-step">
+                    <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">3</div>
+                    <div class="elo-step-content">
+                        <strong>Race Weekend</strong>
+                        <span>The transfer window closes 1 minute before race start. After the race, driver Elos update and your portfolio value changes.</span>
+                    </div>
+                </div>
+                <div class="elo-step">
+                    <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">4</div>
+                    <div class="elo-step-content">
+                        <strong>Sell &amp; Swap</strong>
+                        <span>Sell drivers at their current Elo (minus a <%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>% fee). You must hold a driver for at least 1 race before selling.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="elo-formula-block">
+            <strong>Expand Your Roster</strong>
+            <p>
+                You can purchase additional teams (up to <%= FantasyPortfolio::MAX_TEAMS %> total) to unlock more roster slots.
+                Each team adds <%= FantasyPortfolio::SLOTS_PER_TEAM %> driver seats and 1 swap per race.
+                The team cost equals the average Elo of current-season drivers.
+            </p>
+        </div>
+
+        <% if Setting.fantasy_stock_market? %>
+            <%# ═══ STOCK MODE ═══ %>
+            <div class="table-header"><h3>Stock Market Mode</h3></div>
+            <p>
+                Trade driver shares like stocks. You can go <strong>long</strong> (bet on a driver improving)
+                or <strong>short</strong> (bet on a driver declining). Share prices are derived from Elo ratings.
+            </p>
+
+            <div class="elo-worked-example">
+                <div class="elo-step-grid">
+                    <div class="elo-step">
+                        <div class="elo-step-pip" style="background: #52c41a">L</div>
+                        <div class="elo-step-content">
+                            <strong>Long Positions</strong>
+                            <span>Buy shares at Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>. You profit when the driver's Elo rises. Long positions earn <strong>dividends</strong> after each race: 5 per share for a win, 3 for a podium, 1 for a points finish.</span>
+                        </div>
+                    </div>
+                    <div class="elo-step">
+                        <div class="elo-step-pip" style="background: #e10600">S</div>
+                        <div class="elo-step-content">
+                            <strong>Short Positions</strong>
+                            <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked fantasy cash) and incur a 2% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="elo-formula-block">
+                <strong>Position Limits</strong>
+                <p>You can hold up to <%= FantasyStockPortfolio::MAX_POSITIONS %> positions (longs + shorts combined). Available fantasy cash = total cash minus locked collateral from shorts.</p>
+            </div>
+        <% end %>
+
+        <%# ═══ EARNING CASH ═══ %>
+        <div class="table-header"><h3>Earning Fantasy Cash</h3></div>
+
+        <div class="elo-results-grid elo-results-grid-3">
+            <div class="elo-result-card">
+                <div class="elo-result-label">Starting Capital</div>
+                <div class="elo-result-value">Avg Elo &times; <%= Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER %></div>
+                <span class="elo-result-sub">Awarded once when you create a portfolio</span>
+            </div>
+            <div class="elo-result-card">
+                <div class="elo-result-label">Selling Drivers</div>
+                <div class="elo-result-value">Elo Price &minus; <%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>%</div>
+                <span class="elo-result-sub">Sell drivers whose Elo has risen for a profit</span>
+            </div>
+            <div class="elo-result-card">
+                <div class="elo-result-label">Team Allegiance</div>
+                <div class="elo-result-value">+<%= ConstructorSupport::BONUS_CASH %></div>
+                <span class="elo-result-sub">One-time bonus for picking a team to support</span>
+            </div>
+            <% if Setting.fantasy_stock_market? %>
+                <div class="elo-result-card">
+                    <div class="elo-result-label">Dividends</div>
+                    <div class="elo-result-value">+1 to +5 / share</div>
+                    <span class="elo-result-sub">Long positions earn dividends based on race finish</span>
+                </div>
+                <div class="elo-result-card">
+                    <div class="elo-result-label">Short Profits</div>
+                    <div class="elo-result-value">Entry &minus; Current</div>
+                    <span class="elo-result-sub">Profit when a shorted driver's Elo drops</span>
+                </div>
+            <% end %>
+        </div>
+
+        <%# ═══ LEADERBOARD ═══ %>
+        <div class="table-header"><h3>Leaderboard</h3></div>
+        <p>
+            The <strong>Combined Leaderboard</strong> ranks players by average P&amp;L percentage across both modes.
+            If you only play one mode, your ranking is based on that mode alone.
+        </p>
+        <p>
+            <strong>Roster</strong> tab ranks by total portfolio value (fantasy cash + driver holdings).
+            <strong>Stocks</strong> tab ranks by total stock portfolio value (fantasy cash + positions).
+            The <strong>Combined</strong> tab shows both breakdowns and overall performance.
+        </p>
+
+        <%# ═══ ACHIEVEMENTS ═══ %>
+        <div class="table-header"><h3>Achievements</h3></div>
+        <p>
+            Earn achievements by hitting milestones in your portfolio. There are three tiers:
+            <span style="color: #cd7f32;">Bronze</span>,
+            <span style="color: #c0c0c0;">Silver</span>, and
+            <span style="color: #ffd700;">Gold</span>.
+            Achievements are checked automatically after each race.
+        </p>
+    </div>
+</div>

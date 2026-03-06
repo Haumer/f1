@@ -60,8 +60,11 @@ class ConstructorsController < ApplicationController
     end.compact.sort_by { |d| [-d[:wins], -d[:podiums], -d[:races]] }
 
     @most_winning_driver = @top_drivers.first
-    @supporter_count = @constructor.supporters.count
-    @user_supports = current_user&.supported_constructor_id == @constructor.id
+    @supporter_count = ConstructorSupport.where(constructor: @constructor, active: true).count
+    @user_supports = current_user && ConstructorSupport.exists?(user: current_user, constructor: @constructor, season: current_season, active: true)
+    @fans = User.joins(:constructor_supports)
+                .where(constructor_supports: { constructor: @constructor, active: true })
+                .distinct.to_a
 
     # Driver roster grouped by season (most recent first)
     @roster_by_season = @constructor.season_drivers
@@ -164,13 +167,39 @@ class ConstructorsController < ApplicationController
   def support
     authenticate_user!
     constructor = Constructor.find(params[:id])
-    if current_user.supported_constructor_id == constructor.id
-      current_user.update!(supported_constructor_id: nil)
-      redirect_back fallback_location: constructor_path(constructor), notice: "No longer supporting #{constructor.name}."
-    else
-      current_user.update!(supported_constructor_id: constructor.id)
-      redirect_back fallback_location: constructor_path(constructor), notice: "You are now supporting #{constructor.name}!"
+    season = current_season
+
+    unless ConstructorSupport.can_change?(current_user, season)
+      redirect_back fallback_location: constructor_path(constructor), alert: "You can't change your team right now. Swaps open at mid-season."
+      return
     end
+
+    # Deactivate any current support
+    current_support = ConstructorSupport.current_for(current_user, season)
+    current_support&.update!(active: false, ended_at: Time.current)
+
+    # Create new support
+    support = ConstructorSupport.create!(
+      user: current_user,
+      constructor: constructor,
+      season: season
+    )
+
+    # Grant cash bonus on first-ever pick this season
+    if !support.bonus_granted && current_user.constructor_supports.where(season: season, bonus_granted: true).none?
+      portfolio = current_user.fantasy_portfolio_for(season)
+      if portfolio
+        portfolio.update!(cash: portfolio.cash + ConstructorSupport::BONUS_CASH)
+        portfolio.transactions.create!(
+          kind: "bonus",
+          amount: ConstructorSupport::BONUS_CASH,
+          note: "Team allegiance bonus for supporting #{constructor.name}"
+        )
+      end
+      support.update!(bonus_granted: true)
+    end
+
+    redirect_back fallback_location: constructor_path(constructor), notice: "You are now supporting #{constructor.name}!"
   end
 
   def families

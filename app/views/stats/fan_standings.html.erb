@@ -1,0 +1,40 @@
+<div class="homepage-container">
+    <div class="table-header">
+        <h3>Fan Standings</h3>
+        <span class="table-header-sub"><%= @total_fans %> fan<%= @total_fans == 1 ? '' : 's' %> total</span>
+    </div>
+
+    <div class="fan-standings-grid">
+        <% @constructors.each_with_index do |entry, idx| %>
+            <% c = entry[:constructor] %>
+            <% team_color = Constructor::COLORS[c.constructor_ref.to_sym] || '#666' %>
+            <% pct = @total_fans > 0 ? (entry[:count].to_f / @total_fans * 100).round(1) : 0 %>
+            <div class="card fan-standings-card" style="border-left: 3px solid <%= team_color %>">
+                <div class="fan-standings-header">
+                    <div class="fan-standings-team">
+                        <% if c.logo_url.present? %>
+                            <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="fan-standings-logo" onerror="this.style.display='none'">
+                        <% end %>
+                        <%= link_to c.name, constructor_path(c), class: "fan-standings-name", style: "color: #{team_color}" %>
+                    </div>
+                    <div class="fan-standings-count">
+                        <span class="fan-standings-number"><%= entry[:count] %></span>
+                        <span class="fan-standings-pct"><%= pct %>%</span>
+                    </div>
+                </div>
+                <% if @total_fans > 0 %>
+                    <div class="fan-standings-bar-bg">
+                        <div class="fan-standings-bar-fill" style="width: <%= pct %>%; background: <%= team_color %>"></div>
+                    </div>
+                <% end %>
+                <% if entry[:fans].any? %>
+                    <div class="fan-standings-fans">
+                        <% entry[:fans].each do |fan| %>
+                            <span class="fan-standings-fan" style="color: <%= team_color %>"><%= fan.display_name %></span>
+                        <% end %>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+</div>
