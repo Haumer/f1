@@ -132,13 +132,13 @@ class RacesController < ApplicationController
                 .includes(race: [:circuit, :season])
                 .group_by(&:driver_id)
 
-    # Group champions by era based on their first title year
-    champion_eras = standings.group_by(&:driver).transform_values do |titles|
-      titles.map { |t| t.race.season.year.to_i }.min
+    # Group champions by era — a driver appears in every era where they won a title
+    champion_title_years = standings.group_by(&:driver).transform_values do |titles|
+      titles.map { |t| t.race.season.year.to_i }
     end
 
     @eras = CHAMPION_ERAS.map do |era_name, year_range|
-      era_drivers = champion_eras.select { |_, first_title| year_range.cover?(first_title) }.keys
+      era_drivers = champion_title_years.select { |_, years| years.any? { |y| year_range.cover?(y) } }.keys
       era_results = era_drivers.map { |d| all_results[d.id] || [] }
       { name: era_name, years: "#{year_range.first}–#{year_range.last > 2050 ? 'present' : year_range.last}", range: year_range, results: era_results, drivers: era_drivers }
     end
