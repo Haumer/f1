@@ -255,7 +255,7 @@ table.race-results {
 }
 .race-stat-card {
     flex: 1;
-    min-width: 100px;
+    min-width: 80px;
     text-align: center;
     padding: 12px 8px;
     background: $bg-surface;
@@ -528,6 +528,7 @@ table.race-results {
         align-items: center;
         justify-content: center;
         gap: 8px;
+        flex-wrap: wrap;
     }
 }
 
@@ -944,6 +945,9 @@ table.race-results {
     .season-team-grid {
         grid-template-columns: 1fr;
     }
+    .race-stat-card .race-stat-value { font-size: 16px; }
+    .race-stat-card .race-stat-label { font-size: 10px; }
+    .race-stats-row { gap: 8px; }
 }
 
 @media (max-width: 768px) {

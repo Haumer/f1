@@ -25,8 +25,8 @@
                     <th class="text-center">#</th>
                     <th data-sort="text">Driver</th>
                     <th class="text-center" data-sort="num">Titles</th>
-                    <th>Championship Years</th>
-                    <th class="text-center" data-sort="num">Peak Elo</th>
+                    <th class="d-none d-sm-table-cell">Championship Years</th>
+                    <th class="text-center d-none d-sm-table-cell" data-sort="num">Peak Elo</th>
                 </tr>
             </thead>
             <tbody>
@@ -43,8 +43,8 @@
                             <% end %>
                         </td>
                         <td class="text-center font-bold"><%= data[:count] %></td>
-                        <td><%= data[:years].join(", ") %></td>
-                        <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
+                        <td class="d-none d-sm-table-cell"><%= data[:years].join(", ") %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= elo_link(driver.display_peak_elo) %></td>
                     </tr>
                 <% end %>
             </tbody>

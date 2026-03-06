@@ -66,14 +66,14 @@
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th></th>
-                    <th></th>
+                    <th class="d-none d-sm-table-cell"></th>
+                    <th class="d-none d-md-table-cell"></th>
                     <th data-sort="text">Driver</th>
-                    <th class="text-center race-result-cell" data-sort="num">Grid</th>
-                    <th class="text-center race-result-cell" data-sort="num">+/-</th>
-                    <th class="text-center race-result-cell" data-sort="num">Points</th>
-                    <th class="text-center race-result-cell" data-sort="num">Season Pts</th>
-                    <th class="text-center race-result-cell" data-sort="num">Season #</th>
+                    <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">Grid</th>
+                    <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">+/-</th>
+                    <th class="text-center race-result-cell d-none d-md-table-cell" data-sort="num">Points</th>
+                    <th class="text-center race-result-cell d-none d-lg-table-cell" data-sort="num">Season Pts</th>
+                    <th class="text-center race-result-cell d-none d-lg-table-cell" data-sort="num">Season #</th>
                     <th class="text-center race-result-cell" data-sort="num">Elo Change</th>
                     <th class="text-center race-result-cell" data-sort="num">Elo</th>
                 </tr>
@@ -82,12 +82,12 @@
                 <% @race.race_results.sort_by { |rr| rr.position_order || 999 }.each do |race_result| %>
                     <tr>
                         <td class="text-center"><%= race_result.position_order %></td>
-                        <td>
+                        <td class="d-none d-sm-table-cell">
                             <% if race_result.driver.country.present? %>
                                 <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= race_result.driver.country.name %>';this.style.display='none'">
                             <% end %>
                         </td>
-                        <td>
+                        <td class="d-none d-md-table-cell">
                             <% constructor = @constructor_by_driver[race_result.driver_id] || race_result.constructor %>
                             <% if constructor %>
                                 <%= link_to constructor_path(constructor) do %>
@@ -104,8 +104,8 @@
                                 <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
                             <% end %>
                         </td>
-                        <td class="text-center"><%= race_result.grid %></td>
-                        <td class="text-center">
+                        <td class="text-center d-none d-sm-table-cell"><%= race_result.grid %></td>
+                        <td class="text-center d-none d-sm-table-cell">
                             <% if race_result.grid && race_result.grid > 0 %>
                                 <% positions_changed = race_result.grid - race_result.position_order %>
                                 <% if positions_changed > 0 %>
@@ -117,10 +117,10 @@
                                 <% end %>
                             <% end %>
                         </td>
-                        <td class="text-center"><%= race_result.points.to_i.zero? ? race_result.points.to_i : "+#{race_result.points.to_i}" %></td>
+                        <td class="text-center d-none d-md-table-cell"><%= race_result.points.to_i.zero? ? race_result.points.to_i : "+#{race_result.points.to_i}" %></td>
                         <% standing = @standings_by_driver[race_result.driver_id] %>
-                        <td class="text-center"><%= standing&.points %></td>
-                        <td class="text-center"><%= standing&.position %></td>
+                        <td class="text-center d-none d-lg-table-cell"><%= standing&.points %></td>
+                        <td class="text-center d-none d-lg-table-cell"><%= standing&.position %></td>
                         <td class="text-center">
                             <% if race_result.display_gained_elo? %>
                                 <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>

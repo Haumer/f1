@@ -833,3 +833,28 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+@media (max-width: 480px) {
+  .season-start-hero {
+    padding: 48px 0 36px;
+
+    .hero-season-year { font-size: 100px; }
+    h1 { font-size: 28px; letter-spacing: -0.5px; }
+  }
+
+  .season-start-hero .countdown-block {
+    min-width: 48px;
+    padding: 10px 6px 8px;
+  }
+
+  .season-start-hero .countdown-number { font-size: 20px; }
+
+  .explore-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-strip {
+    padding: 16px 12px;
+    .stat-number { font-size: 18px; }
+  }
+}

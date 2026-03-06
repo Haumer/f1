@@ -12,20 +12,20 @@
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th></th>
+                    <th class="d-none d-sm-table-cell"></th>
                     <th data-sort="text">Driver</th>
                     <th class="text-center" title="Total Podiums" data-sort="num">Pod</th>
-                    <th class="text-center" title="Wins" data-sort="num">W</th>
-                    <th class="text-center" title="Second Places" data-sort="num">2nd</th>
-                    <th class="text-center" title="Third Places" data-sort="num">3rd</th>
-                    <th class="text-center" data-sort="num">Peak Elo</th>
+                    <th class="text-center d-none d-sm-table-cell" title="Wins" data-sort="num">W</th>
+                    <th class="text-center d-none d-md-table-cell" title="Second Places" data-sort="num">2nd</th>
+                    <th class="text-center d-none d-md-table-cell" title="Third Places" data-sort="num">3rd</th>
+                    <th class="text-center d-none d-sm-table-cell" data-sort="num">Peak Elo</th>
                 </tr>
             </thead>
             <tbody>
                 <% @drivers.each_with_index do |driver, index| %>
                     <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
                         <td class="text-center"><%= index + 1 %></td>
-                        <td class="icon-cell">
+                        <td class="icon-cell d-none d-sm-table-cell">
                             <% if driver.country.present? %>
                                 <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
                             <% end %>
@@ -36,10 +36,10 @@
                             <% end %>
                         </td>
                         <td class="text-center"><%= driver.podiums %></td>
-                        <td class="text-center"><%= driver.wins %></td>
-                        <td class="text-center"><%= driver.second_places %></td>
-                        <td class="text-center"><%= driver.third_places %></td>
-                        <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= driver.wins %></td>
+                        <td class="text-center d-none d-md-table-cell"><%= driver.second_places %></td>
+                        <td class="text-center d-none d-md-table-cell"><%= driver.third_places %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= elo_link(driver.display_peak_elo) %></td>
                     </tr>
                 <% end %>
             </tbody>

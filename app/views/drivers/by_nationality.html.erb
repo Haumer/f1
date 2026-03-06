@@ -22,10 +22,10 @@
                         <tr>
                             <th class="text-center">#</th>
                             <th>Driver</th>
-                            <th></th>
+                            <th class="d-none d-md-table-cell"></th>
                             <th class="text-center">Peak Elo</th>
-                            <th class="text-center">Tier</th>
-                            <th class="text-center">Current Elo</th>
+                            <th class="text-center d-none d-sm-table-cell">Tier</th>
+                            <th class="text-center d-none d-md-table-cell">Current Elo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -37,20 +37,20 @@
                                         <%= driver.forename %> <%= driver.surname %>
                                     <% end %>
                                 </td>
-                                <td class="icon-cell">
+                                <td class="icon-cell d-none d-md-table-cell">
                                     <% constructor = driver.current_constructor || driver.season_drivers.sort_by { |sd| -(sd.season&.year.to_i) }.first&.constructor %>
                                     <% if constructor&.logo_url.present? %>
                                         <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
                                     <% end %>
                                 </td>
                                 <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
-                                <td class="text-center">
+                                <td class="text-center d-none d-sm-table-cell">
                                     <% tier = elo_tier(driver.display_peak_elo) %>
                                     <% if tier %>
                                         <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
                                     <% end %>
                                 </td>
-                                <td class="text-center"><%= driver.active? ? elo_link(driver.display_elo) : "—" %></td>
+                                <td class="text-center d-none d-md-table-cell"><%= driver.active? ? elo_link(driver.display_elo) : "—" %></td>
                             </tr>
                         <% end %>
                     </tbody>

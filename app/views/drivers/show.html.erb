@@ -171,14 +171,14 @@
                     <tr>
                         <th class="text-center">#</th>
                         <th class="text-center">Elo</th>
-                        <th class="text-center">Old</th>
-                        <th></th>
-                        <th class="text-center">New</th>
-                        <th class="text-center">Status</th>
-                        <th></th>
+                        <th class="text-center d-none d-md-table-cell">Old</th>
+                        <th class="d-none d-md-table-cell"></th>
+                        <th class="text-center d-none d-md-table-cell">New</th>
+                        <th class="text-center d-none d-sm-table-cell">Status</th>
+                        <th class="d-none d-md-table-cell"></th>
                         <th>Circuit</th>
-                        <th>Date</th>
-                        <th>Race</th>
+                        <th class="d-none d-sm-table-cell">Date</th>
+                        <th class="d-none d-lg-table-cell">Race</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -200,11 +200,11 @@
                                     <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
                                 <% end %>
                             </td>
-                            <td class="text-center"><%= elo_link(race_result.display_old_elo) %></td>
-                            <td class="text-center"><i class="fa-solid fa-caret-right"></i></td>
-                            <td class="text-center <%= 'underline' if race_result.driver.display_peak_elo == race_result.display_new_elo %>"><%= elo_link(race_result.display_new_elo) %></td>
-                            <td class="text-center <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>"><%= race_result.status.status_type %></td>
-                            <td class="text-center">
+                            <td class="text-center d-none d-md-table-cell"><%= elo_link(race_result.display_old_elo) %></td>
+                            <td class="text-center d-none d-md-table-cell"><i class="fa-solid fa-caret-right"></i></td>
+                            <td class="text-center d-none d-md-table-cell <%= 'underline' if race_result.driver.display_peak_elo == race_result.display_new_elo %>"><%= elo_link(race_result.display_new_elo) %></td>
+                            <td class="text-center d-none d-sm-table-cell <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>"><%= race_result.status.status_type %></td>
+                            <td class="text-center d-none d-md-table-cell">
                                 <%= link_to constructor_path(race_result.constructor) do %>
                                     <% if race_result.constructor.logo_url.present? %>
                                         <img src="<%= race_result.constructor.logo_url %>" alt="<%= race_result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
@@ -214,8 +214,8 @@
                                 <% end %>
                             </td>
                             <td><%= link_to race_result.race.circuit.name, circuit_path(race_result.race.circuit) %></td>
-                            <td><%= race_result.race.date.strftime("%b %d, %Y") %></td>
-                            <td><%= link_to "Round #{race_result.race.round}", race_path(race_result.race) %></td>
+                            <td class="d-none d-sm-table-cell"><%= race_result.race.date.strftime("%b %d, %Y") %></td>
+                            <td class="d-none d-lg-table-cell"><%= link_to "Round #{race_result.race.round}", race_path(race_result.race) %></td>
                         </tr>
                     <% end %>
                 </tbody>

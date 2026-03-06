@@ -100,6 +100,7 @@
 
 @media (max-width: 768px) {
     .driver-hero {
+        padding: 28px 0 24px;
         .driver-hero-info {
             flex-direction: column;
             text-align: center;
@@ -108,6 +109,15 @@
         .driver-hero-name { font-size: 26px; }
         .driver-hero-titles { justify-content: center; }
         .driver-hero-elo { gap: 16px; }
+    }
+}
+
+@media (max-width: 480px) {
+    .driver-hero {
+        padding: 20px 0 16px;
+        .driver-hero-name { font-size: 22px; }
+        .driver-hero-elo-value { font-size: 18px; }
+        .driver-hero-elo { gap: 12px; }
     }
 }
 

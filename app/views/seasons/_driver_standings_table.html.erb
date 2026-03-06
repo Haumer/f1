@@ -2,16 +2,16 @@
     <thead>
         <tr>
             <th class="text-center">#</th>
-            <th></th>
-            <th></th>
+            <th class="d-none d-sm-table-cell"></th>
+            <th class="d-none d-md-table-cell"></th>
             <th data-sort="text">Driver</th>
             <th class="text-center" title="Points" data-sort="num">Pts</th>
-            <th class="text-center" title="Wins" data-sort="num">W</th>
-            <th class="text-center" title="Second places" data-sort="num">2nd</th>
-            <th class="text-center" title="Third places" data-sort="num">3rd</th>
-            <th class="text-center" title="Podiums" data-sort="num">Pod</th>
+            <th class="text-center d-none d-sm-table-cell" title="Wins" data-sort="num">W</th>
+            <th class="text-center d-none d-md-table-cell" title="Second places" data-sort="num">2nd</th>
+            <th class="text-center d-none d-md-table-cell" title="Third places" data-sort="num">3rd</th>
+            <th class="text-center d-none d-lg-table-cell" title="Podiums" data-sort="num">Pod</th>
             <th class="text-center" title="Elo Rating" data-sort="num">Elo</th>
-            <th class="text-center" title="Elo change from last race" data-sort="num">+/-</th>
+            <th class="text-center d-none d-sm-table-cell" title="Elo change from last race" data-sort="num">+/-</th>
         </tr>
     </thead>
     <tbody>
@@ -19,14 +19,14 @@
             <% extras = standings_extras[driver_standing.driver_id] || {} %>
             <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
                 <td class="text-center position-cell"><%= index + 1 %></td>
-                <td class="icon-cell">
+                <td class="icon-cell d-none d-sm-table-cell">
                     <% if driver_standing.driver.country.present? %>
                         <img src="https://flagsapi.com/<%= driver_standing.driver.country.two_letter_country_code %>/shiny/24.png"
                              width="24" height="24" loading="lazy"
                              alt="Flag of <%= driver_standing.driver.country.name %>">
                     <% end %>
                 </td>
-                <td class="icon-cell constructor-logos">
+                <td class="icon-cell constructor-logos d-none d-md-table-cell">
                     <% (extras[:constructors] || []).each do |constructor| %>
                         <%= link_to constructor_path(constructor) do %>
                             <% if constructor.logo_url.present? %>
@@ -44,12 +44,12 @@
                     <% end %>
                 </td>
                 <td class="text-center"><%= driver_standing.points&.round %></td>
-                <td class="text-center"><%= driver_standing.wins || 0 %></td>
-                <td class="text-center"><%= driver_standing.second_places || 0 %></td>
-                <td class="text-center"><%= driver_standing.third_places || 0 %></td>
-                <td class="text-center"><%= driver_standing.podiums || 0 %></td>
+                <td class="text-center d-none d-sm-table-cell"><%= driver_standing.wins || 0 %></td>
+                <td class="text-center d-none d-md-table-cell"><%= driver_standing.second_places || 0 %></td>
+                <td class="text-center d-none d-md-table-cell"><%= driver_standing.third_places || 0 %></td>
+                <td class="text-center d-none d-lg-table-cell"><%= driver_standing.podiums || 0 %></td>
                 <td class="text-center"><%= extras[:elo] %></td>
-                <td class="text-center">
+                <td class="text-center d-none d-sm-table-cell">
                     <% if extras[:elo_diff] %>
                         <span class="<%= extras[:elo_diff] >= 0 ? 'text-green' : 'text-red' %>"><%= extras[:elo_diff] >= 0 ? "+#{extras[:elo_diff]}" : extras[:elo_diff] %></span>
                     <% end %>

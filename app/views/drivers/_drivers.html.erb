@@ -5,21 +5,21 @@
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
-                        <th></th>
+                        <th class="d-none d-sm-table-cell"></th>
                         <th data-sort="text">Driver</th>
-                        <th>Teams</th>
+                        <th class="d-none d-md-table-cell">Teams</th>
                         <th class="text-center" data-sort="num">Peak Elo</th>
-                        <th class="text-center" data-sort="num"><i class="fa-solid fa-trophy" style="color: #C9B037;"></i></th>
-                        <th class="text-center" data-sort="num"><span style="color: #B4B4B4;">2nd</span></th>
-                        <th class="text-center" data-sort="num"><span style="color: #AD8A56;">3rd</span></th>
-                        <th class="text-center" data-sort="num">Races</th>
+                        <th class="text-center d-none d-sm-table-cell" data-sort="num"><i class="fa-solid fa-trophy" style="color: #C9B037;"></i></th>
+                        <th class="text-center d-none d-md-table-cell" data-sort="num"><span style="color: #B4B4B4;">2nd</span></th>
+                        <th class="text-center d-none d-md-table-cell" data-sort="num"><span style="color: #AD8A56;">3rd</span></th>
+                        <th class="text-center d-none d-lg-table-cell" data-sort="num">Races</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% drivers.each_with_index do |driver, idx| %>
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
-                            <td class="icon-cell">
+                            <td class="icon-cell d-none d-sm-table-cell">
                                 <% if driver.country.present? %>
                                     <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
                                 <% end %>
@@ -29,7 +29,7 @@
                                     <%= driver.forename[0] %>.<%= driver.surname %>
                                 <% end %>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 <% recent_constructors = driver.season_drivers.sort_by { |sd| -(sd.season&.year.to_i) }.map(&:constructor).uniq(&:id).first(3) %>
                                 <div class="driver-teams-cell">
                                     <% recent_constructors.each_with_index do |constructor, cidx| %>
@@ -47,10 +47,10 @@
                                 </div>
                             </td>
                             <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
-                            <td class="text-center"><%= driver.wins.to_i > 0 ? driver.wins : '—' %></td>
-                            <td class="text-center"><%= driver.second_places.to_i > 0 ? driver.second_places : '—' %></td>
-                            <td class="text-center"><%= driver.third_places.to_i > 0 ? driver.third_places : '—' %></td>
-                            <td class="text-center text-secondary"><%= driver.race_count %></td>
+                            <td class="text-center d-none d-sm-table-cell"><%= driver.wins.to_i > 0 ? driver.wins : '—' %></td>
+                            <td class="text-center d-none d-md-table-cell"><%= driver.second_places.to_i > 0 ? driver.second_places : '—' %></td>
+                            <td class="text-center d-none d-md-table-cell"><%= driver.third_places.to_i > 0 ? driver.third_places : '—' %></td>
+                            <td class="text-center text-secondary d-none d-lg-table-cell"><%= driver.race_count %></td>
                         </tr>
                     <% end %>
                 </tbody>

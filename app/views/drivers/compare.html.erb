@@ -46,12 +46,12 @@
                         <tr>
                             <th>Driver</th>
                             <th class="text-center">Peak Elo</th>
-                            <th class="text-center">Tier</th>
-                            <th class="text-center">Current Elo</th>
-                            <th class="text-center">Races</th>
-                            <th class="text-center">Wins</th>
-                            <th class="text-center">Podiums</th>
-                            <th class="text-center">Championships</th>
+                            <th class="text-center d-none d-md-table-cell">Tier</th>
+                            <th class="text-center d-none d-lg-table-cell">Current Elo</th>
+                            <th class="text-center d-none d-lg-table-cell">Races</th>
+                            <th class="text-center d-none d-sm-table-cell">Wins</th>
+                            <th class="text-center d-none d-md-table-cell">Podiums</th>
+                            <th class="text-center d-none d-lg-table-cell">Championships</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -66,17 +66,17 @@
                                     <%= link_to driver.fullname, driver_path(driver) %>
                                 </td>
                                 <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>
-                                <td class="text-center">
+                                <td class="text-center d-none d-md-table-cell">
                                     <% tier = elo_tier(driver.display_peak_elo) %>
                                     <% if tier %>
                                         <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
                                     <% end %>
                                 </td>
-                                <td class="text-center"><%= elo_link(driver.display_elo) %></td>
-                                <td class="text-center"><%= driver.number_of_races %></td>
-                                <td class="text-center"><%= driver.wins || 0 %></td>
-                                <td class="text-center"><%= driver.podiums || 0 %></td>
-                                <td class="text-center">
+                                <td class="text-center d-none d-lg-table-cell"><%= elo_link(driver.display_elo) %></td>
+                                <td class="text-center d-none d-lg-table-cell"><%= driver.number_of_races %></td>
+                                <td class="text-center d-none d-sm-table-cell"><%= driver.wins || 0 %></td>
+                                <td class="text-center d-none d-md-table-cell"><%= driver.podiums || 0 %></td>
+                                <td class="text-center d-none d-lg-table-cell">
                                     <%= driver.driver_standings.select { |ds| ds.season_end && ds.position == 1 }.count %>
                                 </td>
                             </tr>

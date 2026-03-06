@@ -23,13 +23,13 @@
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
-                        <th></th>
+                        <th class="d-none d-sm-table-cell"></th>
                         <th data-sort="text">Driver</th>
-                        <th></th>
+                        <th class="d-none d-md-table-cell"></th>
                         <th class="text-center" data-sort="num">Peak Elo</th>
-                        <th class="text-center" data-sort="text">Tier</th>
-                        <th data-sort="text">Race</th>
-                        <th data-sort="num">Year</th>
+                        <th class="text-center d-none d-sm-table-cell" data-sort="text">Tier</th>
+                        <th class="d-none d-md-table-cell" data-sort="text">Race</th>
+                        <th class="d-none d-md-table-cell" data-sort="num">Year</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +37,7 @@
                         <% peak_rr = @peak_race_by_driver[driver.id] %>
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
-                            <td class="icon-cell">
+                            <td class="icon-cell d-none d-sm-table-cell">
                                 <% if driver.country.present? %>
                                     <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
                                 <% end %>
@@ -47,24 +47,24 @@
                                     <%= driver.forename[0] %>.<%= driver.surname %>
                                 <% end %>
                             </td>
-                            <td class="icon-cell">
+                            <td class="icon-cell d-none d-md-table-cell">
                                 <% if peak_rr&.constructor&.logo_url.present? %>
                                     <img src="<%= peak_rr.constructor.logo_url %>" alt="<%= peak_rr.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
                                 <% end %>
                             </td>
                             <td class="text-center"><strong><%= elo_link(driver.display_peak_elo) %></strong></td>
-                            <td class="text-center">
+                            <td class="text-center d-none d-sm-table-cell">
                                 <% tier = elo_tier(driver.display_peak_elo) %>
                                 <% if tier %>
                                     <span class="elo-tier-badge elo-tier-<%= tier[:css] %>"><%= tier[:label] %></span>
                                 <% end %>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 <% if peak_rr %>
                                     <%= link_to peak_rr.race.circuit.name, race_path(peak_rr.race) %>
                                 <% end %>
                             </td>
-                            <td><%= peak_rr&.race&.date&.year %></td>
+                            <td class="d-none d-md-table-cell"><%= peak_rr&.race&.date&.year %></td>
                         </tr>
                     <% end %>
                 </tbody>

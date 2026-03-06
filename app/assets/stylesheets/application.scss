@@ -111,6 +111,10 @@ input:focus-visible {
     &:hover {
         border-color: $border-accent;
     }
+
+    @media (max-width: 480px) {
+        padding: 16px;
+    }
 }
 
 .card.card-flush {
@@ -279,6 +283,10 @@ th[data-sort] {
     &.compact {
         font-size: 13px;
         td, th { padding: 5px 8px; }
+        @media (max-width: 480px) {
+            font-size: 12px;
+            td, th { padding: 4px 6px; }
+        }
     }
 }
 
@@ -294,6 +302,12 @@ th[data-sort] {
     max-width: $max-page-width;
     margin: 0 auto;
     padding-bottom: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
+    @media (min-width: 769px) {
+        padding-left: 0;
+        padding-right: 0;
+    }
 }
 
 // Hero intro
@@ -609,6 +623,10 @@ th[data-sort] {
     td.race { width: 80px; }
     td.circuit { color: $text-secondary; }
     tr { border-bottom: 1px solid $border-color; }
+    @media (max-width: 768px) {
+        td.driver { width: auto; }
+        td.race { width: auto; }
+    }
 }
 
 // Race show
@@ -630,6 +648,10 @@ table.race-results {
     .race-result-cell { width: 120px; }
     tr:nth-child(-n+4) td:first-child {
         font-weight: 700;
+    }
+    @media (max-width: 768px) {
+        .race-result-cell { width: auto; }
+        th, td { padding: 6px 6px; font-size: 12px; }
     }
 }
 
@@ -762,6 +784,7 @@ table.race-results {
     position: fixed;
     top: 16px;
     right: 16px;
+    left: 16px;
     z-index: 1100;
     padding: 12px 20px;
     border-radius: $radius-md;
@@ -771,6 +794,11 @@ table.race-results {
     font-weight: $weight-medium;
     animation: flash-in 0.3s $ease-out both;
     max-width: 400px;
+    @media (max-width: 480px) {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
 }
 .flash-notice {
     background: rgba($green, 0.15);

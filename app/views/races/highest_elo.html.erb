@@ -12,20 +12,20 @@
             <thead>
                 <tr>
                     <th class="text-center">#</th>
-                    <th></th>
+                    <th class="d-none d-sm-table-cell"></th>
                     <th data-sort="text">Driver</th>
-                    <th></th>
+                    <th class="d-none d-md-table-cell"></th>
                     <th class="text-center" data-sort="num">Elo</th>
-                    <th class="text-center" data-sort="num">Pos</th>
-                    <th data-sort="text">Circuit</th>
-                    <th data-sort="num">Year</th>
+                    <th class="text-center d-none d-sm-table-cell" data-sort="num">Pos</th>
+                    <th class="d-none d-sm-table-cell" data-sort="text">Circuit</th>
+                    <th class="d-none d-md-table-cell" data-sort="num">Year</th>
                 </tr>
             </thead>
             <tbody>
                 <% @race_results.each_with_index do |race_result, index| %>
                     <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
                         <td class="text-center position-cell"><%= index + 1 %></td>
-                        <td class="icon-cell">
+                        <td class="icon-cell d-none d-sm-table-cell">
                             <% if race_result.driver.country.present? %>
                                 <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png"
                                      alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
@@ -36,7 +36,7 @@
                                 <%= race_result.driver.forename[0] %>.<%= race_result.driver.surname %>
                             <% end %>
                         </td>
-                        <td class="icon-cell">
+                        <td class="icon-cell d-none d-md-table-cell">
                             <% if race_result.constructor&.logo_url.present? %>
                                 <%= link_to constructor_path(race_result.constructor) do %>
                                     <img src="<%= race_result.constructor.logo_url %>" alt="<%= race_result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
@@ -44,9 +44,9 @@
                             <% end %>
                         </td>
                         <td class="text-center"><%= elo_link(race_result.display_new_elo) %></td>
-                        <td class="text-center"><%= race_result.position_order %></td>
-                        <td><%= link_to race_result.race.circuit.name, race_path(race_result.race) %></td>
-                        <td><%= race_result.race.date.year %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= race_result.position_order %></td>
+                        <td class="d-none d-sm-table-cell"><%= link_to race_result.race.circuit.name, race_path(race_result.race) %></td>
+                        <td class="d-none d-md-table-cell"><%= race_result.race.date.year %></td>
                     </tr>
                 <% end %>
             </tbody>
