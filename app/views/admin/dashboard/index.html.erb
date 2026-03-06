@@ -56,4 +56,55 @@
     <p>Sync data, re-simulate Elo, backfill stats.</p>
     <%= link_to "Go to Operations", admin_operations_path, class: "admin-btn" %>
   </div>
+  <div class="admin-card">
+    <h3><i class="fa-solid fa-database"></i> Blazer</h3>
+    <p>Run SQL queries against the database.</p>
+    <%= link_to "Open Blazer", blazer_path, class: "admin-btn" %>
+  </div>
 </div>
+
+<h3 style="margin-top: 32px;"><i class="fa-solid fa-chart-bar"></i> Analytics</h3>
+<div class="admin-stats-grid">
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @users_count %></div>
+    <div class="admin-stat-label">Users</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @visits_today %></div>
+    <div class="admin-stat-label">Visits Today</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @visits_7d %></div>
+    <div class="admin-stat-label">Visits (7d)</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @visits_30d %></div>
+    <div class="admin-stat-label">Visits (30d)</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @pageviews_today %></div>
+    <div class="admin-stat-label">Page Views Today</div>
+  </div>
+</div>
+
+<% if @top_pages.any? %>
+  <h4 style="margin-top: 24px;">Top Pages (7d)</h4>
+  <div class="card card-flush" style="margin-top: 8px;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Page</th>
+          <th class="text-center">Views</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @top_pages.each do |(controller, action), count| %>
+          <tr>
+            <td><%= controller %>#<%= action %></td>
+            <td class="text-center"><%= number_with_delimiter(count) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
