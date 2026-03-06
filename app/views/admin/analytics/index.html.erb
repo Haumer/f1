@@ -2,7 +2,7 @@
 
 <div class="admin-period-tabs">
   <% %w[today 7d 30d all].each do |p| %>
-    <%= link_to p.titleize, admin_analytics_index_path(period: p), class: "admin-btn admin-btn-sm #{'admin-btn-active' if @period == p}" %>
+    <%= link_to p.titleize, admin_analytics_path(period: p), class: "admin-btn admin-btn-sm #{'admin-btn-active' if @period == p}" %>
   <% end %>
   <%= link_to "Blazer", blazer_path, class: "admin-btn admin-btn-sm", style: "margin-left: auto;" %>
 </div>
@@ -95,7 +95,7 @@
           <td><%= user.username || user.email %></td>
           <td class="text-center"><%= user.visit_count %></td>
           <td><%= time_ago_in_words(user.last_seen) %> ago</td>
-          <td><%= link_to "View", admin_analytics_path(user), class: "admin-btn admin-btn-sm" %></td>
+          <td><%= link_to "View", admin_analytic_path(user), class: "admin-btn admin-btn-sm" %></td>
         </tr>
       <% end %>
       <% if @users_with_activity.empty? %>
