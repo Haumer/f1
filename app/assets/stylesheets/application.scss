@@ -504,6 +504,13 @@ th[data-sort] {
     }
 }
 
+.data-source {
+    font-size: 11px;
+    color: $text-muted;
+    padding: 6px 0 0;
+    opacity: 0.6;
+}
+
 // Underline for peak elo
 .underline {
     text-decoration: underline;

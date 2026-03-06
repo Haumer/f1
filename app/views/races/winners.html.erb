@@ -11,17 +11,31 @@
             <h1 class="page-hero-title">World Champions</h1>
         </div>
     </div>
-    <div class="card">
-        <%= custom_chart Graphs::Champions.new(race_results: @champ_race_results).champions_data %>
+    <div class="table-header"><h3>Elo Trajectories</h3></div>
+    <div class="fantasy-tab-bar">
+        <% @eras.each_with_index do |era, idx| %>
+            <%= link_to winners_races_path(era: idx), class: "fantasy-tab #{'active' if idx == @active_era}" do %>
+                <%= era[:name] %>
+                <span class="table-header-sub" style="margin-left: 4px; font-size: 11px;"><%= era[:years] %></span>
+            <% end %>
+        <% end %>
     </div>
-
+    <% active = @eras[@active_era] %>
     <div class="card">
-        <div class="chart-header">
-            <h4>Championship Count</h4>
-        </div>
+        <%= custom_chart Graphs::Champions.new(race_results: active[:results], year_range: active[:range]).champions_data %>
+    </div>
+    <span class="data-source">Data: Elo ratings computed from race finishing positions &middot; <%= active[:drivers].size %> champions</span>
+
+    <div class="table-header"><h3>Championship Count</h3></div>
+    <div class="card">
         <%= custom_chart Graphs::ChampionshipCount.new(champion_data: @champion_data).data %>
     </div>
+    <span class="data-source">Data: FIA World Drivers' Championship results</span>
 
+    <div class="table-header">
+        <h3>All Champions</h3>
+        <span class="table-header-sub"><%= @champion_data.size %> drivers</span>
+    </div>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
         <table class="current-driver-standings compact" data-controller="sortable-table">
@@ -56,4 +70,5 @@
         </table>
         </div>
     </div>
+    <span class="data-source">Data: FIA official driver standings, season-end position 1</span>
 </div>

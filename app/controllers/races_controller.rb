@@ -115,6 +115,13 @@ class RacesController < ApplicationController
     @drivers = Driver.where("podiums > 0").includes(:countries).order(podiums: :desc).limit(50)
   end
 
+  CHAMPION_ERAS = {
+    "Pioneers"      => 1950..1969,
+    "Ground Effect"  => 1970..1989,
+    "Modern"        => 1990..2009,
+    "Hybrid"        => 2010..2099
+  }.freeze
+
   def winners
     standings = Driver.champion_standings.to_a
     champion_drivers = standings.map(&:driver).uniq
@@ -122,12 +129,21 @@ class RacesController < ApplicationController
 
     # Batch-load all race results for champions to avoid N+1
     all_results = RaceResult.where(driver_id: champion_ids)
-                .includes(race: :circuit)
+                .includes(race: [:circuit, :season])
                 .group_by(&:driver_id)
 
-    @champ_race_results = champion_drivers.map do |driver|
-      all_results[driver.id] || []
+    # Group champions by era based on their first title year
+    champion_eras = standings.group_by(&:driver).transform_values do |titles|
+      titles.map { |t| t.race.season.year.to_i }.min
     end
+
+    @eras = CHAMPION_ERAS.map do |era_name, year_range|
+      era_drivers = champion_eras.select { |_, first_title| year_range.cover?(first_title) }.keys
+      era_results = era_drivers.map { |d| all_results[d.id] || [] }
+      { name: era_name, years: "#{year_range.first}–#{year_range.last > 2050 ? 'present' : year_range.last}", range: year_range, results: era_results, drivers: era_drivers }
+    end
+
+    @active_era = params[:era].present? ? params[:era].to_i : 3
 
     # Championship count data for table and chart
     @champion_data = standings.group_by(&:driver).map do |driver, titles|

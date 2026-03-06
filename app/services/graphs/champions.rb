@@ -1,9 +1,13 @@
 class Graphs::Champions
-    def initialize(race_results:)
+    def initialize(race_results:, year_range: nil)
         @race_results = race_results.reject(&:blank?)
-        @races = Race.where.not(year: Date.current.year).sorted.includes(:circuit)
+        @year_range = year_range
+        races = Race.sorted.includes(:circuit)
+        races = races.where(year: year_range) if year_range
+        @races = races
         @race_ids = @races.map(&:id)
         @race_index = @race_ids.each_with_index.to_h
+        @race_id_set = @race_ids.to_set
         @new_elo_col = Setting.elo_column(:new_elo).to_sym
     end
 
@@ -14,10 +18,8 @@ class Graphs::Champions
             driver = race_result.first&.driver
             next unless driver
 
-            sorted = race_result.sort_by { |r| r.race.date }
-            first_idx = @race_index[sorted.first.race_id]
-            last_idx = @race_index[sorted.last.race_id]
-            next unless first_idx && last_idx
+            sorted = race_result.select { |r| @race_index.key?(r.race_id) }.sort_by { |r| r.race.date }
+            next if sorted.empty?
 
             data = Array.new(@race_ids.size) { { value: "" } }
             sorted.each do |rr|
@@ -96,7 +98,7 @@ class Graphs::Champions
             symbol: 'circle',
             symbolSize: 8,
         }
-        driver.race_results.where(position_order: 1..3).includes(race: :circuit).each do |race_result|
+        driver.race_results.where(position_order: 1..3, race_id: @race_ids).includes(race: :circuit).each do |race_result|
             position = race_result.position_order
             points[:data] << {
                 coord: [
