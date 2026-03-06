@@ -2338,67 +2338,325 @@
 // USER SETTINGS
 // ═══════════════════════════════════════
 
+// ═══════════════════════════════════════
+// Settings Page
+// ═══════════════════════════════════════
+
+.settings-layout {
+    display: flex;
+    flex-direction: column;
+    gap: $space-lg;
+}
+
+.settings-section {
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    padding: $space-lg;
+    transition: border-color $t-normal;
+
+    &:hover { border-color: $border-accent; }
+}
+
+.settings-section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: $space-lg;
+    padding-bottom: $space-md;
+    border-bottom: 1px solid $border-subtle;
+
+    h3 {
+        margin: 0;
+        font-size: $type-h3;
+        font-weight: $weight-bold;
+        color: $text-primary;
+        letter-spacing: $ls-heading;
+    }
+
+    p {
+        margin: 2px 0 0;
+        font-size: $type-small;
+        color: $text-tertiary;
+    }
+}
+
+.settings-section-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid $border-color;
+    color: $text-secondary;
+    font-size: 14px;
+    flex-shrink: 0;
+
+    &--danger {
+        background: rgba($accent-red, 0.08);
+        border-color: rgba($accent-red, 0.2);
+        color: $accent-red;
+    }
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
 .settings-field {
-    margin-bottom: 16px;
+    margin-bottom: $space-md;
+    flex: 1;
+}
+
+.settings-field-row {
+    display: flex;
+    gap: $space-md;
+
+    @media (max-width: 480px) {
+        flex-direction: column;
+    }
 }
 
 .settings-label {
     display: block;
-    font-size: 13px;
+    font-size: $type-small;
     font-weight: $weight-semi;
     color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
     margin-bottom: 6px;
+}
+
+.settings-input-wrapper {
+    position: relative;
+    max-width: 360px;
+}
+
+.settings-input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-tertiary;
+    font-size: 14px;
+    font-weight: $weight-medium;
+    pointer-events: none;
 }
 
 .settings-input {
     display: block;
     width: 100%;
     max-width: 360px;
-    padding: 8px 12px;
+    padding: 10px 14px;
     font-size: 14px;
+    font-family: $body-font;
     color: $text-primary;
-    background: $bg-page;
+    background: $bg-inset;
     border: 1px solid $border-color;
     border-radius: $radius-sm;
-    transition: border-color $t-fast;
+    transition: border-color $t-fast, box-shadow $t-fast;
+
+    &::placeholder { color: $text-tertiary; }
 
     &:focus {
         outline: none;
         border-color: var(--page-accent, $accent-red);
+        box-shadow: 0 0 0 3px rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
     }
-}
 
-.settings-checkbox {
-    margin-right: 6px;
-    vertical-align: middle;
-}
-
-.settings-hint {
-    display: block;
-    font-size: 12px;
-    color: $text-tertiary;
-    margin-top: 4px;
-
-    code {
-        font-size: 11px;
-        padding: 1px 4px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 3px;
-    }
-}
-
-.settings-value {
-    font-size: 14px;
-    color: $text-primary;
+    &--prefixed { padding-left: 30px; }
 }
 
 .settings-error {
-    display: block;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: $type-small;
     color: $accent-red;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .settings-actions {
-    margin-top: 12px;
+    margin-top: $space-sm;
+    padding-top: $space-md;
+}
+
+// Toggle switch
+.settings-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.settings-toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.settings-toggle-track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid $border-accent;
+    border-radius: 12px;
+    transition: background $t-normal, border-color $t-normal;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.settings-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: $text-tertiary;
+    border-radius: 50%;
+    transition: transform $t-normal $ease-out, background $t-normal;
+}
+
+.settings-toggle-input:checked {
+    & ~ .settings-toggle-track {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+        border-color: var(--page-accent, $accent-red);
+
+        .settings-toggle-thumb {
+            transform: translateX(20px);
+            background: var(--page-accent, $accent-red);
+        }
+    }
+}
+
+// Fix: target via sibling combinators
+.settings-toggle-input:checked + .settings-toggle-track {
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+    border-color: var(--page-accent, $accent-red);
+
+    .settings-toggle-thumb {
+        transform: translateX(20px);
+        background: var(--page-accent, $accent-red);
+    }
+}
+
+.settings-toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.settings-toggle-text {
+    font-size: 14px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+}
+
+.settings-toggle-hint {
+    font-size: $type-small;
+    color: $text-tertiary;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    code {
+        font-family: $mono-font;
+        font-size: 11px;
+        padding: 1px 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid $border-color;
+        border-radius: 3px;
+        color: $text-secondary;
+    }
+}
+
+// Account info grid
+.settings-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $space-md;
+}
+
+.settings-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px;
+    background: $bg-inset;
+    border-radius: $radius-sm;
+    border: 1px solid $border-subtle;
+}
+
+.settings-info-label {
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i { font-size: 10px; }
+}
+
+.settings-info-value {
+    font-size: 14px;
+    font-weight: $weight-medium;
+    color: $text-primary;
+}
+
+// Danger zone
+.settings-danger-zone {
+    border-color: rgba($accent-red, 0.15);
+
+    &:hover { border-color: rgba($accent-red, 0.3); }
+
+    .settings-section-header {
+        border-bottom-color: rgba($accent-red, 0.1);
+        h3 { color: $accent-red; }
+    }
+}
+
+.settings-danger-content {
+    // Can hold multiple danger items
+}
+
+.settings-danger-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-md;
+    padding: 14px;
+    background: rgba($accent-red, 0.03);
+    border: 1px solid rgba($accent-red, 0.1);
+    border-radius: $radius-sm;
+
+    @media (max-width: 480px) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.settings-danger-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+        font-size: 14px;
+        color: $text-primary;
+    }
+
+    span {
+        font-size: $type-small;
+        color: $text-tertiary;
+    }
 }
