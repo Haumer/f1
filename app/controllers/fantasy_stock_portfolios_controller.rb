@@ -63,6 +63,7 @@ class FantasyStockPortfoliosController < ApplicationController
     if result[:error]
       redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_stock_achievements(@portfolio)
       redirect_to fantasy_stock_portfolio_path(@portfolio), notice: "Bought #{quantity}x #{driver.fullname}!"
     end
   end
@@ -75,6 +76,7 @@ class FantasyStockPortfoliosController < ApplicationController
     if result[:error]
       redirect_to fantasy_stock_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_stock_achievements(@portfolio)
       redirect_to fantasy_stock_portfolio_path(@portfolio), notice: "Sold #{quantity}x #{driver.fullname}!"
     end
   end
@@ -87,6 +89,7 @@ class FantasyStockPortfoliosController < ApplicationController
     if result[:error]
       redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_stock_achievements(@portfolio)
       redirect_to fantasy_stock_portfolio_path(@portfolio), notice: "Shorted #{quantity}x #{driver.fullname}!"
     end
   end
@@ -99,6 +102,7 @@ class FantasyStockPortfoliosController < ApplicationController
     if result[:error]
       redirect_to fantasy_stock_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_stock_achievements(@portfolio)
       redirect_to fantasy_stock_portfolio_path(@portfolio), notice: "Closed short on #{driver.fullname}!"
     end
   end
@@ -136,6 +140,12 @@ class FantasyStockPortfoliosController < ApplicationController
                     .where(season_drivers: { season_id: season.id })
                     .average(:elo_v2) || 0
     (avg_elo * FantasyStockPortfolio::CAPITAL_MULTIPLIER).round(1)
+  end
+
+  def check_stock_achievements(portfolio)
+    Fantasy::Stock::CheckAchievements.new(portfolio: portfolio).call
+  rescue => e
+    Rails.logger.error("Stock achievement check failed: #{e.message}")
   end
 
   def constructors_for_drivers(drivers)

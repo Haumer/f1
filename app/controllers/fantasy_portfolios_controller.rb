@@ -22,6 +22,7 @@ class FantasyPortfoliosController < ApplicationController
     if result[:error]
       redirect_to new_fantasy_portfolio_path, alert: result[:error]
     else
+      check_roster_achievements(result[:portfolio])
       redirect_to result[:portfolio], notice: "Fantasy portfolio created! You have #{result[:portfolio].cash.round(0)} to spend."
     end
   end
@@ -70,6 +71,7 @@ class FantasyPortfoliosController < ApplicationController
     if result[:error]
       redirect_to market_fantasy_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_roster_achievements(@portfolio)
       redirect_to fantasy_portfolio_path(@portfolio), notice: "#{driver.fullname} added to your roster!"
     end
   end
@@ -92,6 +94,7 @@ class FantasyPortfoliosController < ApplicationController
     if errors.any?
       redirect_to market_fantasy_portfolio_path(@portfolio), alert: errors.join(". ")
     else
+      check_roster_achievements(@portfolio)
       redirect_to fantasy_portfolio_path(@portfolio), notice: "#{bought.join(' & ')} added to your roster!"
     end
   end
@@ -103,6 +106,7 @@ class FantasyPortfoliosController < ApplicationController
     if result[:error]
       redirect_to fantasy_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_roster_achievements(@portfolio)
       redirect_to fantasy_portfolio_path(@portfolio), notice: "Sold #{driver.fullname} for #{result[:net].round(0)} (fee: #{result[:fee].round(0)})"
     end
   end
@@ -113,6 +117,7 @@ class FantasyPortfoliosController < ApplicationController
     if result[:error]
       redirect_to fantasy_portfolio_path(@portfolio), alert: result[:error]
     else
+      check_roster_achievements(@portfolio)
       redirect_to fantasy_portfolio_path(@portfolio), notice: "New team purchased! You now have #{@portfolio.roster_slots} driver seats."
     end
   end
@@ -188,6 +193,12 @@ class FantasyPortfoliosController < ApplicationController
                     .where(season_drivers: { season_id: season.id })
                     .average(:elo_v2) || 0
     (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(0)
+  end
+
+  def check_roster_achievements(portfolio)
+    Fantasy::CheckAchievements.new(portfolio: portfolio, race: nil).call
+  rescue => e
+    Rails.logger.error("Achievement check failed: #{e.message}")
   end
 
   def constructors_for_drivers(drivers)
