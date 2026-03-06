@@ -1,7 +1,8 @@
 class FantasyPortfoliosController < ApplicationController
-  before_action :authenticate_user!, except: [:combined_leaderboard, :overview, :roster, :stocks]
+  before_action :authenticate_user!, except: [:combined_leaderboard, :overview, :roster, :stocks, :leaderboard]
   before_action :set_portfolio, only: [:market, :buy, :buy_multiple, :sell, :buy_team]
   before_action :set_next_race, only: [:market, :buy, :buy_multiple, :sell, :buy_team]
+  after_action :verify_authorized, only: [:buy, :sell, :buy_multiple, :buy_team, :market]
 
   # ═══════════════════════════════════════
   # Username-based pages

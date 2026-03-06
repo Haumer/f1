@@ -21,7 +21,7 @@
                     <% entry = @entries[i] %>
                     <% next unless entry %>
                     <% portfolio = entry[:portfolio] %>
-                    <% is_me = portfolio.user_id == current_user.id %>
+                    <% is_me = current_user && portfolio.user_id == current_user.id %>
                     <div class="fantasy-podium-card podium-p<%= i + 1 %> <%= 'is-me' if is_me %>">
                         <span class="fantasy-podium-rank"><%= i + 1 %></span>
                         <strong class="fantasy-podium-name">
@@ -59,7 +59,7 @@
                     <tbody>
                         <% @entries.each_with_index do |entry, idx| %>
                             <% portfolio = entry[:portfolio] %>
-                            <% is_me = portfolio.user_id == current_user.id %>
+                            <% is_me = current_user && portfolio.user_id == current_user.id %>
                             <% pl = entry[:value] - portfolio.starting_capital %>
                             <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                 <td class="text-center position-cell"><%= idx + 1 %></td>

@@ -18,6 +18,7 @@ module AccentColorable
         constructor_color_for_standing(standing) || DEFAULT_ACCENT
       end
     end
+    sanitize_page_accent!
   end
 
   def set_season_champion_accent(season)
@@ -26,11 +27,13 @@ module AccentColorable
                              .where(races: { season_id: season.id })
                              .first
     @page_accent = constructor_color_for_standing(standing) || DEFAULT_ACCENT
+    sanitize_page_accent!
   end
 
   def set_race_winner_accent(race)
     winner = race.race_results.find_by(position_order: 1)
     @page_accent = constructor_color(winner&.constructor) || DEFAULT_ACCENT
+    sanitize_page_accent!
   end
 
   def set_latest_race_winner_accent
@@ -39,21 +42,25 @@ module AccentColorable
       winner = latest&.race_results&.find_by(position_order: 1)
       constructor_color(winner&.constructor) || DEFAULT_ACCENT
     end
+    sanitize_page_accent!
   end
 
   def set_constructor_accent(constructor)
     @page_accent = constructor_color(constructor) || DEFAULT_ACCENT
+    sanitize_page_accent!
   end
 
   def set_driver_accent(driver)
     sd = driver.season_drivers.includes(:constructor).joins(:season).order("seasons.year DESC").first
     @page_accent = constructor_color(sd&.constructor) || DEFAULT_ACCENT
+    sanitize_page_accent!
   end
 
   def set_circuit_accent(circuit)
     latest_race = circuit.races.joins(:race_results).order(date: :desc).first
     winner = latest_race&.race_results&.find_by(position_order: 1)
     @page_accent = constructor_color(winner&.constructor) || DEFAULT_ACCENT
+    sanitize_page_accent!
   end
 
   def constructor_color_for_standing(standing)
@@ -67,6 +74,10 @@ module AccentColorable
     return nil unless constructor
 
     Constructor::COLORS[constructor.constructor_ref&.to_sym]
+  end
+
+  def sanitize_page_accent!
+    @page_accent = nil unless @page_accent&.match?(/\A#[0-9a-fA-F]{3,8}\z/)
   end
 
   def champion_colors_by_season(seasons)

@@ -5,7 +5,7 @@
             <span class="fantasy-season"><%= @season.year %> Season</span>
         </div>
         <div class="fantasy-header-actions">
-            <% portfolio = current_user.fantasy_stock_portfolio_for(@season) %>
+            <% portfolio = current_user&.fantasy_stock_portfolio_for(@season) %>
             <% if portfolio %>
                 <%= link_to fantasy_stock_portfolio_path(portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
                     <i class="fa-solid fa-arrow-left"></i> My Portfolio
@@ -22,7 +22,7 @@
                     <% entry = @entries[i] %>
                     <% next unless entry %>
                     <% p = entry[:portfolio] %>
-                    <% is_me = p.user_id == current_user.id %>
+                    <% is_me = current_user && p.user_id == current_user.id %>
                     <div class="fantasy-podium-card podium-p<%= i + 1 %> <%= 'is-me' if is_me %>">
                         <span class="fantasy-podium-rank"><%= i + 1 %></span>
                         <strong class="fantasy-podium-name">
@@ -63,7 +63,7 @@
                     <tbody>
                         <% @entries.each do |entry| %>
                             <% p = entry[:portfolio] %>
-                            <% is_me = p.user_id == current_user.id %>
+                            <% is_me = current_user && p.user_id == current_user.id %>
                             <% pl = entry[:value] - p.starting_capital %>
                             <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{entry[:rank]}" if entry[:rank] <= 3 %>">
                                 <td class="text-center position-cell"><%= entry[:rank] %></td>

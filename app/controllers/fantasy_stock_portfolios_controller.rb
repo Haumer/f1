@@ -3,6 +3,7 @@ class FantasyStockPortfoliosController < ApplicationController
   before_action :require_feature!
   before_action :set_portfolio, only: [:market, :buy, :sell, :short_open, :short_close]
   before_action :set_next_race, only: [:market, :buy, :sell, :short_open, :short_close]
+  after_action :verify_authorized, only: [:buy, :sell, :short_open, :short_close, :market]
 
   def new
     current_season = Season.sorted_by_year.first
