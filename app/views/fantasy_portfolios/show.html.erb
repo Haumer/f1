@@ -55,7 +55,7 @@
         <% Constructor.where(active: true).order(:name).each do |c| %>
             <% team_color = Constructor::COLORS[c.constructor_ref.to_sym] %>
             <% is_selected = current_user.supported_constructor_id == c.id %>
-            <%= link_to support_constructor_path(c), method: :post, class: "fantasy-allegiance-badge #{is_selected ? 'selected' : ''}", style: is_selected ? "border-color: #{team_color}; background: #{team_color}22" : "", title: c.name do %>
+            <%= link_to support_constructor_path(c), data: { turbo_method: :post }, class: "fantasy-allegiance-badge #{is_selected ? 'selected' : ''}", style: is_selected ? "border-color: #{team_color}; background: #{team_color}22" : "", title: c.name do %>
                 <% if c.logo_url.present? %>
                     <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="constructor-logo-xs" onerror="this.style.display='none'">
                 <% end %>
