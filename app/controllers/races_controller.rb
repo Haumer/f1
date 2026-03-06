@@ -83,6 +83,23 @@ class RacesController < ApplicationController
                 .includes(race_results: { driver: :countries, constructor: [] }, circuit: [])
       @has_more = @all_seasons.any? { |s| s.year.to_i < years.min }
     end
+
+    # Upcoming races (no results yet) for current season
+    unless @filtered
+      today = Setting.effective_today
+      current_season_record = current_season
+      all_upcoming = current_season_record.races
+                       .left_joins(:race_results)
+                       .where(race_results: { id: nil })
+                       .where("races.date >= ?", today)
+                       .order(date: :asc)
+                       .includes(:circuit)
+      @upcoming_preview = all_upcoming.first(3)
+      @upcoming_total = all_upcoming.size
+      @show_all_upcoming = params[:show_upcoming] == "1"
+      @all_upcoming = @show_all_upcoming ? all_upcoming : []
+      @current_season = current_season_record
+    end
   end
 
   def highest_elo

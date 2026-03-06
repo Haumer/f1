@@ -26,6 +26,49 @@
         <% end %>
     </div>
 
+    <% upcoming_races = @show_all_upcoming ? @all_upcoming.to_a : @upcoming_preview.to_a %>
+    <% if upcoming_races.present? %>
+        <div class="season-group">
+            <div class="season-year-label">
+                <% season = @seasons_by_year[@current_season.year.to_i] %>
+                <% if season %>
+                    <%= link_to @current_season.year, season_path(season) %>
+                <% else %>
+                    <%= @current_season.year %>
+                <% end %>
+                <span class="upcoming-label">Upcoming</span>
+            </div>
+            <div class="card card-flush races-table">
+                <div class="table-scroll-wrapper">
+                <table>
+                    <tbody>
+                        <% upcoming_races.each do |race| %>
+                            <tr class="upcoming-race-row">
+                                <td class="driver" colspan="3">
+                                    <span class="text-upcoming-date"><%= race.date.strftime("%b %-d") %></span>
+                                </td>
+                                <td class="race">R<%= race.round %></td>
+                                <td class="circuit">
+                                    <%= link_to race.circuit.name, circuit_path(race.circuit) %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+                </div>
+                <% if !@show_all_upcoming && @upcoming_total > 3 %>
+                    <div class="upcoming-more-row">
+                        <%= link_to races_path(show_upcoming: "1"), class: "upcoming-more-link" do %>
+                            <i class="fa-solid fa-angles-down"></i> Show all <%= @upcoming_total %> upcoming races
+                        <% end %>
+                        <span class="upcoming-more-divider">|</span>
+                        <%= link_to "#{@current_season.year} Calendar", calendar_path, class: "upcoming-more-link" %>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+
     <% @races.group_by(&:year).each do |year, races| %>
         <% season = @seasons_by_year[year] %>
         <div class="season-group">
