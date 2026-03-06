@@ -126,8 +126,9 @@ namespace :f1 do
     driver_ids = lineup.filter_map { |e| Driver.find_by(driver_ref: e[:driver_ref])&.id }
     Driver.where(id: driver_ids).update_all(active: true)
 
-    # Mark Cadillac as active constructor
-    Constructor.where(constructor_ref: "cadillac").update_all(active: true)
+    # Mark all 2026 constructors as active
+    constructor_refs = lineup.map { |e| e[:constructor_ref] }.uniq
+    Constructor.where(constructor_ref: constructor_refs).update_all(active: true)
 
     puts "Done. #{created} new SeasonDriver records created. #{driver_ids.size} drivers marked active."
   end
