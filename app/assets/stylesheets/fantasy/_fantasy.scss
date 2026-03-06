@@ -1642,6 +1642,65 @@
 }
 
 // ═══════════════════════════════════════
+// FANTASY CTA CARD (HOMEPAGE)
+// ═══════════════════════════════════════
+
+.fantasy-cta-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-lg;
+    background: $card-bg;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: $space-lg $space-xl;
+    margin-bottom: $space-lg;
+
+    .fantasy-cta-content {
+        display: flex;
+        align-items: center;
+        gap: $space-md;
+
+        > i {
+            font-size: 28px;
+            color: var(--page-accent, $accent-red);
+            flex-shrink: 0;
+        }
+
+        h3 {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            color: $text-secondary;
+            line-height: 1.4;
+        }
+    }
+
+    .fantasy-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+
+        .fantasy-cta-content {
+            flex-direction: column;
+        }
+
+        .fantasy-btn {
+            align-self: center;
+        }
+    }
+}
+
 // MINI PORTFOLIO CARD (HOMEPAGE)
 // ═══════════════════════════════════════
 

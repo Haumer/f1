@@ -126,6 +126,32 @@
                        stock_portfolio: @fantasy_stock_portfolio,
                        support: @fantasy_support,
                        rank: @fantasy_rank %>
+        <% elsif current_user %>
+            <div class="fantasy-cta-card">
+                <div class="fantasy-cta-content">
+                    <i class="fa-solid fa-chess-knight"></i>
+                    <div>
+                        <h3>Fantasy F1</h3>
+                        <p>Build a roster of drivers, trade stocks based on Elo performance, and compete on the leaderboard.</p>
+                    </div>
+                </div>
+                <%= link_to new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                    <i class="fa-solid fa-plus"></i> Create Your Roster
+                <% end %>
+            </div>
+        <% else %>
+            <div class="fantasy-cta-card">
+                <div class="fantasy-cta-content">
+                    <i class="fa-solid fa-chess-knight"></i>
+                    <div>
+                        <h3>Fantasy F1</h3>
+                        <p>Sign up to build a driver roster, trade Elo-based stocks, and compete against other fans.</p>
+                    </div>
+                </div>
+                <%= link_to new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                    <i class="fa-solid fa-user-plus"></i> Join Fantasy League
+                <% end %>
+            </div>
         <% end %>
     <% else %>
         <div class="empty-state">
