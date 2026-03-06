@@ -1,5 +1,12 @@
 <div class="homepage-container">
-    <div class="table-header"><h3>About F1 Elo</h3></div>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">About</span>
+            <h1 class="page-hero-title">F1 Elo</h1>
+            <p class="page-hero-meta">A continuous rating system for every F1 driver since 1950</p>
+        </div>
+    </div>
 
     <div class="elo-explanation">
         <p>
@@ -9,74 +16,208 @@
             single, continuous metric that captures how drivers and constructors perform
             <em>relative to each other</em>, across eras.
         </p>
+    </div>
 
-        <div class="table-header"><h3>Why Elo?</h3></div>
-        <p>
-            Championship points are great for ranking drivers within a single season, but they
-            change format regularly and can't compare across decades. Elo ratings solve this:
-            every driver starts at the same baseline, and ratings adjust after each race based
-            on head-to-head pairwise comparisons against every other finisher. A race win
-            against strong opponents earns more than a win against weaker fields, and vice versa.
-        </p>
-        <p>
-            The result is a number that rises when a driver outperforms expectations and falls
-            when they underperform&mdash;regardless of era, car advantage, or points system.
-            Learn more on the <%= link_to "Elo explanation page", elo_path %>.
-        </p>
+    <%# Why Elo %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-chart-line"></i></span>
+            <h3>Why Elo?</h3>
+        </div>
+        <div class="about-card-body">
+            <p>
+                Championship points are great for ranking drivers within a single season, but they
+                change format regularly and can't compare across decades. Elo ratings solve this:
+                every driver starts at the same baseline, and ratings adjust after each race based
+                on head-to-head pairwise comparisons against every other finisher.
+            </p>
+            <p>
+                A race win against strong opponents earns more than a win against weaker fields,
+                and vice versa. The result is a number that rises when a driver outperforms
+                expectations and falls when they underperform&mdash;regardless of era, car
+                advantage, or points system.
+            </p>
+            <div class="about-links-row">
+                <%= link_to elo_path, class: "about-link" do %>
+                    <i class="fa-solid fa-graduation-cap"></i> How Elo Works
+                <% end %>
+                <%= link_to elo_milestones_path, class: "about-link" do %>
+                    <i class="fa-solid fa-trophy"></i> Elo Records
+                <% end %>
+                <%= link_to peak_elo_drivers_path, class: "about-link" do %>
+                    <i class="fa-solid fa-mountain-sun"></i> All-Time Rankings
+                <% end %>
+            </div>
+        </div>
+    </div>
 
-        <div class="table-header"><h3>Why Does the Color Change?</h3></div>
-        <p>
-            You may notice the accent color of this site shifts as you navigate. This is
-            intentional: each page is tinted with the <strong>constructor color</strong>
-            of the relevant driver or team.
-        </p>
-        <ul class="about-color-list">
-            <li>
-                <strong>Driver pages</strong> use the color of the driver's current or most recent team.
-            </li>
-            <li>
-                <strong>Race pages</strong> are tinted to the race winner's constructor.
-            </li>
-            <li>
-                <strong>Season pages</strong> use the world champion's team color.
-            </li>
-            <li>
-                <strong>Constructor pages</strong> use that team's brand color directly.
-            </li>
-            <li>
-                <strong>Home &amp; stats pages</strong> default to the current world champion's color,
-                or F1 red if no champion is determined yet.
-            </li>
-        </ul>
-        <p>
-            This creates a subtle sense of immersion: browsing Ferrari history feels red,
-            reviewing a Mercedes-dominant era shifts to teal, and exploring classic Lotus
-            seasons turns green. The color affects links, hover states, progress bars, hero
-            sections, and focus outlines across the entire page.
-        </p>
+    <%# Dynamic Colors %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-palette"></i></span>
+            <h3>Why Does the Color Change?</h3>
+        </div>
+        <div class="about-card-body">
+            <p>
+                You may notice the accent color of this site shifts as you navigate. Each page
+                is tinted with the <strong>constructor color</strong> of the relevant driver or team.
+            </p>
+            <div class="about-color-grid">
+                <div class="about-color-item">
+                    <span class="about-color-dot" style="background: #e80020;"></span>
+                    <div>
+                        <strong>Driver pages</strong>
+                        <span>Color of the driver's current or most recent team</span>
+                    </div>
+                </div>
+                <div class="about-color-item">
+                    <span class="about-color-dot" style="background: #ff8000;"></span>
+                    <div>
+                        <strong>Race pages</strong>
+                        <span>Tinted to the race winner's constructor</span>
+                    </div>
+                </div>
+                <div class="about-color-item">
+                    <span class="about-color-dot" style="background: #27f4d2;"></span>
+                    <div>
+                        <strong>Season pages</strong>
+                        <span>The world champion's team color</span>
+                    </div>
+                </div>
+                <div class="about-color-item">
+                    <span class="about-color-dot" style="background: #0600ef;"></span>
+                    <div>
+                        <strong>Constructor pages</strong>
+                        <span>That team's brand color directly</span>
+                    </div>
+                </div>
+                <div class="about-color-item">
+                    <span class="about-color-dot" style="background: #e10600;"></span>
+                    <div>
+                        <strong>Home &amp; stats</strong>
+                        <span>Current world champion's color, or F1 red</span>
+                    </div>
+                </div>
+            </div>
+            <p class="about-muted">
+                This creates a subtle sense of immersion: browsing Ferrari history feels red,
+                reviewing a Mercedes-dominant era shifts to teal, and exploring classic Lotus
+                seasons turns green.
+            </p>
+        </div>
+    </div>
 
-        <div class="table-header"><h3>Modern Era</h3></div>
-        <p>
-            Since around 1996, Formula 1 has had more standardised regulations, consistent race
-            formats, and richer data. Many of our badges and statistical comparisons focus on this
-            &ldquo;modern era&rdquo; to keep things fair. You can filter
-            <%= link_to "all seasons", seasons_path(from_year: 1996, to_year: Date.current.year) %>
-            to just the modern era, or explore the full history back to 1950.
-        </p>
+    <%# Modern Era %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-stopwatch"></i></span>
+            <h3>Modern Era</h3>
+        </div>
+        <div class="about-card-body">
+            <p>
+                Since around 1996, Formula 1 has had more standardised regulations, consistent
+                race formats, and richer data. Many of our
+                <%= link_to "badges", badges_path %> and statistical comparisons focus on this
+                &ldquo;modern era&rdquo; to keep things fair.
+            </p>
+            <div class="about-links-row">
+                <%= link_to seasons_path(from_year: 1996, to_year: Date.current.year), class: "about-link" do %>
+                    <i class="fa-solid fa-filter"></i> Modern Era Seasons
+                <% end %>
+                <%= link_to seasons_path(from_year: 1950, to_year: 1995), class: "about-link" do %>
+                    <i class="fa-solid fa-clock-rotate-left"></i> Classic Era (1950&ndash;1995)
+                <% end %>
+            </div>
+        </div>
+    </div>
 
-        <div class="table-header"><h3>Data &amp; Sources</h3></div>
-        <p>
-            Historical data (1950&ndash;2024) comes from the Ergast/Jolpica F1 dataset.
-            Current-season results are synced from the Jolpica API after each race weekend.
-            Driver headshots are sourced from the OpenF1 API. All Elo calculations are
-            computed locally&mdash;no external rating service is used.
-        </p>
+    <%# Data & Sources %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-database"></i></span>
+            <h3>Data &amp; Sources</h3>
+        </div>
+        <div class="about-card-body">
+            <div class="about-sources-grid">
+                <div class="about-source">
+                    <strong>Ergast / Jolpica</strong>
+                    <span>Historical race data (1950&ndash;2024)</span>
+                </div>
+                <div class="about-source">
+                    <strong>Jolpica API</strong>
+                    <span>Current-season live sync after each race</span>
+                </div>
+                <div class="about-source">
+                    <strong>OpenF1 API</strong>
+                    <span>Driver headshot images</span>
+                </div>
+                <div class="about-source">
+                    <strong>Local Compute</strong>
+                    <span>All Elo calculations run in-app</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <div class="table-header"><h3>Open Source</h3></div>
-        <p>
-            This project is built with Rails 7, PostgreSQL, and Bootstrap 5. The full source
-            code is available on GitHub. Contributions, bug reports, and feature ideas are
-            welcome.
-        </p>
+    <%# Tech & Open Source %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-code"></i></span>
+            <h3>Open Source</h3>
+        </div>
+        <div class="about-card-body">
+            <p>
+                Built with <strong>Rails 7</strong>, <strong>PostgreSQL</strong>, and
+                <strong>Bootstrap 5</strong>. Elo ratings are computed from pairwise head-to-head
+                comparisons across every race finisher. The full source code is available on GitHub.
+            </p>
+            <div class="about-links-row">
+                <a href="https://github.com/Haumer/f1" target="_blank" rel="noopener" class="about-link about-link-primary">
+                    <i class="fa-brands fa-github"></i> View on GitHub
+                </a>
+                <a href="https://github.com/Haumer/f1/issues" target="_blank" rel="noopener" class="about-link">
+                    <i class="fa-solid fa-bug"></i> Report an Issue
+                </a>
+                <a href="https://github.com/Haumer/f1/issues/new?labels=enhancement" target="_blank" rel="noopener" class="about-link">
+                    <i class="fa-solid fa-lightbulb"></i> Suggest a Feature
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <%# Quick Links %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-compass"></i></span>
+            <h3>Explore</h3>
+        </div>
+        <div class="about-card-body">
+            <div class="about-explore-grid">
+                <%= link_to stats_path, class: "about-explore-item" do %>
+                    <i class="fa-solid fa-chart-bar"></i>
+                    <span>Stats Hub</span>
+                <% end %>
+                <%= link_to compare_drivers_path, class: "about-explore-item" do %>
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span>Compare Drivers</span>
+                <% end %>
+                <%= link_to circuits_path, class: "about-explore-item" do %>
+                    <i class="fa-solid fa-road"></i>
+                    <span>All Circuits</span>
+                <% end %>
+                <%= link_to families_constructors_path, class: "about-explore-item" do %>
+                    <i class="fa-solid fa-sitemap"></i>
+                    <span>Team Lineages</span>
+                <% end %>
+                <%= link_to calendar_races_path, class: "about-explore-item" do %>
+                    <i class="fa-solid fa-calendar"></i>
+                    <span><%= Date.current.year %> Calendar</span>
+                <% end %>
+                <%= link_to elo_path, class: "about-explore-item" do %>
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>How Elo Works</span>
+                <% end %>
+            </div>
+        </div>
     </div>
 </div>
