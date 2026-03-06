@@ -23,9 +23,8 @@ class Graphs::Constructor
 
             driver_label = "#{driver.forename&.first}.#{driver.surname}"
 
-            # Show by default only if the driver raced for this team within the recent window
-            recent = driver_results.any? { |rr| rr.race.date >= @cutoff_date }
-            legend_selected[driver_label] = recent
+            # Drivers unticked by default — only team Elo line is shown
+            legend_selected[driver_label] = false
 
             race_data = @races.map do |race|
                 rr = @results_by_race_driver[[race.id, driver.id]]&.first

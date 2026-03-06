@@ -15,11 +15,6 @@
                 <% if @driver.current_constructor %>
                     <span class="driver-hero-team"><%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %></span>
                 <% end %>
-                <div class="driver-hero-actions">
-                    <%= link_to compare_drivers_path(driver_ids: [@driver.id]), class: "fantasy-btn fantasy-btn-outline" do %>
-                        <i class="fa-solid fa-scale-balanced"></i> Compare
-                    <% end %>
-                </div>
                 <div class="driver-hero-titles">
                     <% if @season_1st_place_finishes.present? %>
                         <span class="title-badge champion"><%= @season_1st_place_finishes.count %>x Champion</span>
@@ -41,10 +36,12 @@
                     <span class="driver-hero-elo-value"><%= elo_link(@driver.display_peak_elo) %></span>
                     <span class="driver-hero-elo-label">Peak Elo</span>
                 </div>
-                <div class="driver-hero-elo-stat">
-                    <span class="elo-tier-badge elo-tier-<%= @elo_tier[:css] %>"><%= @elo_tier[:label] %></span>
-                    <span class="driver-hero-elo-label">Tier</span>
-                </div>
+                <% if @elo_tier %>
+                    <div class="driver-hero-elo-stat">
+                        <span class="elo-tier-badge elo-tier-<%= @elo_tier[:css] %>"><%= @elo_tier[:label] %></span>
+                        <span class="driver-hero-elo-label">Tier</span>
+                    </div>
+                <% end %>
             </div>
         </div>
     </div>
@@ -54,6 +51,10 @@
     <div class="grid-sidebar">
         <div class="card driver-card">
             <img src="<%= @driver.image_url %>" alt="<%= @driver.fullname %>" class="driver-photo" loading="lazy" onerror="this.style.display='none'">
+
+            <%= link_to compare_drivers_path(driver_ids: @driver.id), class: "driver-compare-btn" do %>
+                <i class="fa-solid fa-scale-balanced"></i> Compare
+            <% end %>
 
             <div class="profile-section">
                 <div class="section-label">Race Podiums</div>

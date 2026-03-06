@@ -553,4 +553,67 @@
             </div>
         </div>
     <% end %>
+
+    <%# ── Limitations ── %>
+    <div class="table-header" id="limitations" style="margin-top: 24px;">
+        <div class="table-header-title">
+            <h3>Limitations</h3>
+            <a href="#limitations" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+        </div>
+    </div>
+
+    <div class="card about-section">
+        <p>
+            Elo is a powerful tool for measuring relative performance, but it has inherent blind spots — especially
+            when applied to a sport as complex as Formula 1. Keep these caveats in mind when interpreting ratings.
+        </p>
+
+        <h4>Car performance is invisible</h4>
+        <p>
+            Elo treats every result as a reflection of driver skill. In reality, machinery plays a massive role.
+            A dominant car inflates its driver's rating; a poor car suppresses it. A driver switching from a
+            backmarker to a frontrunner will see a sharp Elo rise that's partly car, not skill. Head-to-head
+            teammate comparisons (which Elo captures well) help, but inter-team matchups always blend driver
+            ability with engineering.
+        </p>
+
+        <h4>DNFs and mechanical failures</h4>
+        <p>
+            Elo penalises any finishing position — including a retirement on lap 1. A driver who crashes out
+            and one whose engine fails are treated identically: both lose Elo from head-to-head matchups against
+            every driver who finished ahead. This means reliability-plagued seasons can drag a rating down through
+            no fault of the driver.
+        </p>
+
+        <h4>Team orders and strategic results</h4>
+        <p>
+            When a driver yields a position on team orders, Elo records the result at face value. A number-two
+            driver told to hold station will accumulate a lower rating than their raw pace might deserve. Elo
+            has no way to distinguish a genuine on-track battle from a choreographed swap.
+        </p>
+
+        <h4>Grid size and era context</h4>
+        <p>
+            A 20-car grid generates fewer head-to-head matchups per race than a 26-car grid. Our K-factor
+            scales with grid size to compensate, but smaller fields still mean fewer data points per event.
+            Additionally, the talent depth of the grid varies across decades — dominating a shallow field
+            and dominating a deep one may look the same in raw Elo terms.
+        </p>
+
+        <h4>Cross-era comparison nuance</h4>
+        <p>
+            The system is designed so that a given Elo value represents the same level of <em>dominance relative
+            to contemporaries</em> regardless of era. However, it cannot tell you whether a <%= thresholds[0] %>-rated driver
+            from the 1950s would beat a <%= thresholds[0] %>-rated driver from the 2020s in the same car — it only says both
+            dominated their respective fields to a similar degree.
+        </p>
+
+        <h4>What Elo doesn't capture</h4>
+        <p>
+            Qualifying pace, race craft in wheel-to-wheel battles, tyre management, wet-weather ability, and
+            development feedback are all crucial driver skills that Elo compresses into a single number.
+            Sprint races and qualifying results are also not factored into ratings — only the main Grand Prix
+            finishing order matters.
+        </p>
+    </div>
 </div>

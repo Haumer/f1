@@ -36,6 +36,10 @@
 }
 
 // Global styles
+html {
+    overflow-x: hidden;
+}
+
 body {
     background-color: $bg-page;
     color: $text-primary;

@@ -27,6 +27,14 @@ export default class extends Controller {
     document.removeEventListener("click", this._outsideClickHandler)
   }
 
+  keydown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault()
+      const firstItem = this.suggestionsTarget.querySelector(".suggestion-item:not([style*='pointer-events'])")
+      if (firstItem) firstItem.click()
+    }
+  }
+
   search() {
     clearTimeout(this._debounceTimer)
     const query = this.inputTarget.value.trim()
