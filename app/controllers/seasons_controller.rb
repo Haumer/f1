@@ -59,13 +59,28 @@ class SeasonsController < ApplicationController
       @champion_constructor = @champion.constructor_for(@season)
     end
 
-    # Constructor leader
-    last_race = @season.latest_race
-    if last_race
-      @constructor_leader = ConstructorStanding.where(race: last_race)
-                              .includes(:constructor)
-                              .order(points: :desc)
-                              .first
+    # Constructor leader (computed from race_results since ConstructorStanding may not exist)
+    if race_ids.any?
+      constructor_pts = RaceResult.where(race_id: race_ids)
+                          .where.not(constructor_id: nil)
+                          .group(:constructor_id)
+                          .sum(:points)
+      constructor_wins_map = RaceResult.where(race_id: race_ids, position_order: 1)
+                               .where.not(constructor_id: nil)
+                               .group(:constructor_id)
+                               .count
+      if constructor_pts.any?
+        leader_id = constructor_pts.max_by { |_, pts| pts }.first
+        leader_constructor = Constructor.find(leader_id)
+        @constructor_leader = OpenStruct.new(
+          constructor: leader_constructor,
+          points: constructor_pts[leader_id],
+          wins: constructor_wins_map[leader_id] || 0
+        )
+        # Store for reuse in constructor_top3
+        @_constructor_pts = constructor_pts
+        @_constructor_wins_map = constructor_wins_map
+      end
     end
 
     # Is this the current season?
@@ -114,11 +129,11 @@ class SeasonsController < ApplicationController
       @season_top3_constructors = @season_top3.each_with_object({}) do |ds, hash|
         hash[ds.driver_id] = season_driver_index[ds.driver_id]&.constructor
       end
-      constructor_points = RaceResult.where(race_id: race_ids)
+      constructor_points = @_constructor_pts || RaceResult.where(race_id: race_ids)
                              .where.not(constructor_id: nil)
                              .group(:constructor_id)
                              .sum(:points)
-      constructor_wins = RaceResult.where(race_id: race_ids, position_order: 1)
+      constructor_wins = @_constructor_wins_map || RaceResult.where(race_id: race_ids, position_order: 1)
                            .where.not(constructor_id: nil)
                            .group(:constructor_id)
                            .count
