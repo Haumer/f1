@@ -127,6 +127,31 @@
 </div>
 
 <div class="admin-card">
+  <h3>Image Source</h3>
+  <p>Switch between F1 CDN images (higher quality, hotlinked) and Wikipedia images (CC-licensed, fallback).</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
+    <div class="admin-radio-group">
+      <label class="admin-radio <%= 'selected' if @image_source == 'f1' %>">
+        <input type="radio" name="image_source" value="f1" <%= 'checked' if @image_source == 'f1' %>>
+        <div>
+          <strong>F1 CDN</strong>
+          <span class="admin-radio-desc">Official headshots from media.formula1.com (current drivers only)</span>
+        </div>
+      </label>
+      <label class="admin-radio <%= 'selected' if @image_source == 'wikipedia' %>">
+        <input type="radio" name="image_source" value="wikipedia" <%= 'checked' if @image_source == 'wikipedia' %>>
+        <div>
+          <strong>Wikipedia</strong>
+          <span class="admin-radio-desc">CC-licensed images from Wikipedia (broader coverage, lower quality)</span>
+        </div>
+      </label>
+    </div>
+    <button type="submit" class="admin-btn">Save</button>
+  <% end %>
+</div>
+
+<div class="admin-card">
   <h3>V2 Parameters</h3>
   <table class="admin-params-table">
     <tbody>

@@ -47,6 +47,14 @@ class Setting < ApplicationRecord
         get("fantasy_stock_market", "disabled") == "enabled"
     end
 
+    def self.image_source
+        get("image_source", "f1")
+    end
+
+    def self.use_wikipedia_images?
+        image_source == "wikipedia"
+    end
+
     def self.simulated_date
         val = get("simulated_date")
         Date.parse(val) if val.present?

@@ -50,7 +50,7 @@
 <div class="layout-grid">
     <div class="grid-sidebar">
         <div class="card driver-card">
-            <img src="<%= @driver.image_url %>" alt="<%= @driver.fullname %>" class="driver-photo" loading="lazy" onerror="this.style.display='none'">
+            <img src="<%= @driver.display_image_url %>" alt="<%= @driver.fullname %>" class="driver-photo" loading="lazy" onerror="this.style.display='none'">
 
             <%= link_to compare_drivers_path(driver_ids: @driver.id), class: "driver-compare-btn" do %>
                 <i class="fa-solid fa-scale-balanced"></i> Compare

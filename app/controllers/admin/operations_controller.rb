@@ -29,6 +29,9 @@ module Admin
         end_year = (params[:end_year].presence || Date.current.year).to_i
         FullDataSyncJob.perform_later(start_year: start_year, end_year: end_year)
         redirect_to admin_operations_path, notice: "Full data sync job enqueued (#{start_year}-#{end_year}). This will take several minutes."
+      when "fetch_wikipedia_images"
+        count = FetchWikipediaImages.fetch_all
+        redirect_to admin_operations_path, notice: "Fetched #{count} Wikipedia images."
       when "recapitalize_fantasy"
         season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
         avg_elo = Driver.where.not(elo_v2: nil)

@@ -153,6 +153,14 @@ class Driver < ApplicationRecord
         "#{forename} #{surname}"
     end
 
+    def display_image_url
+        if Setting.use_wikipedia_images?
+            wikipedia_image_url.presence || image_url
+        else
+            image_url.presence || wikipedia_image_url
+        end
+    end
+
     def self.champion_standings
         DriverStanding.where(season_end: true, position: 1)
                       .includes(driver: :countries, race: :season)
