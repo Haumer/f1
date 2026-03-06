@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   devise_for :users
+  get "users/username_available", to: "users#username_available"
   root to: "pages#home"
 
   namespace :admin do

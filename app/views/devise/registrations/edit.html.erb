@@ -8,9 +8,15 @@
             <%= render "devise/shared/error_messages", resource: resource %>
 
             <div class="devise-form">
+                <div class="devise-field" data-controller="username-check" data-username-check-url-value="<%= users_username_available_path %>">
+                    <label for="user_username">Username</label>
+                    <%= f.text_field :username, autocomplete: "username", class: "devise-input", data: { username_check_target: "input", action: "input->username-check#check" } %>
+                    <span class="devise-username-status" data-username-check-target="status"></span>
+                </div>
+
                 <div class="devise-field">
                     <label for="user_email">Email</label>
-                    <%= f.email_field :email, autofocus: true, class: "devise-input" %>
+                    <%= f.email_field :email, class: "devise-input" %>
                     <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
                         <span class="devise-hint">Currently waiting confirmation for: <%= resource.unconfirmed_email %></span>
                     <% end %>

@@ -101,6 +101,18 @@
     color: $text-tertiary;
 }
 
+.devise-username-status {
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    min-height: 16px;
+    transition: color 0.15s ease;
+
+    &.devise-username-available { color: $green; }
+    &.devise-username-taken { color: $accent-red; }
+    &.devise-username-short { color: $text-tertiary; }
+    &.devise-username-checking { color: $text-secondary; }
+}
+
 .devise-required {
     color: $accent-red;
 }

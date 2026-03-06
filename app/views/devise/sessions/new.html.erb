@@ -32,11 +32,26 @@
 
         <div class="devise-links">
             <% if devise_mapping.registerable? %>
-                <%= link_to "Create an account", new_registration_path(resource_name) %>
+                <a href="<%= new_registration_path(resource_name) %>" id="signup-link">Create an account</a>
             <% end %>
             <% if devise_mapping.recoverable? %>
                 <%= link_to "Forgot password?", new_password_path(resource_name) %>
             <% end %>
         </div>
+
+        <script>
+            document.addEventListener("turbo:load", function() {
+                var link = document.getElementById("signup-link");
+                if (!link) return;
+                link.addEventListener("click", function(e) {
+                    var emailField = document.getElementById("user_email");
+                    var email = emailField ? emailField.value.trim() : "";
+                    if (email) {
+                        e.preventDefault();
+                        Turbo.visit(link.href + "?email=" + encodeURIComponent(email));
+                    }
+                });
+            });
+        </script>
     </div>
 </div>
