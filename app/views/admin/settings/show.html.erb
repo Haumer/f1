@@ -102,6 +102,31 @@
 </div>
 
 <div class="admin-card">
+  <h3>Accent Color Override</h3>
+  <p>Override the homepage champion accent color with a specific constructor. Useful for pre-season when no champion data exists yet (e.g. McLaren for 2026).</p>
+
+  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <select name="accent_constructor_override" class="admin-input" style="width: 200px;">
+        <option value="">Auto-detect (default)</option>
+        <% Constructor::COLORS.each do |ref, color| %>
+          <option value="<%= ref %>" <%= 'selected' if @accent_override == ref.to_s %> style="color: <%= color %>;">
+            <%= ref.to_s.titleize %>
+          </option>
+        <% end %>
+      </select>
+      <button type="submit" class="admin-btn">Save</button>
+    </div>
+    <% if @accent_override.present? %>
+      <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: <%= Constructor::COLORS[@accent_override.to_sym] %>; display: inline-block;"></span>
+        <span class="admin-radio-desc">Currently overriding with: <strong><%= @accent_override.titleize %></strong></span>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="admin-card">
   <h3>V2 Parameters</h3>
   <table class="admin-params-table">
     <tbody>

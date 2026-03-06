@@ -34,8 +34,14 @@
         <% end %>
         <% if @most_successful_driver %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= @most_successful_driver.forename&.first %>.<%= @most_successful_driver.surname %></div>
+                <div class="race-stat-value"><%= link_to "#{@most_successful_driver.forename&.first}.#{@most_successful_driver.surname}", driver_path(@most_successful_driver) %></div>
                 <div class="race-stat-label"><%= @most_successful_wins.size %> Win<%= @most_successful_wins.size > 1 ? 's' : '' %></div>
+            </div>
+        <% end %>
+        <% if @most_successful_constructor %>
+            <div class="race-stat-card">
+                <div class="race-stat-value"><%= link_to @most_successful_constructor.name, constructor_path(@most_successful_constructor) %></div>
+                <div class="race-stat-label"><%= @constructor_wins.size %> Constructor Win<%= @constructor_wins.size > 1 ? 's' : '' %></div>
             </div>
         <% end %>
         <% if @highest_avg_elo_race %>
@@ -47,35 +53,90 @@
         <% if @record_elo_rr %>
             <div class="race-stat-card">
                 <div class="race-stat-value"><%= elo_link(@record_elo_rr.display_new_elo) %></div>
-                <div class="race-stat-label">Record Elo (<%= @record_elo_rr.driver.surname %>)</div>
+                <div class="race-stat-label">Record Elo (<%= link_to @record_elo_rr.driver.surname, driver_path(@record_elo_rr.driver) %>)</div>
             </div>
         <% end %>
     </div>
 
+    <% if @circuit_winners.present? && @circuit_winners.first[:wins] > 1 %>
+        <div class="card card-flush">
+            <div class="roster-section-header">
+                <div class="section-label">Most Wins at <%= @circuit.name %></div>
+            </div>
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Driver</th>
+                            <th class="text-center">Wins</th>
+                            <th>Years</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @circuit_winners.select { |w| w[:wins] > 1 }.each_with_index do |entry, i| %>
+                            <tr>
+                                <td class="position-cell"><%= i + 1 %></td>
+                                <td>
+                                    <% if entry[:driver].country.present? %>
+                                        <img src="https://flagsapi.com/<%= entry[:driver].country.two_letter_country_code %>/shiny/24.png" alt="<%= entry[:driver].country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag" style="vertical-align: middle; margin-right: 4px;">
+                                    <% end %>
+                                    <%= link_to entry[:driver].fullname, driver_path(entry[:driver]) %>
+                                </td>
+                                <td class="text-center"><%= entry[:wins] %></td>
+                                <td style="font-size: 12px; color: var(--text-secondary, #999);"><%= entry[:years].sort.join(", ") %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+
     <div class="card card-flush">
+        <div class="roster-section-header">
+            <div class="section-label">Race History</div>
+        </div>
         <div class="table-scroll-wrapper">
         <table class="current-driver-standings compact" data-controller="sortable-table">
             <thead>
                 <tr>
                     <th data-sort="num">Year</th>
-                    <th data-sort="num">Round</th>
                     <th data-sort="text">Winner</th>
+                    <th data-sort="text">Constructor</th>
+                    <th data-sort="text">P2</th>
+                    <th data-sort="text">P3</th>
                     <th class="text-center" data-sort="num">Avg Elo</th>
                 </tr>
             </thead>
             <tbody>
                 <% @races.each do |race| %>
-                    <% winner = race.race_results.min_by { |rr| rr.position_order || 999 } %>
+                    <% podium = @podiums_by_race[race.id] || [] %>
+                    <% winner = podium.find { |rr| rr.position_order == 1 } %>
+                    <% p2 = podium.find { |rr| rr.position_order == 2 } %>
+                    <% p3 = podium.find { |rr| rr.position_order == 3 } %>
                     <tr>
                         <td>
-                            <%= link_to race.season.year, season_path(race.season) if race.season %>
+                            <%= link_to race.season.year, race_path(race) if race.season %>
                         </td>
-                        <td><%= link_to "R#{race.round}", race_path(race) %></td>
                         <td>
                             <% if winner&.driver %>
-                                <%= link_to driver_path(winner.driver) do %>
-                                    <%= winner.driver.forename&.first %>.<%= winner.driver.surname %>
-                                <% end %>
+                                <%= link_to "#{winner.driver.forename&.first}.#{winner.driver.surname}", driver_path(winner.driver) %>
+                            <% end %>
+                        </td>
+                        <td>
+                            <% if winner&.constructor %>
+                                <%= link_to winner.constructor.name, constructor_path(winner.constructor) %>
+                            <% end %>
+                        </td>
+                        <td class="text-secondary-cell">
+                            <% if p2&.driver %>
+                                <%= link_to "#{p2.driver.forename&.first}.#{p2.driver.surname}", driver_path(p2.driver) %>
+                            <% end %>
+                        </td>
+                        <td class="text-secondary-cell">
+                            <% if p3&.driver %>
+                                <%= link_to "#{p3.driver.forename&.first}.#{p3.driver.surname}", driver_path(p3.driver) %>
                             <% end %>
                         </td>
                         <td class="text-center"><%= race.average_elo&.round %></td>

@@ -168,3 +168,9 @@
     height: 100%;
     object-fit: contain;
 }
+
+.text-secondary-cell {
+    font-size: 13px;
+    color: $text-secondary;
+    a { color: $text-secondary; &:hover { color: var(--page-accent, $accent-red); } }
+}

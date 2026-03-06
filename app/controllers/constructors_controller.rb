@@ -39,11 +39,37 @@ class ConstructorsController < ApplicationController
     @championship_wins = @constructor.constructor_standings
       .where(race_id: season_end_race_ids, position: 1).count
 
+    # Driver stats at this constructor — wins and podiums per driver while racing for this team
+    wins_by_driver = results.select { |rr| rr.position_order == 1 }.group_by(&:driver_id)
+    podiums_by_driver = results.select { |rr| rr.position_order && rr.position_order <= 3 }.group_by(&:driver_id)
+    races_by_driver = results.group_by(&:driver_id)
+
+    # Top drivers: sorted by wins, then podiums
+    driver_ids = races_by_driver.keys
+    drivers_index = Driver.where(id: driver_ids).includes(:countries).index_by(&:id)
+
+    @top_drivers = driver_ids.map do |did|
+      driver = drivers_index[did]
+      next unless driver
+      {
+        driver: driver,
+        wins: wins_by_driver[did]&.size || 0,
+        podiums: podiums_by_driver[did]&.size || 0,
+        races: races_by_driver[did]&.map(&:race_id)&.uniq&.size || 0
+      }
+    end.compact.sort_by { |d| [-d[:wins], -d[:podiums], -d[:races]] }
+
+    @most_winning_driver = @top_drivers.first
+
     # Driver roster grouped by season (most recent first)
     @roster_by_season = @constructor.season_drivers
       .includes(:driver, :season)
       .group_by(&:season)
       .sort_by { |season, _| -season.year.to_i }
+
+    # Split roster into recent (last 15 seasons) and historical
+    @recent_roster = @roster_by_season.first(15)
+    @historical_roster = @roster_by_season.drop(15)
   end
 
   def elo_rankings

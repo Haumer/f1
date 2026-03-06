@@ -7,11 +7,16 @@ module AccentColorable
 
   def set_current_champion_accent
     @page_accent = Rails.cache.fetch("current_champion_accent", expires_in: 1.day) do
-      standing = DriverStanding.where(season_end: true, position: 1)
-                               .joins(race: :season)
-                               .order("seasons.year DESC")
-                               .first
-      constructor_color_for_standing(standing) || DEFAULT_ACCENT
+      override = Setting.get("accent_constructor_override")
+      if override.present?
+        Constructor::COLORS[override.to_sym] || DEFAULT_ACCENT
+      else
+        standing = DriverStanding.where(season_end: true, position: 1)
+                                 .joins(race: :season)
+                                 .order("seasons.year DESC")
+                                 .first
+        constructor_color_for_standing(standing) || DEFAULT_ACCENT
+      end
     end
   end
 

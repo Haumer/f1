@@ -57,6 +57,48 @@
         <%= custom_chart Graphs::Constructor.new(constructor: @constructor).data %>
     </div>
 
+    <% if @top_drivers.present? %>
+        <div class="card card-flush">
+            <div class="roster-section-header">
+                <div class="section-label">Top Drivers for <%= @constructor.name %></div>
+            </div>
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Driver</th>
+                            <th class="text-center">Races</th>
+                            <th class="text-center">Wins</th>
+                            <th class="text-center">Podiums</th>
+                            <th class="text-center">Win %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @top_drivers.select { |d| d[:wins] > 0 || d[:podiums] > 0 }.first(15).each_with_index do |entry, i| %>
+                            <tr>
+                                <td class="position-cell"><%= i + 1 %></td>
+                                <td>
+                                    <% driver = entry[:driver] %>
+                                    <span class="roster-driver-span">
+                                        <% if driver.country.present? %>
+                                            <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                                        <% end %>
+                                        <%= link_to driver.fullname, driver_path(driver) %>
+                                    </span>
+                                </td>
+                                <td class="text-center"><%= entry[:races] %></td>
+                                <td class="text-center"><%= entry[:wins] %></td>
+                                <td class="text-center"><%= entry[:podiums] %></td>
+                                <td class="text-center"><%= entry[:races] > 0 ? "#{(entry[:wins].to_f / entry[:races] * 100).round(1)}%" : "-" %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+
     <% if @roster_by_season.present? %>
         <div class="card card-flush">
             <div class="roster-section-header">
@@ -70,8 +112,8 @@
                             <th>Drivers</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <% @roster_by_season.each do |season, season_drivers| %>
+                    <tbody data-controller="expand">
+                        <% @recent_roster.each do |season, season_drivers| %>
                             <tr>
                                 <td>
                                     <%= link_to season.year, season_path(season) %>
@@ -87,6 +129,30 @@
                                     <% end %>
                                 </td>
                             </tr>
+                        <% end %>
+                        <% if @historical_roster.present? %>
+                            <tr data-expand-target="trigger" data-action="click->expand#toggle" style="cursor: pointer;">
+                                <td colspan="2" class="text-center" style="color: var(--page-accent, #e10600); font-size: 13px; font-weight: 600;">
+                                    <span data-expand-target="label" data-show-text="Show <%= @historical_roster.size %> more seasons">Show <%= @historical_roster.size %> more seasons</span>
+                                </td>
+                            </tr>
+                            <% @historical_roster.each do |season, season_drivers| %>
+                                <tr data-expand-target="content" style="display: none;">
+                                    <td>
+                                        <%= link_to season.year, season_path(season) %>
+                                    </td>
+                                    <td>
+                                        <% season_drivers.map(&:driver).uniq.each do |driver| %>
+                                            <span class="roster-driver-span">
+                                                <% if driver.country.present? %>
+                                                    <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                                                <% end %>
+                                                <%= link_to "#{driver.forename&.first}.#{driver.surname}", driver_path(driver) %>
+                                            </span>
+                                        <% end %>
+                                    </td>
+                                </tr>
+                            <% end %>
                         <% end %>
                     </tbody>
                 </table>
