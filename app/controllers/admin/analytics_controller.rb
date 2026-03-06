@@ -32,7 +32,7 @@ module Admin
     end
 
     def show
-      @user = User.find(params[:id])
+      @user = User.find_by!(username: params[:id])
       @visits = Ahoy::Visit.where(user: @user).order(started_at: :desc).limit(20)
       @recent_pages = Ahoy::Event.where(user: @user).order(time: :desc).limit(50)
       @total_visits = Ahoy::Visit.where(user: @user).count
