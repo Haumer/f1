@@ -81,6 +81,7 @@ Rails.application.routes.draw do
       post :sell
       post :short_open
       post :short_close
+      post :buy_batch
     end
     collection do
       get :leaderboard

@@ -1589,6 +1589,12 @@
     &:hover { color: var(--page-accent, $accent-red); }
 }
 
+.leaderboard-team-logo {
+    vertical-align: middle;
+    margin-right: 4px;
+    opacity: 0.85;
+}
+
 .fantasy-leaderboard-value {
     font-family: $mono-font;
     font-weight: $weight-bold;

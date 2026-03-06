@@ -1,9 +1,9 @@
 class FantasyStockPortfoliosController < ApplicationController
   before_action :authenticate_user!
   before_action :require_feature!
-  before_action :set_portfolio, only: [:market, :buy, :sell, :short_open, :short_close]
-  before_action :set_next_race, only: [:market, :buy, :sell, :short_open, :short_close]
-  after_action :verify_authorized, only: [:buy, :sell, :short_open, :short_close, :market]
+  before_action :set_portfolio, only: [:market, :buy, :sell, :short_open, :short_close, :buy_batch]
+  before_action :set_next_race, only: [:market, :buy, :sell, :short_open, :short_close, :buy_batch]
+  after_action :verify_authorized, only: [:buy, :sell, :short_open, :short_close, :buy_batch, :market]
 
   def new
     current_season = Season.sorted_by_year.first
@@ -88,6 +88,38 @@ class FantasyStockPortfoliosController < ApplicationController
     else
       check_stock_achievements(@portfolio)
       redirect_to fantasy_stocks_path(current_user.username), notice: "Closed short on #{driver.fullname}!"
+    end
+  end
+
+  def buy_batch
+    orders = Array(params[:orders])
+    errors = []
+    bought = []
+
+    orders.each do |order|
+      driver = Driver.find(order[:driver_id])
+      qty = (order[:quantity] || 1).to_i
+      direction = order[:direction]
+
+      result = if direction == "short"
+        Fantasy::Stock::OpenShort.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
+      else
+        Fantasy::Stock::BuyShares.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
+      end
+
+      if result[:error]
+        errors << "#{driver.fullname}: #{result[:error]}"
+      else
+        bought << "#{qty}x #{driver.fullname} (#{direction})"
+      end
+    end
+
+    check_stock_achievements(@portfolio) if bought.any?
+
+    if errors.any?
+      redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: errors.join(". ")
+    else
+      redirect_to fantasy_stocks_path(current_user.username), notice: "Opened #{bought.join(', ')}"
     end
   end
 

@@ -236,6 +236,16 @@
                     (<%= stock_pl_pct >= 0 ? '+' : '' %><%= stock_pl_pct.round(1) %>%)
                 </span>
             </div>
+            <% long_count = @stock_holdings.count(&:long?) %>
+            <% short_count = @stock_holdings.size - long_count %>
+            <div class="fantasy-sub-stat">
+                <span class="label">Long</span>
+                <span class="value text-green"><%= long_count %></span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">Short</span>
+                <span class="value text-red"><%= short_count %></span>
+            </div>
             <div class="fantasy-sub-stat">
                 <span class="label">Positions</span>
                 <span class="value"><%= @stock_portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></span>

@@ -1,0 +1,379 @@
+<div class="homepage-container">
+    <%# Header %>
+    <div class="fantasy-dashboard-header">
+        <div class="fantasy-dashboard-title">
+            <h2>
+                <% if @support %>
+                    <% sc = @support.constructor %>
+                    <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                    <span style="color: <%= team_color %>"><%= @user.display_name %></span>
+                <% else %>
+                    <%= @user.display_name %>
+                <% end %>
+            </h2>
+            <span class="fantasy-season"><%= @season.year %> Fantasy Portfolio</span>
+        </div>
+        <div class="fantasy-header-actions">
+            <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-ranking-star"></i> Leaderboard
+            <% end %>
+            <% if @is_owner %>
+                <% own_portfolio = current_user.fantasy_portfolio_for(@season) %>
+                <% if own_portfolio %>
+                    <%= link_to fantasy_portfolio_path(own_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
+                        <i class="fa-solid fa-briefcase"></i> My Portfolio
+                    <% end %>
+                <% end %>
+            <% end %>
+        </div>
+    </div>
+
+    <%# Value Overview %>
+    <% roster_value = @portfolio ? @portfolio.portfolio_value : 0 %>
+    <% stock_value = @stock_portfolio ? @stock_portfolio.portfolio_value : 0 %>
+    <% total_value = roster_value + stock_value %>
+    <% roster_starting = @portfolio ? @portfolio.starting_capital : 0 %>
+    <% stock_starting = @stock_portfolio ? @stock_portfolio.starting_capital : 0 %>
+    <% total_starting = roster_starting + stock_starting %>
+    <% total_pl = (roster_value - roster_starting) + (stock_value - stock_starting) %>
+    <% total_pl_pct = total_starting > 0 ? (total_pl / total_starting * 100) : 0 %>
+    <% combined_delta = (@value_delta || 0) + (@stock_value_delta || 0) %>
+
+    <div class="fantasy-value-hero">
+        <div class="fantasy-value-main">
+            <span class="fantasy-value-label">Total Portfolio Value</span>
+            <span class="fantasy-value-number"><%= number_with_delimiter(total_value.round(0)) %></span>
+            <div class="fantasy-value-metrics">
+                <span class="fantasy-value-pl <%= total_pl >= 0 ? 'gain' : 'loss' %>">
+                    <%= total_pl >= 0 ? '+' : '' %><%= number_with_delimiter(total_pl.round(0)) %>
+                    (<%= total_pl_pct >= 0 ? '+' : '' %><%= total_pl_pct.round(1) %>%)
+                </span>
+                <% if combined_delta != 0 %>
+                    <span class="fantasy-value-delta <%= combined_delta >= 0 ? 'gain' : 'loss' %>">
+                        <i class="fa-solid fa-<%= combined_delta >= 0 ? 'caret-up' : 'caret-down' %>"></i>
+                        <%= combined_delta >= 0 ? '+' : '' %><%= combined_delta.round(0) %> last race
+                    </span>
+                <% end %>
+            </div>
+        </div>
+        <% if @support %>
+            <div class="fantasy-value-details">
+                <div class="fantasy-detail">
+                    <span class="detail-label">Supporting</span>
+                    <span class="detail-value" style="font-size: 13px;">
+                        <% sc = @support.constructor %>
+                        <% if sc.logo_url.present? %>
+                            <img src="<%= sc.logo_url %>" alt="" class="constructor-logo-xs" style="opacity:1" onerror="this.style.display='none'">
+                        <% end %>
+                        <%= sc.name %>
+                    </span>
+                </div>
+            </div>
+        <% end %>
+    </div>
+
+    <%# Tab Bar %>
+    <% has_both = @portfolio && @stock_portfolio %>
+    <% if has_both %>
+        <div class="fantasy-tab-bar">
+            <%= link_to fantasy_profile_path(@user.username, tab: "roster"),
+                class: "fantasy-tab #{'active' if @tab == 'roster'}" do %>
+                <i class="fa-solid fa-users"></i> Roster
+            <% end %>
+            <%= link_to fantasy_profile_path(@user.username, tab: "stocks"),
+                class: "fantasy-tab #{'active' if @tab == 'stocks'}" do %>
+                <i class="fa-solid fa-chart-line"></i> Stocks
+            <% end %>
+        </div>
+    <% end %>
+
+    <% if @tab == "stocks" && @stock_portfolio %>
+        <%# ══════════════════════════════════ %>
+        <%# STOCKS TAB (read-only)            %>
+        <%# ══════════════════════════════════ %>
+
+        <% stock_pl = @stock_portfolio.profit_loss %>
+        <% stock_pl_pct = @stock_portfolio.starting_capital > 0 ? (stock_pl / @stock_portfolio.starting_capital * 100) : 0 %>
+        <div class="fantasy-sub-stats">
+            <div class="fantasy-sub-stat">
+                <span class="label">Value</span>
+                <span class="value"><%= number_with_delimiter(@stock_portfolio.portfolio_value.round(1)) %></span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">P&L</span>
+                <span class="value <%= stock_pl >= 0 ? 'text-green' : 'text-red' %>">
+                    <%= stock_pl >= 0 ? '+' : '' %><%= number_with_delimiter(stock_pl.round(1)) %>
+                    (<%= stock_pl_pct >= 0 ? '+' : '' %><%= stock_pl_pct.round(1) %>%)
+                </span>
+            </div>
+            <% long_count = @stock_holdings.count(&:long?) %>
+            <% short_count = @stock_holdings.size - long_count %>
+            <div class="fantasy-sub-stat">
+                <span class="label">Long</span>
+                <span class="value text-green"><%= long_count %></span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">Short</span>
+                <span class="value text-red"><%= short_count %></span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">Positions</span>
+                <span class="value"><%= @stock_portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></span>
+            </div>
+        </div>
+
+        <%# Chart %>
+        <% if @stock_snapshots.size >= 2 %>
+            <div class="table-header"><h3>Portfolio Value</h3></div>
+            <div class="card card-flush fantasy-chart-card">
+                <%= custom_chart({
+                    tooltip: { trigger: "axis" },
+                    grid: { left: 10, right: 20, top: 20, bottom: 10, containLabel: true },
+                    backgroundColor: "transparent",
+                    xAxis: {
+                        type: "category",
+                        data: @stock_snapshots.map { |s| "R#{s.race.round}" },
+                        axisLabel: { color: "#666" },
+                        axisLine: { lineStyle: { color: "#333" } }
+                    },
+                    yAxis: {
+                        type: "value",
+                        axisLabel: { color: "#666" },
+                        splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
+                    },
+                    series: [{
+                        name: "Portfolio Value",
+                        type: "line",
+                        data: @stock_snapshots.map { |s| s.value.round(1) },
+                        smooth: true,
+                        lineStyle: { color: "#e10600", width: 3 },
+                        itemStyle: { color: "#e10600" },
+                        areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
+                    }]
+                }, style: "width:100%; height:280px;") %>
+            </div>
+        <% end %>
+
+        <%# Holdings %>
+        <div class="table-header">
+            <h3>Holdings</h3>
+            <span class="table-header-sub"><%= @stock_holdings.size %> positions</span>
+        </div>
+        <% if @stock_holdings.any? %>
+            <div class="card card-flush">
+                <div class="table-scroll-wrapper">
+                    <table class="fantasy-market-table">
+                        <thead>
+                            <tr>
+                                <th>Driver</th>
+                                <th>Type</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Entry</th>
+                                <th class="text-end">Current</th>
+                                <th class="text-end">P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @stock_holdings.each do |holding| %>
+                                <% constructor = @stock_constructors[holding.driver_id] %>
+                                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                <% gl = holding.gain_loss %>
+                                <tr style="border-left: 3px solid <%= color %>">
+                                    <td>
+                                        <div class="fantasy-market-driver-cell">
+                                            <div class="fantasy-market-driver-info">
+                                                <span class="fantasy-market-driver-name">
+                                                    <% if holding.driver.country.present? %>
+                                                        <img src="https://flagsapi.com/<%= holding.driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
+                                                    <% end %>
+                                                    <%= link_to holding.driver.fullname, driver_path(holding.driver) %>
+                                                </span>
+                                                <span class="fantasy-market-team-name"><%= constructor&.name %></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="stock-direction-badge stock-<%= holding.direction %>">
+                                            <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>"></i>
+                                            <%= holding.direction.upcase %>
+                                        </span>
+                                    </td>
+                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.quantity %></span></td>
+                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
+                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
+                                    <td class="text-end">
+                                        <span class="<%= gl >= 0 ? 'text-green' : 'text-red' %>" style="font-weight:700; font-size:13px;">
+                                            <%= gl >= 0 ? '+' : '' %><%= gl.round(1) %>
+                                            <span style="font-size:11px; opacity:0.7">(<%= holding.gain_loss_percent %>%)</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <% else %>
+            <div class="card empty-state">
+                <p>No stock positions yet.</p>
+            </div>
+        <% end %>
+
+        <%# Stock Achievements %>
+        <% if @stock_achievements.any? %>
+            <div class="table-header">
+                <h3>Achievements</h3>
+                <span class="table-header-sub"><%= @stock_achievements.size %> earned</span>
+            </div>
+            <div class="fantasy-achievements-grid">
+                <% @stock_achievements.each do |a| %>
+                    <% defn = FantasyStockAchievement::DEFINITIONS[a.key.to_sym] %>
+                    <% next unless defn %>
+                    <div class="fantasy-achievement-card earned tier-<%= defn[:tier] %>">
+                        <div class="fantasy-achievement-icon"><i class="fa-solid <%= defn[:icon] %>"></i></div>
+                        <div class="fantasy-achievement-info">
+                            <strong><%= defn[:name] %></strong>
+                            <span><%= defn[:description] %></span>
+                        </div>
+                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+
+    <% elsif @portfolio %>
+        <%# ══════════════════════════════════ %>
+        <%# ROSTER TAB (read-only)            %>
+        <%# ══════════════════════════════════ %>
+
+        <% pl = @portfolio.profit_loss %>
+        <% pl_pct = @portfolio.starting_capital > 0 ? (pl / @portfolio.starting_capital * 100) : 0 %>
+        <div class="fantasy-sub-stats">
+            <div class="fantasy-sub-stat">
+                <span class="label">Value</span>
+                <span class="value"><%= number_with_delimiter(@portfolio.portfolio_value.round(0)) %></span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">P&L</span>
+                <span class="value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+                    <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
+                    (<%= pl_pct >= 0 ? '+' : '' %><%= pl_pct.round(1) %>%)
+                </span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">Roster</span>
+                <span class="value"><%= @active_entries.size %>/<%= @portfolio.roster_slots %></span>
+            </div>
+            <div class="fantasy-sub-stat">
+                <span class="label">Teams</span>
+                <span class="value"><%= @portfolio.teams_owned %></span>
+            </div>
+        </div>
+
+        <%# Chart %>
+        <% if @snapshots.size >= 2 %>
+            <div class="table-header"><h3>Portfolio Value</h3></div>
+            <div class="card card-flush fantasy-chart-card">
+                <%= custom_chart({
+                    tooltip: { trigger: "axis" },
+                    grid: { left: 10, right: 20, top: 20, bottom: 10, containLabel: true },
+                    backgroundColor: "transparent",
+                    xAxis: {
+                        type: "category",
+                        data: @snapshots.map { |s| "R#{s.race.round}" },
+                        axisLabel: { color: "#666" },
+                        axisLine: { lineStyle: { color: "#333" } }
+                    },
+                    yAxis: {
+                        type: "value",
+                        axisLabel: { color: "#666" },
+                        splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
+                    },
+                    series: [
+                        {
+                            name: "Portfolio Value",
+                            type: "line",
+                            data: @snapshots.map { |s| s.value.round(0) },
+                            smooth: true,
+                            lineStyle: { color: "#e10600", width: 3 },
+                            itemStyle: { color: "#e10600" },
+                            areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
+                        }
+                    ]
+                }, style: "width:100%; height:280px;") %>
+            </div>
+        <% end %>
+
+        <%# Roster %>
+        <div class="table-header">
+            <h3>Roster</h3>
+            <span class="table-header-sub"><%= @active_entries.size %> of <%= @portfolio.roster_slots %> seats</span>
+        </div>
+        <% if @active_entries.any? %>
+            <div class="fantasy-roster-grid">
+                <% @active_entries.each do |entry| %>
+                    <% constructor = @constructors_by_driver[entry.driver.id] %>
+                    <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                    <div class="card fantasy-driver-card" style="--constructor-color: <%= color %>">
+                        <div class="fantasy-driver-header">
+                            <div class="fantasy-driver-info">
+                                <% if entry.driver.country.present? %>
+                                    <img src="https://flagsapi.com/<%= entry.driver.country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
+                                <% end %>
+                                <div>
+                                    <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
+                                    <%= constructor_logo_or_name(constructor, size: "xs") %>
+                                </div>
+                            </div>
+                            <% gl = entry.gain_loss %>
+                            <span class="elo-pill <%= gl >= 0 ? 'gain' : 'loss' %>">
+                                <%= gl >= 0 ? '+' : '' %><%= gl.round(0) %>
+                            </span>
+                        </div>
+                        <div class="fantasy-driver-stats">
+                            <div class="fantasy-driver-stat">
+                                <span class="label">Bought</span>
+                                <span class="value"><%= entry.bought_at_elo.round(0) %></span>
+                            </div>
+                            <div class="fantasy-driver-stat">
+                                <span class="label">Current</span>
+                                <span class="value"><%= entry.current_value.round(0) %></span>
+                            </div>
+                            <div class="fantasy-driver-stat">
+                                <span class="label">Return</span>
+                                <span class="value <%= gl >= 0 ? 'text-green' : 'text-red' %>"><%= entry.gain_loss_percent %>%</span>
+                            </div>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+        <% else %>
+            <div class="card empty-state">
+                <p>No drivers on roster yet.</p>
+            </div>
+        <% end %>
+
+        <%# Roster Achievements %>
+        <% earned = @achievements.to_a %>
+        <% if earned.any? %>
+            <div class="table-header">
+                <h3>Achievements</h3>
+                <span class="table-header-sub"><%= earned.size %> earned</span>
+            </div>
+            <div class="fantasy-achievements-grid">
+                <% earned.each do |a| %>
+                    <% defn = FantasyAchievement::DEFINITIONS[a.key.to_sym] %>
+                    <% next unless defn %>
+                    <div class="fantasy-achievement-card earned tier-<%= defn[:tier] %>">
+                        <div class="fantasy-achievement-icon"><i class="fa-solid <%= defn[:icon] %>"></i></div>
+                        <div class="fantasy-achievement-info">
+                            <strong><%= defn[:name] %></strong>
+                            <span><%= defn[:description] %></span>
+                        </div>
+                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+    <% end %>
+</div>

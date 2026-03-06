@@ -1,4 +1,9 @@
-<div class="homepage-container">
+<div class="homepage-container"
+     data-controller="stock-cart"
+     data-stock-cart-cash-value="<%= @portfolio.available_cash %>"
+     data-stock-cart-max-positions-value="<%= FantasyStockPortfolio::MAX_POSITIONS %>"
+     data-stock-cart-used-positions-value="<%= @portfolio.position_count %>">
+
     <div class="fantasy-dashboard-header">
         <div class="fantasy-dashboard-title">
             <h2>Stock Market</h2>
@@ -26,139 +31,198 @@
     <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-stock-market-explainer">
         <div class="fantasy-info-banner-content">
             <i class="fa-solid fa-circle-info"></i>
-            <p>Go <strong>long</strong> if you think a driver's Elo will rise, or <strong>short</strong> to bet on a decline. Use +/&minus; to set quantity. Long holders earn dividends from race finishes.</p>
+            <p>Go <strong>long</strong> if you think a driver's Elo will rise, or <strong>short</strong> to bet on a decline. Use +/&minus; to set quantity, then add to your cart. Review your selections and execute all trades at once.</p>
         </div>
         <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
 
-    <div class="card card-flush">
-        <div class="table-scroll-wrapper">
-            <table class="fantasy-market-table">
-                <thead>
-                    <tr>
-                        <th>Driver</th>
-                        <th class="d-none d-md-table-cell">Form</th>
-                        <th class="text-end">Price</th>
-                        <th class="text-end d-none d-md-table-cell">Your Position</th>
-                        <% if @can_trade %>
-                            <th class="text-center" style="width:160px">Trade</th>
-                        <% end %>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% @drivers.each do |driver| %>
-                        <% price = @portfolio.share_price(driver) %>
-                        <% constructor = @constructors_by_driver[driver.id] %>
-                        <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
-                        <% trends = @elo_trends[driver.id] || [] %>
-                        <% holdings = @holdings_by_driver[driver.id] || [] %>
-                        <% long_holding = holdings.find { |h| h.direction == "long" } %>
-                        <% short_holding = holdings.find { |h| h.direction == "short" } %>
-                        <tr style="border-left: 3px solid <%= color %>">
-                            <td>
-                                <div class="fantasy-market-driver-cell">
-                                    <div class="fantasy-market-driver-info">
-                                        <span class="fantasy-market-driver-name">
-                                            <% if driver.country.present? %>
-                                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                            <% end %>
-                                            <%= link_to driver.fullname, driver_path(driver) %>
-                                        </span>
-                                        <span class="fantasy-market-team-name"><%= constructor&.name %></span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="d-none d-md-table-cell">
-                                <% if trends.any? %>
-                                    <div class="fantasy-elo-trend">
-                                        <div class="fantasy-elo-trend-dots">
-                                            <% trends.reverse.each do |diff| %>
-                                                <span class="fantasy-elo-dot <%= diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat') %>" title="<%= diff > 0 ? '+' : '' %><%= diff %>">
-                                                    <i class="fa-solid fa-caret-<%= diff >= 0 ? 'up' : 'down' %>"></i>
+    <div class="fantasy-market-layout">
+        <div class="fantasy-market-main">
+            <div class="card card-flush">
+                <div class="table-scroll-wrapper">
+                    <table class="fantasy-market-table">
+                        <thead>
+                            <tr>
+                                <th>Driver</th>
+                                <th class="d-none d-md-table-cell">Form</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end d-none d-md-table-cell">Your Position</th>
+                                <% if @can_trade %>
+                                    <th class="text-center" style="width:180px">Trade</th>
+                                <% end %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @drivers.each do |driver| %>
+                                <% price = @portfolio.share_price(driver) %>
+                                <% constructor = @constructors_by_driver[driver.id] %>
+                                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                <% trends = @elo_trends[driver.id] || [] %>
+                                <% holdings = @holdings_by_driver[driver.id] || [] %>
+                                <% long_holding = holdings.find { |h| h.direction == "long" } %>
+                                <% short_holding = holdings.find { |h| h.direction == "short" } %>
+                                <tr style="border-left: 3px solid <%= color %>"
+                                    data-stock-cart-target="card"
+                                    data-driver-id="<%= driver.id %>"
+                                    data-driver-name="<%= driver.fullname %>"
+                                    data-driver-price="<%= price %>">
+                                    <td>
+                                        <div class="fantasy-market-driver-cell">
+                                            <div class="fantasy-market-driver-info">
+                                                <span class="fantasy-market-driver-name">
+                                                    <% if driver.country.present? %>
+                                                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
+                                                    <% end %>
+                                                    <%= link_to driver.fullname, driver_path(driver) %>
                                                 </span>
-                                            <% end %>
-                                        </div>
-                                        <% net = trends.sum %>
-                                        <span class="fantasy-elo-trend-net <%= net > 0 ? 'up' : (net < 0 ? 'down' : 'flat') %>">
-                                            <%= net > 0 ? '+' : '' %><%= net %>
-                                        </span>
-                                    </div>
-                                <% else %>
-                                    <span class="text-tertiary" style="font-size:11px">Rookie</span>
-                                <% end %>
-                            </td>
-                            <td class="text-end">
-                                <span class="fantasy-market-price-cell"><%= price.round(1) %></span>
-                            </td>
-                            <td class="text-end d-none d-md-table-cell">
-                                <% if long_holding %>
-                                    <span class="stock-direction-badge stock-long">
-                                        <i class="fa-solid fa-arrow-trend-up"></i> <%= long_holding.quantity %>x
-                                    </span>
-                                <% elsif short_holding %>
-                                    <span class="stock-direction-badge stock-short">
-                                        <i class="fa-solid fa-arrow-trend-down"></i> <%= short_holding.quantity %>x
-                                    </span>
-                                <% else %>
-                                    <span class="text-tertiary" style="font-size:11px">&mdash;</span>
-                                <% end %>
-                            </td>
-                            <% if @can_trade %>
-                                <td class="text-center">
-                                    <% can_afford = @portfolio.available_cash >= price %>
-                                    <% max_qty = can_afford ? (@portfolio.available_cash / price).floor : 0 %>
-                                    <% can_open_new = !@portfolio.positions_full? || long_holding || short_holding %>
-                                    <% if can_open_new && can_afford %>
-                                        <% can_long = !short_holding %>
-                                        <% can_short = !long_holding %>
-                                        <div class="stock-trade-actions"
-                                             data-controller="stock-qty"
-                                             data-stock-qty-price-value="<%= price %>"
-                                             data-stock-qty-max-value="<%= max_qty %>"
-                                             data-stock-qty-can-long-value="<%= can_long %>"
-                                             data-stock-qty-can-short-value="<%= can_short %>">
-                                            <div class="stock-qty-stepper">
-                                                <button type="button" class="stock-qty-btn"
-                                                        data-stock-qty-target="minus"
-                                                        data-action="click->stock-qty#decrement">&minus;</button>
-                                                <input type="number" min="1" max="<%= max_qty %>" value="1"
-                                                       class="stock-qty-input"
-                                                       data-stock-qty-target="input" readonly>
-                                                <button type="button" class="stock-qty-btn"
-                                                        data-stock-qty-target="plus"
-                                                        data-action="click->stock-qty#increment">+</button>
+                                                <span class="fantasy-market-team-name"><%= constructor&.name %></span>
                                             </div>
-                                            <span class="stock-cost-preview" data-stock-qty-target="cost">= <%= price.round(1) %></span>
-                                            <%= form_with url: buy_fantasy_stock_portfolio_path(@portfolio), method: :post, local: true, style: "display:inline" do %>
-                                                <%= hidden_field_tag :driver_id, driver.id %>
-                                                <%= hidden_field_tag :quantity, 1 %>
-                                                <button type="submit" class="stock-trade-btn stock-trade-buy" title="Buy long"
-                                                        data-stock-qty-target="buyBtn">
-                                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                                </button>
-                                            <% end %>
-                                            <%= form_with url: short_open_fantasy_stock_portfolio_path(@portfolio), method: :post, local: true, style: "display:inline" do %>
-                                                <%= hidden_field_tag :driver_id, driver.id %>
-                                                <%= hidden_field_tag :quantity, 1 %>
-                                                <button type="submit" class="stock-trade-btn stock-trade-short" title="Open short"
-                                                        data-stock-qty-target="shortBtn">
-                                                    <i class="fa-solid fa-arrow-trend-down"></i>
-                                                </button>
-                                            <% end %>
                                         </div>
-                                    <% elsif !can_afford %>
-                                        <span class="fantasy-cart-reason">Insufficient funds</span>
-                                    <% else %>
-                                        <span class="fantasy-cart-reason">Max positions</span>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <% if trends.any? %>
+                                            <div class="fantasy-elo-trend">
+                                                <div class="fantasy-elo-trend-dots">
+                                                    <% trends.reverse.each do |diff| %>
+                                                        <span class="fantasy-elo-dot <%= diff > 0 ? 'up' : (diff < 0 ? 'down' : 'flat') %>" title="<%= diff > 0 ? '+' : '' %><%= diff %>">
+                                                            <i class="fa-solid fa-caret-<%= diff >= 0 ? 'up' : 'down' %>"></i>
+                                                        </span>
+                                                    <% end %>
+                                                </div>
+                                                <% net = trends.sum %>
+                                                <span class="fantasy-elo-trend-net <%= net > 0 ? 'up' : (net < 0 ? 'down' : 'flat') %>">
+                                                    <%= net > 0 ? '+' : '' %><%= net %>
+                                                </span>
+                                            </div>
+                                        <% else %>
+                                            <span class="text-tertiary" style="font-size:11px">Rookie</span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="fantasy-market-price-cell"><%= price.round(1) %></span>
+                                    </td>
+                                    <td class="text-end d-none d-md-table-cell">
+                                        <% if long_holding %>
+                                            <span class="stock-direction-badge stock-long">
+                                                <i class="fa-solid fa-arrow-trend-up"></i> <%= long_holding.quantity %>x
+                                            </span>
+                                        <% elsif short_holding %>
+                                            <span class="stock-direction-badge stock-short">
+                                                <i class="fa-solid fa-arrow-trend-down"></i> <%= short_holding.quantity %>x
+                                            </span>
+                                        <% else %>
+                                            <span class="text-tertiary" style="font-size:11px">&mdash;</span>
+                                        <% end %>
+                                    </td>
+                                    <% if @can_trade %>
+                                        <td class="text-center">
+                                            <% can_afford = @portfolio.available_cash >= price %>
+                                            <% max_qty = can_afford ? (@portfolio.available_cash / price).floor : 0 %>
+                                            <% can_open_new = !@portfolio.positions_full? || long_holding || short_holding %>
+                                            <% if can_open_new && can_afford %>
+                                                <% can_long = !short_holding %>
+                                                <% can_short = !long_holding %>
+                                                <div class="stock-trade-actions"
+                                                     data-controller="stock-qty"
+                                                     data-stock-qty-price-value="<%= price %>"
+                                                     data-stock-qty-max-value="<%= max_qty %>"
+                                                     data-stock-qty-can-long-value="<%= can_long %>"
+                                                     data-stock-qty-can-short-value="<%= can_short %>">
+                                                    <div class="stock-qty-stepper">
+                                                        <button type="button" class="stock-qty-btn"
+                                                                data-stock-qty-target="minus"
+                                                                data-action="click->stock-qty#decrement">&minus;</button>
+                                                        <input type="number" min="1" max="<%= max_qty %>" value="1"
+                                                               class="stock-qty-input"
+                                                               data-stock-qty-target="input" readonly>
+                                                        <button type="button" class="stock-qty-btn"
+                                                                data-stock-qty-target="plus"
+                                                                data-action="click->stock-qty#increment">+</button>
+                                                    </div>
+                                                    <span class="stock-cost-preview" data-stock-qty-target="cost">= <%= price.round(1) %></span>
+                                                    <% if can_long %>
+                                                        <button type="button" class="stock-trade-btn stock-trade-buy" title="Add long to cart"
+                                                                data-stock-qty-target="buyBtn"
+                                                                data-action="click->stock-cart#addLong">
+                                                            <i class="fa-solid fa-arrow-trend-up"></i>
+                                                        </button>
+                                                    <% end %>
+                                                    <% if can_short %>
+                                                        <button type="button" class="stock-trade-btn stock-trade-short" title="Add short to cart"
+                                                                data-stock-qty-target="shortBtn"
+                                                                data-action="click->stock-cart#addShort">
+                                                            <i class="fa-solid fa-arrow-trend-down"></i>
+                                                        </button>
+                                                    <% end %>
+                                                </div>
+                                            <% elsif !can_afford %>
+                                                <span class="fantasy-cart-reason">Insufficient funds</span>
+                                            <% else %>
+                                                <span class="fantasy-cart-reason">Max positions</span>
+                                            <% end %>
+                                        </td>
                                     <% end %>
-                                </td>
+                                </tr>
                             <% end %>
-                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <%# Sticky Cart Sidebar %>
+        <div class="fantasy-market-sidebar">
+            <div class="fantasy-cart-panel">
+                <div class="fantasy-cart-header">
+                    <div class="fantasy-cart-header-left">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <strong>Cart</strong>
+                        <span class="fantasy-cart-badge" data-stock-cart-target="cartCount">0</span>
+                    </div>
+                    <button class="fantasy-cart-clear" data-action="click->stock-cart#clear">Clear</button>
+                </div>
+
+                <%# Empty state %>
+                <div class="fantasy-cart-empty" data-stock-cart-target="cartEmpty">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <span>Add positions to your cart</span>
+                    <span class="fantasy-cart-empty-meta">
+                        <%= FantasyStockPortfolio::MAX_POSITIONS - @portfolio.position_count %> position<%= FantasyStockPortfolio::MAX_POSITIONS - @portfolio.position_count == 1 ? '' : 's' %> available
+                    </span>
+                </div>
+
+                <%# Filled state %>
+                <div class="fantasy-cart-filled" data-stock-cart-target="cartItems" style="display:none">
+                    <div data-stock-cart-target="cartList"></div>
+                    <div class="fantasy-cart-summary">
+                        <div class="fantasy-cart-row">
+                            <span>Total</span>
+                            <span class="fantasy-cart-row-value" data-stock-cart-target="cartTotal">0</span>
+                        </div>
+                        <div class="fantasy-cart-row fantasy-cart-row-remaining">
+                            <span>Remaining</span>
+                            <span class="fantasy-cart-row-value" data-stock-cart-target="cartRemaining"><%= @portfolio.available_cash.round(0) %></span>
+                        </div>
+                    </div>
+                    <% if @can_trade %>
+                        <%= form_with url: buy_batch_fantasy_stock_portfolio_path(@portfolio), method: :post, local: true do %>
+                            <button type="submit" class="fantasy-btn fantasy-btn-primary fantasy-cart-confirm"
+                                    data-stock-cart-target="confirmBtn"
+                                    data-action="click->stock-cart#confirm"
+                                    disabled>
+                                <i class="fa-solid fa-check"></i> Execute Trades
+                            </button>
+                        <% end %>
                     <% end %>
-                </tbody>
-            </table>
+                </div>
+
+                <div class="fantasy-cart-cash-display">
+                    <span>Cash Available</span>
+                    <span class="fantasy-cart-cash-value"><%= number_with_delimiter(@portfolio.available_cash.round(0)) %></span>
+                </div>
+            </div>
         </div>
     </div>
 

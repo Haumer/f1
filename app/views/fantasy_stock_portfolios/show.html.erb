@@ -42,6 +42,16 @@
                     <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(1)) %>
                 </span>
             </div>
+            <% long_count = @holdings.count(&:long?) %>
+            <% short_count = @holdings.size - long_count %>
+            <div class="fantasy-detail">
+                <span class="detail-label">Long</span>
+                <span class="detail-value text-green"><%= long_count %></span>
+            </div>
+            <div class="fantasy-detail">
+                <span class="detail-label">Short</span>
+                <span class="detail-value text-red"><%= short_count %></span>
+            </div>
             <div class="fantasy-detail">
                 <span class="detail-label">Positions</span>
                 <span class="detail-value"><%= @portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></span>

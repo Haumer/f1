@@ -171,6 +171,9 @@ class FantasyPortfoliosController < ApplicationController
     @season = Season.sorted_by_year.first
     @entries = Fantasy::Leaderboard.new(season: @season).call
     @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, @entries.map { |e| e[:portfolio].id })
+    user_ids = @entries.map { |e| e[:portfolio].user_id }
+    @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
+                          .includes(:constructor).index_by(&:user_id)
     @tab = "roster"
   end
 
