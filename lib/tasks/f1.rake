@@ -68,6 +68,70 @@ namespace :f1 do
     puts "Done. #{count} badges computed for #{DriverBadge.select(:driver_id).distinct.count} drivers."
   end
 
+  desc "Seed 2026 pre-season driver lineup"
+  task seed_2026_lineup: :environment do
+    season = Season.find_by(year: "2026")
+    unless season
+      puts "Season 2026 not found. Run f1:sync YEAR=2026 first."
+      next
+    end
+
+    lineup = [
+      { driver_ref: "antonelli", constructor_ref: "mercedes" },
+      { driver_ref: "bearman", constructor_ref: "haas" },
+      { driver_ref: "lawson", constructor_ref: "rb" },
+      { driver_ref: "bortoleto", constructor_ref: "audi" },
+      { driver_ref: "hadjar", constructor_ref: "red_bull" },
+      { driver_ref: "colapinto", constructor_ref: "alpine" },
+      { driver_ref: "hamilton", constructor_ref: "ferrari" },
+      { driver_ref: "alonso", constructor_ref: "aston_martin" },
+      { driver_ref: "gasly", constructor_ref: "alpine" },
+      { driver_ref: "hulkenberg", constructor_ref: "audi" },
+      { driver_ref: "perez", constructor_ref: "cadillac" },
+      { driver_ref: "bottas", constructor_ref: "cadillac" },
+      { driver_ref: "max_verstappen", constructor_ref: "red_bull" },
+      { driver_ref: "sainz", constructor_ref: "williams" },
+      { driver_ref: "ocon", constructor_ref: "haas" },
+      { driver_ref: "stroll", constructor_ref: "aston_martin" },
+      { driver_ref: "leclerc", constructor_ref: "ferrari" },
+      { driver_ref: "norris", constructor_ref: "mclaren" },
+      { driver_ref: "russell", constructor_ref: "mercedes" },
+      { driver_ref: "albon", constructor_ref: "williams" },
+      { driver_ref: "piastri", constructor_ref: "mclaren" },
+      { driver_ref: "lindblad", constructor_ref: "rb" },
+    ]
+
+    created = 0
+    lineup.each do |entry|
+      driver = Driver.find_by(driver_ref: entry[:driver_ref])
+      constructor = Constructor.find_by(constructor_ref: entry[:constructor_ref])
+
+      unless driver
+        puts "  SKIP: driver '#{entry[:driver_ref]}' not found"
+        next
+      end
+      unless constructor
+        puts "  SKIP: constructor '#{entry[:constructor_ref]}' not found"
+        next
+      end
+
+      sd = SeasonDriver.find_or_create_by(season: season, driver: driver, constructor: constructor, standin: false)
+      if sd.previously_new_record?
+        created += 1
+        puts "  Created: #{driver.fullname} -> #{constructor.name}"
+      end
+    end
+
+    # Mark these drivers as active
+    driver_ids = lineup.filter_map { |e| Driver.find_by(driver_ref: e[:driver_ref])&.id }
+    Driver.where(id: driver_ids).update_all(active: true)
+
+    # Mark Cadillac as active constructor
+    Constructor.where(constructor_ref: "cadillac").update_all(active: true)
+
+    puts "Done. #{created} new SeasonDriver records created. #{driver_ids.size} drivers marked active."
+  end
+
   desc "Settle stock market for a race (pays dividends, charges borrow fees, snapshots)"
   task :settle_stock_market, [:race_id] => :environment do |_t, args|
     unless Setting.fantasy_stock_market?
