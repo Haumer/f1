@@ -421,6 +421,11 @@ th[data-sort] {
         font-family: $headers-font;
         font-weight: $weight-bold;
     }
+    .table-header-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 }
 
 .table-header-link {
@@ -456,6 +461,9 @@ th[data-sort] {
         color: $green;
     }
     .table-header:hover & { opacity: 0.6; }
+    .table-header-title & {
+        font-size: inherit;
+    }
 }
 
 // Subtle outline link button

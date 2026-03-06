@@ -5,12 +5,14 @@
         <% end %>
     </div>
     <button class="menu-toggle" data-action="click->navbar#toggleMenu" aria-label="Toggle navigation menu" aria-expanded="false" data-navbar-target="toggle">
-        <i class="fa-solid fa-bars"></i>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
     </button>
     <div class="links" data-navbar-target="links" role="menubar">
-        <%= link_to "Standings", root_path, class: ("active" if current_page?(root_path)), role: "menuitem" %>
+        <%= link_to "Standings", root_path, class: "mobile-nav-item #{"active" if current_page?(root_path)}", role: "menuitem" %>
 
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
             <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/drivers') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Drivers <i class="fa-solid fa-chevron-down"></i>
             </a>
@@ -21,7 +23,7 @@
             </div>
         </div>
 
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
             <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/races') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Races <i class="fa-solid fa-chevron-down"></i>
             </a>
@@ -31,7 +33,7 @@
             </div>
         </div>
 
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
             <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/constructors') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Constructors <i class="fa-solid fa-chevron-down"></i>
             </a>
@@ -41,7 +43,7 @@
             </div>
         </div>
 
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
             <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/seasons') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Seasons <i class="fa-solid fa-chevron-down"></i>
             </a>
@@ -53,7 +55,7 @@
             </div>
         </div>
 
-        <div class="nav-dropdown" data-controller="dropdown" role="none">
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
             <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/stats') || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Stats <i class="fa-solid fa-chevron-down"></i>
             </a>
@@ -76,28 +78,44 @@
             </div>
         </div>
 
-        <%= link_to "Elo", elo_path, class: ("active" if current_page?(elo_path)), role: "menuitem" %>
+        <%= link_to "Elo", elo_path, class: "mobile-nav-item #{"active" if current_page?(elo_path)}", role: "menuitem" %>
         <% if current_user %>
             <% fantasy_path = current_user.fantasy_portfolio_for(current_season)&.then { |p| fantasy_portfolio_path(p) } || new_fantasy_portfolio_path %>
-            <%= link_to "Fantasy", fantasy_path, class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+            <%= link_to "Fantasy", fantasy_path, class: "mobile-nav-item #{"active" if request.path.start_with?('/fantasy')}", role: "menuitem" %>
             <% if Setting.fantasy_stock_market? %>
                 <% stocks_path = current_user.fantasy_stock_portfolio_for(current_season)&.then { |p| fantasy_stock_portfolio_path(p) } || new_fantasy_stock_portfolio_path %>
-                <%= link_to "Stocks", stocks_path, class: ("active" if request.path.start_with?('/stocks')), role: "menuitem" %>
+                <%= link_to "Stocks", stocks_path, class: "mobile-nav-item #{"active" if request.path.start_with?('/stocks')}", role: "menuitem" %>
             <% end %>
         <% end %>
         <% if current_user&.admin? %>
-            <%= link_to admin_root_path, class: "admin-link", "aria-label": "Admin panel" do %>
+            <%= link_to admin_root_path, class: "admin-link mobile-nav-item", "aria-label": "Admin panel" do %>
                 <i class="fa-solid fa-lock"></i>
             <% end %>
         <% end %>
+
+        <%# Desktop auth link (hidden on mobile) %>
         <% if current_user %>
-            <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link", role: "menuitem" do %>
+            <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link nav-auth-desktop", role: "menuitem" do %>
                 <i class="fa-solid fa-right-from-bracket"></i> <span class="nav-auth-label">Sign Out</span>
             <% end %>
         <% else %>
-            <%= link_to new_user_session_path, class: "nav-auth-link", role: "menuitem" do %>
+            <%= link_to new_user_session_path, class: "nav-auth-link nav-auth-desktop", role: "menuitem" do %>
                 <i class="fa-solid fa-right-to-bracket"></i> <span class="nav-auth-label">Sign In</span>
             <% end %>
         <% end %>
+
+        <%# Mobile auth footer (hidden on desktop) %>
+        <div class="mobile-nav-footer mobile-nav-item">
+            <% if current_user %>
+                <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link", role: "menuitem" do %>
+                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                <% end %>
+            <% else %>
+                <%= link_to new_user_session_path, class: "nav-auth-link", role: "menuitem" do %>
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                <% end %>
+            <% end %>
+        </div>
     </div>
+    <div class="mobile-overlay" data-navbar-target="overlay" data-action="click->navbar#closeOverlay"></div>
 </nav>

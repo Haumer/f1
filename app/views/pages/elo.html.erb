@@ -55,8 +55,10 @@
     </div>
 
     <div class="table-header" id="tiers">
-        <h3>Elo Tiers</h3>
-        <a href="#tiers" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+        <div class="table-header-title">
+            <h3>Elo Tiers</h3>
+            <a href="#tiers" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+        </div>
     </div>
 
     <div class="elo-tiers-grid">
@@ -142,27 +144,332 @@
         </div>
     </div>
 
-    <div class="card about-section" style="margin-top: 24px;">
-        <h4>Key Properties</h4>
-        <ul>
-            <li><strong>Zero-sum per matchup</strong> — every point gained by one driver is lost by another</li>
-            <li><strong>Starting rating: <%= v2 ? EloRatingV2::STARTING_ELO.to_i : 1000 %></strong> — all drivers begin at the same baseline</li>
-            <% if v2 %>
-                <li><strong>Base K-factor: <%= EloRatingV2::BASE_K %></strong> — scaled by season length and grid size (√(n−1) normalization)</li>
-                <li><strong>Season regression: <%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong> — ratings pull toward starting Elo between seasons</li>
-            <% else %>
-                <li><strong>K-factor: 2</strong> — per head-to-head matchup within a race</li>
+    <div class="table-header" id="example" style="margin-top: 24px;">
+        <div class="table-header-title">
+            <h3>Worked Example</h3>
+            <a href="#example" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+        </div>
+    </div>
+
+    <div class="card about-section elo-worked-example">
+        <p class="elo-example-intro">
+            Let's walk through a simplified 4-driver race to see exactly how the math works.
+        </p>
+
+        <%
+            # Worked example data
+            ex_drivers = [
+                { name: "Verstappen", elo: 2650, pos: 1, color: "#3671C6" },
+                { name: "Hamilton", elo: 2520, pos: 2, color: "#27F4D2" },
+                { name: "Norris", elo: 2480, pos: 3, color: "#FF8000" },
+                { name: "Alonso", elo: 2200, pos: 4, color: "#229971" },
+            ]
+            ex_k = EloRatingV2::BASE_K
+            ex_scale = EloRatingV2::SCALE
+            ex_n = ex_drivers.size
+            ex_season_races = 24
+            ex_k_pair = ex_k * (EloRatingV2::REFERENCE_RACES / ex_season_races.to_f) / Math.sqrt(ex_n - 1)
+        %>
+
+        <h4>Step 1: Set up the race</h4>
+        <div class="elo-step-grid">
+            <% ex_drivers.each do |d| %>
+                <div class="elo-step-driver">
+                    <span class="elo-step-pip" style="background: <%= d[:color] %>"></span>
+                    <span class="elo-step-name">P<%= d[:pos] %> — <%= d[:name] %></span>
+                    <span class="elo-step-rating"><%= d[:elo] %></span>
+                </div>
             <% end %>
-            <li><strong>All positions matter</strong> — finishing 5th vs 6th affects your rating, not just podiums</li>
-            <li><strong>Field strength</strong> — beating a <%= thresholds[1] %>-rated driver gains more than beating a <%= thresholds[3] %>-rated driver</li>
-            <li><strong>Peak Elo</strong> — a driver's highest-ever rating, representing their best sustained form</li>
+        </div>
+
+        <h4>Step 2: Calculate K per pair</h4>
+        <p>
+            The K-factor for each head-to-head matchup is adjusted for season length and grid size:
+        </p>
+        <div class="elo-formula-block">
+            <div class="elo-formula">K<sub>pair</sub> = K<sub>base</sub> × (Reference Races ÷ Season Races) ÷ √(n − 1)</div>
+            <div class="elo-formula-values">= <%= ex_k %> × (<%= EloRatingV2::REFERENCE_RACES.to_i %> ÷ <%= ex_season_races %>) ÷ √(<%= ex_n %> − 1)</div>
+            <div class="elo-formula-result">= <strong><%= ex_k_pair.round(2) %></strong> per matchup</div>
+        </div>
+        <p class="elo-note">
+            Fewer season races → higher K (each race matters more). Larger grids → lower K per pair (more matchups to sum over).
+        </p>
+
+        <h4>Step 3: Head-to-head matchups</h4>
+        <p>
+            Every pair of drivers is compared. The higher finisher "wins" the matchup. Here are all
+            <strong><%= ex_n * (ex_n - 1) / 2 %></strong> pairings:
+        </p>
+
+        <%
+            # Compute all pairings
+            ex_adjustments = Hash.new(0.0)
+            ex_pairings = []
+            ex_drivers.combination(2) do |a, b|
+                ea = 1.0 / (1 + 10**((b[:elo] - a[:elo]) / ex_scale))
+                eb = 1.0 - ea
+                adj_a = ex_k_pair * (1.0 - ea)
+                adj_b = ex_k_pair * (0.0 - eb)
+                ex_adjustments[a[:name]] += adj_a
+                ex_adjustments[b[:name]] += adj_b
+                ex_pairings << { winner: a, loser: b, expected: ea, adj_w: adj_a, adj_l: adj_b }
+            end
+        %>
+
+        <div class="elo-matchups-table-wrap">
+            <table class="elo-matchups-table">
+                <thead>
+                    <tr>
+                        <th>Matchup</th>
+                        <th class="text-center">Winner</th>
+                        <th class="text-center">Expected</th>
+                        <th class="text-center">Surprise</th>
+                        <th class="text-center">Winner Δ</th>
+                        <th class="text-center">Loser Δ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% ex_pairings.each do |p| %>
+                        <% surprise = (1.0 - p[:expected]) %>
+                        <tr>
+                            <td>
+                                <span class="elo-step-pip" style="background: <%= p[:winner][:color] %>"></span>
+                                <%= p[:winner][:name] %> <span class="text-secondary">vs</span>
+                                <span class="elo-step-pip" style="background: <%= p[:loser][:color] %>"></span>
+                                <%= p[:loser][:name] %>
+                            </td>
+                            <td class="text-center"><%= p[:winner][:name] %></td>
+                            <td class="text-center mono"><%= (p[:expected] * 100).round(1) %>%</td>
+                            <td class="text-center mono"><%= (surprise * 100).round(1) %>%</td>
+                            <td class="text-center"><span class="text-green">+<%= p[:adj_w].round(2) %></span></td>
+                            <td class="text-center"><span class="text-red"><%= p[:adj_l].round(2) %></span></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="elo-note">
+            <strong>Expected</strong> = probability the higher-rated driver wins (based on rating gap).
+            <strong>Surprise</strong> = how unexpected the result was. Beating a much stronger opponent = high surprise = big gain.
+        </p>
+
+        <h4>Step 4: Sum all adjustments</h4>
+        <p>
+            Each driver's total change is the sum of their gains/losses across all matchups:
+        </p>
+
+        <div class="elo-results-grid">
+            <% ex_drivers.each do |d| %>
+                <% adj = ex_adjustments[d[:name]] %>
+                <% new_elo = d[:elo] + adj %>
+                <div class="elo-result-card">
+                    <div class="elo-result-header">
+                        <span class="elo-step-pip" style="background: <%= d[:color] %>"></span>
+                        <span class="elo-result-name"><%= d[:name] %></span>
+                        <span class="elo-result-pos">P<%= d[:pos] %></span>
+                    </div>
+                    <div class="elo-result-body">
+                        <div class="elo-result-row">
+                            <span>Before</span>
+                            <span class="mono"><%= d[:elo] %></span>
+                        </div>
+                        <div class="elo-result-row">
+                            <span>Change</span>
+                            <% if adj >= 0 %>
+                                <span class="text-green mono">+<%= adj.round(1) %></span>
+                            <% else %>
+                                <span class="text-red mono"><%= adj.round(1) %></span>
+                            <% end %>
+                        </div>
+                        <div class="elo-result-row elo-result-total">
+                            <span>After</span>
+                            <span class="mono"><%= new_elo.round(1) %></span>
+                        </div>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+
+        <h4>Step 5: Season-end regression</h4>
+        <p>
+            At the end of each season, every driver's rating regresses <strong><%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong>
+            toward the starting Elo of <%= EloRatingV2::STARTING_ELO.to_i %>. This prevents ratings from inflating forever
+            and gives returning drivers a slight pull toward the mean:
+        </p>
+        <div class="elo-formula-block">
+            <div class="elo-formula">New Elo = Current × <%= (1 - EloRatingV2::REGRESSION_FACTOR).round(2) %> + <%= EloRatingV2::STARTING_ELO.to_i %> × <%= EloRatingV2::REGRESSION_FACTOR %></div>
+            <% sample = ex_drivers.first %>
+            <% regressed = sample[:elo] * (1 - EloRatingV2::REGRESSION_FACTOR) + EloRatingV2::STARTING_ELO * EloRatingV2::REGRESSION_FACTOR %>
+            <div class="elo-formula-values">e.g. <%= sample[:name] %>: <%= sample[:elo] %> × <%= (1 - EloRatingV2::REGRESSION_FACTOR).round(2) %> + <%= EloRatingV2::STARTING_ELO.to_i %> × <%= EloRatingV2::REGRESSION_FACTOR %> = <strong><%= regressed.round(1) %></strong> (<%= (sample[:elo] - regressed).round(1) %> toward mean)</div>
+        </div>
+
+        <h4>Key takeaways</h4>
+        <ul class="elo-takeaways">
+            <li><strong>Zero-sum per matchup</strong> — the winner's gain exactly equals the loser's loss</li>
+            <li><strong>Upsets pay more</strong> — a low-rated driver beating a high-rated one gains big; the expected winner gains little</li>
+            <li><strong>Every position matters</strong> — even P10 vs P11 creates a rating adjustment</li>
+            <li><strong>Scale with the grid</strong> — with 20 drivers, each race has 190 matchups, producing meaningful Elo swings</li>
         </ul>
+    </div>
+
+    <div class="table-header" id="upset" style="margin-top: 24px;">
+        <div class="table-header-title">
+            <h3>When an Underdog Wins</h3>
+            <a href="#upset" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+        </div>
+    </div>
+
+    <div class="card about-section elo-worked-example">
+        <p class="elo-example-intro">
+            Now imagine the same four drivers, but this time Alonso — rated 450 points below Verstappen — wins the race.
+            Verstappen, the highest-rated driver, finishes last. This is where Elo gets interesting.
+        </p>
+
+        <%
+            # Upset example: Alonso wins, Norris P2, Hamilton P3, Verstappen P4
+            upset_drivers = [
+                { name: "Alonso", elo: 2200, pos: 1, color: "#229971" },
+                { name: "Norris", elo: 2480, pos: 2, color: "#FF8000" },
+                { name: "Hamilton", elo: 2520, pos: 3, color: "#27F4D2" },
+                { name: "Verstappen", elo: 2650, pos: 4, color: "#3671C6" },
+            ]
+            upset_k = EloRatingV2::BASE_K
+            upset_scale = EloRatingV2::SCALE
+            upset_n = upset_drivers.size
+            upset_k_pair = upset_k * (EloRatingV2::REFERENCE_RACES / ex_season_races.to_f) / Math.sqrt(upset_n - 1)
+
+            upset_adjustments = Hash.new(0.0)
+            upset_pairings = []
+            upset_drivers.combination(2) do |a, b|
+                ea = 1.0 / (1 + 10**((b[:elo] - a[:elo]) / upset_scale))
+                eb = 1.0 - ea
+                adj_a = upset_k_pair * (1.0 - ea)
+                adj_b = upset_k_pair * (0.0 - eb)
+                upset_adjustments[a[:name]] += adj_a
+                upset_adjustments[b[:name]] += adj_b
+                upset_pairings << { winner: a, loser: b, expected: ea, adj_w: adj_a, adj_l: adj_b }
+            end
+        %>
+
+        <div class="elo-step-grid">
+            <% upset_drivers.each do |d| %>
+                <div class="elo-step-driver">
+                    <span class="elo-step-pip" style="background: <%= d[:color] %>"></span>
+                    <span class="elo-step-name">P<%= d[:pos] %> — <%= d[:name] %></span>
+                    <span class="elo-step-rating"><%= d[:elo] %></span>
+                </div>
+            <% end %>
+        </div>
+
+        <p>
+            Alonso's expected win probability against Verstappen is just
+            <strong><%= ((1.0 / (1 + 10**((2650 - 2200) / upset_scale))) * 100).round(1) %>%</strong>.
+            By winning that matchup, the surprise factor is enormous — and the Elo reward reflects it.
+            Meanwhile Verstappen, expected to beat everyone comfortably, loses all three matchups and pays a steep price.
+        </p>
+
+        <div class="elo-matchups-table-wrap">
+            <table class="elo-matchups-table">
+                <thead>
+                    <tr>
+                        <th>Matchup</th>
+                        <th class="text-center">Winner</th>
+                        <th class="text-center">Expected</th>
+                        <th class="text-center">Surprise</th>
+                        <th class="text-center">Winner Δ</th>
+                        <th class="text-center">Loser Δ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% upset_pairings.each do |p| %>
+                        <% surprise = (1.0 - p[:expected]) %>
+                        <% is_big_upset = surprise > 0.6 %>
+                        <tr class="<%= 'elo-highlight-gainer' if is_big_upset %>">
+                            <td>
+                                <span class="elo-step-pip" style="background: <%= p[:winner][:color] %>"></span>
+                                <%= p[:winner][:name] %> <span class="text-secondary">vs</span>
+                                <span class="elo-step-pip" style="background: <%= p[:loser][:color] %>"></span>
+                                <%= p[:loser][:name] %>
+                            </td>
+                            <td class="text-center"><%= p[:winner][:name] %></td>
+                            <td class="text-center mono"><%= (p[:expected] * 100).round(1) %>%</td>
+                            <td class="text-center mono"><%= (surprise * 100).round(1) %>%</td>
+                            <td class="text-center"><span class="text-green">+<%= p[:adj_w].round(2) %></span></td>
+                            <td class="text-center"><span class="text-red"><%= p[:adj_l].round(2) %></span></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+
+        <h4>Compare the outcomes</h4>
+        <p>
+            Notice how the same drivers with the same starting Elos produce dramatically different results
+            depending on who finishes where. Alonso's upset win earns him nearly as much as Verstappen
+            loses — the system heavily rewards beating opponents you're not expected to beat.
+        </p>
+
+        <div class="elo-results-grid">
+            <% upset_drivers.each do |d| %>
+                <% adj = upset_adjustments[d[:name]] %>
+                <% new_elo = d[:elo] + adj %>
+                <%
+                    # Compare with expected result adjustments
+                    expected_adj = ex_adjustments[d[:name]]
+                %>
+                <div class="elo-result-card">
+                    <div class="elo-result-header">
+                        <span class="elo-step-pip" style="background: <%= d[:color] %>"></span>
+                        <span class="elo-result-name"><%= d[:name] %></span>
+                        <span class="elo-result-pos">P<%= d[:pos] %></span>
+                    </div>
+                    <div class="elo-result-body">
+                        <div class="elo-result-row">
+                            <span>Before</span>
+                            <span class="mono"><%= d[:elo] %></span>
+                        </div>
+                        <div class="elo-result-row">
+                            <span>Change</span>
+                            <% if adj >= 0 %>
+                                <span class="text-green mono">+<%= adj.round(1) %></span>
+                            <% else %>
+                                <span class="text-red mono"><%= adj.round(1) %></span>
+                            <% end %>
+                        </div>
+                        <div class="elo-result-row elo-result-total">
+                            <span>After</span>
+                            <span class="mono"><%= new_elo.round(1) %></span>
+                        </div>
+                        <div class="elo-result-row elo-result-compare">
+                            <span>vs expected finish</span>
+                            <% diff = adj - (expected_adj || 0) %>
+                            <% if diff >= 0 %>
+                                <span class="text-green mono">+<%= diff.round(1) %></span>
+                            <% else %>
+                                <span class="text-red mono"><%= diff.round(1) %></span>
+                            <% end %>
+                        </div>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+
+        <p class="elo-note">
+            "vs expected finish" shows the difference compared to the first example, where everyone finished in Elo order.
+            Alonso swings by <strong><%= ((upset_adjustments["Alonso"] || 0) - (ex_adjustments["Alonso"] || 0)).abs.round(1) %></strong> Elo
+            compared to finishing last, while Verstappen's P4 costs him
+            <strong><%= ((ex_adjustments["Verstappen"] || 0) - (upset_adjustments["Verstappen"] || 0)).abs.round(1) %></strong>
+            more than his expected P1 win.
+        </p>
     </div>
 
     <% if @example_race %>
         <div class="table-header" id="in-action">
-            <h3>Elo In Action</h3>
-            <a href="#in-action" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+            <div class="table-header-title">
+                <h3>Elo In Action</h3>
+                <a href="#in-action" class="anchor-copy" data-controller="copy-anchor" data-action="click->copy-anchor#copy" title="Copy link to section"><i class="fa-solid fa-link"></i></a>
+            </div>
         </div>
 
         <div class="elo-race-selector">
