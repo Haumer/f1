@@ -1,0 +1,8 @@
+{
+  "name": "f1-elo",
+  "private": true,
+  "engines": {
+    "node": "22.x",
+    "yarn": "1.22.x"
+  }
+}
