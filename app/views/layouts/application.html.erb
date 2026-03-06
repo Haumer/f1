@@ -1,9 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>F1 Elo</title>
+    <title><%= content_for?(:title) ? "#{yield(:title)} — F1 Elo" : "F1 Elo — Rating Every F1 Driver Since 1950" %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#0a0a0f">
+    <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." %>">
+
+    <%# Favicon %>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" sizes="32x32">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <%# Open Graph %>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="F1 Elo">
+    <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) : "F1 Elo — Rating Every F1 Driver Since 1950" %>">
+    <meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." %>">
+    <meta property="og:image" content="<%= request.base_url %>/og-image.png">
+    <meta property="og:url" content="<%= request.original_url %>">
+
+    <%# Twitter Card %>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= content_for?(:title) ? yield(:title) : "F1 Elo" %>">
+    <meta name="twitter:description" content="<%= content_for?(:description) ? yield(:description) : "Elo ratings for every Formula 1 driver since 1950." %>">
+    <meta name="twitter:image" content="<%= request.base_url %>/og-image.png">
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 

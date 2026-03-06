@@ -1,3 +1,4 @@
+<% content_for(:title) { "#{@user.display_name}'s Fantasy Portfolio" } %>
 <div class="homepage-container">
     <%# Header %>
     <% support = ConstructorSupport.current_for(@user, @season) %>

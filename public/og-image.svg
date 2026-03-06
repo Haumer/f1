@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0e0e16"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e10600"/>
+      <stop offset="100%" stop-color="#ff2d20"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Accent line -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+  <!-- F1 car silhouette -->
+  <g transform="translate(80, 200) scale(3.5)">
+    <path d="M8,22 L12,16 L22,14 L30,10 L42,10 L50,14 L54,16 L54,22 Z" fill="#e10600" opacity="0.15"/>
+    <path d="M28,10 L32,6 L38,6 L42,10 Z" fill="#1a1a24" opacity="0.3"/>
+    <path d="M2,22 L8,22 L10,18 L4,20 Z" fill="#e10600" opacity="0.15"/>
+    <path d="M50,8 L56,8 L56,10 L50,14 Z" fill="#e10600" opacity="0.15"/>
+    <circle cx="16" cy="24" r="5" fill="#222" opacity="0.3"/>
+    <circle cx="46" cy="24" r="5" fill="#222" opacity="0.3"/>
+  </g>
+  <!-- Title -->
+  <text x="600" y="260" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="96" font-weight="800" letter-spacing="-2">
+    <tspan fill="#ffffff">F1</tspan>
+    <tspan fill="#e10600" dx="8">ELO</tspan>
+  </text>
+  <!-- Subtitle -->
+  <text x="600" y="330" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#888" font-weight="400" letter-spacing="4">
+    RATING EVERY F1 DRIVER SINCE 1950
+  </text>
+  <!-- Stats bar -->
+  <g transform="translate(250, 400)">
+    <text x="0" y="0" font-family="system-ui, sans-serif" font-size="48" font-weight="700" fill="#ffffff">870+</text>
+    <text x="0" y="30" font-family="system-ui, sans-serif" font-size="16" fill="#666" letter-spacing="2">DRIVERS</text>
+    <text x="250" y="0" font-family="system-ui, sans-serif" font-size="48" font-weight="700" fill="#ffffff">1100+</text>
+    <text x="250" y="30" font-family="system-ui, sans-serif" font-size="16" fill="#666" letter-spacing="2">RACES</text>
+    <text x="520" y="0" font-family="system-ui, sans-serif" font-size="48" font-weight="700" fill="#ffffff">75</text>
+    <text x="520" y="30" font-family="system-ui, sans-serif" font-size="16" fill="#666" letter-spacing="2">SEASONS</text>
+  </g>
+  <!-- Bottom accent -->
+  <rect x="0" y="626" width="1200" height="4" fill="url(#accent)"/>
+</svg>
