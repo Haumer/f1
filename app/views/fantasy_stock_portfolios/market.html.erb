@@ -12,6 +12,9 @@
             <%= link_to fantasy_stocks_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
                 <i class="fa-solid fa-arrow-left"></i> Stocks
             <% end %>
+            <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-house"></i> Overview
+            <% end %>
         </div>
     </div>
 

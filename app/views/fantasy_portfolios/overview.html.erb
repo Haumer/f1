@@ -35,16 +35,14 @@
             </span>
         </div>
         <div class="fantasy-header-actions">
-            <% if @is_owner %>
-                <% if @portfolio %>
-                    <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
-                        <i class="fa-solid fa-store"></i> Roster Market
-                    <% end %>
+            <% if @portfolio %>
+                <%= link_to fantasy_roster_path(@user.username), class: "fantasy-btn fantasy-btn-primary" do %>
+                    <i class="fa-solid fa-users"></i> Roster
                 <% end %>
-                <% if @stock_portfolio %>
-                    <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
-                        <i class="fa-solid fa-chart-line"></i> Stock Market
-                    <% end %>
+            <% end %>
+            <% if @stock_portfolio %>
+                <%= link_to fantasy_stocks_path(@user.username), class: "fantasy-btn fantasy-btn-primary" do %>
+                    <i class="fa-solid fa-chart-line"></i> Stocks
                 <% end %>
             <% end %>
             <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline" do %>
@@ -199,9 +197,13 @@
                         <%= s_pl >= 0 ? '+' : '' %><%= number_with_delimiter(s_pl.round(0)) %>
                     </span>
                 </div>
-                <% s_invested = @stock_portfolio.portfolio_value - @stock_portfolio.cash %>
+                <% longs = @stock_holdings.select(&:long?) %>
+                <% shorts = @stock_holdings.reject(&:long?) %>
+                <% long_value = longs.sum { |h| h.current_price * h.quantity } %>
+                <% short_value = shorts.sum { |h| h.current_price * h.quantity } %>
                 <div class="fantasy-nav-card-body">
-                    <span class="fantasy-nav-stat"><strong><%= number_with_delimiter(s_invested.round(0)) %></strong> invested</span>
+                    <span class="fantasy-nav-stat"><strong class="text-green"><%= number_with_delimiter(long_value.round(0)) %></strong> long (<%= longs.size %>)</span>
+                    <span class="fantasy-nav-stat"><strong class="text-red"><%= number_with_delimiter(short_value.round(0)) %></strong> short (<%= shorts.size %>)</span>
                     <span class="fantasy-nav-stat"><strong><%= number_with_delimiter(@stock_portfolio.available_cash.round(0)) %></strong> available</span>
                     <span class="fantasy-nav-stat fantasy-nav-stat-total"><strong><%= number_with_delimiter(@stock_portfolio.portfolio_value.round(0)) %></strong> total</span>
                 </div>
@@ -211,7 +213,7 @@
                             <% constructor = @stock_constructors[holding.driver_id] %>
                             <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
                             <span class="fantasy-nav-driver-pill" style="border-left-color: <%= color %>">
-                                <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>" style="font-size:9px"></i>
+                                <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>" style="font-size:9px; color: <%= holding.long? ? '#22c55e' : '#ef4444' %>"></i>
                                 <%= holding.driver.surname %>
                             </span>
                         <% end %>
