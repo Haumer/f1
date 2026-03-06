@@ -62,7 +62,7 @@
                             <i class="fa-solid fa-angles-down"></i> Show all <%= @upcoming_total %> upcoming races
                         <% end %>
                         <span class="upcoming-more-divider">|</span>
-                        <%= link_to "#{@current_season.year} Calendar", calendar_path, class: "upcoming-more-link" %>
+                        <%= link_to "#{@current_season.year} Calendar", calendar_races_path, class: "upcoming-more-link" %>
                     </div>
                 <% end %>
             </div>
