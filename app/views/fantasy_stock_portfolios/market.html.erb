@@ -4,8 +4,8 @@
             <h2>Stock Market</h2>
         </div>
         <div class="fantasy-header-actions">
-            <%= link_to fantasy_stock_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
-                <i class="fa-solid fa-arrow-left"></i> Portfolio
+            <%= link_to fantasy_stocks_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-arrow-left"></i> Stocks
             <% end %>
         </div>
     </div>

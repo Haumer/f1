@@ -13,6 +13,11 @@
                 <% if @driver.current_constructor %>
                     <span class="driver-hero-team"><%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %></span>
                 <% end %>
+                <div class="driver-hero-actions">
+                    <%= link_to compare_drivers_path(driver_ids: [@driver.id]), class: "fantasy-btn fantasy-btn-outline" do %>
+                        <i class="fa-solid fa-scale-balanced"></i> Compare
+                    <% end %>
+                </div>
                 <div class="driver-hero-titles">
                     <% if @season_1st_place_finishes.present? %>
                         <span class="title-badge champion"><%= @season_1st_place_finishes.count %>x Champion</span>

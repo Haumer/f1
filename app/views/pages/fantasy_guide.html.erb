@@ -145,4 +145,43 @@
             Achievements are checked automatically after each race.
         </p>
     </div>
+
+    <%# Get Started %>
+    <div class="about-card card">
+        <div class="about-card-header">
+            <span class="about-card-icon"><i class="fa-solid fa-rocket"></i></span>
+            <h3>Ready to Play?</h3>
+        </div>
+        <div class="about-card-body">
+            <div class="about-links-row">
+                <% if user_signed_in? %>
+                    <% roster = current_user.fantasy_portfolio_for(Season.sorted_by_year.first) %>
+                    <% if roster %>
+                        <%= link_to fantasy_overview_path(current_user.username), class: "about-link about-link-primary" do %>
+                            <i class="fa-solid fa-briefcase"></i> My Portfolio
+                        <% end %>
+                    <% else %>
+                        <%= link_to new_fantasy_portfolio_path, class: "about-link about-link-primary" do %>
+                            <i class="fa-solid fa-plus"></i> Start Roster
+                        <% end %>
+                    <% end %>
+                    <% if Setting.fantasy_stock_market? %>
+                        <% stock = current_user.fantasy_stock_portfolio_for(Season.sorted_by_year.first) %>
+                        <% unless stock %>
+                            <%= link_to new_fantasy_stock_portfolio_path, class: "about-link" do %>
+                                <i class="fa-solid fa-chart-line"></i> Start Stocks
+                            <% end %>
+                        <% end %>
+                    <% end %>
+                <% else %>
+                    <%= link_to new_user_session_path, class: "about-link about-link-primary" do %>
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In to Play
+                    <% end %>
+                <% end %>
+                <%= link_to combined_leaderboard_path, class: "about-link" do %>
+                    <i class="fa-solid fa-ranking-star"></i> Leaderboard
+                <% end %>
+            </div>
+        </div>
+    </div>
 </div>

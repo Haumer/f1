@@ -1,13 +1,75 @@
 class FantasyPortfoliosController < ApplicationController
-  before_action :authenticate_user!, except: [:combined_leaderboard]
-  before_action :set_portfolio, only: [:show, :market, :buy, :buy_multiple, :sell, :buy_team]
-  before_action :set_next_race, only: [:show, :market, :buy, :buy_multiple, :sell, :buy_team]
+  before_action :authenticate_user!, except: [:combined_leaderboard, :overview, :roster, :stocks]
+  before_action :set_portfolio, only: [:market, :buy, :buy_multiple, :sell, :buy_team]
+  before_action :set_next_race, only: [:market, :buy, :buy_multiple, :sell, :buy_team]
+
+  # ═══════════════════════════════════════
+  # Username-based pages
+  # ═══════════════════════════════════════
+
+  def overview
+    load_user_and_season
+    return if performed?
+
+    load_portfolio_data
+    load_stock_data
+  end
+
+  def roster
+    load_user_and_season
+    return if performed?
+
+    unless @portfolio
+      redirect_to fantasy_overview_path(@user.username), alert: "No roster portfolio found."
+      return
+    end
+
+    @active_entries = @portfolio.active_roster_entries.includes(driver: [:countries])
+    @snapshots = @portfolio.snapshots.joins(:race).order("races.date ASC")
+    @value_delta = @portfolio.value_change_since_last_race
+    @constructors_by_driver = constructors_for_drivers(@active_entries.map(&:driver))
+    @achievements = @portfolio.achievements.order(created_at: :desc)
+
+    if @is_owner
+      @next_race = @portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
+      @can_trade = @next_race && @portfolio.can_trade?(@next_race)
+      @transactions = @portfolio.transactions.order(created_at: :desc).limit(20)
+      @current_support = ConstructorSupport.current_for(current_user, @portfolio.season)
+      @can_change_support = ConstructorSupport.can_change?(current_user, @portfolio.season)
+    end
+  end
+
+  def stocks
+    load_user_and_season
+    return if performed?
+
+    unless @stock_portfolio
+      redirect_to fantasy_overview_path(@user.username), alert: "No stock portfolio found."
+      return
+    end
+
+    @stock_holdings = @stock_portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price)
+    @stock_snapshots = @stock_portfolio.snapshots.joins(:race).order("races.date ASC")
+    @stock_value_delta = @stock_portfolio.value_change_since_last_race
+    @stock_achievements = @stock_portfolio.achievements.to_a
+    @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))
+
+    if @is_owner
+      @next_race = @stock_portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
+      @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
+      @stock_transactions = @stock_portfolio.transactions.order(created_at: :desc).limit(20)
+    end
+  end
+
+  # ═══════════════════════════════════════
+  # Portfolio creation
+  # ═══════════════════════════════════════
 
   def new
     current_season = Season.sorted_by_year.first
     existing = current_user.fantasy_portfolio_for(current_season)
     if existing
-      redirect_to existing
+      redirect_to fantasy_overview_path(current_user.username)
       return
     end
 
@@ -23,35 +85,13 @@ class FantasyPortfoliosController < ApplicationController
       redirect_to new_fantasy_portfolio_path, alert: result[:error]
     else
       check_roster_achievements(result[:portfolio])
-      redirect_to result[:portfolio], notice: "Fantasy portfolio created! You have #{result[:portfolio].cash.round(0)} to spend."
+      redirect_to fantasy_overview_path(current_user.username), notice: "Fantasy portfolio created! You have #{result[:portfolio].cash.round(0)} to spend."
     end
   end
 
-  def show
-    @active_entries = @portfolio.active_roster_entries.includes(driver: [:countries])
-    @transactions = @portfolio.transactions.order(created_at: :desc).limit(20)
-    @can_trade = @next_race && @portfolio.can_trade?(@next_race)
-    @snapshots = @portfolio.snapshots.joins(:race).order("races.date ASC")
-    @achievements = @portfolio.achievements.order(created_at: :desc)
-    @value_delta = @portfolio.value_change_since_last_race
-    @constructors_by_driver = constructors_for_drivers(@active_entries.map(&:driver))
-    @current_support = ConstructorSupport.current_for(current_user, @portfolio.season)
-    @can_change_support = ConstructorSupport.can_change?(current_user, @portfolio.season)
-
-    # Stock portfolio (for unified view)
-    @stock_portfolio = current_user.fantasy_stock_portfolio_for(@portfolio.season)
-    if @stock_portfolio
-      @stock_holdings = @stock_portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price)
-      @stock_transactions = @stock_portfolio.transactions.order(created_at: :desc).limit(20)
-      @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
-      @stock_snapshots = @stock_portfolio.snapshots.joins(:race).order("races.date ASC")
-      @stock_achievements = @stock_portfolio.achievements.to_a
-      @stock_value_delta = @stock_portfolio.value_change_since_last_race
-      @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))
-    end
-
-    @tab = params[:tab] || "roster"
-  end
+  # ═══════════════════════════════════════
+  # Market & trading (portfolio ID based)
+  # ═══════════════════════════════════════
 
   def market
     @drivers = Driver.joins(:season_drivers)
@@ -72,7 +112,7 @@ class FantasyPortfoliosController < ApplicationController
       redirect_to market_fantasy_portfolio_path(@portfolio), alert: result[:error]
     else
       check_roster_achievements(@portfolio)
-      redirect_to fantasy_portfolio_path(@portfolio), notice: "#{driver.fullname} added to your roster!"
+      redirect_to fantasy_roster_path(current_user.username), notice: "#{driver.fullname} added to your roster!"
     end
   end
 
@@ -95,7 +135,7 @@ class FantasyPortfoliosController < ApplicationController
       redirect_to market_fantasy_portfolio_path(@portfolio), alert: errors.join(". ")
     else
       check_roster_achievements(@portfolio)
-      redirect_to fantasy_portfolio_path(@portfolio), notice: "#{bought.join(' & ')} added to your roster!"
+      redirect_to fantasy_roster_path(current_user.username), notice: "#{bought.join(' & ')} added to your roster!"
     end
   end
 
@@ -104,10 +144,10 @@ class FantasyPortfoliosController < ApplicationController
     result = Fantasy::SellDriver.new(portfolio: @portfolio, driver: driver, race: @next_race).call
 
     if result[:error]
-      redirect_to fantasy_portfolio_path(@portfolio), alert: result[:error]
+      redirect_to fantasy_roster_path(current_user.username), alert: result[:error]
     else
       check_roster_achievements(@portfolio)
-      redirect_to fantasy_portfolio_path(@portfolio), notice: "Sold #{driver.fullname} for #{result[:net].round(0)} (fee: #{result[:fee].round(0)})"
+      redirect_to fantasy_roster_path(current_user.username), notice: "Sold #{driver.fullname} for #{result[:net].round(0)} (fee: #{result[:fee].round(0)})"
     end
   end
 
@@ -115,12 +155,16 @@ class FantasyPortfoliosController < ApplicationController
     result = Fantasy::BuyTeam.new(portfolio: @portfolio).call
 
     if result[:error]
-      redirect_to fantasy_portfolio_path(@portfolio), alert: result[:error]
+      redirect_to fantasy_roster_path(current_user.username), alert: result[:error]
     else
       check_roster_achievements(@portfolio)
-      redirect_to fantasy_portfolio_path(@portfolio), notice: "New team purchased! You now have #{@portfolio.roster_slots} driver seats."
+      redirect_to fantasy_roster_path(current_user.username), notice: "New team purchased! You now have #{@portfolio.roster_slots} driver seats."
     end
   end
+
+  # ═══════════════════════════════════════
+  # Leaderboards
+  # ═══════════════════════════════════════
 
   def leaderboard
     @season = Season.sorted_by_year.first
@@ -135,7 +179,6 @@ class FantasyPortfoliosController < ApplicationController
     @roster_entries = Fantasy::Leaderboard.new(season: @season).call
     @stock_entries = stock_leaderboard_entries
 
-    # Combined: roster = driver holdings, stocks = stock holdings, cash = leftover cash
     combined = []
     @roster_entries.each do |e|
       p = e[:portfolio]
@@ -157,7 +200,6 @@ class FantasyPortfoliosController < ApplicationController
       end
     end
 
-    # Combined score = average of available P&L percentages
     combined.each do |c|
       pcts = [c[:roster_pl_pct], c[:stock_pl_pct]].compact
       c[:combined_pct] = pcts.any? ? (pcts.sum / pcts.size) : 0
@@ -166,7 +208,6 @@ class FantasyPortfoliosController < ApplicationController
 
     @combined_entries = combined.sort_by { |c| -c[:combined_pct] }
 
-    # Preload constructor supports for leaderboard display
     user_ids = @combined_entries.map { |c| c[:user].id }
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
                           .includes(:constructor).index_by(&:user_id)
@@ -174,7 +215,52 @@ class FantasyPortfoliosController < ApplicationController
     render "fantasy_portfolios/combined_leaderboard"
   end
 
+  # ═══════════════════════════════════════
+  # Profile visibility toggle
+  # ═══════════════════════════════════════
+
+  def toggle_public
+    current_user.update!(public_profile: !current_user.public_profile?)
+    status = current_user.public_profile? ? "public" : "private"
+    redirect_back fallback_location: fantasy_overview_path(current_user.username),
+                  notice: "Profile is now #{status}."
+  end
+
   private
+
+  def load_user_and_season
+    @user = User.find_by!(username: params[:username])
+    @season = Season.sorted_by_year.first
+    @is_owner = current_user&.id == @user.id
+
+    unless @is_owner || @user.public_profile?
+      redirect_to combined_leaderboard_path, alert: "This profile is private."
+      return
+    end
+
+    @portfolio = @user.fantasy_portfolio_for(@season)
+    @stock_portfolio = @user.fantasy_stock_portfolio_for(@season)
+
+    unless @portfolio || @stock_portfolio
+      redirect_to combined_leaderboard_path, alert: "No fantasy portfolio found."
+    end
+  end
+
+  def load_portfolio_data
+    return unless @portfolio
+    @active_entries = @portfolio.active_roster_entries.includes(driver: [:countries])
+    @snapshots = @portfolio.snapshots.joins(:race).order("races.date ASC")
+    @value_delta = @portfolio.value_change_since_last_race
+    @constructors_by_driver = constructors_for_drivers(@active_entries.map(&:driver))
+  end
+
+  def load_stock_data
+    return unless @stock_portfolio
+    @stock_holdings = @stock_portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price)
+    @stock_snapshots = @stock_portfolio.snapshots.joins(:race).order("races.date ASC")
+    @stock_value_delta = @stock_portfolio.value_change_since_last_race
+    @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))
+  end
 
   def set_portfolio
     @portfolio = FantasyPortfolio.find(params[:id])
@@ -203,14 +289,12 @@ class FantasyPortfoliosController < ApplicationController
 
   def constructors_for_drivers(drivers)
     driver_ids = drivers.map(&:id)
-    season = @portfolio&.season || Season.sorted_by_year.first
+    season = @portfolio&.season || @season || Season.sorted_by_year.first
 
-    # First try the portfolio's season
     entries = SeasonDriver.where(driver_id: driver_ids, season_id: season.id)
                           .includes(:constructor)
                           .index_by(&:driver_id)
 
-    # For any drivers not found, fall back to latest season by year
     missing = driver_ids - entries.keys
     if missing.any?
       fallbacks = SeasonDriver.where(driver_id: missing)
@@ -234,7 +318,6 @@ class FantasyPortfoliosController < ApplicationController
       .sort_by { |e| -e[:value] }
   end
 
-  # Returns { driver_id => [+12, -5, +3, +8, -2] } (last 5 elo diffs, newest first)
   def elo_trends_for(driver_ids)
     results = RaceResult.where(driver_id: driver_ids)
                         .where.not(old_elo_v2: nil, new_elo_v2: nil)

@@ -1,4 +1,9 @@
 <div class="homepage-container">
+    <div class="page-back-link">
+        <%= link_to stats_path do %>
+            <i class="fa-solid fa-arrow-left"></i> Stats
+        <% end %>
+    </div>
     <div class="table-header">
         <h3>Fan Standings</h3>
         <span class="table-header-sub"><%= @total_fans %> fan<%= @total_fans == 1 ? '' : 's' %> total</span>

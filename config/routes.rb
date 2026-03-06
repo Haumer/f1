@@ -54,7 +54,13 @@ Rails.application.routes.draw do
   get 'stats/badges', to: 'stats#badges', as: :badges
   get 'stats/fan_standings', to: 'stats#fan_standings', as: :fan_standings
 
-  resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create, :show] do
+  # Fantasy user pages (must be before resources to avoid :id conflicts)
+  get  'fantasy/u/:username',         to: 'fantasy_portfolios#overview',  as: :fantasy_overview
+  get  'fantasy/u/:username/roster',  to: 'fantasy_portfolios#roster',    as: :fantasy_roster
+  get  'fantasy/u/:username/stocks',  to: 'fantasy_portfolios#stocks',    as: :fantasy_stocks
+  post 'fantasy/toggle_public',       to: 'fantasy_portfolios#toggle_public', as: :toggle_public_profile
+
+  resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create] do
     member do
       get :market
       post :buy
@@ -67,7 +73,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :fantasy_stock_portfolios, path: 'stocks', only: [:new, :create, :show] do
+  resources :fantasy_stock_portfolios, path: 'stocks', only: [:new, :create] do
     member do
       get :market
       post :buy
@@ -81,4 +87,8 @@ Rails.application.routes.draw do
   end
 
   get 'leaderboard', to: 'fantasy_portfolios#combined_leaderboard', as: :combined_leaderboard
+
+  # User account settings
+  get   'u/:username', to: 'users#show',   as: :user_settings
+  patch 'u/:username', to: 'users#update'
 end

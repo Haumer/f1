@@ -4,7 +4,7 @@
     <% rank ||= nil %>
 
     <div class="fantasy-mini-card-wrapper">
-        <%= link_to fantasy_portfolio_path(portfolio), class: "card fantasy-mini-card" do %>
+        <%= link_to fantasy_overview_path(portfolio.user.username), class: "card fantasy-mini-card" do %>
             <%# Header row: title + rank badge %>
             <div class="fantasy-mini-header">
                 <div class="fantasy-mini-title">
@@ -87,11 +87,11 @@
 
         <%# Secondary links row (outside main link to avoid nested <a> tags) %>
         <div class="fantasy-mini-links">
-            <%= link_to fantasy_portfolio_path(portfolio), class: "fantasy-mini-link" do %>
+            <%= link_to fantasy_roster_path(portfolio.user.username), class: "fantasy-mini-link" do %>
                 <i class="fa-solid fa-users"></i> Roster
             <% end %>
             <% if stock_portfolio %>
-                <%= link_to fantasy_portfolio_path(portfolio, tab: "stocks"), class: "fantasy-mini-link" do %>
+                <%= link_to fantasy_stocks_path(portfolio.user.username), class: "fantasy-mini-link" do %>
                     <i class="fa-solid fa-chart-line"></i> Stocks
                 <% end %>
             <% end %>

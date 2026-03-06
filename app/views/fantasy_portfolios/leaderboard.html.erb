@@ -5,9 +5,8 @@
             <span class="fantasy-season"><%= @season.year %> Season</span>
         </div>
         <div class="fantasy-header-actions">
-            <% portfolio = current_user.fantasy_portfolio_for(@season) %>
-            <% if portfolio %>
-                <%= link_to fantasy_portfolio_path(portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+            <% if current_user %>
+                <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
                     <i class="fa-solid fa-arrow-left"></i> My Portfolio
                 <% end %>
             <% end %>

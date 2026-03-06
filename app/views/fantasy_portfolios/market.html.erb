@@ -9,8 +9,8 @@
             <h2>Driver Market</h2>
         </div>
         <div class="fantasy-header-actions">
-            <%= link_to fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
-                <i class="fa-solid fa-arrow-left"></i> Portfolio
+            <%= link_to fantasy_roster_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-arrow-left"></i> Roster
             <% end %>
         </div>
     </div>

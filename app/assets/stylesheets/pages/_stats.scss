@@ -1,3 +1,21 @@
+// Back link breadcrumb
+.page-back-link {
+    margin-bottom: 8px;
+    a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: $text-tertiary;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        &:hover { color: var(--page-accent, $accent-red); }
+        i { font-size: 10px; }
+    }
+}
+
 // Stats hub grid
 .stats-hub-grid {
     display: grid;

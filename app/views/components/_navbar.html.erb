@@ -90,7 +90,7 @@
                 <% if current_user %>
                     <% roster = current_user.fantasy_portfolio_for(current_season) %>
                     <% if roster %>
-                        <%= link_to "My Portfolio", fantasy_portfolio_path(roster), class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+                        <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
                     <% else %>
                         <%= link_to "Create Portfolio", new_fantasy_portfolio_path, role: "menuitem" %>
                     <% end %>
@@ -109,6 +109,9 @@
 
         <%# Desktop auth link (hidden on mobile) %>
         <% if current_user %>
+            <%= link_to user_settings_path(current_user.username), class: "nav-auth-link nav-auth-desktop", role: "menuitem", title: "Settings" do %>
+                <i class="fa-solid fa-gear"></i>
+            <% end %>
             <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link nav-auth-desktop", role: "menuitem" do %>
                 <i class="fa-solid fa-right-from-bracket"></i> <span class="nav-auth-label">Sign Out</span>
             <% end %>
@@ -121,6 +124,9 @@
         <%# Mobile auth footer (hidden on desktop) %>
         <div class="mobile-nav-footer mobile-nav-item">
             <% if current_user %>
+                <%= link_to user_settings_path(current_user.username), class: "nav-auth-link", role: "menuitem" do %>
+                    <i class="fa-solid fa-gear"></i> Settings
+                <% end %>
                 <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link", role: "menuitem" do %>
                     <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                 <% end %>

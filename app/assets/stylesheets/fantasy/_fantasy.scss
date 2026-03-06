@@ -48,17 +48,33 @@
     color: $text-secondary;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
-    transition: color $t-fast, border-color $t-fast;
+    transition: color $t-fast, border-color $t-fast, background $t-fast;
+    border-radius: $radius-sm $radius-sm 0 0;
 
     &:hover {
         color: $text-primary;
         text-decoration: none;
+        background: rgba(255, 255, 255, 0.02);
     }
     &.active {
         color: var(--page-accent, $accent-red);
         border-bottom-color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
     }
     i { font-size: 11px; }
+}
+
+.fantasy-tab-hint {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 2px;
+    i {
+        font-size: 11px;
+        color: $text-tertiary;
+        cursor: help;
+        transition: color $t-fast;
+        &:hover { color: $text-secondary; }
+    }
 }
 
 .fantasy-tab-new {
@@ -82,7 +98,128 @@
     opacity: 0.7;
 }
 
-// Team allegiance
+// ═══════════════════════════════════════
+// COMPACT STATUS ROW (allegiance + transfer window)
+// ═══════════════════════════════════════
+
+.fantasy-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: $space-md;
+}
+
+.fantasy-status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+
+    > i { font-size: 13px; }
+
+    &.fantasy-status-open {
+        background: rgba($green, 0.04);
+        border-color: rgba($green, 0.15);
+        color: $green;
+    }
+
+    &.fantasy-status-closed {
+        background: rgba($accent-red, 0.04);
+        border-color: rgba($accent-red, 0.15);
+        color: $accent-red;
+    }
+
+    &.fantasy-status-item-action {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+}
+
+.fantasy-status-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    font-size: 13px;
+
+    .constructor-logo-xs { width: 16px; height: 16px; }
+
+    &:hover { text-decoration: underline; }
+}
+
+.fantasy-status-hint {
+    font-size: 11px;
+    color: $text-tertiary;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: auto;
+    i { font-size: 9px; }
+}
+
+.fantasy-status-prompt {
+    font-size: 12px;
+    color: $text-secondary;
+    strong { color: $green; }
+}
+
+.fantasy-allegiance-options-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.fantasy-allegiance-badge-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    border: 1px solid $border-color;
+    background: transparent;
+    transition: all $t-fast;
+    text-decoration: none;
+
+    .constructor-logo-xs { opacity: 0.5; margin-left: 0; width: 14px; height: 14px; }
+
+    &:hover {
+        color: $text-primary;
+        border-color: $text-secondary;
+        background: rgba(255, 255, 255, 0.04);
+        text-decoration: none;
+        .constructor-logo-xs { opacity: 1; }
+    }
+}
+
+.fantasy-swap-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: $space-md;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed $border-color;
+    border-radius: $radius-sm;
+}
+
+.fantasy-swap-label {
+    font-size: 11px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-tertiary;
+    margin-right: 4px;
+}
+
+// Legacy allegiance (kept for picker pages)
 .fantasy-allegiance {
     display: flex;
     flex-wrap: wrap;
@@ -95,10 +232,8 @@
     border: 1px solid $border-color;
 }
 
-// Locked state — showing current team
 .fantasy-allegiance-locked {
     gap: 10px;
-
     i { font-size: 16px; }
 }
 
@@ -108,9 +243,7 @@
     gap: 6px;
     text-decoration: none;
     font-size: 15px;
-
     .constructor-logo-xs { width: 20px; height: 20px; }
-
     &:hover { text-decoration: underline; }
 }
 
@@ -124,13 +257,11 @@
     i { font-size: 10px; }
 }
 
-// Swap row
 .fantasy-allegiance-swap {
     background: rgba(255, 255, 255, 0.02);
     border-style: dashed;
 }
 
-// Picker state — choosing for first time
 .fantasy-allegiance-picker {
     flex-direction: column;
     align-items: stretch;
@@ -391,13 +522,55 @@
     line-height: 1.1;
 }
 
+.fantasy-cash-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.fantasy-cash-split {
+    font-size: 13px;
+    font-family: $mono-font;
+    color: $text-secondary;
+    cursor: help;
+    white-space: nowrap;
+
+    i {
+        font-size: 10px;
+        color: $text-tertiary;
+        margin-left: 2px;
+    }
+}
+
+.detail-pct {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.fantasy-value-metrics {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.fantasy-value-pl {
+    font-family: $mono-font;
+    font-size: 14px;
+    font-weight: $weight-bold;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+}
+
 .fantasy-value-delta {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-size: 12px;
     font-weight: 600;
-    margin-top: 4px;
 
     &.gain { color: $green; }
     &.loss { color: $accent-red; }
@@ -432,8 +605,188 @@
 
 .detail-value {
     font-family: $mono-font;
-    font-size: $type-h3;
+    font-size: 36px;
     font-weight: $weight-bold;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+// ═══════════════════════════════════════
+// PROFILE VISIBILITY TOGGLE
+// ═══════════════════════════════════════
+
+.fantasy-profile-link {
+    color: $text-tertiary;
+    font-size: 12px;
+    text-decoration: none;
+    &:hover { color: var(--page-accent, $accent-red); }
+    i { font-size: 10px; margin-right: 1px; }
+}
+
+.fantasy-visibility-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: $space-md;
+    padding: 8px 14px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+}
+
+.fantasy-visibility-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.fantasy-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0;
+
+    input[type="checkbox"] {
+        width: 32px;
+        height: 18px;
+        appearance: none;
+        background: $bg-surface;
+        border: 1px solid $border-accent;
+        border-radius: 9px;
+        position: relative;
+        cursor: pointer;
+        transition: background $t-fast, border-color $t-fast;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            background: $text-tertiary;
+            border-radius: 50%;
+            transition: transform $t-fast, background $t-fast;
+        }
+
+        &:checked {
+            background: rgba($green, 0.15);
+            border-color: rgba($green, 0.4);
+            &::after {
+                transform: translateX(14px);
+                background: $green;
+            }
+        }
+    }
+}
+
+.fantasy-toggle-text {
+    font-size: 12px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    i { font-size: 11px; margin-right: 2px; }
+}
+
+.fantasy-visibility-url {
+    margin-left: auto;
+    a {
+        font-family: $mono-font;
+        font-size: 12px;
+        color: $text-tertiary;
+        text-decoration: none;
+        &:hover { color: var(--page-accent, $accent-red); }
+    }
+}
+
+// ═══════════════════════════════════════
+// INFO BANNER (dismissable explainer)
+// ═══════════════════════════════════════
+
+.fantasy-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    border-radius: $radius-sm;
+    margin-bottom: $space-md;
+    overflow: hidden;
+    transition: opacity 0.3s, max-height 0.3s, margin-bottom 0.3s, padding 0.3s;
+}
+
+.fantasy-info-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+
+    > i {
+        font-size: 13px;
+        color: var(--page-accent, $accent-red);
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    p {
+        font-size: 12px;
+        line-height: 1.5;
+        color: $text-secondary;
+        margin: 0;
+        strong { color: $text-primary; }
+    }
+}
+
+.fantasy-info-banner-close {
+    background: none;
+    border: none;
+    color: $text-tertiary;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: color $t-fast;
+
+    &:hover { color: $text-primary; }
+}
+
+// ═══════════════════════════════════════
+// SUB-STATS BAR (per-tab metrics)
+// ═══════════════════════════════════════
+
+.fantasy-sub-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-md $space-lg;
+    padding: 14px 18px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+    margin-bottom: $space-lg;
+}
+
+.fantasy-sub-stat {
+    display: flex;
+    flex-direction: column;
+    min-width: 56px;
+
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-tertiary;
+        margin-bottom: 1px;
+    }
+
+    .value {
+        font-family: $mono-font;
+        font-weight: $weight-bold;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+    }
 }
 
 // ═══════════════════════════════════════
@@ -1687,4 +2040,261 @@
 .fantasy-txn-liquidation {
     background: rgba($accent-red, 0.15);
     color: $accent-red;
+}
+
+// ═══════════════════════════════════════
+// OVERVIEW NAV CARDS (roster / stocks)
+// ═══════════════════════════════════════
+
+.fantasy-nav-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: $space-lg;
+}
+
+.fantasy-nav-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    text-decoration: none;
+    color: $text-primary;
+    transition: border-color $t-fast, background $t-fast, transform $t-fast;
+
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: lighten($bg-card, 2%);
+        text-decoration: none;
+        color: $text-primary;
+        transform: translateY(-2px);
+    }
+
+    &.fantasy-nav-card-new {
+        border-style: dashed;
+        border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.02);
+    }
+}
+
+.fantasy-nav-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+        font-size: 14px;
+        color: $text-secondary;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: $weight-bold;
+    }
+}
+
+.fantasy-nav-pl {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: $weight-bold;
+}
+
+.fantasy-nav-card-body {
+    display: flex;
+    gap: 16px;
+}
+
+.fantasy-nav-stat {
+    font-size: 13px;
+    color: $text-secondary;
+
+    strong {
+        color: $text-primary;
+        font-weight: $weight-semi;
+    }
+}
+
+.fantasy-nav-card-drivers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.fantasy-nav-driver-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border-left: 3px solid;
+}
+
+.fantasy-nav-card-cta {
+    font-size: 13px;
+    color: $text-secondary;
+    i { margin-right: 4px; }
+}
+
+.fantasy-nav-stat-total {
+    margin-left: auto;
+    strong { color: $text-primary; }
+}
+
+// Inline visibility toggle (in header subtitle)
+.fantasy-visibility-inline {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.fantasy-visibility-inline-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+
+    input[type="checkbox"] {
+        display: none;
+    }
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 11px;
+        color: $text-tertiary;
+        background: transparent;
+        border: 1px solid $border-color;
+        transition: all $t-fast;
+    }
+
+    input:checked + span {
+        color: $green;
+        border-color: rgba($green, 0.3);
+        background: rgba($green, 0.08);
+    }
+
+    &:hover span {
+        border-color: $text-secondary;
+        color: $text-secondary;
+    }
+}
+
+// Team badge inline with username in header
+.fantasy-team-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: 6px;
+    text-decoration: none;
+
+    &:hover { opacity: 0.8; }
+}
+
+.fantasy-team-badge-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+// Compact team picker row
+.fantasy-pick-team-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: $space-md;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed $border-color;
+    border-radius: $radius-sm;
+    font-size: 12px;
+}
+
+.fantasy-pick-team-label {
+    color: $text-secondary;
+    font-weight: $weight-semi;
+    white-space: nowrap;
+    i { font-size: 11px; margin-right: 3px; }
+}
+
+// ═══════════════════════════════════════
+// USER SETTINGS
+// ═══════════════════════════════════════
+
+.settings-field {
+    margin-bottom: 16px;
+}
+
+.settings-label {
+    display: block;
+    font-size: 13px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    margin-bottom: 6px;
+}
+
+.settings-input {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: $text-primary;
+    background: $bg-page;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+    transition: border-color $t-fast;
+
+    &:focus {
+        outline: none;
+        border-color: var(--page-accent, $accent-red);
+    }
+}
+
+.settings-checkbox {
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.settings-hint {
+    display: block;
+    font-size: 12px;
+    color: $text-tertiary;
+    margin-top: 4px;
+
+    code {
+        font-size: 11px;
+        padding: 1px 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+}
+
+.settings-value {
+    font-size: 14px;
+    color: $text-primary;
+}
+
+.settings-error {
+    display: block;
+    font-size: 12px;
+    color: $accent-red;
+    margin-top: 4px;
+}
+
+.settings-actions {
+    margin-top: 12px;
 }

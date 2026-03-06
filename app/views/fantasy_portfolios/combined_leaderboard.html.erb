@@ -5,9 +5,8 @@
             <span class="fantasy-season"><%= @season.year %> Season</span>
         </div>
         <div class="fantasy-header-actions">
-            <% portfolio = current_user&.fantasy_portfolio_for(@season) %>
-            <% if portfolio %>
-                <%= link_to fantasy_portfolio_path(portfolio), class: "fantasy-btn fantasy-btn-outline" do %>
+            <% if current_user %>
+                <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
                     <i class="fa-solid fa-briefcase"></i> My Portfolio
                 <% end %>
             <% end %>
@@ -53,7 +52,11 @@
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
                                     <td>
-                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= entry[:user].display_name %></strong>
+                                        <% if entry[:user].public_profile? %>
+                                            <%= link_to fantasy_overview_path(entry[:user].username), style: color ? "color: #{color}" : nil do %><strong><%= entry[:user].display_name %></strong><% end %>
+                                        <% else %>
+                                            <strong <% if color %>style="color: <%= color %>"<% end %>><%= entry[:user].display_name %></strong>
+                                        <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                         <% if support&.constructor&.logo_url.present? %>
                                             <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs" onerror="this.style.display='none'">
@@ -128,7 +131,11 @@
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
                                     <td>
-                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= portfolio.user.display_name %></strong>
+                                        <% if portfolio.user.public_profile? %>
+                                            <%= link_to fantasy_overview_path(portfolio.user.username), style: color ? "color: #{color}" : nil do %><strong><%= portfolio.user.display_name %></strong><% end %>
+                                        <% else %>
+                                            <strong <% if color %>style="color: <%= color %>"<% end %>><%= portfolio.user.display_name %></strong>
+                                        <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                     </td>
                                     <td>
@@ -180,7 +187,11 @@
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
                                     <td>
-                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= p.user.display_name %></strong>
+                                        <% if p.user.public_profile? %>
+                                            <%= link_to fantasy_overview_path(p.user.username), style: color ? "color: #{color}" : nil do %><strong><%= p.user.display_name %></strong><% end %>
+                                        <% else %>
+                                            <strong <% if color %>style="color: <%= color %>"<% end %>><%= p.user.display_name %></strong>
+                                        <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                     </td>
                                     <td>

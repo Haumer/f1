@@ -1,0 +1,83 @@
+<div class="homepage-container">
+    <div class="fantasy-dashboard-header">
+        <div class="fantasy-dashboard-title">
+            <h2>Account Settings</h2>
+            <span class="fantasy-season"><%= @user.username %></span>
+        </div>
+        <div class="fantasy-header-actions">
+            <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-arrow-left"></i> Portfolio
+            <% end %>
+        </div>
+    </div>
+
+    <%# Profile section %>
+    <div class="table-header"><h3>Profile</h3></div>
+    <div class="card card-flush" style="padding: 20px;">
+        <%= form_with model: @user, url: user_settings_path(@user.username), method: :patch, local: true do |f| %>
+            <div class="settings-field">
+                <label class="settings-label">Username</label>
+                <%= f.text_field :username, class: "settings-input", autocomplete: "off" %>
+                <% if @user.errors[:username].any? %>
+                    <span class="settings-error"><%= @user.errors[:username].first %></span>
+                <% end %>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">
+                    <input type="hidden" name="user[public_profile]" value="0">
+                    <%= f.check_box :public_profile, class: "settings-checkbox" %>
+                    Public profile
+                </label>
+                <span class="settings-hint">When enabled, other players can view your portfolio at <code>fantasy/u/<%= @user.username %></code></span>
+            </div>
+
+            <div class="settings-actions">
+                <%= f.submit "Save", class: "fantasy-btn fantasy-btn-primary" %>
+            </div>
+        <% end %>
+    </div>
+
+    <%# Password section %>
+    <div class="table-header"><h3>Change Password</h3></div>
+    <div class="card card-flush" style="padding: 20px;">
+        <%= form_with model: @user, url: user_settings_path(@user.username), method: :patch, local: true do |f| %>
+            <div class="settings-field">
+                <label class="settings-label">Current Password</label>
+                <%= f.password_field :current_password, class: "settings-input", autocomplete: "current-password" %>
+                <% if @user.errors[:current_password].any? %>
+                    <span class="settings-error"><%= @user.errors[:current_password].first %></span>
+                <% end %>
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">New Password</label>
+                <%= f.password_field :password, class: "settings-input", autocomplete: "new-password" %>
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">Confirm Password</label>
+                <%= f.password_field :password_confirmation, class: "settings-input", autocomplete: "new-password" %>
+            </div>
+            <div class="settings-actions">
+                <%= f.submit "Update Password", class: "fantasy-btn fantasy-btn-primary" %>
+            </div>
+        <% end %>
+    </div>
+
+    <%# Account info %>
+    <div class="table-header"><h3>Account</h3></div>
+    <div class="card card-flush" style="padding: 20px;">
+        <div class="settings-field">
+            <label class="settings-label">Email</label>
+            <span class="settings-value"><%= @user.email %></span>
+        </div>
+        <div class="settings-field">
+            <label class="settings-label">Member since</label>
+            <span class="settings-value"><%= @user.created_at.strftime("%B %Y") %></span>
+        </div>
+        <div class="settings-actions" style="margin-top: 20px;">
+            <%= button_to "Delete Account", registration_path(:user), method: :delete,
+                class: "fantasy-btn fantasy-btn-danger",
+                data: { turbo_confirm: "Are you sure? This will permanently delete your account and all fantasy data." } %>
+        </div>
+    </div>
+</div>
