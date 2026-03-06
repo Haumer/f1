@@ -47,6 +47,7 @@ class Graphs::Champions
         end
 
         {
+            backgroundColor: 'transparent',
             label: {
                 show: false,
                 position: "right"

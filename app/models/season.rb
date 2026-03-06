@@ -11,6 +11,10 @@ class Season < ApplicationRecord
 
     validates :year, uniqueness: true
 
+    def to_param
+        year.to_s
+    end
+
     def latest_driver_standings
         race = latest_race
         return [] unless race

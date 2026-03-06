@@ -15,6 +15,7 @@ class Graphs::RaceEloChanges
         end
 
         {
+            backgroundColor: 'transparent',
             xAxis: {
                 type: 'value'
             },

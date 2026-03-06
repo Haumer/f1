@@ -6,16 +6,15 @@
             <h1 class="page-hero-title">All-Time Peak Elo</h1>
         </div>
     </div>
-    <div class="chart-container">
-        <% min_elo = Setting.use_elo_v2? ? 2350 : 1250 %>
-        <%= custom_chart({
-            xAxis: { type: "category", data: @drivers.map(&:surname), axisLabel: { rotate: 45, fontSize: 10 } },
-            yAxis: { type: "value", min: min_elo },
-            series: [{ type: "bar", data: @drivers.map { |d| d.display_peak_elo.round(1) }, itemStyle: { color: "#e10600" } }],
-            tooltip: { trigger: "axis" },
-            grid: { bottom: 80 }
-        }) %>
-    </div>
+    <% min_elo = Setting.use_elo_v2? ? 2350 : 1250 %>
+    <%= custom_chart({
+        backgroundColor: 'transparent',
+        xAxis: { type: "category", data: @drivers.map(&:surname), axisLabel: { rotate: 45, fontSize: 10, color: 'rgba(255,255,255,0.7)' } },
+        yAxis: { type: "value", min: min_elo, axisLabel: { color: 'rgba(255,255,255,0.7)' } },
+        series: [{ type: "bar", data: @drivers.map { |d| d.display_peak_elo.round(1) }, itemStyle: { color: @page_accent || '#e10600' } }],
+        tooltip: { trigger: "axis", axisPointer: { type: 'shadow' } },
+        grid: { bottom: 80, left: 10, right: 10, containLabel: true }
+    }) %>
 
     <div class="card card-flush">
         <div class="table-scroll-wrapper">

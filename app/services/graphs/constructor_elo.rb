@@ -22,6 +22,7 @@ class Graphs::ConstructorElo
     end
 
     {
+      backgroundColor: 'transparent',
       xAxis: {
         type: 'category',
         data: @race_labels,

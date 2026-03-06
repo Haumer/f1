@@ -2,6 +2,11 @@ class Circuit < ApplicationRecord
     has_many :races
 
     validates :name, :circuit_ref, presence: true
+    validates :circuit_ref, uniqueness: true
+
+    def to_param
+        circuit_ref
+    end
 
     def track_image_path
         "circuits/#{circuit_ref}.svg"

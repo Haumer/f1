@@ -6,9 +6,7 @@
             <h1 class="page-hero-title">Active Driver Elo</h1>
         </div>
     </div>
-    <div class="card">
-        <%= custom_chart Graphs::ActiveEloBar.new(drivers: @drivers).data %>
-    </div>
+    <%= custom_chart Graphs::ActiveEloBar.new(drivers: @drivers).data %>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
         <table class="current-driver-standings compact" data-controller="sortable-table">

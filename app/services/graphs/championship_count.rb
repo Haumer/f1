@@ -13,6 +13,7 @@ class Graphs::ChampionshipCount
         end
 
         {
+            backgroundColor: 'transparent',
             yAxis: {
                 type: 'category',
                 data: driver_names.reverse,

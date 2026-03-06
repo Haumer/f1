@@ -69,6 +69,7 @@ class Graphs::SeasonElo
         max_elo = elo_values.max || 2000
 
         {
+            backgroundColor: 'transparent',
             label: {
                 show: false,
                 position: "right"

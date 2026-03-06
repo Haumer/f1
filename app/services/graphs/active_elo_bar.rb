@@ -32,6 +32,7 @@ class Graphs::ActiveEloBar
         end
 
         {
+            backgroundColor: 'transparent',
             yAxis: {
                 type: 'category',
                 data: driver_names.reverse,

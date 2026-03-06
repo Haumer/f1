@@ -16,7 +16,7 @@ class CircuitsController < ApplicationController
   end
 
   def show
-    @circuit = Circuit.find(params[:id])
+    @circuit = Circuit.find_by!(circuit_ref: params[:id])
     set_circuit_accent(@circuit)
     @races = @circuit.races.includes(:season, race_results: [:driver, :constructor, :status]).order(date: :desc)
 
