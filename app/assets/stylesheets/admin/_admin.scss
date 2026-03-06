@@ -158,9 +158,26 @@ $admin-sidebar-width: 240px;
   &:hover { opacity: 0.85; color: $text-on-dark; }
 }
 
+.admin-btn-sm {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+.admin-btn-active {
+  background: lighten($accent-red, 8%);
+  box-shadow: 0 0 0 2px rgba($accent-red, 0.4);
+}
+
 .admin-btn-warning {
   background: $warning-orange;
   &:hover { opacity: 0.85; }
+}
+
+.admin-period-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  align-items: center;
 }
 
 // Settings Form

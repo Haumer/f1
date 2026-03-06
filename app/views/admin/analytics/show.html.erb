@@ -1,0 +1,92 @@
+<h2>
+  <%= link_to "Analytics", admin_analytics_index_path, style: "color: #888; text-decoration: none;" %> /
+  <%= @user.username || @user.email %>
+</h2>
+
+<div class="admin-stats-grid">
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @total_visits %></div>
+    <div class="admin-stat-label">Total Visits</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @total_pageviews %></div>
+    <div class="admin-stat-label">Page Views</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-value"><%= @first_visit ? time_ago_in_words(@first_visit) + " ago" : "—" %></div>
+    <div class="admin-stat-label">First Visit</div>
+  </div>
+</div>
+
+<% if @top_pages.any? %>
+  <h3 style="margin-top: 32px;">Top Pages</h3>
+  <div class="card card-flush" style="margin-top: 8px;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Page</th>
+          <th class="text-center">Views</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @top_pages.each do |(controller, action), count| %>
+          <tr>
+            <td><%= controller %>#<%= action %></td>
+            <td class="text-center"><%= number_with_delimiter(count) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<h3 style="margin-top: 32px;">Recent Activity</h3>
+<div class="card card-flush" style="margin-top: 8px;">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Page</th>
+        <th>URL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @recent_pages.each do |event| %>
+        <tr>
+          <td style="white-space: nowrap;"><%= event.time.strftime("%b %d, %H:%M") %></td>
+          <td><%= event.properties["controller"] %>#<%= event.properties["action"] %></td>
+          <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><%= event.properties["url"] %></td>
+        </tr>
+      <% end %>
+      <% if @recent_pages.empty? %>
+        <tr><td colspan="3" class="text-center" style="padding: 24px; color: #666;">No activity recorded yet</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @visits.any? %>
+  <h3 style="margin-top: 32px;">Visits</h3>
+  <div class="card card-flush" style="margin-top: 8px;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Started</th>
+          <th>Browser</th>
+          <th>Device</th>
+          <th>Referrer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @visits.each do |visit| %>
+          <tr>
+            <td style="white-space: nowrap;"><%= visit.started_at.strftime("%b %d, %H:%M") %></td>
+            <td><%= visit.browser %></td>
+            <td><%= visit.device_type %></td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><%= visit.referring_domain || "—" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

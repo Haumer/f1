@@ -30,6 +30,8 @@ class ApplicationController < ActionController::Base
   end
 
   def track_action
+    return if self.class.module_parent == Admin
+
     ahoy.track "Page View", request.path_parameters.merge(url: request.url)
   end
 end

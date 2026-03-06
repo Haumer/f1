@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     resource :settings, only: [:show, :update]
     resources :operations, only: [:index, :create]
     resources :alerts, only: [:update]
+    resources :analytics, only: [:index, :show]
   end
   get 'elo', to: 'pages#elo', as: :elo
   get 'about', to: 'pages#about', as: :about
