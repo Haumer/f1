@@ -48,4 +48,13 @@
       <button type="submit" class="admin-btn">Update</button>
     <% end %>
   </div>
+
+  <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-coins"></i> Recapitalize Fantasy Portfolios</h3>
+    <p>Reset all current-season fantasy portfolio cash to the computed starting capital (avg Elo × 2.2). Use if portfolios were created before Elo V2 data existed.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="recapitalize_fantasy">
+      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will reset ALL current-season portfolio cash. Continue?">Recapitalize</button>
+    <% end %>
+  </div>
 </div>

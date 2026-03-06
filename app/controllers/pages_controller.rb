@@ -75,6 +75,8 @@ class PagesController < ApplicationController
       if lineup_season
         @season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
                             .includes(driver: :countries, constructor: [])
+                            .sort_by { |sd| -sd.id }
+                            .uniq(&:driver_id)
                             .sort_by { |sd| -(sd.driver.send(elo_col_grid) || 0) }
       end
 

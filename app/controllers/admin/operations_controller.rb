@@ -24,6 +24,17 @@ module Admin
       when "compute_badges"
         ComputeBadgesJob.perform_later
         redirect_to admin_operations_path, notice: "Badge computation job enqueued."
+      when "recapitalize_fantasy"
+        season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
+        avg_elo = Driver.where.not(elo_v2: nil)
+                        .joins(:season_drivers)
+                        .where(season_drivers: { season_id: season.id })
+                        .average(:elo_v2)
+        # Fall back to all active drivers if no season_drivers exist yet
+        avg_elo ||= Driver.active.where.not(elo_v2: nil).average(:elo_v2) || 2200
+        new_capital = (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(1)
+        updated = FantasyPortfolio.where(season: season).update_all(cash: new_capital, starting_capital: new_capital)
+        redirect_to admin_operations_path, notice: "Recapitalized #{updated} fantasy portfolio(s) with #{new_capital} credits."
       else
         redirect_to admin_operations_path, alert: "Unknown operation."
       end

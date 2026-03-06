@@ -784,7 +784,7 @@ table.race-results {
     position: fixed;
     top: 16px;
     right: 16px;
-    left: 16px;
+    left: auto;
     z-index: 1100;
     padding: 12px 20px;
     border-radius: $radius-md;
@@ -794,11 +794,28 @@ table.race-results {
     font-weight: $weight-medium;
     animation: flash-in 0.3s $ease-out both;
     max-width: 400px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     @media (max-width: 480px) {
         left: 12px;
         right: 12px;
         max-width: none;
     }
+}
+.flash-dismiss {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0 2px;
+    line-height: 1;
+    transition: opacity $t-fast;
+    flex-shrink: 0;
+    &:hover { opacity: 1; }
 }
 .flash-notice {
     background: rgba($green, 0.15);

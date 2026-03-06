@@ -18,10 +18,16 @@
 
   <body<%= " style=\"--page-accent: #{@page_accent}; --page-accent-rgb: #{hex_to_rgb(@page_accent)};\"".html_safe if @page_accent %>>
     <% if notice.present? %>
-      <div class="flash flash-notice"><%= notice %></div>
+      <div class="flash flash-notice" data-controller="flash">
+        <span><%= notice %></span>
+        <button class="flash-dismiss" data-action="click->flash#dismiss">&times;</button>
+      </div>
     <% end %>
     <% if alert.present? %>
-      <div class="flash flash-alert"><%= alert %></div>
+      <div class="flash flash-alert" data-controller="flash">
+        <span><%= alert %></span>
+        <button class="flash-dismiss" data-action="click->flash#dismiss">&times;</button>
+      </div>
     <% end %>
     <div class="container py-3">
       <%= render 'components/navbar' %>

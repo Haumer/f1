@@ -31,6 +31,8 @@ class DriversController < ApplicationController
 
     @season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
                         .includes(driver: :countries, constructor: [])
+                        .sort_by { |sd| -sd.id }
+                        .uniq(&:driver_id)
                         .sort_by { |sd| -(sd.driver.send(elo_col) || 0) }
 
     @grid_standings = season.latest_driver_standings.index_by(&:driver_id)
