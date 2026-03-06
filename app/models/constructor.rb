@@ -10,6 +10,11 @@ class Constructor < ApplicationRecord
     has_many :supporters, through: :constructor_supports, source: :user
 
     validates :name, :constructor_ref, presence: true
+    validates :constructor_ref, uniqueness: true
+
+    def to_param
+      constructor_ref
+    end
 
     before_save :set_logo_url, if: -> { logo_url.blank? }
 

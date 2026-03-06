@@ -26,7 +26,7 @@ class ConstructorsController < ApplicationController
     @constructor = Constructor.includes(
       race_results: { race: :circuit, driver: [:countries] },
       season_drivers: { driver: [:countries], season: [] }
-    ).find(params[:id])
+    ).find_by!(constructor_ref: params[:id])
     set_constructor_accent(@constructor)
 
     results = @constructor.race_results.to_a
@@ -166,7 +166,7 @@ class ConstructorsController < ApplicationController
 
   def support
     authenticate_user!
-    constructor = Constructor.find(params[:id])
+    constructor = Constructor.find_by!(constructor_ref: params[:id])
     season = current_season
 
     unless ConstructorSupport.can_change?(current_user, season)
