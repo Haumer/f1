@@ -30,7 +30,7 @@
             <div class="driver-hero-elo">
                 <div class="driver-hero-elo-stat">
                     <span class="driver-hero-elo-value"><%= elo_link(@driver.display_elo) %></span>
-                    <span class="driver-hero-elo-label">Current Elo</span>
+                    <span class="driver-hero-elo-label"><%= @driver.active ? "Current Elo" : "Final Elo" %></span>
                 </div>
                 <div class="driver-hero-elo-stat">
                     <span class="driver-hero-elo-value"><%= elo_link(@driver.display_peak_elo) %></span>
@@ -172,6 +172,7 @@
         <div class="driver-chart-full">
             <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>
         </div>
+        <span class="data-source">Data: Elo ratings computed from race finishing positions &middot; <%= @driver.race_results.size %> races</span>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
             <table class="driver-race-results current-driver-standings compact">
