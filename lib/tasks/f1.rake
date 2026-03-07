@@ -98,7 +98,7 @@ namespace :f1 do
       { driver_ref: "russell", constructor_ref: "mercedes" },
       { driver_ref: "albon", constructor_ref: "williams" },
       { driver_ref: "piastri", constructor_ref: "mclaren" },
-      { driver_ref: "lindblad", constructor_ref: "rb" },
+      { driver_ref: "arvid_lindblad", constructor_ref: "rb" },
     ]
 
     created = 0
@@ -138,6 +138,52 @@ namespace :f1 do
     start_year = ENV.fetch("START", "1950").to_i
     end_year = ENV.fetch("END", Date.current.year.to_s).to_i
     FullDataSyncJob.perform_now(start_year: start_year, end_year: end_year)
+  end
+
+  desc "Fetch qualifying results for a season (YEAR=2026, or all with START/END)"
+  task qualifying: :environment do
+    start_year = ENV.fetch("START", ENV.fetch("YEAR", Date.current.year.to_s)).to_i
+    end_year = ENV.fetch("END", start_year.to_s).to_i
+
+    total = 0
+    (start_year..end_year).each do |year|
+      season = Season.find_by(year: year.to_s)
+      unless season
+        puts "Season #{year} not found, skipping."
+        next
+      end
+
+      races = season.races.order(:round)
+      puts "=== #{year}: #{races.count} races ==="
+      races.each do |race|
+        count = UpdateQualifyingResult.new(race: race).call
+        if count
+          puts "  R#{race.round} #{race.circuit&.name}: #{count} qualifying results"
+          total += count
+        else
+          puts "  R#{race.round} #{race.circuit&.name}: no data"
+        end
+        sleep 0.5 # rate limit
+      end
+    end
+    puts "\nDone. #{total} qualifying results stored."
+  end
+
+  desc "Auto-fetch qualifying results for races where qualifying has finished"
+  task qualifying_sync: :environment do
+    season = Season.sorted_by_year.first
+    now = Time.current
+    expected = season.season_drivers.count
+
+    season.races.each do |race|
+      next if race.qualifying_results.count >= expected # already fetched
+      next unless race.quali_starts_at
+      next unless race.quali_starts_at + 2.hours < now # quali should be done
+      next if race.quali_starts_at + 24.hours < now # too old, skip
+
+      puts "Enqueuing qualifying sync for R#{race.round} #{race.circuit&.name}"
+      QualifyingSyncJob.perform_later(race_id: race.id)
+    end
   end
 
   desc "Settle stock market for a race (pays dividends, charges borrow fees, snapshots)"

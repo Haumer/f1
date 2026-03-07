@@ -27,121 +27,270 @@
 
     <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
 
-    <div class="race-stats-row">
-        <div class="race-stat-card">
-            <div class="race-stat-value"><%= @grid_size %></div>
-            <div class="race-stat-label">Grid Size</div>
-        </div>
-        <div class="race-stat-card">
-            <div class="race-stat-value"><%= elo_link(@race.average_elo) %></div>
-            <div class="race-stat-label">Avg Elo</div>
-        </div>
-        <% if @biggest_gainer %>
-            <div class="race-stat-card">
-                <div class="race-stat-value text-green">+<%= @biggest_gainer.display_elo_diff.round(1) %></div>
-                <div class="race-stat-label"><%= @biggest_gainer.driver.forename.first %>.<%= @biggest_gainer.driver.surname %></div>
-            </div>
-        <% end %>
-        <% if @biggest_loser %>
-            <div class="race-stat-card">
-                <div class="race-stat-value text-red"><%= @biggest_loser.display_elo_diff.round(1) %></div>
-                <div class="race-stat-label"><%= @biggest_loser.driver.forename.first %>.<%= @biggest_loser.driver.surname %></div>
-            </div>
-        <% end %>
-        <% if @highest_elo_rr %>
-            <div class="race-stat-card">
-                <div class="race-stat-value"><%= elo_link(@highest_elo_rr.display_new_elo) %></div>
-                <div class="race-stat-label">Highest Elo (<%= @highest_elo_rr.driver.surname %>)</div>
-            </div>
-        <% end %>
-        <% if @dnf_count > 0 %>
-            <div class="race-stat-card">
-                <div class="race-stat-value"><%= @dnf_count %></div>
-                <div class="race-stat-label">DNFs</div>
-            </div>
-        <% end %>
-    </div>
+    <% has_quali = @qualifying_results.any? %>
+    <% has_results = @race.race_results.any? %>
 
-    <div class="card card-flush">
-        <div class="table-scroll-wrapper">
-        <table class="race-results" data-controller="sortable-table">
-            <thead>
-                <tr>
-                    <th class="text-center">#</th>
-                    <th class="d-none d-sm-table-cell"></th>
-                    <th class="d-none d-md-table-cell"></th>
-                    <th data-sort="text">Driver</th>
-                    <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">Grid</th>
-                    <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">+/-</th>
-                    <th class="text-center race-result-cell d-none d-md-table-cell" data-sort="num">Points</th>
-                    <th class="text-center race-result-cell d-none d-lg-table-cell" data-sort="num">Season Pts</th>
-                    <th class="text-center race-result-cell d-none d-lg-table-cell" data-sort="num">Season #</th>
-                    <th class="text-center race-result-cell" data-sort="num">Elo Change</th>
-                    <th class="text-center race-result-cell" data-sort="num">Elo</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% @race.race_results.sort_by { |rr| rr.position_order || 999 }.each do |race_result| %>
+    <% if has_results %>
+        <%# ── Post-race stats ── %>
+        <div class="race-stats-row">
+            <div class="race-stat-card">
+                <div class="race-stat-value"><%= @grid_size %></div>
+                <div class="race-stat-label">Grid Size</div>
+            </div>
+            <div class="race-stat-card">
+                <div class="race-stat-value"><%= elo_link(@race.average_elo) %></div>
+                <div class="race-stat-label">Avg Elo</div>
+            </div>
+            <% if @biggest_gainer %>
+                <div class="race-stat-card">
+                    <div class="race-stat-value text-green">+<%= @biggest_gainer.display_elo_diff.round(1) %></div>
+                    <div class="race-stat-label"><%= @biggest_gainer.driver.forename.first %>.<%= @biggest_gainer.driver.surname %></div>
+                </div>
+            <% end %>
+            <% if @biggest_loser %>
+                <div class="race-stat-card">
+                    <div class="race-stat-value text-red"><%= @biggest_loser.display_elo_diff.round(1) %></div>
+                    <div class="race-stat-label"><%= @biggest_loser.driver.forename.first %>.<%= @biggest_loser.driver.surname %></div>
+                </div>
+            <% end %>
+            <% if @highest_elo_rr %>
+                <div class="race-stat-card">
+                    <div class="race-stat-value"><%= elo_link(@highest_elo_rr.display_new_elo) %></div>
+                    <div class="race-stat-label">Highest Elo (<%= @highest_elo_rr.driver.surname %>)</div>
+                </div>
+            <% end %>
+            <% if @dnf_count > 0 %>
+                <div class="race-stat-card">
+                    <div class="race-stat-value"><%= @dnf_count %></div>
+                    <div class="race-stat-label">DNFs</div>
+                </div>
+            <% end %>
+        </div>
+    <% elsif @session_schedule %>
+        <%# ── Pre-race: session schedule ── %>
+        <div class="race-stats-row">
+            <% @session_schedule.each do |session| %>
+                <% next unless session[:starts_at] %>
+                <% is_past = session[:starts_at] < Time.current %>
+                <div class="race-stat-card <%= 'race-stat-card--muted' if is_past %>">
+                    <div class="race-stat-value"><%= session[:starts_at].strftime("%H:%M") %></div>
+                    <div class="race-stat-label">
+                        <%= session[:name] %> &middot; <%= session[:date].strftime("%a %-d %b") %>
+                        <% if is_past %>
+                            <i class="fa-solid fa-check" style="color: var(--page-accent, #e10600); margin-left: 4px;"></i>
+                        <% end %>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# ── Race / Qualifying tabs ── %>
+    <% default_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
+
+    <div class="card card-flush" data-controller="tab-table">
+        <div class="table-header table-header-tabs">
+            <h3 class="table-tab <%= 'active' if default_tab == 'race' %>"
+                data-tab="race" data-tab-table-target="tab" data-action="click->tab-table#switch">Race</h3>
+            <h3 class="table-tab <%= 'active' if default_tab == 'qualifying' %> <%= 'table-tab--disabled' unless has_quali %>"
+                data-tab="qualifying" data-tab-table-target="tab" data-action="click->tab-table#switch">Qualifying</h3>
+        </div>
+
+        <%# ── Race Results Panel ── %>
+        <div data-tab="race" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'race' %>">
+            <div class="table-scroll-wrapper">
+            <table class="race-results" data-controller="sortable-table">
+                <thead>
                     <tr>
-                        <td class="text-center"><%= race_result.position_order %></td>
-                        <td class="d-none d-sm-table-cell">
-                            <% if race_result.driver.country.present? %>
-                                <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= race_result.driver.country.name %>';this.style.display='none'">
-                            <% end %>
-                        </td>
-                        <td class="d-none d-md-table-cell">
-                            <% constructor = @constructor_by_driver[race_result.driver_id] || race_result.constructor %>
-                            <% if constructor %>
-                                <%= link_to constructor_path(constructor) do %>
-                                    <% if constructor.logo_url.present? %>
-                                        <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                                    <% else %>
-                                        <span class="text-secondary"><%= constructor.name %></span>
-                                    <% end %>
-                                <% end %>
-                            <% end %>
-                        </td>
-                        <td>
-                            <%= link_to driver_path(race_result.driver) do %>
-                                <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
-                            <% end %>
-                        </td>
-                        <td class="text-center d-none d-sm-table-cell"><%= race_result.grid %></td>
-                        <td class="text-center d-none d-sm-table-cell">
-                            <% if race_result.grid && race_result.grid > 0 %>
-                                <% positions_changed = race_result.grid - race_result.position_order %>
-                                <% if positions_changed > 0 %>
-                                    <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= positions_changed %></span>
-                                <% elsif positions_changed < 0 %>
-                                    <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= positions_changed %></span>
-                                <% else %>
-                                    <span class="text-muted">&mdash;</span>
-                                <% end %>
-                            <% end %>
-                        </td>
-                        <td class="text-center d-none d-md-table-cell"><%= race_result.points.to_i.zero? ? race_result.points.to_i : "+#{race_result.points.to_i}" %></td>
-                        <% standing = @standings_by_driver[race_result.driver_id] %>
-                        <td class="text-center d-none d-lg-table-cell"><%= standing&.points %></td>
-                        <td class="text-center d-none d-lg-table-cell"><%= standing&.position %></td>
-                        <td class="text-center">
-                            <% if race_result.display_gained_elo? %>
-                                <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
-                            <% else %>
-                                <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
-                            <% end %>
-                        </td>
-                        <td class="text-center"><%= elo_link(race_result.display_new_elo) %></td>
+                        <th class="text-center">#</th>
+                        <th class="d-none d-sm-table-cell"></th>
+                        <th class="d-none d-md-table-cell"></th>
+                        <th data-sort="text">Driver</th>
+                        <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">Grid</th>
+                        <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">+/-</th>
+                        <th class="text-center race-result-cell d-none d-md-table-cell" data-sort="num">Points</th>
+                        <th class="text-center race-result-cell d-none d-lg-table-cell" data-sort="num">Season Pts</th>
+                        <th class="text-center race-result-cell d-none d-lg-table-cell" data-sort="num">Season #</th>
+                        <th class="text-center race-result-cell" data-sort="num">Elo Change</th>
+                        <th class="text-center race-result-cell" data-sort="num">Elo</th>
                     </tr>
-                <% end %>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <% if has_results %>
+                        <% @race.race_results.sort_by { |rr| rr.position_order || 999 }.each do |race_result| %>
+                            <tr>
+                                <td class="text-center"><%= race_result.position_order %></td>
+                                <td class="d-none d-sm-table-cell">
+                                    <% if race_result.driver.country.present? %>
+                                        <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= race_result.driver.country.name %>';this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    <% constructor = @constructor_by_driver[race_result.driver_id] || race_result.constructor %>
+                                    <% if constructor %>
+                                        <%= link_to constructor_path(constructor) do %>
+                                            <% if constructor.logo_url.present? %>
+                                                <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                            <% else %>
+                                                <span class="text-secondary"><%= constructor.name %></span>
+                                            <% end %>
+                                        <% end %>
+                                    <% end %>
+                                </td>
+                                <td>
+                                    <%= link_to driver_path(race_result.driver) do %>
+                                        <%= race_result.driver.forename.first %>.<%= race_result.driver.surname %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center d-none d-sm-table-cell"><%= race_result.grid %></td>
+                                <td class="text-center d-none d-sm-table-cell">
+                                    <% if race_result.grid && race_result.grid > 0 %>
+                                        <% positions_changed = race_result.grid - race_result.position_order %>
+                                        <% if positions_changed > 0 %>
+                                            <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= positions_changed %></span>
+                                        <% elsif positions_changed < 0 %>
+                                            <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= positions_changed %></span>
+                                        <% else %>
+                                            <span class="text-muted">&mdash;</span>
+                                        <% end %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center d-none d-md-table-cell"><%= race_result.points.to_i.zero? ? race_result.points.to_i : "+#{race_result.points.to_i}" %></td>
+                                <% standing = @standings_by_driver[race_result.driver_id] %>
+                                <td class="text-center d-none d-lg-table-cell"><%= standing&.points %></td>
+                                <td class="text-center d-none d-lg-table-cell"><%= standing&.position %></td>
+                                <td class="text-center">
+                                    <% if race_result.display_gained_elo? %>
+                                        <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
+                                    <% else %>
+                                        <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><%= elo_link(race_result.display_new_elo) %></td>
+                            </tr>
+                        <% end %>
+                    <% elsif @expected_drivers %>
+                        <% @expected_drivers.each_with_index do |entry, i| %>
+                            <tr>
+                                <td class="text-center text-muted"><%= i + 1 %></td>
+                                <td class="d-none d-sm-table-cell">
+                                    <% if entry[:driver].country.present? %>
+                                        <img src="https://flagsapi.com/<%= entry[:driver].country.two_letter_country_code %>/shiny/24.png" alt="<%= entry[:driver].country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= entry[:driver].country.name %>';this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    <% if entry[:constructor] %>
+                                        <%= link_to constructor_path(entry[:constructor]) do %>
+                                            <% if entry[:constructor].logo_url.present? %>
+                                                <img src="<%= entry[:constructor].logo_url %>" alt="<%= entry[:constructor].name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                            <% else %>
+                                                <span class="text-secondary"><%= entry[:constructor].name %></span>
+                                            <% end %>
+                                        <% end %>
+                                    <% end %>
+                                </td>
+                                <td>
+                                    <%= link_to driver_path(entry[:driver]) do %>
+                                        <%= entry[:driver].forename.first %>.<%= entry[:driver].surname %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center d-none d-sm-table-cell"><%= entry[:grid] %></td>
+                                <td class="d-none d-sm-table-cell"></td>
+                                <td class="d-none d-md-table-cell"></td>
+                                <td class="d-none d-lg-table-cell"></td>
+                                <td class="d-none d-lg-table-cell"></td>
+                                <td></td>
+                                <td class="text-center"><%= elo_link(entry[:driver].elo_v2) %></td>
+                            </tr>
+                        <% end %>
+                    <% end %>
+                </tbody>
+            </table>
+            </div>
+            <% unless has_results %>
+                <span class="data-source">Ranked by current Elo</span>
+            <% end %>
+        </div>
+
+        <%# ── Qualifying Panel ── %>
+        <div data-tab="qualifying" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'qualifying' %>">
+            <% if has_quali %>
+                <div class="table-scroll-wrapper">
+                <table class="race-results" data-controller="sortable-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th class="d-none d-sm-table-cell"></th>
+                            <th class="d-none d-md-table-cell"></th>
+                            <th data-sort="text">Driver</th>
+                            <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">Q1</th>
+                            <th class="text-center race-result-cell d-none d-sm-table-cell" data-sort="num">Q2</th>
+                            <th class="text-center race-result-cell d-none d-md-table-cell" data-sort="num">Q3</th>
+                            <th class="text-center race-result-cell d-none d-lg-table-cell"></th>
+                            <th class="text-center race-result-cell d-none d-lg-table-cell"></th>
+                            <th class="text-center race-result-cell" data-sort="num">Gap</th>
+                            <th class="text-center race-result-cell" data-sort="num">Elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% pole_time = @qualifying_results.first&.best_time %>
+                        <% @qualifying_results.each do |qr| %>
+                            <tr>
+                                <td class="text-center"><%= qr.position %></td>
+                                <td class="d-none d-sm-table-cell">
+                                    <% if qr.driver.country.present? %>
+                                        <img src="https://flagsapi.com/<%= qr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= qr.driver.country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= qr.driver.country.name %>';this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    <% if qr.constructor %>
+                                        <%= link_to constructor_path(qr.constructor) do %>
+                                            <% if qr.constructor.logo_url.present? %>
+                                                <img src="<%= qr.constructor.logo_url %>" alt="<%= qr.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                            <% else %>
+                                                <span class="text-secondary"><%= qr.constructor.name %></span>
+                                            <% end %>
+                                        <% end %>
+                                    <% end %>
+                                </td>
+                                <td>
+                                    <%= link_to driver_path(qr.driver) do %>
+                                        <%= qr.driver.forename.first %>.<%= qr.driver.surname %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center d-none d-sm-table-cell"><%= qr.q1 || "—" %></td>
+                                <td class="text-center d-none d-sm-table-cell"><%= qr.q2 || "—" %></td>
+                                <td class="text-center d-none d-md-table-cell"><%= qr.q3 || "—" %></td>
+                                <td class="d-none d-lg-table-cell"></td>
+                                <td class="d-none d-lg-table-cell"></td>
+                                <td class="text-center">
+                                    <% if qr.position == 1 %>
+                                        <span class="text-green"><%= qr.best_time || "—" %></span>
+                                    <% elsif qr.best_time && pole_time %>
+                                        <span class="text-muted">+<%= qr.gap_to(pole_time) %></span>
+                                    <% else %>
+                                        <span class="text-muted">—</span>
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><%= elo_link(qr.driver.elo_v2) %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+                </div>
+                <span class="data-source">Data: Jolpica (Ergast) API</span>
+            <% else %>
+                <p class="text-muted text-center" style="padding: 40px 0;">Qualifying has not started yet.</p>
+            <% end %>
         </div>
     </div>
 
+    <% if has_results %>
     <div class="card">
         <div class="chart-header">
             <h4>Elo Changes</h4>
         </div>
         <%= custom_chart Graphs::RaceEloChanges.new(race: @race).data %>
     </div>
+    <% end %>
 </div>

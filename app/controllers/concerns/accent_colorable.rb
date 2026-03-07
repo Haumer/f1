@@ -32,7 +32,16 @@ module AccentColorable
 
   def set_race_winner_accent(race)
     winner = race.race_results.find_by(position_order: 1)
-    @page_accent = constructor_color(winner&.constructor) || DEFAULT_ACCENT
+    if winner
+      @page_accent = constructor_color(winner.constructor) || DEFAULT_ACCENT
+    else
+      # No race result yet — use reigning champion's constructor color
+      standing = DriverStanding.where(season_end: true, position: 1)
+                               .joins(race: :season)
+                               .order("seasons.year DESC")
+                               .first
+      @page_accent = constructor_color_for_standing(standing) || DEFAULT_ACCENT
+    end
     sanitize_page_accent!
   end
 

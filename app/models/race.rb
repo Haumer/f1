@@ -2,6 +2,7 @@ class Race < ApplicationRecord
   belongs_to :circuit
   belongs_to :season
   has_many :race_results, dependent: :destroy
+  has_many :qualifying_results, dependent: :destroy
   has_many :drivers, through: :race_results
   has_many :driver_standings, dependent: :destroy
 

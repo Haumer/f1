@@ -432,6 +432,29 @@ th[data-sort] {
     }
 }
 
+.table-header-tabs {
+    gap: 0;
+    justify-content: flex-start;
+    .table-tab {
+        cursor: pointer;
+        padding: 4px 16px 8px;
+        margin-bottom: -9px;
+        border-bottom: 2px solid transparent;
+        color: $text-tertiary;
+        transition: color $t-fast, border-color $t-fast;
+        &:hover { color: $text-primary; }
+        &.active {
+            color: $text-primary;
+            border-bottom-color: var(--page-accent, $accent-red);
+        }
+        &--disabled {
+            opacity: 0.3;
+            cursor: default;
+            &:hover { color: $text-tertiary; }
+        }
+    }
+}
+
 .table-header-link {
     display: flex;
     align-items: center;

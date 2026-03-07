@@ -2,6 +2,7 @@ class Constructor < ApplicationRecord
     include ConstructorFamilies
 
     has_many :race_results
+    has_many :qualifying_results
     has_many :races, through: :race_results
     has_many :constructor_standings
     has_many :season_drivers

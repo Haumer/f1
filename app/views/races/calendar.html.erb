@@ -86,7 +86,7 @@
                                         <span class="cal-winner"><i class="fa-solid fa-flag-checkered"></i> <%= winner.driver.surname %></span>
                                     <% end %>
                                 <% else %>
-                                    <%= link_to circuit_path(race.circuit), class: "cal-race-link" do %>
+                                    <%= link_to race_path(race), class: "cal-race-link" do %>
                                         <span class="cal-circuit"><%= race.circuit.name.truncate(18) %></span>
                                     <% end %>
                                 <% end %>

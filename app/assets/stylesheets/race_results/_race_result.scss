@@ -342,6 +342,10 @@ table.race-results {
         border-color: $border-accent;
     }
 
+    &--muted {
+        opacity: 0.45;
+    }
+
     .race-stat-value {
         font-family: $mono-font;
         font-size: $type-h3;

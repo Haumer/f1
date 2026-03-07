@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_06_173200) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_07_103347) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -450,6 +450,21 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_173200) do
     t.index ["searchable_type", "searchable_id"], name: "index_pg_search_documents_on_searchable"
   end
 
+  create_table "qualifying_results", force: :cascade do |t|
+    t.bigint "race_id", null: false
+    t.bigint "driver_id", null: false
+    t.bigint "constructor_id"
+    t.integer "position"
+    t.string "q1"
+    t.string "q2"
+    t.string "q3"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["constructor_id"], name: "index_qualifying_results_on_constructor_id"
+    t.index ["driver_id"], name: "index_qualifying_results_on_driver_id"
+    t.index ["race_id"], name: "index_qualifying_results_on_race_id"
+  end
+
   create_table "race_results", force: :cascade do |t|
     t.integer "kaggle_id"
     t.bigint "race_id", null: false
@@ -697,6 +712,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_06_173200) do
   add_foreign_key "fantasy_transactions", "drivers"
   add_foreign_key "fantasy_transactions", "fantasy_portfolios"
   add_foreign_key "fantasy_transactions", "races"
+  add_foreign_key "qualifying_results", "constructors"
+  add_foreign_key "qualifying_results", "drivers"
+  add_foreign_key "qualifying_results", "races"
   add_foreign_key "race_results", "constructors"
   add_foreign_key "race_results", "drivers"
   add_foreign_key "race_results", "races"

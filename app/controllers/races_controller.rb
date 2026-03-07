@@ -30,6 +30,29 @@ class RacesController < ApplicationController
     @constructor_by_driver = season_drivers.each_with_object({}) do |sd, h|
       h[sd.driver_id] = sd.constructor
     end
+
+    # Qualifying results
+    @qualifying_results = @race.qualifying_results.sorted.includes(:driver, :constructor)
+
+    # Pre-race: expected drivers + session schedule
+    unless @race.has_results?
+      @session_schedule = @race.session_schedule
+      quali_grid = @qualifying_results.index_by(&:driver_id)
+
+      @expected_drivers = season.season_drivers
+                            .includes(driver: :countries, constructor: [])
+                            .map do |sd|
+                              qr = quali_grid[sd.driver_id]
+                              { driver: sd.driver, constructor: sd.constructor, grid: qr&.position }
+                            end
+
+      if quali_grid.any?
+        # Drivers with grid positions first (by position), then the rest by Elo
+        @expected_drivers.sort_by! { |d| [d[:grid] ? 0 : 1, d[:grid] || 999, -(d[:driver].elo_v2 || 0)] }
+      else
+        @expected_drivers.sort_by! { |d| -(d[:driver].elo_v2 || 0) }
+      end
+    end
   end
 
   def calendar
