@@ -3,7 +3,7 @@ module Fantasy
     class SettleRace
       DIVIDENDS = { 1 => 5.0, 2 => 3.0, 3 => 3.0 }.freeze
       POINTS_DIVIDEND = 1.0 # P4-P10
-      BORROW_FEE_RATE = 0.02 # 2% per race
+      BORROW_FEE_RATE = 0.0025 # 0.25% per race
       MAX_LOSS_MULTIPLIER = 2.0 # Auto-liquidate at 2x entry price loss
 
       def initialize(race:)
