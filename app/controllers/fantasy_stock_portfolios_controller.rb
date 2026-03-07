@@ -96,21 +96,24 @@ class FantasyStockPortfoliosController < ApplicationController
     errors = []
     bought = []
 
-    orders.each do |order|
-      driver = Driver.find(order[:driver_id])
-      qty = (order[:quantity] || 1).to_i
-      direction = order[:direction]
+    ActiveRecord::Base.transaction do
+      orders.each do |order|
+        driver = Driver.find(order[:driver_id])
+        qty = (order[:quantity] || 1).to_i
+        direction = order[:direction]
 
-      result = if direction == "short"
-        Fantasy::Stock::OpenShort.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
-      else
-        Fantasy::Stock::BuyShares.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
-      end
+        result = if direction == "short"
+          Fantasy::Stock::OpenShort.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
+        else
+          Fantasy::Stock::BuyShares.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
+        end
 
-      if result[:error]
-        errors << "#{driver.fullname}: #{result[:error]}"
-      else
-        bought << "#{qty}x #{driver.fullname} (#{direction})"
+        if result[:error]
+          errors << "#{driver.fullname}: #{result[:error]}"
+          raise ActiveRecord::Rollback
+        else
+          bought << "#{qty}x #{driver.fullname} (#{direction})"
+        end
       end
     end
 

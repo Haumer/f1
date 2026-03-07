@@ -42,12 +42,10 @@ class Season < ApplicationRecord
     end
 
     def next_race
-        return nil if latest_race.nil?
+        last_completed = latest_race
+        return races.order(round: :asc).first if last_completed.nil?
 
-        first_race = races.order(round: :asc).first
-        return latest_race if latest_race == first_race
-
-        races.find_by(round: latest_race.round + 1)
+        races.find_by(round: last_completed.round + 1)
     end
 
     def season_race_results

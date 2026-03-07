@@ -9,7 +9,7 @@ module Fantasy
     end
 
     def call
-      return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
+      return { error: "Transfer window is closed" } unless @portfolio.can_swap?(@race)
 
       entry = @portfolio.active_roster_entries.find_by(driver_id: @driver.id)
       return { error: "Driver is not on your roster" } unless entry

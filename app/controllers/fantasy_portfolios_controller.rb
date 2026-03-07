@@ -122,13 +122,16 @@ class FantasyPortfoliosController < ApplicationController
     errors = []
     bought = []
 
-    driver_ids.each do |driver_id|
-      driver = Driver.find(driver_id)
-      result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
-      if result[:error]
-        errors << "#{driver.fullname}: #{result[:error]}"
-      else
-        bought << driver.fullname
+    ActiveRecord::Base.transaction do
+      driver_ids.each do |driver_id|
+        driver = Driver.find(driver_id)
+        result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
+        if result[:error]
+          errors << "#{driver.fullname}: #{result[:error]}"
+          raise ActiveRecord::Rollback
+        else
+          bought << driver.fullname
+        end
       end
     end
 
@@ -153,7 +156,7 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def buy_team
-    result = Fantasy::BuyTeam.new(portfolio: @portfolio).call
+    result = Fantasy::BuyTeam.new(portfolio: @portfolio, race: @next_race).call
 
     if result[:error]
       redirect_to fantasy_roster_path(current_user.username), alert: result[:error]

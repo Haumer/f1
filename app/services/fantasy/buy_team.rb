@@ -1,10 +1,12 @@
 module Fantasy
   class BuyTeam
-    def initialize(portfolio:)
+    def initialize(portfolio:, race:)
       @portfolio = portfolio
+      @race = race
     end
 
     def call
+      return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
       return { error: "Already at maximum teams (#{FantasyPortfolio::MAX_TEAMS})" } unless @portfolio.can_buy_team?
 
       cost = @portfolio.team_cost
