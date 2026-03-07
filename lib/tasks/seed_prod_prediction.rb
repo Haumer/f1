@@ -193,6 +193,7 @@ ActiveRecord::Base.transaction do
   if user.new_record?
     user.email = "gridmind@f1elo.com"
     user.password = ENV.fetch("GRIDMIND_PASSWORD") { SecureRandom.hex(16) }
+    user.terms_accepted = true if user.respond_to?(:terms_accepted=)
     user.save!
     puts "Created user: #{user.username} (id: #{user.id})"
   else
