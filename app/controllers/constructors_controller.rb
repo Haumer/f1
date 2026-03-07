@@ -185,7 +185,7 @@ class ConstructorsController < ApplicationController
       season: season
     )
 
-    # Grant cash bonus on first-ever pick this season
+    # Grant cash bonus on first-ever pick this season (only if portfolio exists)
     if !support.bonus_granted && current_user.constructor_supports.where(season: season, bonus_granted: true).none?
       portfolio = current_user.fantasy_portfolio_for(season)
       if portfolio
@@ -195,8 +195,8 @@ class ConstructorsController < ApplicationController
           amount: ConstructorSupport::BONUS_CASH,
           note: "Team allegiance bonus for supporting #{constructor.name}"
         )
+        support.update!(bonus_granted: true)
       end
-      support.update!(bonus_granted: true)
     end
 
     redirect_back fallback_location: constructor_path(constructor), notice: "You are now supporting #{constructor.name}!"

@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_action :authenticate_user!, only: [:show, :update, :username_available]
+  before_action :authenticate_user!, only: [:show, :update]
 
   def username_available
     username = params[:username].to_s.strip.downcase
