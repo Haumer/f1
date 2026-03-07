@@ -1232,7 +1232,7 @@ table.race-results {
         gap: 8px;
 
         i {
-            color: var(--page-accent, $f1-red);
+            color: var(--page-accent, #e10600);
             font-size: 16px;
         }
         h4 {
@@ -1332,7 +1332,7 @@ table.race-results {
         background: none;
         border: 1px solid $border-color;
         border-radius: $radius-sm;
-        color: var(--page-accent, $f1-red);
+        color: var(--page-accent, #e10600);
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
@@ -1340,7 +1340,7 @@ table.race-results {
 
         &:hover {
             background: rgba(225, 6, 0, 0.05);
-            border-color: var(--page-accent, $f1-red);
+            border-color: var(--page-accent, #e10600);
         }
     }
 }
@@ -1371,8 +1371,8 @@ table.race-results {
         transition: all $t-fast;
 
         &:hover {
-            color: var(--page-accent, $f1-red);
-            border-color: var(--page-accent, $f1-red);
+            color: var(--page-accent, #e10600);
+            border-color: var(--page-accent, #e10600);
         }
     }
 
