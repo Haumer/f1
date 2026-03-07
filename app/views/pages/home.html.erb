@@ -36,7 +36,7 @@
             <div class="card card-flush">
                 <div class="table-scroll-wrapper">
                     <div data-controller="expandable-table" data-expandable-table-limit-value="10">
-                        <%= render 'drivers/grid_table', season_drivers: @season_drivers, grid_standings: @grid_standings, standings_extras: @standings_extras %>
+                        <%= render 'drivers/grid_table', season_drivers: @season_drivers, grid_standings: @grid_standings, standings_extras: (@standings_season == @season ? @standings_extras : {}) %>
                         <% if @season_drivers.size > 10 %>
                             <button class="expand-table-btn" data-action="expandable-table#toggle" data-expandable-table-target="button">
                                 Show all <%= @season_drivers.size %> drivers

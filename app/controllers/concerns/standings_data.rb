@@ -31,8 +31,8 @@ module StandingsData
       constructors = (season_drivers[did] || []).map(&:constructor).uniq(&:id)
 
       elo = results.last&.send(elo_col)&.round
-      elo_diff = if results.present? && results.last.send(elo_col) && results.first.send(old_elo_col)
-                   results.last.send(elo_col).round - results.first.send(old_elo_col).round
+      elo_diff = if results.present? && results.last.send(elo_col) && results.last.send(old_elo_col)
+                   results.last.send(elo_col).round - results.last.send(old_elo_col).round
                  end
 
       extras[did] = { elo: elo, elo_diff: elo_diff, constructors: constructors }
