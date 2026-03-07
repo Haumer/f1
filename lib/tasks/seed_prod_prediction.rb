@@ -203,14 +203,15 @@ ActiveRecord::Base.transaction do
   # Roster portfolio
   rp = user.fantasy_portfolio_for(season)
   unless rp
-    rp = Fantasy::CreatePortfolio.new(user: user, season: season).call
+    result = Fantasy::CreatePortfolio.new(user: user, season: season).call
+    rp = result[:portfolio]
     puts "Created roster portfolio (id: #{rp.id})"
   end
 
   # Stock portfolio
   sp = user.fantasy_stock_portfolio_for(season)
   unless sp
-    sp = FantasyStockPortfolio.create!(user: user, season: season, cash: rp.starting_capital)
+    sp = FantasyStockPortfolio.create!(user: user, season: season, cash: rp.starting_capital || rp.cash)
     puts "Created stock portfolio (id: #{sp.id})"
   end
 
@@ -238,7 +239,7 @@ ActiveRecord::Base.transaction do
     driver = drivers[ref]
     existing = sp.holdings.joins(:driver).where(drivers: { driver_ref: ref }, direction: "long").first
     unless existing
-      result = Fantasy::Stock::BuyShares.new(portfolio: sp, driver: driver, shares: shares, race: race).call
+      result = Fantasy::Stock::BuyShares.new(portfolio: sp, driver: driver, quantity: shares, race: race).call
       puts "Long #{shares} shares of #{ref}: #{result.inspect}"
     else
       puts "Already long: #{ref}"
@@ -250,7 +251,7 @@ ActiveRecord::Base.transaction do
     driver = drivers[ref]
     existing = sp.holdings.joins(:driver).where(drivers: { driver_ref: ref }, direction: "short").first
     unless existing
-      result = Fantasy::Stock::OpenShort.new(portfolio: sp, driver: driver, shares: shares, race: race).call
+      result = Fantasy::Stock::OpenShort.new(portfolio: sp, driver: driver, quantity: shares, race: race).call
       puts "Short #{shares} shares of #{ref}: #{result.inspect}"
     else
       puts "Already short: #{ref}"
