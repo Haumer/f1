@@ -86,9 +86,15 @@
         </div>
     <% end %>
 
-    <%# ── AI Analysis ── %>
-    <% unless @race.has_results? %>
-        <%= render "races/ai_analysis", analysis: @ai_analysis %>
+    <%# ── AI Preview link ── %>
+    <% if @ai_analysis %>
+        <div class="ai-preview-link-card">
+            <%= link_to preview_race_path(@race), class: "ai-preview-link" do %>
+                <i class="fa-solid fa-robot"></i>
+                <span>Race Preview</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            <% end %>
+        </div>
     <% end %>
 
     <%# ── Race / Qualifying tabs ── %>
@@ -294,8 +300,6 @@
     </div>
 
     <% if has_results %>
-    <%= render "races/ai_analysis", analysis: @ai_analysis %>
-
     <div class="card">
         <div class="chart-header">
             <h4>Elo Changes</h4>

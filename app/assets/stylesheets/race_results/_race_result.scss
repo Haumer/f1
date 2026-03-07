@@ -1212,6 +1212,36 @@ table.race-results {
     }
 }
 
+// ── AI Preview Link (on race show page) ──
+.ai-preview-link-card {
+    margin-bottom: 0;
+}
+
+.ai-preview-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(225, 6, 0, 0.06) 0%, $card-bg 60%);
+    border: 1px solid rgba(225, 6, 0, 0.2);
+    border-radius: $radius;
+    color: $text-primary;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all $t-fast;
+
+    i:first-child { color: var(--page-accent, #e10600); }
+    i:last-child { margin-left: auto; color: $text-secondary; font-size: 12px; }
+
+    &:hover {
+        background: rgba(225, 6, 0, 0.08);
+        border-color: var(--page-accent, #e10600);
+        color: $text-primary;
+        i:last-child { color: var(--page-accent, #e10600); }
+    }
+}
+
 // ── AI Analysis Card ──
 .ai-analysis-card {
     border: 1px solid rgba(225, 6, 0, 0.15);

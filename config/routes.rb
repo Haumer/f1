@@ -30,6 +30,9 @@ Rails.application.routes.draw do
     end
   end
   resources :races, only: [:index, :show] do
+    member do
+      get 'preview', to: 'races#preview', as: :preview
+    end
     collection do
       get 'calendar', to: 'races#calendar'
       get 'highest_elo', to: 'races#highest_elo'
