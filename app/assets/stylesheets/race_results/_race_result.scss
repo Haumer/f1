@@ -1211,3 +1211,173 @@ table.race-results {
         padding: 0;
     }
 }
+
+// ── AI Analysis Card ──
+.ai-analysis-card {
+    border: 1px solid rgba(225, 6, 0, 0.15);
+    background: linear-gradient(135deg, rgba(225, 6, 0, 0.03) 0%, $card-bg 60%);
+
+    .ai-analysis-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 12px;
+        border-bottom: 1px solid $border-color;
+        margin-bottom: 16px;
+    }
+
+    .ai-analysis-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        i {
+            color: var(--page-accent, $f1-red);
+            font-size: 16px;
+        }
+        h4 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: $text-primary;
+        }
+    }
+
+    .ai-analysis-meta {
+        font-size: 12px;
+        color: $text-secondary;
+    }
+}
+
+.ai-picks-strip {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.ai-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+    min-width: 100px;
+
+    .ai-pick-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+    }
+    .ai-pick-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-primary;
+    }
+}
+
+.ai-podium-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.ai-podium-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+
+    .ai-podium-pos {
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .ai-podium-driver {
+        font-size: 13px;
+        color: $text-primary;
+    }
+}
+
+.ai-analysis-content {
+    position: relative;
+
+    .ai-analysis-body {
+        font-size: 14px;
+        line-height: 1.7;
+        color: $text-secondary;
+
+        p { margin-bottom: 12px; }
+        strong { color: $text-primary; }
+        h1, h2, h3, h4 {
+            color: $text-primary;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    }
+
+    .ai-analysis-toggle {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        background: none;
+        border: 1px solid $border-color;
+        border-radius: $radius-sm;
+        color: var(--page-accent, $f1-red);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all $t-fast;
+
+        &:hover {
+            background: rgba(225, 6, 0, 0.05);
+            border-color: var(--page-accent, $f1-red);
+        }
+    }
+}
+
+.ai-analysis-sources {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid $border-color;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+
+    .ai-sources-label {
+        font-size: 11px;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ai-source-link {
+        font-size: 12px;
+        color: $text-secondary;
+        padding: 2px 8px;
+        border: 1px solid $border-color;
+        border-radius: 3px;
+        text-decoration: none;
+        transition: all $t-fast;
+
+        &:hover {
+            color: var(--page-accent, $f1-red);
+            border-color: var(--page-accent, $f1-red);
+        }
+    }
+
+    .ai-source-no-link {
+        cursor: default;
+        &:hover { color: $text-secondary; border-color: $border-color; }
+    }
+}

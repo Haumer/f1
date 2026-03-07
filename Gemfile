@@ -19,6 +19,7 @@ gem 'rack-attack'
 gem 'pundit'
 gem 'solid_queue'
 gem 'wikipedia-client'
+gem 'anthropic'
 gem "rails_live_reload", group: :development
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"

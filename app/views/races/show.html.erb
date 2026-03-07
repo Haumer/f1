@@ -86,6 +86,11 @@
         </div>
     <% end %>
 
+    <%# ── AI Analysis ── %>
+    <% unless @race.has_results? %>
+        <%= render "races/ai_analysis", analysis: @ai_analysis %>
+    <% end %>
+
     <%# ── Race / Qualifying tabs ── %>
     <% auto_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
     <% default_tab = %w[race qualifying].include?(params[:tab]) ? params[:tab] : auto_tab %>
@@ -289,6 +294,8 @@
     </div>
 
     <% if has_results %>
+    <%= render "races/ai_analysis", analysis: @ai_analysis %>
+
     <div class="card">
         <div class="chart-header">
             <h4>Elo Changes</h4>

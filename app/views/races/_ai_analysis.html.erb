@@ -1,0 +1,69 @@
+<% if analysis.present? %>
+    <div class="card ai-analysis-card">
+        <div class="ai-analysis-header">
+            <div class="ai-analysis-title">
+                <i class="fa-solid fa-robot"></i>
+                <h4>Race Preview</h4>
+            </div>
+            <span class="ai-analysis-meta">
+                Generated <%= time_ago_in_words(analysis.generated_at) %> ago
+            </span>
+        </div>
+
+        <% if analysis.picks.present? %>
+            <div class="ai-picks-strip">
+                <% if analysis.picks["winner"] %>
+                    <div class="ai-pick">
+                        <span class="ai-pick-label">Winner</span>
+                        <span class="ai-pick-value"><%= analysis.picks["winner"] %></span>
+                    </div>
+                <% end %>
+                <% if analysis.picks["dark_horse"] %>
+                    <div class="ai-pick">
+                        <span class="ai-pick-label">Dark Horse</span>
+                        <span class="ai-pick-value"><%= analysis.picks["dark_horse"] %></span>
+                    </div>
+                <% end %>
+                <% if analysis.picks["fastest_lap"] %>
+                    <div class="ai-pick">
+                        <span class="ai-pick-label">Fastest Lap</span>
+                        <span class="ai-pick-value"><%= analysis.picks["fastest_lap"] %></span>
+                    </div>
+                <% end %>
+            </div>
+
+            <% if analysis.picks["podium"] %>
+                <div class="ai-podium-strip">
+                    <% analysis.picks["podium"].each_with_index do |driver, i| %>
+                        <div class="ai-podium-item">
+                            <span class="ai-podium-pos place-<%= i + 1 %>">P<%= i + 1 %></span>
+                            <span class="ai-podium-driver"><%= driver %></span>
+                        </div>
+                    <% end %>
+                </div>
+            <% end %>
+        <% end %>
+
+        <div class="ai-analysis-content" data-controller="expandable-text" data-expandable-text-collapsed-value="true">
+            <div class="ai-analysis-body" data-expandable-text-target="body">
+                <%= simple_format(analysis.content) %>
+            </div>
+            <button class="ai-analysis-toggle" data-action="expandable-text#toggle" data-expandable-text-target="button">
+                Read full analysis
+            </button>
+        </div>
+
+        <% if analysis.sources.present? %>
+            <div class="ai-analysis-sources">
+                <span class="ai-sources-label">Sources:</span>
+                <% analysis.sources.each do |source| %>
+                    <% if source["url"].present? %>
+                        <%= link_to source["title"], source["url"], target: "_blank", rel: "noopener", class: "ai-source-link" %>
+                    <% else %>
+                        <span class="ai-source-link ai-source-no-link"><%= source["title"] %></span>
+                    <% end %>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+<% end %>

@@ -72,6 +72,15 @@
   </div>
 
   <div class="admin-card admin-op-card">
+    <h3><i class="fa-solid fa-robot"></i> AI Race Preview</h3>
+    <p>Generate an AI-powered race preview for the next upcoming race. Uses Claude to analyze circuit history, Elo ratings, recent form, and current standings.</p>
+    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+      <input type="hidden" name="operation" value="ai_race_preview">
+      <button type="submit" class="admin-btn" data-turbo-confirm="Generate AI race preview for the next race?">Generate Preview</button>
+    <% end %>
+  </div>
+
+  <div class="admin-card admin-op-card">
     <h3><i class="fa-solid fa-coins"></i> Recapitalize Fantasy Portfolios</h3>
     <p>Reset all current-season fantasy portfolio cash to the computed starting capital (avg Elo × 2.2). Use if portfolios were created before Elo V2 data existed.</p>
     <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>

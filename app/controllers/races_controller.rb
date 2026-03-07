@@ -34,6 +34,9 @@ class RacesController < ApplicationController
     # Qualifying results
     @qualifying_results = @race.qualifying_results.sorted.includes(:driver, :constructor)
 
+    # AI analysis (race preview)
+    @ai_analysis = @race.ai_analyses.race_previews.latest.first
+
     # Pre-race: expected drivers + session schedule
     unless @race.has_results?
       @session_schedule = @race.session_schedule

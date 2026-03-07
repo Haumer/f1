@@ -32,6 +32,16 @@ module Admin
       when "fetch_wikipedia_images"
         count = FetchWikipediaImages.fetch_all
         redirect_to admin_operations_path, notice: "Fetched #{count} Wikipedia images."
+      when "ai_race_preview"
+        today = Setting.effective_today
+        season = Season.sorted_by_year.first
+        race = season.races.where("date >= ?", today).order(date: :asc).first
+        if race
+          Ai::RacePreview.new(race).generate!
+          redirect_to admin_operations_path, notice: "AI preview generated for #{race.circuit.name}."
+        else
+          redirect_to admin_operations_path, alert: "No upcoming race found."
+        end
       when "recapitalize_fantasy"
         season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
         avg_elo = Driver.where.not(elo_v2: nil)

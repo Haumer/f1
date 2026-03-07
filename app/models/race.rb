@@ -5,6 +5,7 @@ class Race < ApplicationRecord
   has_many :qualifying_results, dependent: :destroy
   has_many :drivers, through: :race_results
   has_many :driver_standings, dependent: :destroy
+  has_many :ai_analyses, dependent: :destroy
 
   validates :date, :round, presence: true
   validates :round, uniqueness: { scope: :season_id }
