@@ -13,8 +13,9 @@ module Fantasy
         { fantasy_portfolio_id: portfolio.id, race_id: @race.id, value: value, cash: portfolio.cash }
       end
 
-      # Rank by value
-      ranked = snapshots.sort_by { |s| -s[:value] }
+      # Rank by net P&L (value minus starting capital)
+      capitals = portfolios.index_by(&:id).transform_values(&:starting_capital)
+      ranked = snapshots.sort_by { |s| -(s[:value] - (capitals[s[:fantasy_portfolio_id]] || 0)) }
       ranked.each_with_index { |s, i| s[:rank] = i + 1 }
 
       # Upsert all snapshots

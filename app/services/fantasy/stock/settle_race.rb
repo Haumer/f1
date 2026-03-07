@@ -18,12 +18,13 @@ module Fantasy
                               .index_by(&:driver_id)
 
         portfolios.each do |portfolio|
-          # Idempotency: skip if already settled for this race
-          next if portfolio.transactions.exists?(race: @race, kind: "dividend") ||
-                  portfolio.transactions.exists?(race: @race, kind: "borrow_fee") ||
-                  portfolio.snapshots.exists?(race: @race)
-
           ActiveRecord::Base.transaction do
+            # Lock the portfolio row to prevent concurrent settlement
+            portfolio.lock!
+
+            # Idempotency: skip if already settled for this race
+            next if portfolio.snapshots.exists?(race: @race)
+
             pay_dividends(portfolio, results_by_driver)
             charge_borrow_fees(portfolio)
             check_margin_calls(portfolio)

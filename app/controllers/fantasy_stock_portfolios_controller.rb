@@ -130,7 +130,7 @@ class FantasyStockPortfoliosController < ApplicationController
     @season = Season.sorted_by_year.first
     @entries = FantasyStockPortfolio.where(season: @season)
                  .includes(:user, :snapshots, holdings: :driver)
-                 .sort_by { |p| -p.portfolio_value }
+                 .sort_by { |p| -p.profit_loss }
                  .map.with_index(1) { |p, i| { rank: i, portfolio: p, user: p.user, value: p.portfolio_value } }
   end
 
