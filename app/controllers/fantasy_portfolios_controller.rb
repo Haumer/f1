@@ -187,12 +187,12 @@ class FantasyPortfoliosController < ApplicationController
     combined = []
     @roster_entries.each do |e|
       p = e[:portfolio]
-      roster_net = e[:value] - p.starting_capital
+      roster_net = (e[:value] - p.starting_capital).round(2)
       combined << { user: p.user, roster_net: roster_net, stock_net: nil, roster_value: e[:value], stock_value: nil, total_starting: p.starting_capital }
     end
     @stock_entries.each do |e|
       p = e[:portfolio]
-      stock_net = e[:value] - p.starting_capital
+      stock_net = (e[:value] - p.starting_capital).round(2)
       existing = combined.find { |c| c[:user].id == p.user_id }
       if existing
         existing[:stock_net] = stock_net
