@@ -211,7 +211,8 @@ ActiveRecord::Base.transaction do
   # Stock portfolio
   sp = user.fantasy_stock_portfolio_for(season)
   unless sp
-    sp = FantasyStockPortfolio.create!(user: user, season: season, cash: rp.starting_capital || rp.cash)
+    capital = rp.starting_capital || rp.cash
+    sp = FantasyStockPortfolio.create!(user: user, season: season, cash: capital, starting_capital: capital)
     puts "Created stock portfolio (id: #{sp.id})"
   end
 
