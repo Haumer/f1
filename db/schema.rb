@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_07_183014) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_08_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,18 +68,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_07_183014) do
     t.index ["user_id"], name: "index_ahoy_visits_on_user_id"
     t.index ["visit_token"], name: "index_ahoy_visits_on_visit_token", unique: true
     t.index ["visitor_token", "started_at"], name: "index_ahoy_visits_on_visitor_token_and_started_at"
-  end
-
-  create_table "ai_analyses", force: :cascade do |t|
-    t.bigint "race_id", null: false
-    t.string "analysis_type", default: "race_preview", null: false
-    t.text "content"
-    t.jsonb "picks", default: {}
-    t.jsonb "sources", default: []
-    t.datetime "generated_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["race_id"], name: "index_ai_analyses_on_race_id"
   end
 
   create_table "blazer_audits", force: :cascade do |t|
@@ -464,6 +452,22 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_07_183014) do
     t.index ["searchable_type", "searchable_id"], name: "index_pg_search_documents_on_searchable"
   end
 
+  create_table "predictions", force: :cascade do |t|
+    t.bigint "race_id", null: false
+    t.bigint "user_id", null: false
+    t.jsonb "predicted_results", default: []
+    t.jsonb "elo_changes", default: {}
+    t.text "analysis"
+    t.jsonb "fantasy_picks", default: {}
+    t.jsonb "sources", default: []
+    t.datetime "generated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["race_id", "user_id"], name: "index_predictions_on_race_id_and_user_id", unique: true
+    t.index ["race_id"], name: "index_predictions_on_race_id"
+    t.index ["user_id"], name: "index_predictions_on_user_id"
+  end
+
   create_table "qualifying_results", force: :cascade do |t|
     t.bigint "race_id", null: false
     t.bigint "driver_id", null: false
@@ -697,7 +701,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_07_183014) do
     t.index ["video_media_type", "video_media_id"], name: "index_videos_on_video_media"
   end
 
-  add_foreign_key "ai_analyses", "races"
   add_foreign_key "constructor_standings", "constructors"
   add_foreign_key "constructor_standings", "races"
   add_foreign_key "constructor_supports", "constructors"
@@ -732,6 +735,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_07_183014) do
   add_foreign_key "fantasy_transactions", "drivers"
   add_foreign_key "fantasy_transactions", "fantasy_portfolios"
   add_foreign_key "fantasy_transactions", "races"
+  add_foreign_key "predictions", "races"
+  add_foreign_key "predictions", "users"
   add_foreign_key "qualifying_results", "constructors"
   add_foreign_key "qualifying_results", "drivers"
   add_foreign_key "qualifying_results", "races"

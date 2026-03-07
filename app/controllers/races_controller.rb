@@ -34,8 +34,8 @@ class RacesController < ApplicationController
     # Qualifying results
     @qualifying_results = @race.qualifying_results.sorted.includes(:driver, :constructor)
 
-    # AI analysis — just check existence for the link
-    @ai_analysis = @race.ai_analyses.race_previews.exists?
+    # Predictions for preview links
+    @predictions = @race.predictions.includes(:user)
 
     # Pre-race: expected drivers + session schedule
     unless @race.has_results?
@@ -58,17 +58,6 @@ class RacesController < ApplicationController
     end
   end
 
-  def preview
-    @race = Race.includes(:circuit, :season).find(params[:id])
-    @analysis = @race.ai_analyses.race_previews.latest.first
-
-    unless @analysis
-      redirect_to race_path(@race), alert: "No preview available for this race."
-      return
-    end
-
-    set_race_winner_accent(@race)
-  end
 
   def calendar
     @season = current_season

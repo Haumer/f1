@@ -23,6 +23,7 @@ class User < ApplicationRecord
   has_many :fantasy_portfolios, dependent: :destroy
   has_many :fantasy_stock_portfolios, dependent: :destroy
   has_many :constructor_supports, dependent: :destroy
+  has_many :predictions, dependent: :destroy
 
   def to_param
     username

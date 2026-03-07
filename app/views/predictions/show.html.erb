@@ -1,0 +1,237 @@
+<% content_for(:title) { "Race Preview — #{@race.circuit.name} #{@race.season.year}" } %>
+<% content_for(:description) { "#{@user.username}'s race preview and fantasy picks for #{@race.circuit.name} #{@race.season.year}." } %>
+<%
+  picks = @prediction.fantasy_picks || {}
+  sorted_results = @prediction.predicted_results.sort_by { |r| r["position"] }
+  reasoned = sorted_results.select { |r| r["reasoning"].present? }
+%>
+
+<div class="homepage-container prediction-page">
+    <div class="page-hero race-hero">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">
+                <%= link_to race_path(@race), class: "page-hero-link" do %>
+                    <i class="fa-solid fa-chevron-left"></i> Round <%= @race.round %> · <%= @race.year %>
+                <% end %>
+            </span>
+            <h1 class="page-hero-title"><i class="fa-solid fa-robot"></i> Race Preview</h1>
+            <p class="page-hero-meta">
+                <%= @race.circuit.name %> · <%= @race.circuit.location %>, <%= @race.circuit.country %>
+                · <%= @race.date.strftime("%B %d, %Y") %>
+            </p>
+            <p class="page-hero-meta">
+                authored by <%= link_to @user.username, fantasy_overview_path(username: @user.username) %>
+            </p>
+        </div>
+    </div>
+
+    <%# ── Briefing ── %>
+    <% if picks["summary"].present? %>
+        <div class="pred-lede" style="animation-delay: 0.1s">
+            <p><%= picks["summary"] %></p>
+        </div>
+    <% end %>
+
+    <%# ── Predicted Grid ── %>
+    <% if sorted_results.any? %>
+        <div class="preview-section" style="animation-delay: 0.2s">
+            <div class="preview-section-header">
+                <h2>Predicted Grid</h2>
+                <span class="preview-section-count"><%= sorted_results.size %> drivers</span>
+            </div>
+
+            <div class="card card-flush pred-table-wrap">
+                <table class="race-results preview-result-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center col-pos">Pos</th>
+                            <th class="col-name">Driver</th>
+                            <th>Team</th>
+                            <th class="text-center">Grid</th>
+                            <th class="text-right">Elo</th>
+                            <th class="text-right">Exp. +/-</th>
+                            <th class="text-center">Signal</th>
+                            <th class="text-right">Conf.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% sorted_results.each_with_index do |entry, i| %>
+                            <% driver = @drivers_by_id[entry["driver_id"]] %>
+                            <% constructor = @constructor_by_driver[entry["driver_id"]] %>
+                            <% elo_change = @elo_changes[entry["driver_id"].to_s] %>
+                            <% signals = entry["signals"] || [] %>
+                            <tr>
+                                <td class="text-center col-pos"><%= i + 1 %></td>
+                                <td class="col-name">
+                                    <% if driver %>
+                                        <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
+                                    <% end %>
+                                </td>
+                                <td class="text-secondary"><%= constructor&.name %></td>
+                                <td class="text-center"><%= entry["grid"] || "—" %></td>
+                                <td class="text-right mono-data"><%= driver&.elo_v2&.round || "—" %></td>
+                                <td class="text-right">
+                                    <% if elo_change %>
+                                        <% diff = elo_change["diff"].round %>
+                                        <span class="elo-pill <%= diff >= 0 ? 'gain' : 'loss' %>">
+                                            <%= diff >= 0 ? "+#{diff}" : diff %>
+                                        </span>
+                                    <% end %>
+                                </td>
+                                <td class="text-center">
+                                    <% signals.each do |signal| %>
+                                        <span class="pick-signal pick-signal-<%= signal %>"><%= signal.upcase %></span>
+                                    <% end %>
+                                </td>
+                                <td class="text-right">
+                                    <% if entry["confidence"] %>
+                                        <span class="confidence-value"><%= entry["confidence"] %>%</span>
+                                    <% end %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+                <span class="data-source">
+                    Elo changes computed using the V2 pairwise formula
+                </span>
+            </div>
+        </div>
+    <% end %>
+
+    <%# ── Analysis ── %>
+    <% if @prediction.analysis.present? || reasoned.any? %>
+        <div class="preview-section" style="animation-delay: 0.3s">
+            <div class="preview-section-header">
+                <h2>Analysis</h2>
+            </div>
+
+            <% if @prediction.analysis.present? %>
+                <p class="pred-lede pred-lede--section"><%= @prediction.analysis %></p>
+            <% end %>
+
+            <% if reasoned.any? %>
+                <%
+                  # Group: picks first (by position), then non-picks (no signals)
+                  picked = reasoned.select { |r| r["signals"].present? && r["signals"].any? }
+                  noted = reasoned.select { |r| r["signals"].blank? || r["signals"].empty? }
+                %>
+                <div class="prediction-notes">
+                    <% picked.each_with_index do |entry, i| %>
+                        <% driver = @drivers_by_id[entry["driver_id"]] %>
+                        <% elo_change = @elo_changes[entry["driver_id"].to_s] %>
+                        <% signals = entry["signals"] || [] %>
+                        <% diff = elo_change&.dig("diff")&.round %>
+                        <% signal_type = signals.first %>
+                        <div class="pn-entry pn-<%= signal_type %>" style="animation-delay: <%= 0.32 + i * 0.04 %>s">
+                            <div class="pn-marker">
+                                <span class="pn-pos">P<%= entry["position"] %></span>
+                            </div>
+                            <div class="pn-body">
+                                <div class="pn-headline">
+                                    <% if driver %>
+                                        <%= link_to "#{driver.surname}", driver_path(driver), class: "pn-driver" %>
+                                    <% end %>
+                                    <% signals.each do |signal| %>
+                                        <span class="pick-signal pick-signal-<%= signal %>"><%= signal.upcase %></span>
+                                    <% end %>
+                                    <% if diff %>
+                                        <span class="pn-elo <%= diff >= 0 ? 'gain' : 'loss' %>"><%= diff >= 0 ? "+#{diff}" : diff %></span>
+                                    <% end %>
+                                </div>
+                                <p class="pn-text"><%= linkify_reasoning(entry["reasoning"]) %></p>
+                            </div>
+                        </div>
+                    <% end %>
+
+                    <% if noted.any? %>
+                        <div class="pn-divider">
+                            <span>Also considered</span>
+                        </div>
+                        <% noted.each_with_index do |entry, i| %>
+                            <% driver = @drivers_by_id[entry["driver_id"]] %>
+                            <% elo_change = @elo_changes[entry["driver_id"].to_s] %>
+                            <% diff = elo_change&.dig("diff")&.round %>
+                            <div class="pn-entry pn-note" style="animation-delay: <%= 0.32 + (picked.size + i) * 0.04 %>s">
+                                <div class="pn-marker">
+                                    <span class="pn-pos">P<%= entry["position"] %></span>
+                                </div>
+                                <div class="pn-body">
+                                    <div class="pn-headline">
+                                        <% if driver %>
+                                            <%= link_to "#{driver.surname}", driver_path(driver), class: "pn-driver" %>
+                                        <% end %>
+                                        <span class="pn-pass">PASS</span>
+                                        <% if diff %>
+                                            <span class="pn-elo <%= diff >= 0 ? 'gain' : 'loss' %>"><%= diff >= 0 ? "+#{diff}" : diff %></span>
+                                        <% end %>
+                                    </div>
+                                    <p class="pn-text"><%= linkify_reasoning(entry["reasoning"]) %></p>
+                                </div>
+                            </div>
+                        <% end %>
+                    <% end %>
+                </div>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# ── Portfolio Projection ── %>
+    <% if picks["projection"].present? %>
+        <div class="pred-projection" style="animation-delay: 0.35s">
+            <div class="pred-projection-header">
+                <span class="pred-projection-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span class="pred-projection-label">PORTFOLIO PROJECTION</span>
+            </div>
+            <p class="pred-projection-text"><%= picks["projection"] %></p>
+        </div>
+    <% end %>
+
+    <%# ── Sources + Footer ── %>
+    <% if @prediction.sources.present? %>
+        <%
+          internal_sources = @prediction.sources.select { |s| s["type"] == "internal" }
+          external_sources = @prediction.sources.select { |s| s["type"] == "external" }
+        %>
+        <div class="pred-sources" style="animation-delay: 0.4s">
+            <div class="pred-sources-header">
+                <span class="pred-sources-label">SOURCES</span>
+                <span class="pred-sources-count"><%= @prediction.sources.size %> references</span>
+            </div>
+            <div class="pred-sources-grid">
+                <% if internal_sources.any? %>
+                    <div class="pred-sources-group">
+                        <span class="pred-sources-group-label">App Data</span>
+                        <div class="pred-sources-list">
+                            <% internal_sources.each do |source| %>
+                                <%= link_to source["url"], class: "pred-source" do %>
+                                    <i class="fa-solid fa-database"></i>
+                                    <span><%= source["title"] %></span>
+                                <% end %>
+                            <% end %>
+                        </div>
+                    </div>
+                <% end %>
+                <% if external_sources.any? %>
+                    <div class="pred-sources-group">
+                        <span class="pred-sources-group-label">External</span>
+                        <div class="pred-sources-list">
+                            <% external_sources.each do |source| %>
+                                <%= link_to source["url"], target: "_blank", rel: "noopener", class: "pred-source pred-source-ext" do %>
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    <span><%= source["title"] %></span>
+                                <% end %>
+                            <% end %>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+    <div class="pred-footer" style="animation-delay: 0.45s">
+        <span class="data-source">
+            <%= @user.username %> · <%= time_ago_in_words(@prediction.generated_at) %> ago · For entertainment only
+        </span>
+    </div>
+</div>

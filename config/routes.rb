@@ -31,7 +31,7 @@ Rails.application.routes.draw do
   end
   resources :races, only: [:index, :show] do
     member do
-      get 'preview', to: 'races#preview', as: :preview
+      get 'preview/:username', to: 'predictions#show', as: :preview
     end
     collection do
       get 'calendar', to: 'races#calendar'
