@@ -231,7 +231,7 @@
     <% end %>
     <div class="pred-footer" style="animation-delay: 0.45s">
         <span class="data-source">
-            <%= @user.username %> · <%= time_ago_in_words(@prediction.generated_at) %> ago · For entertainment only
+            <%= @user.username %> · <%= time_ago_in_words(@prediction.generated_at || @prediction.created_at) %> ago · For entertainment only
         </span>
     </div>
 </div>
