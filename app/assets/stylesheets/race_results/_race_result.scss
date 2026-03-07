@@ -17,31 +17,15 @@
     }
 }
 
-// Fixed column widths for tabbed race/qualifying tables
+// Race/qualifying tabbed tables
 table.race-results--tabbed {
-    table-layout: fixed;
-
-    // Col 1: Position (#)
-    th:nth-child(1), td:nth-child(1) { width: 36px; }
-    // Col 2: Flag (sm+)
-    th:nth-child(2), td:nth-child(2) { width: 32px; }
-    // Col 3: Constructor logo (md+)
-    th:nth-child(3), td:nth-child(3) { width: 40px; }
-    // Col 4: Driver — auto (takes remaining space)
-    th:nth-child(4), td:nth-child(4) { width: auto; }
-    // Cols 5-9: data columns — equal widths
-    th:nth-child(5), td:nth-child(5),
-    th:nth-child(6), td:nth-child(6),
-    th:nth-child(7), td:nth-child(7),
-    th:nth-child(8), td:nth-child(8),
-    th:nth-child(9), td:nth-child(9) { width: 80px; }
-    // Col 10-11: Elo Change / Elo — slightly wider
-    th:nth-child(10), td:nth-child(10),
-    th:nth-child(11), td:nth-child(11) { width: 90px; }
-
-    td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    // Let driver name wrap on narrow screens
-    th:nth-child(4), td:nth-child(4) { white-space: normal; overflow: visible; }
+    td, th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .col-pos { width: 36px; }
+    .col-flag { width: 32px; }
+    .col-logo { width: 40px; }
+    .col-name { white-space: normal; overflow: visible; }
+    .col-data { width: 80px; }
+    .col-elo { width: 90px; }
 }
 
 // Podium highlighting on race results
@@ -522,6 +506,14 @@ table.race-results {
         letter-spacing: -0.75px;
         line-height: 1.1;
         text-shadow: 0 0 40px rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+
+        a {
+            color: inherit;
+            font: inherit;
+            text-decoration: none;
+            transition: color 0.15s ease;
+            &:hover { color: var(--page-accent, #e10600); }
+        }
     }
 
     .page-hero-meta {
@@ -669,6 +661,90 @@ table.race-results {
     white-space: nowrap;
 }
 
+// Season champions strip (compact podium for completed seasons)
+.season-champions-strip {
+    margin-bottom: 24px;
+
+    .champions-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .champions-group {
+        background: $bg-surface;
+        border: 1px solid $border-color;
+        border-radius: $radius-md;
+        padding: 16px;
+    }
+
+    .champions-label {
+        display: block;
+        font-size: 11px;
+        font-weight: $weight-bold;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: $text-tertiary;
+        margin-bottom: 12px;
+    }
+
+    .champions-podium {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .champion-entry {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px;
+        border-radius: $radius-sm;
+        border-left: 3px solid var(--constructor-color, $border-accent);
+        background: rgba(255, 255, 255, 0.015);
+        transition: background $t-fast;
+
+        &:hover { background: rgba(255, 255, 255, 0.04); }
+
+        &.champion-p1 {
+            background: rgba($gold, 0.05);
+            border-left-color: $gold;
+        }
+    }
+
+    .champion-pos {
+        font-family: $mono-font;
+        font-size: 13px;
+        font-weight: $weight-bold;
+        min-width: 28px;
+    }
+
+    .champion-name {
+        font-weight: $weight-semi;
+        font-size: 14px;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        a { transition: color $t-fast; }
+        a:hover { color: var(--page-accent, $accent-red); }
+    }
+
+    .champion-stat {
+        font-family: $mono-font;
+        font-size: 12px;
+        color: $text-tertiary;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 640px) {
+    .season-champions-strip .champions-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 // Constructor hero
 .constructor-hero {
     .page-hero-title {
@@ -677,6 +753,25 @@ table.race-results {
         justify-content: center;
         gap: 8px;
         flex-wrap: wrap;
+    }
+}
+
+// Expand table button
+.expand-table-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--page-accent, #e10600);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.03);
     }
 }
 

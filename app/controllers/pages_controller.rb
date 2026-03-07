@@ -69,27 +69,25 @@ class PagesController < ApplicationController
       @highest_elo_driver = Driver.active.order(elo_col => :desc).first
       @most_wins = @standings_season&.latest_driver_standings&.max_by { |ds| ds.wins || 0 }
 
-      # Current season driver grid
-      elo_col_grid = Setting.elo_column(:elo)
-      lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
-      if lineup_season
-        @season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
-                            .includes(driver: :countries, constructor: [])
-                            .sort_by { |sd| -sd.id }
-                            .uniq(&:driver_id)
-                            .sort_by { |sd| -(sd.driver.send(elo_col_grid) || 0) }
-      end
-
       # Season standings lookup for grid table
       latest_standings = @season.latest_driver_standings
       @grid_standings = latest_standings.index_by(&:driver_id)
 
-      # Previous race standings for position change
-      if @season.latest_race
-        prev_race = @season.races.where("round < ?", @season.latest_race.round).order(round: :desc).first
-        @grid_prev_standings = prev_race ? DriverStanding.where(race: prev_race).index_by(&:driver_id) : {}
-      else
-        @grid_prev_standings = {}
+      # Current season driver grid
+      lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
+      if lineup_season
+        sd_all = SeasonDriver.where(season: lineup_season, standin: [false, nil])
+                   .includes(driver: :countries, constructor: [])
+                   .sort_by { |sd| -sd.id }
+                   .uniq(&:driver_id)
+
+        if @grid_standings.any?
+          # Sort by standings position when we have standings data
+          @season_drivers = sd_all.sort_by { |sd| @grid_standings[sd.driver_id]&.position || 999 }
+        else
+          elo_col_grid = Setting.elo_column(:elo)
+          @season_drivers = sd_all.sort_by { |sd| -(sd.driver.send(elo_col_grid) || 0) }
+        end
       end
 
       # Find contextual race and next race

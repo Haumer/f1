@@ -21,32 +21,28 @@
         <%# 2. Current Season Standings (if races have happened) %>
         <% if @season.latest_driver_standings&.any? %>
             <div class="chart-container">
-                <h4 class="chart-title">Championship Standings</h4>
+                <h4 class="chart-title">Driver Standings</h4>
                 <%= custom_chart Graphs::Ranking.new(season: @season).season_driver_standings_data %>
-            </div>
-
-            <div class="table-header">
-                <%= link_to season_path(@season), class: "table-header-link" do %>
-                    <h3><%= @season.year %> Championship Standings <i class="fa-solid fa-arrow-right"></i></h3>
-                <% end %>
-            </div>
-            <div class="card card-flush">
-                <div class="table-scroll-wrapper">
-                    <%= render 'seasons/driver_standings_table', driver_standings: @season.latest_driver_standings, season: @season, standings_extras: @standings_extras %>
-                </div>
             </div>
         <% end %>
 
-        <%# 3. Current Season Driver Grid %>
+        <%# 3. Driver Standings %>
         <% if @season_drivers&.any? %>
             <div class="table-header">
-                <%= link_to grid_drivers_path, class: "table-header-link" do %>
-                    <h3><%= @season.year %> Driver Grid <i class="fa-solid fa-arrow-right"></i></h3>
+                <%= link_to season_path(@season), class: "table-header-link" do %>
+                    <h3><%= @season.year %> Driver Standings <i class="fa-solid fa-arrow-right"></i></h3>
                 <% end %>
             </div>
             <div class="card card-flush">
                 <div class="table-scroll-wrapper">
-                    <%= render 'drivers/grid_table', season_drivers: @season_drivers, grid_standings: @grid_standings, grid_prev_standings: @grid_prev_standings %>
+                    <div data-controller="expandable-table" data-expandable-table-limit-value="10">
+                        <%= render 'drivers/grid_table', season_drivers: @season_drivers, grid_standings: @grid_standings, standings_extras: @standings_extras %>
+                        <% if @season_drivers.size > 10 %>
+                            <button class="expand-table-btn" data-action="expandable-table#toggle" data-expandable-table-target="button">
+                                Show all <%= @season_drivers.size %> drivers
+                            </button>
+                        <% end %>
+                    </div>
                 </div>
             </div>
         <% end %>

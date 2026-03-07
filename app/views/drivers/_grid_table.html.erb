@@ -3,35 +3,35 @@
         <tr>
             <th class="text-center">#</th>
             <th data-sort="text">Driver</th>
-            <th data-sort="text">Team</th>
+            <th data-sort="text" class="d-none d-md-table-cell">Team</th>
             <th class="text-center" data-sort="num">Pts</th>
-            <th class="text-center" data-sort="num"><i class="fa-solid fa-trophy" style="color: #C9B037;"></i></th>
-            <th class="text-center" data-sort="num"><span style="color: #B4B4B4;">2nd</span></th>
-            <th class="text-center" data-sort="num"><span style="color: #AD8A56;">3rd</span></th>
-            <th class="text-center" data-sort="num">+/-</th>
+            <th class="text-center d-none d-sm-table-cell" data-sort="num"><i class="fa-solid fa-trophy" style="color: #C9B037;"></i></th>
+            <th class="text-center d-none d-md-table-cell" data-sort="num"><span style="color: #B4B4B4;">2nd</span></th>
+            <th class="text-center d-none d-md-table-cell" data-sort="num"><span style="color: #AD8A56;">3rd</span></th>
+            <th class="text-center d-none d-sm-table-cell" data-sort="num">+/-</th>
             <th class="text-center" data-sort="num">Elo</th>
-            <th class="text-center" data-sort="num">Peak</th>
+            <th class="text-center d-none d-lg-table-cell" data-sort="num">Peak</th>
         </tr>
     </thead>
     <tbody>
         <% standings = local_assigns[:grid_standings] || {} %>
-        <% prev_standings = local_assigns[:grid_prev_standings] || {} %>
+        <% extras = local_assigns[:standings_extras] || {} %>
         <% season_drivers.each_with_index do |sd, idx| %>
             <% driver = sd.driver %>
             <% constructor = sd.constructor %>
             <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
             <% ds = standings[driver.id] %>
-            <% prev_ds = prev_standings[driver.id] %>
-            <% pos_change = (ds && prev_ds && ds.position && prev_ds.position) ? prev_ds.position - ds.position : nil %>
+            <% driver_extras = extras[driver.id] || {} %>
+            <% elo_diff = driver_extras[:elo_diff] %>
             <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                 <td class="text-center position-cell"><%= idx + 1 %></td>
-                <td>
+                <td class="name-cell">
                     <% if driver.country.present? %>
                         <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" style="vertical-align: middle; margin-right: 4px;">
                     <% end %>
                     <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
                 </td>
-                <td>
+                <td class="d-none d-md-table-cell">
                     <span style="display: inline-block; width: 3px; height: 12px; background: <%= color %>; border-radius: 1px; vertical-align: middle; margin-right: 6px;"></span>
                     <% if constructor.logo_url.present? %>
                         <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" style="vertical-align: middle; margin-right: 4px;">
@@ -39,22 +39,18 @@
                     <%= link_to constructor.name, constructor_path(constructor), class: "text-secondary" %>
                 </td>
                 <td class="text-center"><%= ds ? ds.points&.round : 0 %></td>
-                <td class="text-center"><%= ds && ds.wins.to_i > 0 ? ds.wins : '—' %></td>
-                <td class="text-center"><%= ds && ds.second_places.to_i > 0 ? ds.second_places : '—' %></td>
-                <td class="text-center"><%= ds && ds.third_places.to_i > 0 ? ds.third_places : '—' %></td>
-                <td class="text-center">
-                    <% if pos_change.nil? %>
-                        <span class="text-secondary">—</span>
-                    <% elsif pos_change > 0 %>
-                        <span class="text-green">+<%= pos_change %></span>
-                    <% elsif pos_change < 0 %>
-                        <span class="text-red"><%= pos_change %></span>
+                <td class="text-center d-none d-sm-table-cell"><%= ds && ds.wins.to_i > 0 ? ds.wins : '—' %></td>
+                <td class="text-center d-none d-md-table-cell"><%= ds && ds.second_places.to_i > 0 ? ds.second_places : '—' %></td>
+                <td class="text-center d-none d-md-table-cell"><%= ds && ds.third_places.to_i > 0 ? ds.third_places : '—' %></td>
+                <td class="text-center d-none d-sm-table-cell">
+                    <% if elo_diff %>
+                        <span class="<%= elo_diff >= 0 ? 'text-green' : 'text-red' %>"><%= elo_diff >= 0 ? "+#{elo_diff}" : elo_diff %></span>
                     <% else %>
-                        <span class="text-secondary">0</span>
+                        <span class="text-secondary">—</span>
                     <% end %>
                 </td>
                 <td class="text-center"><%= driver.display_elo ? elo_link(driver.display_elo) : '—' %></td>
-                <td class="text-center"><%= driver.display_peak_elo ? elo_link(driver.display_peak_elo) : '—' %></td>
+                <td class="text-center d-none d-lg-table-cell"><%= driver.display_peak_elo ? elo_link(driver.display_peak_elo) : '—' %></td>
             </tr>
         <% end %>
     </tbody>

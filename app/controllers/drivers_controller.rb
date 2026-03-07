@@ -1,4 +1,5 @@
 class DriversController < ApplicationController
+  include StandingsData
   def show
     @driver = Driver.includes(
       season_drivers: :constructor,
@@ -36,13 +37,7 @@ class DriversController < ApplicationController
                         .sort_by { |sd| -(sd.driver.send(elo_col) || 0) }
 
     @grid_standings = season.latest_driver_standings.index_by(&:driver_id)
-    latest_race = season.latest_race
-    if latest_race
-      prev_race = season.races.where("round < ?", latest_race.round).order(round: :desc).first
-      @grid_prev_standings = prev_race ? DriverStanding.where(race: prev_race).index_by(&:driver_id) : {}
-    else
-      @grid_prev_standings = {}
-    end
+    @standings_extras = build_standings_extras(season)
   end
 
   def index

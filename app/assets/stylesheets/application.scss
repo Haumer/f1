@@ -250,8 +250,8 @@ th[data-sort] {
         a { display: inline-flex; }
     }
 
-    // Driver name no wrap
-    td:nth-child(4) {
+    // Driver/constructor name no wrap
+    .name-cell {
         white-space: nowrap;
     }
 
@@ -357,6 +357,14 @@ th[data-sort] {
         line-height: $lh-tight;
         text-shadow: 0 0 40px rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
         animation: hero-fade-in 0.5s $ease-out both;
+
+        a {
+            color: inherit;
+            font: inherit;
+            text-decoration: none;
+            transition: color $t-fast;
+            &:hover { color: var(--page-accent, $accent-red); }
+        }
     }
     .subtitle {
         font-size: 15px;
@@ -704,12 +712,10 @@ th[data-sort] {
     gap: 12px;
 }
 table.race-results {
-    .race-result-cell { width: 120px; }
     tr:nth-child(-n+4) td:first-child {
         font-weight: 700;
     }
     @media (max-width: 768px) {
-        .race-result-cell { width: auto; }
         th, td { padding: 6px 6px; font-size: 12px; }
     }
 }

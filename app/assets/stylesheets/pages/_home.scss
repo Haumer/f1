@@ -62,21 +62,12 @@
 
 // Race Day Hero
 .race-day-hero {
-  @include hero-accent-line($green);
-
-  .race-day-label {
-    display: block;
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
+  .page-hero-label {
     color: $green;
-    margin-bottom: 12px;
+    border-color: rgba($green, 0.25);
 
     i {
       font-size: 8px;
-      margin-right: 6px;
-      vertical-align: middle;
       animation: pulse-dot 1.5s ease-in-out infinite;
     }
   }
@@ -89,31 +80,17 @@
 
 // Post-Race Hero
 .post-race-hero {
-  @include hero-accent-line($text-primary);
-
-  .post-race-label {
-    display: block;
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
+  .page-hero-label {
     color: $text-secondary;
-    margin-bottom: 12px;
-
-    i { margin-right: 6px; }
+    border-color: rgba($text-secondary, 0.25);
   }
 }
 
 // Pre-Race Hero
 .pre-race-hero {
-  .pre-race-label {
-    display: block;
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
+  .page-hero-label {
     color: $text-secondary;
-    margin-bottom: 12px;
+    border-color: rgba($text-secondary, 0.25);
   }
 }
 

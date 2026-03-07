@@ -1,0 +1,44 @@
+<table class="current-driver-standings compact" data-controller="sortable-table">
+    <thead>
+        <tr>
+            <th class="text-center">#</th>
+            <th data-sort="text">Constructor</th>
+            <th class="text-center" data-sort="num">Pts</th>
+            <th class="text-center d-none d-sm-table-cell" data-sort="num"><i class="fa-solid fa-trophy" style="color: #C9B037;"></i></th>
+            <th class="text-center d-none d-md-table-cell" data-sort="num"><span style="color: #B4B4B4;">2nd</span></th>
+            <th class="text-center d-none d-md-table-cell" data-sort="num"><span style="color: #AD8A56;">3rd</span></th>
+            <th class="text-center d-none d-sm-table-cell" data-sort="num">+/-</th>
+            <th class="text-center" data-sort="num">Elo</th>
+            <th class="text-center d-none d-lg-table-cell" data-sort="num">Peak</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% constructor_standings.each_with_index do |entry, idx| %>
+            <% constructor = entry[:constructor] %>
+            <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+            <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                <td class="text-center position-cell"><%= idx + 1 %></td>
+                <td class="name-cell">
+                    <span style="display: inline-block; width: 3px; height: 12px; background: <%= color %>; border-radius: 1px; vertical-align: middle; margin-right: 6px;"></span>
+                    <% if constructor.logo_url.present? %>
+                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" style="vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none'">
+                    <% end %>
+                    <%= link_to constructor.name, constructor_path(constructor) %>
+                </td>
+                <td class="text-center"><%= entry[:points]&.round || 0 %></td>
+                <td class="text-center d-none d-sm-table-cell"><%= entry[:wins].to_i > 0 ? entry[:wins] : '—' %></td>
+                <td class="text-center d-none d-md-table-cell"><%= entry[:seconds].to_i > 0 ? entry[:seconds] : '—' %></td>
+                <td class="text-center d-none d-md-table-cell"><%= entry[:thirds].to_i > 0 ? entry[:thirds] : '—' %></td>
+                <td class="text-center d-none d-sm-table-cell">
+                    <% if entry[:elo_diff] %>
+                        <span class="<%= entry[:elo_diff] >= 0 ? 'text-green' : 'text-red' %>"><%= entry[:elo_diff] >= 0 ? "+#{entry[:elo_diff]}" : entry[:elo_diff] %></span>
+                    <% else %>
+                        <span class="text-secondary">—</span>
+                    <% end %>
+                </td>
+                <td class="text-center"><%= entry[:elo] ? elo_link(entry[:elo]) : '—' %></td>
+                <td class="text-center d-none d-lg-table-cell"><%= entry[:peak_elo] ? elo_link(entry[:peak_elo]) : '—' %></td>
+            </tr>
+        <% end %>
+    </tbody>
+</table>

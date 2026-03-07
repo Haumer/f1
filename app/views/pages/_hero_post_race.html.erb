@@ -1,7 +1,10 @@
-<div class="hero-intro post-race-hero">
-    <span class="post-race-label"><i class="fa-solid fa-flag-checkered"></i> Race Complete</span>
-    <h1><%= @post_race.circuit.name %></h1>
-    <p class="subtitle">Round <%= @post_race.round %> · <%= @post_race.circuit.location %>, <%= @post_race.circuit.country %></p>
+<div class="page-hero post-race-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+        <span class="page-hero-label"><i class="fa-solid fa-flag-checkered"></i> Race Complete</span>
+        <h1 class="page-hero-title"><%= link_to @post_race.circuit.name, race_path(@post_race) %></h1>
+        <p class="page-hero-meta">Round <%= @post_race.round %> · <%= @post_race.circuit.location %>, <%= @post_race.circuit.country %></p>
+    </div>
 </div>
 
 <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>

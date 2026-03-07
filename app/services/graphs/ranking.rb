@@ -129,6 +129,102 @@ class Graphs::Ranking
         }
     end
 
+    def season_constructor_standings_data
+        sd_index = SeasonDriver.where(season: @season)
+                               .includes(:constructor)
+                               .group_by(&:driver_id)
+                               .transform_values { |sds| sds.last.constructor }
+
+        # For each race, sum driver points by constructor to get constructor positions
+        constructor_points_by_race = {}
+        @races.each do |race|
+            constructor_pts = Hash.new(0)
+            @standings_lookup.each do |(rid, did), standings|
+                next unless rid == race.id
+                constructor = sd_index[did]
+                next unless constructor
+                ds = standings.first
+                constructor_pts[constructor.id] += (ds&.points || 0)
+            end
+
+            # Also accumulate from previous races (standings are cumulative already)
+            constructor_points_by_race[race.id] = constructor_pts
+        end
+
+        # Build position rankings per race
+        constructors = sd_index.values.uniq
+        constructor_positions = {}
+        @races.each do |race|
+            pts = constructor_points_by_race[race.id] || {}
+            sorted = pts.sort_by { |_, p| -p }
+            sorted.each_with_index do |(cid, _), idx|
+                constructor_positions[[race.id, cid]] = idx + 1
+            end
+        end
+
+        max_position = constructors.size
+
+        series_data = constructors.map do |constructor|
+            color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#888888'
+
+            raw_data = @races.map do |race|
+                pos = constructor_positions[[race.id, constructor.id]]
+                if pos
+                    { name: constructor.name, value: pos }
+                end
+            end
+
+            forward_fill!(raw_data, constructor.name)
+
+            {
+                data: raw_data,
+                type: 'line',
+                name: constructor.name,
+                color: color,
+                emphasis: { focus: 'series' },
+                endLabel: {
+                    show: true,
+                    formatter: '{a}',
+                    distance: 20,
+                },
+                lineStyle: { width: 3 },
+                smooth: true,
+                connectNulls: true,
+                symbolSize: 8,
+            }
+        end
+
+        {
+            backgroundColor: 'transparent',
+            label: { show: false, position: "right" },
+            grid: { right: 140 },
+            xAxis: {
+                type: 'category',
+                data: @races.map { |race| "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}" }
+            },
+            yAxis: {
+                type: 'value',
+                inverse: true,
+                min: 1,
+                max: [max_position, 2].max,
+            },
+            series: series_data,
+            dataZoom: [
+                {
+                    id: 'dataZoomX',
+                    type: 'slider',
+                    xAxisIndex: [0],
+                    filterMode: 'filter'
+                }
+            ],
+            height: "400px",
+            legend: {
+                type: 'scroll',
+                itemGap: 4,
+            },
+        }
+    end
+
     private
 
     # Forward-fill: carry last known position through mid-season nil gaps

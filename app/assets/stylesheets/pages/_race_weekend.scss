@@ -35,23 +35,9 @@
 
 // Race Weekend Hero
 .race-weekend-hero {
-  @include hero-accent-line(var(--page-accent, $accent-red));
-
-  .race-weekend-label {
-    display: block;
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
-    color: var(--page-accent, $accent-red);
-    margin-bottom: 12px;
-
-    i {
-      font-size: 8px;
-      margin-right: 6px;
-      vertical-align: middle;
-      animation: pulse-dot 1.5s ease-in-out infinite;
-    }
+  .page-hero-label i {
+    font-size: 8px;
+    animation: pulse-dot 1.5s ease-in-out infinite;
   }
 }
 
