@@ -1,0 +1,363 @@
+// ═══════════════════════════════════════
+// STOCK MARKET
+// ═══════════════════════════════════════
+
+.stock-direction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+
+    &.stock-long {
+        background: rgba($green, 0.1);
+        color: $green;
+    }
+
+    &.stock-short {
+        background: rgba($accent-red, 0.1);
+        color: $accent-red;
+    }
+}
+
+.stock-trade-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+
+    @media (max-width: 768px) {
+        flex-wrap: wrap;
+        gap: 2px;
+
+        .stock-cost-preview { display: none; }
+    }
+}
+
+.stock-qty-stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid $border-accent;
+    border-radius: $radius-sm;
+    overflow: hidden;
+    height: 28px;
+}
+
+.stock-qty-btn {
+    width: 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $bg-surface;
+    border: none;
+    color: $text-secondary;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all $t-fast;
+    padding: 0;
+    line-height: 1;
+
+    &:hover {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
+        color: var(--page-accent, $accent-red);
+    }
+
+    &:active {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+    }
+
+    &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        &:hover { background: $bg-surface; color: $text-secondary; }
+    }
+}
+
+.stock-cost-preview {
+    font-family: $mono-font;
+    font-size: 11px;
+    color: $text-tertiary;
+    min-width: 52px;
+    text-align: left;
+
+    &.text-red { color: $accent-red !important; }
+}
+
+.stock-qty-input {
+    width: 32px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-left: 1px solid $border-accent;
+    border-right: 1px solid $border-accent;
+    background: transparent;
+    color: $text-primary;
+    font-size: 13px;
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    text-align: center;
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    &:focus { outline: none; }
+}
+
+.stock-trade-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: $radius-sm;
+    border: 1px solid transparent;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all $t-fast;
+    background: transparent;
+
+    &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    &.stock-trade-buy {
+        color: $green;
+        border-color: rgba($green, 0.3);
+        &:hover:not(:disabled) { background: rgba($green, 0.08); border-color: $green; }
+    }
+
+    &.stock-trade-short {
+        color: $accent-red;
+        border-color: rgba($accent-red, 0.3);
+        &:hover:not(:disabled) { background: rgba($accent-red, 0.08); border-color: $accent-red; }
+    }
+}
+
+// Stock-specific transaction kinds
+.fantasy-txn-short_open {
+    background: rgba($accent-red, 0.1);
+    color: $accent-red;
+}
+
+.fantasy-txn-short_close {
+    background: rgba($green, 0.1);
+    color: $green;
+}
+
+.fantasy-txn-dividend {
+    background: rgba($green, 0.1);
+    color: $green;
+}
+
+.fantasy-txn-borrow_fee {
+    background: rgba($gold, 0.1);
+    color: $gold;
+}
+
+.fantasy-txn-liquidation {
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
+}
+
+// ═══════════════════════════════════════
+// OVERVIEW NAV CARDS (roster / stocks)
+// ═══════════════════════════════════════
+
+.fantasy-nav-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: $space-lg;
+
+    @media (max-width: 380px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-nav-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    text-decoration: none;
+    color: $text-primary;
+    transition: border-color $t-fast, background $t-fast, transform $t-fast;
+
+    &:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: lighten($bg-card, 2%);
+        text-decoration: none;
+        color: $text-primary;
+        transform: translateY(-2px);
+    }
+
+    &.fantasy-nav-card-new {
+        border-style: dashed;
+        border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.02);
+    }
+}
+
+.fantasy-nav-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+        font-size: 14px;
+        color: $text-secondary;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: $weight-bold;
+    }
+}
+
+.fantasy-nav-pl {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: $weight-bold;
+}
+
+.fantasy-nav-card-body {
+    display: flex;
+    gap: 16px;
+}
+
+.fantasy-nav-stat {
+    font-size: 13px;
+    color: $text-secondary;
+
+    strong {
+        color: $text-primary;
+        font-weight: $weight-semi;
+    }
+}
+
+.fantasy-nav-card-drivers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.fantasy-nav-driver-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border-left: 3px solid;
+}
+
+.fantasy-nav-card-cta {
+    font-size: 13px;
+    color: $text-secondary;
+    i { margin-right: 4px; }
+}
+
+.fantasy-nav-stat-total {
+    margin-left: auto;
+    strong { color: $text-primary; }
+}
+
+// Inline visibility toggle (in header subtitle)
+.fantasy-visibility-inline {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.fantasy-visibility-inline-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+
+    input[type="checkbox"] {
+        display: none;
+    }
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: 11px;
+        color: $text-tertiary;
+        background: transparent;
+        border: 1px solid $border-color;
+        transition: all $t-fast;
+    }
+
+    input:checked + span {
+        color: $green;
+        border-color: rgba($green, 0.3);
+        background: rgba($green, 0.08);
+    }
+
+    &:hover span {
+        border-color: $text-secondary;
+        color: $text-secondary;
+    }
+}
+
+// Team badge inline with username in header
+.fantasy-team-badge-inline {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-right: 6px;
+    text-decoration: none;
+
+    &:hover { opacity: 0.8; }
+}
+
+.fantasy-team-badge-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+// Compact team picker row
+.fantasy-pick-team-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: $space-md;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed $border-color;
+    border-radius: $radius-sm;
+    font-size: 12px;
+}
+
+.fantasy-pick-team-label {
+    color: $text-secondary;
+    font-weight: $weight-semi;
+    white-space: nowrap;
+    i { font-size: 11px; margin-right: 3px; }
+}

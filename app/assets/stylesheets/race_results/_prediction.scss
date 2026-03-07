@@ -1,0 +1,476 @@
+// ── Prediction Preview Page ──
+@keyframes prediction-fade-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.prediction-page {
+    .preview-section,
+    .pred-lede,
+    .pred-projection,
+    .pred-sources,
+    .pred-footer {
+        opacity: 0;
+        animation: prediction-fade-in 0.5s $ease-out forwards;
+    }
+}
+
+// ── Lede / editorial text (briefing + analysis overview) ──
+.pred-lede {
+    margin-bottom: $space-xl;
+    text-align: center;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    padding: 0 $space-md;
+
+    &::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 2px;
+        background: var(--page-accent, $accent-red);
+        margin: 0 auto $space-md;
+        border-radius: 1px;
+        box-shadow: 0 0 8px rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+    }
+
+    p {
+        margin: 0;
+        font-family: $headers-font;
+        font-size: 18px;
+        font-weight: $weight-medium;
+        line-height: 1.6;
+        color: $text-secondary;
+        letter-spacing: $ls-heading;
+    }
+
+    // When used inside a section (analysis overview), not centered
+    &--section {
+        text-align: left;
+        max-width: none;
+        margin-bottom: $space-lg;
+        font-family: $headers-font;
+        font-size: 16px;
+        font-weight: $weight-regular;
+        line-height: 1.65;
+        color: $text-secondary;
+        letter-spacing: $ls-heading;
+    }
+}
+
+// ── Section headers ──
+.preview-section {
+    margin-bottom: $space-xl;
+}
+
+.preview-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: $space-md;
+
+    h2 {
+        margin: 0;
+        font-family: $mono-font;
+        font-size: 13px;
+        font-weight: $weight-bold;
+        color: $text-primary;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .preview-section-count {
+        font-family: $mono-font;
+        font-size: $type-label;
+        color: $text-tertiary;
+    }
+}
+
+// ── Prediction grid table ──
+.preview-result-table {
+    .mono-data {
+        font-family: $mono-font;
+        font-size: $type-small;
+    }
+    .text-secondary { color: $text-secondary; }
+
+    .confidence-value {
+        font-family: $mono-font;
+        font-size: $type-small;
+        color: $text-tertiary;
+    }
+}
+
+// ── Pick signals (inline in table) ──
+.pick-signal {
+    display: inline-block;
+    font-family: $mono-font;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.8px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    line-height: 1.4;
+
+    & + .pick-signal { margin-left: 3px; }
+}
+.pick-signal-buy {
+    background: rgba($green, 0.15);
+    color: $green;
+}
+.pick-signal-long {
+    background: rgba(#4fc3f7, 0.15);
+    color: #4fc3f7;
+}
+.pick-signal-short {
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
+}
+
+// ── Table mobile wrapper ──
+.pred-table-wrap {
+    @media (max-width: 700px) {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+// ── Per-driver prediction notes ──
+.prediction-notes {
+    display: flex;
+    flex-direction: column;
+}
+
+.pn-entry {
+    display: flex;
+    gap: 0;
+    padding: 10px 0;
+    border-bottom: 1px solid $border-color;
+    opacity: 0;
+    animation: prediction-fade-in 0.4s $ease-out forwards;
+
+    &:last-child { border-bottom: none; }
+
+    &.pn-buy .pn-marker { color: $green; }
+    &.pn-long .pn-marker { color: #4fc3f7; }
+    &.pn-short .pn-marker { color: $accent-red; }
+    &.pn-note {
+        .pn-marker { color: $text-tertiary; }
+        .pn-text { color: $text-tertiary; }
+    }
+}
+
+.pn-marker {
+    width: 36px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 12px;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 2px;
+        bottom: 0;
+        width: 1px;
+        background: currentColor;
+        opacity: 0.2;
+    }
+}
+
+.pn-pos {
+    font-family: $mono-font;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.5px;
+}
+
+.pn-body {
+    flex: 1;
+    min-width: 0;
+    padding-left: 12px;
+}
+
+.pn-headline {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.pn-driver {
+    font-family: $headers-font;
+    font-size: 15px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    text-decoration: none;
+    letter-spacing: $ls-heading;
+
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
+.pn-elo {
+    font-family: $mono-font;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    margin-left: auto;
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+}
+
+.pn-pass {
+    font-family: $mono-font;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.8px;
+    color: $text-tertiary;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0 5px;
+    border-radius: 2px;
+    line-height: 1.6;
+}
+
+.pn-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: $text-secondary;
+    margin: 0;
+}
+
+.pn-inline-link {
+    color: $text-primary;
+    text-decoration: underline;
+    text-decoration-color: $text-tertiary;
+    text-underline-offset: 2px;
+    transition: text-decoration-color $t-fast;
+
+    &:hover {
+        color: var(--page-accent, $accent-red);
+        text-decoration-color: var(--page-accent, $accent-red);
+    }
+}
+
+.pn-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0 6px;
+
+    &::before, &::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: $border-color;
+    }
+
+    span {
+        font-family: $mono-font;
+        font-size: 9px;
+        font-weight: $weight-bold;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: $text-tertiary;
+        white-space: nowrap;
+    }
+}
+
+// ── Portfolio Projection ──
+.pred-projection {
+    margin-bottom: $space-xl;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba($green, 0.04) 0%, $bg-card 70%);
+    border: 1px solid rgba($green, 0.12);
+    border-radius: $radius-sm;
+}
+
+.pred-projection-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.pred-projection-icon {
+    color: $green;
+    font-size: 12px;
+}
+
+.pred-projection-label {
+    font-family: $mono-font;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    letter-spacing: 1.5px;
+    color: $green;
+}
+
+.pred-projection-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.65;
+    color: $text-secondary;
+}
+
+// ── Sources ──
+.pred-sources {
+    margin-top: $space-lg;
+    margin-bottom: $space-md;
+    padding: 16px 20px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+}
+
+.pred-sources-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $border-color;
+}
+
+.pred-sources-label {
+    font-family: $mono-font;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    letter-spacing: 1.2px;
+    color: $text-primary;
+}
+
+.pred-sources-count {
+    font-family: $mono-font;
+    font-size: $type-label;
+    color: $text-tertiary;
+}
+
+.pred-sources-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.pred-sources-group-label {
+    display: block;
+    font-family: $mono-font;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: $text-tertiary;
+    margin-bottom: 8px;
+}
+
+.pred-sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pred-source {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    color: $text-secondary;
+    font-size: 13px;
+    transition: all $t-fast;
+
+    i {
+        font-size: 9px;
+        color: $text-tertiary;
+        width: 14px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: $text-primary;
+        i { color: var(--page-accent, $accent-red); }
+    }
+
+    &.pred-source-ext {
+        i { color: $text-tertiary; }
+    }
+}
+
+// ── Prediction link (on race show page) ──
+.pred-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    margin-bottom: $space-md;
+    background: linear-gradient(135deg, rgba(225, 6, 0, 0.06) 0%, $bg-card 60%);
+    border: 1px solid rgba(225, 6, 0, 0.2);
+    border-radius: $radius-sm;
+    color: $text-primary;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all $t-fast;
+
+    i:first-child { color: var(--page-accent, #e10600); }
+    i:last-child { margin-left: auto; color: $text-secondary; font-size: 12px; }
+
+    &:hover {
+        background: rgba(225, 6, 0, 0.08);
+        border-color: var(--page-accent, #e10600);
+        color: $text-primary;
+        i:last-child { color: var(--page-accent, #e10600); }
+    }
+}
+
+.pred-footer {
+    text-align: center;
+    margin-top: $space-md;
+}
+
+// ── Mobile adjustments ──
+@media (max-width: 600px) {
+    .pred-lede p {
+        font-size: 16px;
+    }
+
+    .pred-lede--section {
+        font-size: 15px;
+    }
+
+    .pn-marker {
+        width: 30px;
+        padding-right: 10px;
+    }
+
+    .pn-body {
+        padding-left: 10px;
+    }
+
+    .pn-headline {
+        flex-wrap: wrap;
+    }
+
+    .pred-projection {
+        padding: 14px 16px;
+    }
+
+    .pred-sources {
+        padding: 14px 16px;
+    }
+
+    .preview-section-header h2 {
+        font-size: 12px;
+    }
+}

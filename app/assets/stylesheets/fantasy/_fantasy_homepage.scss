@@ -1,0 +1,293 @@
+// ═══════════════════════════════════════
+// FANTASY CTA CARD (HOMEPAGE)
+// ═══════════════════════════════════════
+
+.fantasy-cta-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-lg;
+    background: $card-bg;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: $space-lg $space-xl;
+    margin-bottom: $space-lg;
+
+    .fantasy-cta-content {
+        display: flex;
+        align-items: center;
+        gap: $space-md;
+
+        > i {
+            font-size: 28px;
+            color: var(--page-accent, $accent-red);
+            flex-shrink: 0;
+        }
+
+        h3 {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            color: $text-secondary;
+            line-height: 1.4;
+        }
+    }
+
+    .fantasy-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+
+        .fantasy-cta-content {
+            flex-direction: column;
+        }
+
+        .fantasy-btn {
+            align-self: center;
+        }
+    }
+}
+
+// MINI PORTFOLIO CARD (HOMEPAGE)
+// ═══════════════════════════════════════
+
+.fantasy-mini-card-wrapper {
+    margin-bottom: $space-lg;
+}
+
+.fantasy-mini-card {
+    display: block;
+    text-decoration: none;
+    color: $text-primary;
+    transition: border-color $t-fast;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-bottom: 0;
+
+    &:hover {
+        border-color: var(--page-accent, $accent-red);
+        color: $text-primary;
+    }
+}
+
+.fantasy-mini-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-md;
+}
+
+.fantasy-mini-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    i { color: var(--page-accent, $accent-red); }
+}
+
+.fantasy-mini-rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+    color: $gold;
+    background: rgba($gold, 0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+
+    i { font-size: 10px; }
+}
+
+.fantasy-mini-stats {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-lg;
+    flex-wrap: wrap;
+    margin-bottom: $space-md;
+}
+
+.fantasy-mini-stat {
+    display: flex;
+    flex-direction: column;
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+    }
+    .value {
+        font-family: $mono-font;
+        font-size: 18px;
+        font-weight: $weight-bold;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.fantasy-mini-allegiance {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-secondary;
+    }
+
+    @media (max-width: 480px) {
+        margin-left: 0;
+    }
+}
+
+.fantasy-mini-team-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+
+    .constructor-logo-xs {
+        width: 16px;
+        height: 16px;
+        opacity: 0.85;
+        margin-left: 0;
+    }
+}
+
+.fantasy-mini-roster {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: $space-md;
+}
+
+.fantasy-mini-pill {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 3px 10px;
+    background: $bg-surface;
+    border-radius: 20px;
+    border-left: 3px solid var(--pill-color, $border-color);
+    color: $text-secondary;
+    transition: color $t-fast;
+
+    .fantasy-mini-card:hover & {
+        color: $text-primary;
+    }
+}
+
+.fantasy-mini-stocks-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: $bg-surface;
+    border-radius: $radius-sm;
+    font-size: 13px;
+
+    > i {
+        color: $text-tertiary;
+        font-size: 12px;
+    }
+}
+
+.fantasy-mini-stocks-label {
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fantasy-mini-positions {
+    display: flex;
+    gap: 4px;
+}
+
+.fantasy-mini-pos-badge {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: $mono-font;
+    padding: 1px 6px;
+    border-radius: 3px;
+
+    &.pos-long {
+        background: rgba($green, 0.1);
+        color: $green;
+    }
+    &.pos-short {
+        background: rgba($accent-red, 0.1);
+        color: $accent-red;
+    }
+}
+
+.fantasy-mini-stock-pl {
+    margin-left: auto;
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+}
+
+// Secondary links bar
+.fantasy-mini-links {
+    display: flex;
+    gap: 0;
+    border: 1px solid $border-color;
+    border-top: none;
+    border-radius: 0 0 $radius-md $radius-md;
+    overflow: hidden;
+    background: $bg-card;
+}
+
+.fantasy-mini-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px $space-sm;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-tertiary;
+    text-decoration: none;
+    transition: all $t-fast;
+    border-right: 1px solid $border-color;
+
+    &:last-child { border-right: none; }
+
+    i { font-size: 10px; }
+    &:hover {
+        color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+        text-decoration: none;
+    }
+}
+
+// ═══════════════════════════════════════
+// TABLE HEADER SUB
+// ═══════════════════════════════════════
+
+.table-header-sub {
+    font-size: 13px;
+    font-weight: 400;
+    color: $text-secondary;
+}

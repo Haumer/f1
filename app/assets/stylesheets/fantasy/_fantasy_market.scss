@@ -1,0 +1,464 @@
+// ═══════════════════════════════════════
+// MARKET TABLE
+// ═══════════════════════════════════════
+
+// ═══════════════════════════════════════
+// MARKET LAYOUT (table + sticky sidebar)
+// ═══════════════════════════════════════
+
+.fantasy-market-layout {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: $space-lg;
+    align-items: start;
+
+    @media (max-width: 860px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-market-sidebar {
+    position: sticky;
+    top: 120px; // below navbar + sticky header
+
+    @media (max-width: 860px) {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        z-index: 100;
+        padding: 0 $space-sm;
+        padding-bottom: env(safe-area-inset-bottom, $space-sm);
+
+        .fantasy-cart-panel {
+            max-height: 40vh;
+            overflow-y: auto;
+            border-radius: $radius-md $radius-md 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 0;
+        }
+    }
+}
+
+.fantasy-market-main {
+    min-width: 0;
+
+    @media (max-width: 860px) {
+        padding-bottom: 160px; // space for fixed cart panel
+    }
+}
+
+// Market table
+.fantasy-market-table {
+    width: 100%;
+
+    th {
+        font-size: $type-label;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
+        font-weight: $weight-semi;
+    }
+}
+
+.fantasy-market-row {
+    border-left: 3px solid transparent;
+    transition: background $t-fast;
+
+    &:hover { background: rgba(255, 255, 255, 0.02); }
+
+    &.on-roster {
+        border-left-color: $green;
+        background: rgba($green, 0.03);
+    }
+
+    &.in-cart {
+        border-left-color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+
+        .fantasy-market-add-btn {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    }
+}
+
+.fantasy-market-driver-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fantasy-market-color-pip {
+    width: 3px;
+    height: 24px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.fantasy-market-driver-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.fantasy-market-driver-name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    font-size: 14px;
+
+    img { flex-shrink: 0; }
+    a {
+        color: $text-primary;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &:hover { color: var(--page-accent, $accent-red); }
+    }
+}
+
+.fantasy-market-team-name {
+    font-size: 11px;
+    color: $text-tertiary;
+}
+
+.fantasy-market-price-cell {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    font-size: 14px;
+}
+
+// Compact add button — just a + icon
+.fantasy-market-add-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    border: 1px solid $border-accent;
+    background: transparent;
+    color: $text-secondary;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all $t-fast;
+
+    &:hover {
+        border-color: var(--page-accent, $accent-red);
+        color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
+    }
+
+    &:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+        &:hover { border-color: $border-accent; color: $text-secondary; background: transparent; }
+    }
+}
+
+.fantasy-market-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.fantasy-badge-on-roster {
+    font-size: 13px;
+    color: $green;
+}
+
+.fantasy-badge-cant-afford {
+    font-size: 11px;
+    color: $text-tertiary;
+}
+
+// Elo trend (shared between market rows)
+.fantasy-elo-trend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fantasy-elo-trend-dots {
+    display: flex;
+    gap: 2px;
+}
+
+.fantasy-elo-dot {
+    font-size: 11px;
+    line-height: 1;
+
+    &.up { color: $green; }
+    &.down { color: $accent-red; }
+    &.flat { color: $text-tertiary; }
+}
+
+.fantasy-elo-trend-net {
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-bold;
+
+    &.up { color: $green !important; }
+    &.down { color: $accent-red !important; }
+    &.flat { color: $text-tertiary !important; }
+}
+
+
+// ═══════════════════════════════════════
+// SHOPPING CART PANEL
+// ═══════════════════════════════════════
+
+.fantasy-cart-panel {
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+    padding: $space-md;
+    margin-bottom: $space-lg;
+}
+
+.fantasy-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $space-md;
+}
+
+.fantasy-cart-header-left {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    font-size: 14px;
+
+    i { color: var(--page-accent, $accent-red); }
+}
+
+.fantasy-cart-badge {
+    font-size: 11px;
+    font-weight: $weight-bold;
+    background: $bg-surface;
+    color: $text-secondary;
+    padding: 1px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.fantasy-cart-clear {
+    background: none;
+    border: none;
+    color: $text-tertiary;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: all $t-fast;
+
+    &:hover { color: $accent-red; background: rgba($accent-red, 0.06); }
+}
+
+// Empty state
+.fantasy-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: $space-md 0;
+    gap: $space-xs;
+
+    > i {
+        font-size: 20px;
+        color: $text-tertiary;
+        margin-bottom: $space-xs;
+    }
+
+    > span:first-of-type {
+        font-size: 13px;
+        color: $text-secondary;
+    }
+
+    @media (max-width: 860px) {
+        flex-direction: row;
+        padding: $space-xs 0;
+        gap: $space-sm;
+
+        > i { margin-bottom: 0; font-size: 14px; }
+        > span:first-of-type { font-size: 12px; }
+    }
+}
+
+.fantasy-cart-empty-meta {
+    font-size: 11px;
+    color: $text-tertiary;
+
+    @media (max-width: 860px) { display: none; }
+}
+
+// Filled state
+.fantasy-cart-filled {
+    display: flex;
+    flex-direction: column;
+    gap: $space-sm;
+
+    @media (max-width: 860px) {
+        [data-fantasy-cart-target="cartList"] {
+            max-height: 120px;
+            overflow-y: auto;
+            flex-shrink: 1;
+        }
+    }
+}
+
+.fantasy-cart-item {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: 8px 12px;
+    background: $bg-surface;
+    border-radius: $radius-sm;
+    font-size: 13px;
+}
+
+.fantasy-cart-item-name {
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fantasy-cart-item-price {
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+    color: $text-secondary;
+}
+
+.fantasy-cart-remove {
+    background: none;
+    border: none;
+    color: $text-tertiary;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    line-height: 1;
+    border-radius: 3px;
+    transition: all $t-fast;
+
+    &:hover { color: $accent-red; background: rgba($accent-red, 0.06); }
+}
+
+.fantasy-cart-summary {
+    border-top: 1px solid $border-color;
+    padding-top: $space-sm;
+}
+
+.fantasy-cart-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 3px 0;
+
+    span:first-child { color: $text-secondary; }
+}
+
+.fantasy-cart-row-value {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+}
+
+.fantasy-cart-confirm {
+    width: 100%;
+    justify-content: center;
+    margin-top: $space-xs;
+
+    &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+    }
+}
+
+// Reason badge shown on cards that become unaffordable
+.fantasy-cart-reason {
+    font-size: 11px;
+    font-weight: 600;
+    color: $text-tertiary;
+    padding: 2px 8px;
+    background: $bg-surface;
+    border-radius: 3px;
+}
+
+// Cash display at bottom of cart
+.fantasy-cart-cash-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: $space-md;
+    padding-top: $space-sm;
+    border-top: 1px solid $border-color;
+    font-size: 12px;
+    color: $text-tertiary;
+}
+
+.fantasy-cart-cash-value {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    font-size: 14px;
+    color: $text-primary;
+}
+
+// Remaining row emphasis
+.fantasy-cart-row-remaining {
+    .fantasy-cart-row-value {
+        font-size: 14px;
+    }
+}
+
+// ═══════════════════════════════════════
+// BUY TEAM CARD
+// ═══════════════════════════════════════
+
+.fantasy-buy-team-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: $space-lg;
+    flex-wrap: wrap;
+}
+
+.fantasy-buy-team-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+
+    > i {
+        color: var(--page-accent, $accent-red);
+        font-size: 20px;
+        margin-top: 2px;
+    }
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    > div > span {
+        font-size: 13px;
+        color: $text-secondary;
+        strong { display: inline; color: $text-primary; }
+    }
+}
+
+// ═══════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════
+
+.fantasy-chart-card {
+    padding: 16px;
+    margin-bottom: $space-lg;
+}

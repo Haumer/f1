@@ -1,0 +1,439 @@
+// ═══════════════════════════════════════
+// ONBOARDING / NEW PAGE
+// ═══════════════════════════════════════
+
+.fantasy-hero {
+    position: relative;
+    .page-hero-bg { background: linear-gradient(135deg, rgba(var(--page-accent-rgb, 225, 6, 0), 0.15), transparent 60%); }
+}
+
+.fantasy-onboard {
+    max-width: 640px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.fantasy-onboard-capital {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: $space-xl;
+    padding: $space-lg;
+}
+
+.fantasy-onboard-capital-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    margin-bottom: $space-xs;
+}
+
+.fantasy-onboard-capital-value {
+    font-family: $mono-font;
+    font-size: 48px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    letter-spacing: -1px;
+}
+
+.fantasy-onboard-capital-sub {
+    font-size: $type-body;
+    color: $text-secondary;
+    margin-top: $space-xs;
+}
+
+.fantasy-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-md;
+    margin-bottom: $space-xl;
+    text-align: left;
+
+    @media (max-width: 500px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-rule-card {
+    padding: $space-md;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+
+    strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+
+    span {
+        font-size: 12px;
+        color: $text-secondary;
+    }
+}
+
+.fantasy-rule-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    color: var(--page-accent, $accent-red);
+    font-size: 14px;
+    margin-bottom: $space-sm;
+}
+
+// ═══════════════════════════════════════
+// PORTFOLIO VALUE HERO
+// ═══════════════════════════════════════
+
+.fantasy-value-hero {
+    display: flex;
+    align-items: center;
+    gap: $space-xl;
+    padding: $space-lg;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+    margin-bottom: $space-lg;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $space-md;
+    }
+}
+
+.fantasy-value-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+}
+
+.fantasy-value-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+}
+
+.fantasy-value-number {
+    font-family: $mono-font;
+    font-size: 36px;
+    font-weight: $weight-bold;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+.fantasy-cash-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.fantasy-cash-split {
+    font-size: 13px;
+    font-family: $mono-font;
+    color: $text-secondary;
+    cursor: help;
+    white-space: nowrap;
+
+    i {
+        font-size: 10px;
+        color: $text-tertiary;
+        margin-left: 2px;
+    }
+}
+
+.detail-pct {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.fantasy-value-metrics {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.fantasy-value-pl {
+    font-family: $mono-font;
+    font-size: 14px;
+    font-weight: $weight-bold;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+}
+
+.fantasy-value-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+    i { font-size: 10px; }
+}
+
+.fantasy-value-details {
+    display: flex;
+    gap: $space-lg;
+    flex-wrap: wrap;
+    margin-left: auto;
+
+    @media (max-width: 768px) {
+        margin-left: 0;
+    }
+}
+
+.fantasy-detail {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    min-width: 64px;
+}
+
+.detail-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-family: $mono-font;
+    font-size: 36px;
+    font-weight: $weight-bold;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+// ═══════════════════════════════════════
+// PROFILE VISIBILITY TOGGLE
+// ═══════════════════════════════════════
+
+.fantasy-profile-link {
+    color: $text-tertiary;
+    font-size: 12px;
+    text-decoration: none;
+    &:hover { color: var(--page-accent, $accent-red); }
+    i { font-size: 10px; margin-right: 1px; }
+}
+
+.fantasy-visibility-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: $space-md;
+    padding: 8px 14px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+}
+
+.fantasy-visibility-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.fantasy-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0;
+
+    input[type="checkbox"] {
+        width: 32px;
+        height: 18px;
+        appearance: none;
+        background: $bg-surface;
+        border: 1px solid $border-accent;
+        border-radius: 9px;
+        position: relative;
+        cursor: pointer;
+        transition: background $t-fast, border-color $t-fast;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            background: $text-tertiary;
+            border-radius: 50%;
+            transition: transform $t-fast, background $t-fast;
+        }
+
+        &:checked {
+            background: rgba($green, 0.15);
+            border-color: rgba($green, 0.4);
+            &::after {
+                transform: translateX(14px);
+                background: $green;
+            }
+        }
+    }
+}
+
+.fantasy-toggle-text {
+    font-size: 12px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    i { font-size: 11px; margin-right: 2px; }
+}
+
+.fantasy-visibility-url {
+    margin-left: auto;
+    overflow: hidden;
+    a {
+        font-family: $mono-font;
+        font-size: 12px;
+        color: $text-tertiary;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        &:hover { color: var(--page-accent, $accent-red); }
+    }
+
+    @media (max-width: 480px) {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+// ═══════════════════════════════════════
+// INFO BANNER (dismissable explainer)
+// ═══════════════════════════════════════
+
+.fantasy-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    border-radius: $radius-sm;
+    margin-bottom: $space-md;
+    overflow: hidden;
+    transition: opacity 0.3s, max-height 0.3s, margin-bottom 0.3s, padding 0.3s;
+}
+
+.fantasy-info-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+
+    > i {
+        font-size: 13px;
+        color: var(--page-accent, $accent-red);
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    p {
+        font-size: 12px;
+        line-height: 1.5;
+        color: $text-secondary;
+        margin: 0;
+        strong { color: $text-primary; }
+    }
+}
+
+.fantasy-info-banner-close {
+    background: none;
+    border: none;
+    color: $text-tertiary;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: color $t-fast;
+
+    &:hover { color: $text-primary; }
+}
+
+// ═══════════════════════════════════════
+// SUB-STATS BAR (per-tab metrics)
+// ═══════════════════════════════════════
+
+.fantasy-sub-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-md $space-lg;
+    padding: 14px 18px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+    margin-bottom: $space-lg;
+}
+
+.fantasy-sub-stat {
+    display: flex;
+    flex-direction: column;
+    min-width: 56px;
+
+    .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: $text-tertiary;
+        margin-bottom: 1px;
+    }
+
+    .value {
+        font-family: $mono-font;
+        font-weight: $weight-bold;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+// ═══════════════════════════════════════
+// TRANSFER WINDOW
+// ═══════════════════════════════════════
+
+.fantasy-transfer-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: $radius-sm;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: $space-lg;
+
+    &.open {
+        background: rgba($green, 0.06);
+        color: $green;
+        border: 1px solid rgba($green, 0.15);
+    }
+
+    &.closed {
+        background: rgba($accent-red, 0.06);
+        color: $accent-red;
+        border: 1px solid rgba($accent-red, 0.15);
+    }
+}
+
+.fantasy-swaps-remaining {
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0.8;
+}
