@@ -86,15 +86,6 @@
         </div>
     <% end %>
 
-    <%# ── Prediction links ── %>
-    <% @predictions.each do |prediction| %>
-        <%= link_to preview_race_path(@race, username: prediction.user.username), class: "pred-link" do %>
-            <i class="fa-solid fa-robot"></i>
-            <span>Race Preview — <%= prediction.user.username %></span>
-            <i class="fa-solid fa-arrow-right"></i>
-        <% end %>
-    <% end %>
-
     <%# ── Race / Qualifying tabs ── %>
     <% auto_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
     <% default_tab = %w[race qualifying].include?(params[:tab]) ? params[:tab] : auto_tab %>
@@ -303,6 +294,28 @@
             <h4>Elo Changes</h4>
         </div>
         <%= custom_chart Graphs::RaceEloChanges.new(race: @race).data %>
+    </div>
+    <% end %>
+
+    <% if @predictions.any? %>
+    <div class="card card-flush">
+        <div class="table-header">
+            <h3><i class="fa-solid fa-robot" style="margin-right: 6px;"></i> Fantasy Previews</h3>
+        </div>
+        <% @predictions.each do |prediction| %>
+            <% support = ConstructorSupport.current_for(prediction.user, @race.season) %>
+            <% team_color = support ? Constructor::COLORS[support.constructor.constructor_ref.to_sym] : nil %>
+            <%= link_to preview_race_path(@race, username: prediction.user.username), class: "fantasy-preview-row" do %>
+                <div class="fantasy-preview-user">
+                    <% if support&.constructor&.logo_url.present? %>
+                        <img src="<%= support.constructor.logo_url %>" alt="<%= support.constructor.name %>" class="constructor-logo-xs">
+                    <% end %>
+                    <strong style="<%= "color: #{team_color}" if team_color %>"><%= prediction.user.display_name %></strong>
+                </div>
+                <span class="fantasy-preview-summary"><%= prediction.analysis.truncate(100) %></span>
+                <i class="fa-solid fa-arrow-right" style="color: var(--page-accent, #e10600); font-size: 12px;"></i>
+            <% end %>
+        <% end %>
     </div>
     <% end %>
 </div>

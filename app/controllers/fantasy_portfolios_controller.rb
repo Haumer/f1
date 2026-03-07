@@ -15,6 +15,11 @@ class FantasyPortfoliosController < ApplicationController
 
     load_portfolio_data
     load_stock_data
+    @predictions = Prediction.where(user: @user)
+                             .joins(race: :season)
+                             .where(seasons: { year: @season.year })
+                             .includes(race: [:circuit, :season])
+                             .order("races.round DESC")
   end
 
   def roster

@@ -474,3 +474,47 @@
         font-size: 12px;
     }
 }
+
+// Fantasy preview row on race show page
+.fantasy-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    border-bottom: 1px solid $border-color;
+    transition: background $t-fast;
+    text-decoration: none;
+    color: $text-primary;
+
+    &:last-child { border-bottom: none; }
+    &:hover {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+        text-decoration: none;
+    }
+}
+
+.fantasy-preview-user {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.fantasy-preview-summary {
+    flex: 1;
+    font-size: 13px;
+    color: $text-secondary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .fantasy-preview-row {
+        padding: 12px 16px;
+    }
+    .fantasy-preview-summary {
+        display: none;
+    }
+}
