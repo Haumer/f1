@@ -78,7 +78,7 @@
                         <div class="elo-step-pip" style="background: #e10600">S</div>
                         <div class="elo-step-content">
                             <strong>Short Positions</strong>
-                            <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked fantasy cash) and incur a 2% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
+                            <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked fantasy cash) and incur a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
                         </div>
                     </div>
                 </div>
