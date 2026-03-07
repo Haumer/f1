@@ -7,12 +7,13 @@ module Fantasy
 
     def call
       return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
-      return { error: "Already at maximum teams (#{FantasyPortfolio::MAX_TEAMS})" } unless @portfolio.can_buy_team?
 
-      cost = @portfolio.team_cost
-      return { error: "Not enough cash (need #{cost}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < cost
+      @portfolio.with_lock do
+        return { error: "Already at maximum teams (#{FantasyPortfolio::MAX_TEAMS})" } unless @portfolio.can_buy_team?
 
-      ActiveRecord::Base.transaction do
+        cost = @portfolio.team_cost
+        return { error: "Not enough cash (need #{cost}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < cost
+
         @portfolio.update!(
           roster_slots: @portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM,
           cash: @portfolio.cash - cost

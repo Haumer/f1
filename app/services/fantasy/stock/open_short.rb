@@ -12,15 +12,15 @@ module Fantasy
         return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
         return { error: "Invalid quantity" } unless @quantity > 0
 
-        existing = @portfolio.active_shorts.find_by(driver: @driver)
-        return { error: "Too many positions (max #{FantasyStockPortfolio::MAX_POSITIONS})" } if !existing && @portfolio.positions_full?
+        @portfolio.with_lock do
+          existing = @portfolio.active_shorts.find_by(driver: @driver)
+          return { error: "Too many positions (max #{FantasyStockPortfolio::MAX_POSITIONS})" } if !existing && @portfolio.positions_full?
 
-        price = @portfolio.share_price(@driver)
-        collateral_needed = price * @quantity
+          price = @portfolio.share_price(@driver)
+          collateral_needed = price * @quantity
 
-        return { error: "Not enough cash for collateral (need #{collateral_needed.round(1)}, have #{@portfolio.available_cash.round(1)})" } if @portfolio.available_cash < collateral_needed
+          return { error: "Not enough cash for collateral (need #{collateral_needed.round(1)}, have #{@portfolio.available_cash.round(1)})" } if @portfolio.available_cash < collateral_needed
 
-        ActiveRecord::Base.transaction do
           if existing
             new_qty = existing.quantity + @quantity
             new_avg = ((existing.entry_price * existing.quantity) + (price * @quantity)) / new_qty

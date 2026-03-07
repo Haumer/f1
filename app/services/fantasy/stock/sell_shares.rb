@@ -12,14 +12,14 @@ module Fantasy
         return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
         return { error: "Invalid quantity" } unless @quantity > 0
 
-        holding = @portfolio.active_longs.find_by(driver: @driver)
-        return { error: "You don't hold this driver" } unless holding
-        return { error: "You only hold #{holding.quantity} shares" } if @quantity > holding.quantity
+        @portfolio.with_lock do
+          holding = @portfolio.active_longs.find_by(driver: @driver)
+          return { error: "You don't hold this driver" } unless holding
+          return { error: "You only hold #{holding.quantity} shares" } if @quantity > holding.quantity
 
-        price = @portfolio.share_price(@driver)
-        total = price * @quantity
+          price = @portfolio.share_price(@driver)
+          total = price * @quantity
 
-        ActiveRecord::Base.transaction do
           if @quantity == holding.quantity
             holding.update!(active: false, closed_race: @race)
           else

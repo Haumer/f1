@@ -8,13 +8,14 @@ module Fantasy
 
     def call
       return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
-      return { error: "Driver is already on your roster" } if @portfolio.has_driver?(@driver)
-      return { error: "Roster is full (#{@portfolio.roster_slots} seats)" } if @portfolio.roster_full?
 
-      price = Fantasy::Pricing.price_for(@driver, @portfolio.season)
-      return { error: "Not enough cash (need #{price.round(0)}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < price
+      @portfolio.with_lock do
+        return { error: "Driver is already on your roster" } if @portfolio.has_driver?(@driver)
+        return { error: "Roster is full (#{@portfolio.roster_slots} seats)" } if @portfolio.roster_full?
 
-      ActiveRecord::Base.transaction do
+        price = Fantasy::Pricing.price_for(@driver, @portfolio.season)
+        return { error: "Not enough cash (need #{price.round(0)}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < price
+
         @portfolio.roster_entries.create!(
           driver: @driver,
           bought_at_elo: price,

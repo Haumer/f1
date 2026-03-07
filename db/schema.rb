@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_07_103347) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_07_131146) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -339,6 +339,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_07_103347) do
     t.index ["bought_race_id"], name: "index_fantasy_roster_entries_on_bought_race_id"
     t.index ["driver_id"], name: "index_fantasy_roster_entries_on_driver_id"
     t.index ["fantasy_portfolio_id", "active"], name: "index_fantasy_roster_entries_on_fantasy_portfolio_id_and_active"
+    t.index ["fantasy_portfolio_id", "driver_id"], name: "idx_unique_active_roster_entry", unique: true, where: "(active = true)"
     t.index ["fantasy_portfolio_id"], name: "index_fantasy_roster_entries_on_fantasy_portfolio_id"
     t.index ["sold_race_id"], name: "index_fantasy_roster_entries_on_sold_race_id"
   end
@@ -382,6 +383,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_07_103347) do
     t.index ["closed_race_id"], name: "index_fantasy_stock_holdings_on_closed_race_id"
     t.index ["driver_id"], name: "index_fantasy_stock_holdings_on_driver_id"
     t.index ["fantasy_stock_portfolio_id", "driver_id", "direction", "active"], name: "idx_stock_holdings_portfolio_driver_dir_active"
+    t.index ["fantasy_stock_portfolio_id", "driver_id", "direction"], name: "idx_unique_active_stock_holding", unique: true, where: "(active = true)"
     t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_holdings_on_fantasy_stock_portfolio_id"
     t.index ["opened_race_id"], name: "index_fantasy_stock_holdings_on_opened_race_id"
   end
