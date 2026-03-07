@@ -26,6 +26,7 @@
 .fantasy-header-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 // Tab bar for leaderboard modes
@@ -692,12 +693,22 @@
 
 .fantasy-visibility-url {
     margin-left: auto;
+    overflow: hidden;
     a {
         font-family: $mono-font;
         font-size: 12px;
         color: $text-tertiary;
         text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
         &:hover { color: var(--page-accent, $accent-red); }
+    }
+
+    @media (max-width: 480px) {
+        margin-left: 0;
+        width: 100%;
     }
 }
 
@@ -831,6 +842,10 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 12px;
     margin-bottom: $space-lg;
+
+    @media (max-width: 380px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .fantasy-driver-card {
@@ -1493,9 +1508,12 @@
         max-width: none;
         order: unset !important;
         flex-direction: row;
+        align-items: center;
         text-align: left;
         gap: $space-md;
         padding: $space-md;
+
+        .fantasy-podium-rank { flex-shrink: 0; }
     }
 }
 
@@ -1609,6 +1627,10 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 8px;
     margin-bottom: $space-lg;
+
+    @media (max-width: 380px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .fantasy-achievement-card {
@@ -2155,6 +2177,10 @@
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
     margin-bottom: $space-lg;
+
+    @media (max-width: 380px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .fantasy-nav-card {
@@ -2434,6 +2460,7 @@
 .settings-input-wrapper {
     position: relative;
     max-width: 360px;
+    width: 100%;
 }
 
 .settings-input-prefix {

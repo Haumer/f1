@@ -17,6 +17,33 @@
     }
 }
 
+// Fixed column widths for tabbed race/qualifying tables
+table.race-results--tabbed {
+    table-layout: fixed;
+
+    // Col 1: Position (#)
+    th:nth-child(1), td:nth-child(1) { width: 36px; }
+    // Col 2: Flag (sm+)
+    th:nth-child(2), td:nth-child(2) { width: 32px; }
+    // Col 3: Constructor logo (md+)
+    th:nth-child(3), td:nth-child(3) { width: 40px; }
+    // Col 4: Driver — auto (takes remaining space)
+    th:nth-child(4), td:nth-child(4) { width: auto; }
+    // Cols 5-9: data columns — equal widths
+    th:nth-child(5), td:nth-child(5),
+    th:nth-child(6), td:nth-child(6),
+    th:nth-child(7), td:nth-child(7),
+    th:nth-child(8), td:nth-child(8),
+    th:nth-child(9), td:nth-child(9) { width: 80px; }
+    // Col 10-11: Elo Change / Elo — slightly wider
+    th:nth-child(10), td:nth-child(10),
+    th:nth-child(11), td:nth-child(11) { width: 90px; }
+
+    td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    // Let driver name wrap on narrow screens
+    th:nth-child(4), td:nth-child(4) { white-space: normal; overflow: visible; }
+}
+
 // Podium highlighting on race results
 table.race-results {
     tbody tr:nth-child(1) td:first-child { color: $gold; font-family: $mono-font; }

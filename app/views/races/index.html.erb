@@ -52,13 +52,15 @@
                 <table>
                     <tbody>
                         <% upcoming_races.each do |race| %>
-                            <tr class="upcoming-race-row">
+                            <tr class="upcoming-race-row race-row-linked">
                                 <td class="driver" colspan="3">
                                     <span class="text-upcoming-date"><%= race.date.strftime("%b %-d") %></span>
                                 </td>
-                                <td class="race">R<%= race.round %></td>
+                                <td class="race">
+                                    <%= link_to "R#{race.round}", race_path(race) %>
+                                </td>
                                 <td class="circuit">
-                                    <%= link_to race.circuit.name, circuit_path(race.circuit) %>
+                                    <%= link_to race.circuit.name, race_path(race) %>
                                 </td>
                             </tr>
                         <% end %>
@@ -84,7 +86,7 @@
                 <table>
                     <tbody>
                         <% races.each do |race| %>
-                            <tr>
+                            <tr class="race-row-linked">
                                 <% podium = race.race_results.sort_by { |rr| rr.position_order || 999 }.first(3) %>
                                 <% if podium.present? %>
                                     <% podium.each_with_index do |race_result, index| %>
@@ -105,14 +107,10 @@
                                     </td>
                                 <% end %>
                                 <td class="race">
-                                    <% if race.race_results.present? %>
-                                        <%= link_to "R#{race.round}", race_path(race) %>
-                                    <% else %>
-                                        -
-                                    <% end %>
+                                    <%= link_to "R#{race.round}", race_path(race) %>
                                 </td>
                                 <td class="circuit">
-                                    <%= link_to race.circuit.name, circuit_path(race.circuit) %>
+                                    <%= link_to race.circuit.name, race_path(race) %>
                                 </td>
                             </tr>
                         <% end %>

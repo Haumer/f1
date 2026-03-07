@@ -48,7 +48,7 @@ class UpdateQualifyingResult
     url = "#{ENDPOINT}/#{@race.year}/#{@race.round}/qualifying.json"
     puts "Fetching qualifying: #{url}"
     JSON.parse(URI.open(url, read_timeout: 30).read)
-  rescue OpenURI::HTTPError, Timeout::Error, JSON::ParserError => e
+  rescue OpenURI::HTTPError, Timeout::Error, JSON::ParserError, Errno::ECONNRESET, Errno::ECONNREFUSED, SocketError, Net::OpenTimeout, Net::ReadTimeout => e
     puts "Error fetching qualifying for #{@race.year}/#{@race.round}: #{e.message}"
     nil
   end

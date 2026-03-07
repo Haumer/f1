@@ -21,6 +21,6 @@
 
 <% if @session_schedule.present? %>
     <div class="card session-schedule-card">
-        <%= render "pages/session_schedule", sessions: @session_schedule %>
+        <%= render "pages/session_schedule", sessions: @session_schedule, race: @weekend_race %>
     </div>
 <% end %>

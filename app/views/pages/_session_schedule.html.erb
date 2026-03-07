@@ -16,11 +16,23 @@
 
     <%# Row 2: Labels %>
     <% sessions.each_with_index do |session, idx| %>
-        <div class="session-label-item session-<%= session[:status] %>" style="grid-column: <%= idx + 1 %>; grid-row: 2">
-            <span class="session-name"><%= session[:name] %></span>
-            <span class="session-date"><%= session[:date].strftime("%a") %></span>
-            <% if session[:starts_at] %>
-                <span class="session-time"><%= session[:starts_at].strftime("%H:%M") %></span>
+        <% linkable = %i[quali race].include?(session[:key]) && defined?(race) && race.present? %>
+        <div class="session-label-item session-<%= session[:status] %><%= ' session-linkable' if linkable %>" style="grid-column: <%= idx + 1 %>; grid-row: 2">
+            <% if linkable %>
+                <% tab_param = session[:key] == :quali ? "qualifying" : "race" %>
+                <%= link_to race_path(race, tab: tab_param), class: "session-link" do %>
+                    <span class="session-name"><%= session[:name] %></span>
+                    <span class="session-date"><%= session[:date].strftime("%a") %></span>
+                    <% if session[:starts_at] %>
+                        <span class="session-time"><%= session[:starts_at].strftime("%H:%M") %></span>
+                    <% end %>
+                <% end %>
+            <% else %>
+                <span class="session-name"><%= session[:name] %></span>
+                <span class="session-date"><%= session[:date].strftime("%a") %></span>
+                <% if session[:starts_at] %>
+                    <span class="session-time"><%= session[:starts_at].strftime("%H:%M") %></span>
+                <% end %>
             <% end %>
             <% if session[:status] == :done %>
                 <span class="badge-done"><i class="fa-solid fa-check"></i></span>

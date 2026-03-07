@@ -670,6 +670,18 @@ th[data-sort] {
     td.race { width: 80px; }
     td.circuit { color: $text-secondary; }
     tr { border-bottom: 1px solid $border-color; }
+
+    // Linked round + circuit: highlight both on hover
+    tr.race-row-linked {
+        td.race a, td.circuit a {
+            transition: color 0.15s ease;
+        }
+        &:hover td.race a,
+        &:hover td.circuit a {
+            color: var(--page-accent, $accent-red);
+        }
+    }
+
     @media (max-width: 768px) {
         td.driver { width: auto; }
         td.race { width: auto; }

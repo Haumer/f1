@@ -20,6 +20,7 @@
             <h1 class="page-hero-title"><%= @race.circuit.name %></h1>
             <p class="page-hero-meta">
                 <%= @race.circuit.location %>, <%= @race.circuit.country %> · <%= @race.date.strftime("%B %d, %Y") %>
+                · <%= link_to "Circuit History", circuit_path(@race.circuit), class: "page-hero-link" %>
                 · <%= link_to "Wikipedia", @race.url, target: "_blank", class: "page-hero-link" %>
             </p>
         </div>
@@ -86,7 +87,9 @@
     <% end %>
 
     <%# ── Race / Qualifying tabs ── %>
-    <% default_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
+    <% auto_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
+    <% default_tab = %w[race qualifying].include?(params[:tab]) ? params[:tab] : auto_tab %>
+    <% default_tab = auto_tab if default_tab == "qualifying" && !has_quali %>
 
     <div class="card card-flush" data-controller="tab-table">
         <div class="table-header table-header-tabs">
@@ -99,7 +102,7 @@
         <%# ── Race Results Panel ── %>
         <div data-tab="race" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'race' %>">
             <div class="table-scroll-wrapper">
-            <table class="race-results" data-controller="sortable-table">
+            <table class="race-results race-results--tabbed" data-controller="sortable-table">
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
@@ -216,7 +219,7 @@
         <div data-tab="qualifying" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'qualifying' %>">
             <% if has_quali %>
                 <div class="table-scroll-wrapper">
-                <table class="race-results" data-controller="sortable-table">
+                <table class="race-results race-results--tabbed" data-controller="sortable-table">
                     <thead>
                         <tr>
                             <th class="text-center">#</th>

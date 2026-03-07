@@ -186,6 +186,24 @@
   &.session-done .session-name { color: $text-secondary; }
   &.session-today .session-name { color: $green; }
   &.session-upcoming .session-name { color: $text-secondary; }
+
+  .session-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s ease;
+
+    &:hover .session-name {
+      color: var(--page-accent, #e10600);
+    }
+  }
+
+  &.session-linkable {
+    cursor: pointer;
+  }
 }
 
 // Countdown Badge (pre-race)
