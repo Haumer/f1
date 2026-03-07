@@ -50,7 +50,7 @@ class FantasyStockPortfolio < ApplicationRecord
   end
 
   def profit_loss
-    portfolio_value - starting_capital
+    (portfolio_value - starting_capital).round(2)
   end
 
   def can_trade?(race)
