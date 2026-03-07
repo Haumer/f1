@@ -21,7 +21,7 @@ class ApplicationController < ActionController::Base
   private
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:username])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:username, :terms_accepted])
     devise_parameter_sanitizer.permit(:account_update, keys: [:username])
   end
 
@@ -31,6 +31,8 @@ class ApplicationController < ActionController::Base
 
   def track_action
     return if self.class.module_parent == Admin
+    return if request.path == "/users/username_available"
+    return if request.path == "/drivers/search"
 
     ahoy.track "Page View", request.path_parameters.merge(url: request.url)
   end

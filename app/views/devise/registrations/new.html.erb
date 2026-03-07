@@ -27,6 +27,13 @@
                     <span class="devise-hint"><%= @minimum_password_length %> characters minimum</span>
                 </div>
 
+                <div class="devise-field devise-field-checkbox">
+                    <label class="devise-checkbox-label">
+                        <%= f.check_box :terms_accepted, class: "devise-checkbox" %>
+                        <span>I agree to the <%= link_to "Terms of Use", terms_path, target: "_blank", rel: "noopener" %></span>
+                    </label>
+                </div>
+
                 <div class="devise-actions">
                     <%= f.submit "Create Account", class: "devise-btn devise-btn-primary" %>
                 </div>
