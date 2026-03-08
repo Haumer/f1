@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     resources :operations, only: [:index, :create]
     resources :alerts, only: [:update]
     resources :analytics, only: [:index, :show]
+    resources :experiments, only: [:index]
   end
   get 'elo', to: 'pages#elo', as: :elo
   get 'about', to: 'pages#about', as: :about

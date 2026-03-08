@@ -1,0 +1,510 @@
+<% js = ->(code) { RailsCharts::Javascript.new(code) } %>
+<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+    <h2 style="margin: 0;">
+        <i class="fa-solid fa-flask"></i> Experimental Graphs —
+        <%= @multi_year ? "#{@from_year}–#{@to_year}" : @from_year %>
+    </h2>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <form method="get" action="<%= admin_experiments_path %>" style="display: flex; align-items: center; gap: 6px;">
+            <select name="from" onchange="this.form.submit()" style="background: rgba(255,255,255,0.06); color: #ccc; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 13px;">
+                <% @available_years.each do |y| %>
+                    <option value="<%= y %>" <%= 'selected' if y == @from_year %>><%= y %></option>
+                <% end %>
+            </select>
+            <span style="color: #666;">to</span>
+            <select name="to" onchange="this.form.submit()" style="background: rgba(255,255,255,0.06); color: #ccc; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 13px;">
+                <% @available_years.each do |y| %>
+                    <option value="<%= y %>" <%= 'selected' if y == @to_year %>><%= y %></option>
+                <% end %>
+            </select>
+        </form>
+        <% max_year = @available_years.first.to_i %>
+        <% min_year = @available_years.last.to_i %>
+        <% [[1, "1Y"], [3, "3Y"], [5, "5Y"]].each do |span, label| %>
+            <% from = [min_year, max_year - span + 1].max %>
+            <%= link_to label, admin_experiments_path(from: from, to: max_year),
+                style: "padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; color: #888; background: rgba(255,255,255,0.06); text-decoration: none;" %>
+        <% end %>
+    </div>
+</div>
+<p style="color: #888; margin-bottom: 24px;">
+    <%= @total_races %> races
+    <% if @drivers_data.any? %> · <%= @drivers_data.size %> drivers<% end %>
+</p>
+
+<%# ═══ 1. Qualifying vs Race Delta (Tabbed) ═══ %>
+<% min_races = @multi_year ? 5 : 1 %>
+<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+        <h3 style="margin: 0;">Qualifying vs Race Delta</h3>
+        <div style="display: flex; gap: 2px; background: rgba(255,255,255,0.04); border-radius: 6px; padding: 2px;">
+            <button onclick="document.getElementById('tab-raw').style.display='block'; document.getElementById('tab-adj').style.display='none'; this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff'; this.nextElementSibling.style.background='transparent'; this.nextElementSibling.style.color='#888';"
+                    style="padding: 4px 12px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.1); color: #fff;">
+                Raw Delta
+            </button>
+            <button onclick="document.getElementById('tab-adj').style.display='block'; document.getElementById('tab-raw').style.display='none'; this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff'; this.previousElementSibling.style.background='transparent'; this.previousElementSibling.style.color='#888';"
+                    style="padding: 4px 12px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; color: #888;">
+                vs Field
+            </button>
+        </div>
+    </div>
+
+    <%# ── Tab 1: Raw Delta ── %>
+    <div id="tab-raw">
+        <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+            Average places gained (green) or lost (red) from grid to finish. DNFs excluded.
+        </p>
+
+        <% sorted_raw = @drivers_data.sort_by { |d| -d[:avg_delta] } %>
+        <% filtered_raw = sorted_raw.select { |d| d[:clean_races] >= min_races } %>
+        <%= custom_chart({
+            tooltip: {
+                trigger: "axis",
+                axisPointer: { type: "shadow" },
+                formatter: js.("function(p) { var d = p[0]; var val = d.data.value; var sign = val > 0 ? '+' : ''; return d.name + '<br/>Avg delta: ' + sign + val + ' places<br/>Avg grid: P' + d.data.grid + '<br/>' + d.data.clean + ' clean races'; }")
+            },
+            grid: { left: 10, right: 30, top: 10, bottom: 10, containLabel: true },
+            backgroundColor: "transparent",
+            xAxis: {
+                type: "value",
+                axisLabel: { color: "#888", formatter: js.("function(v) { return v > 0 ? '+' + v : v; }") },
+                splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+            },
+            yAxis: {
+                type: "category",
+                data: filtered_raw.reverse.map { |d| d[:code] },
+                axisLabel: { color: "#ccc", fontSize: 11 },
+                axisLine: { lineStyle: { color: "#333" } }
+            },
+            series: [{
+                type: "bar",
+                data: filtered_raw.reverse.map { |d|
+                    {
+                        value: d[:avg_delta],
+                        clean: d[:clean_races],
+                        grid: d[:avg_grid],
+                        itemStyle: { color: d[:avg_delta] >= 0 ? "rgba(82, 196, 26, 0.8)" : "rgba(225, 6, 0, 0.8)" }
+                    }
+                },
+                barWidth: "55%",
+                label: {
+                    show: true,
+                    position: "right",
+                    color: "#aaa",
+                    fontSize: 10,
+                    formatter: js.("function(p) { var v = p.data.value; return (v > 0 ? '+' : '') + v; }")
+                }
+            }]
+        }) %>
+    </div>
+
+    <%# ── Tab 2: vs Field (Position-Adjusted) ── %>
+    <div id="tab-adj" style="display: none;">
+        <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+            Performance vs the average driver starting in the same grid slot.
+            Positive = better than the field from that position. Negative = worse.
+        </p>
+
+        <% sorted_adj = @drivers_data.sort_by { |d| -d[:avg_adjusted_delta] } %>
+        <% filtered_adj = sorted_adj.select { |d| d[:clean_races] >= min_races } %>
+        <%= custom_chart({
+            tooltip: {
+                trigger: "axis",
+                axisPointer: { type: "shadow" },
+                formatter: js.("function(p) { var d = p[0]; var val = d.data.value; var sign = val > 0 ? '+' : ''; return d.name + '<br/>vs field: ' + sign + val + ' places<br/>Avg grid: P' + d.data.grid + '<br/>' + d.data.clean + ' clean races'; }")
+            },
+            grid: { left: 10, right: 30, top: 10, bottom: 10, containLabel: true },
+            backgroundColor: "transparent",
+            xAxis: {
+                type: "value",
+                axisLabel: { color: "#888", formatter: js.("function(v) { return v > 0 ? '+' + v : v; }") },
+                splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+            },
+            yAxis: {
+                type: "category",
+                data: filtered_adj.reverse.map { |d| d[:code] },
+                axisLabel: { color: "#ccc", fontSize: 11 },
+                axisLine: { lineStyle: { color: "#333" } }
+            },
+            series: [{
+                type: "bar",
+                data: filtered_adj.reverse.map { |d|
+                    {
+                        value: d[:avg_adjusted_delta],
+                        clean: d[:clean_races],
+                        grid: d[:avg_grid],
+                        itemStyle: { color: d[:avg_adjusted_delta] >= 0 ? "rgba(82, 196, 26, 0.8)" : "rgba(225, 6, 0, 0.8)" }
+                    }
+                },
+                barWidth: "55%",
+                label: {
+                    show: true,
+                    position: "right",
+                    color: "#aaa",
+                    fontSize: 10,
+                    formatter: js.("function(p) { var v = p.data.value; return (v > 0 ? '+' : '') + v; }")
+                }
+            }]
+        }) %>
+    </div>
+</div>
+
+<%# ═══ 2. Cumulative Points Progression ═══ %>
+<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+    <h3 style="margin-bottom: 4px;">Cumulative Points Progression</h3>
+    <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+        Points accumulated over <%= @multi_year ? "#{@from_year}–#{@to_year}" : "the season" %>.
+        Steeper = stronger run of form.
+    </p>
+
+    <% top_drivers = @drivers_data.first(10) %>
+    <%= custom_chart({
+        tooltip: {
+            trigger: "axis",
+            formatter: js.("function(params) { var out = params[0].axisValue; params.sort(function(a,b) { return b.data - a.data; }); params.forEach(function(p) { if (p.data != null) out += '<br/>' + p.marker + ' ' + p.seriesName + ': ' + p.data; }); return out; }")
+        },
+        legend: {
+            data: top_drivers.map { |d| d[:code] },
+            textStyle: { color: "#888", fontSize: 11 },
+            top: 0,
+            type: "scroll"
+        },
+        grid: { left: 10, right: 30, top: 40, bottom: 40, containLabel: true },
+        backgroundColor: "transparent",
+        xAxis: {
+            type: "category",
+            data: @race_labels,
+            name: @multi_year ? "" : "Round",
+            nameLocation: "middle",
+            nameGap: 30,
+            nameTextStyle: { color: "#888" },
+            axisLabel: {
+                color: "#888",
+                fontSize: 10,
+                rotate: @multi_year ? 45 : 0,
+                interval: @multi_year ? "auto" : 0
+            },
+            boundaryGap: false,
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+        },
+        yAxis: {
+            type: "value",
+            name: "Points",
+            nameLocation: "middle",
+            nameGap: 50,
+            nameTextStyle: { color: "#888" },
+            axisLabel: { color: "#888" },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+        },
+        series: top_drivers.map { |d|
+            pts_by_label = d[:cumulative].each_with_object({}) { |c, h| h[c[:label]] = c[:points] }
+            last_val = nil
+            data = @race_labels.map { |label|
+                if pts_by_label[label]
+                    last_val = pts_by_label[label]
+                end
+                last_val
+            }
+            {
+                name: d[:code],
+                type: "line",
+                data: data,
+                connectNulls: true,
+                lineStyle: { width: 2 },
+                itemStyle: { color: d[:color] },
+                symbol: "none",
+                smooth: false
+            }
+        }
+    }) %>
+</div>
+
+<%# ═══ 3. Grid-to-Finish Scatter ═══ %>
+<% top_for_scatter = @drivers_data.first(10) %>
+<% top_for_scatter.each do |d| %>
+    <div class="admin-stat-card" style="margin-bottom: 16px; padding: 20px;">
+        <h3 style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: <%= d[:color] %>;"></span>
+            <%= d[:driver].fullname %>
+            <span style="color: #888; font-weight: 400; font-size: 13px;">
+                — Grid to Finish (<%= d[:clean_races] %> races)
+            </span>
+        </h3>
+        <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+            Each dot = one race. Dots above the diagonal = places gained. Below = places lost.
+            <span style="color: #ccc; font-weight: 600;">Avg delta: <%= d[:avg_delta] > 0 ? "+#{d[:avg_delta]}" : d[:avg_delta] %></span>
+        </p>
+
+        <%= custom_chart({
+            tooltip: {
+                trigger: "item",
+                formatter: js.("function(p) { if (!p.data || !p.data.value) return ''; return p.data.value[2] + '<br/>Grid: P' + p.data.value[0] + '<br/>Finish: P' + p.data.value[1]; }")
+            },
+            grid: { left: 10, right: 30, top: 10, bottom: 40, containLabel: true },
+            backgroundColor: "transparent",
+            xAxis: {
+                type: "value",
+                name: "Grid Position",
+                nameLocation: "middle",
+                nameGap: 30,
+                nameTextStyle: { color: "#888" },
+                axisLabel: { color: "#888" },
+                splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+                min: 1,
+                max: 20
+            },
+            yAxis: {
+                type: "value",
+                name: "Finish Position",
+                nameLocation: "middle",
+                nameGap: 35,
+                nameTextStyle: { color: "#888" },
+                axisLabel: { color: "#888" },
+                splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+                min: 1,
+                max: 20,
+                inverse: true
+            },
+            series: [
+                {
+                    name: "Diagonal",
+                    type: "line",
+                    data: (1..20).map { |p| [p, p] },
+                    lineStyle: { color: "#444", type: "dashed", width: 1 },
+                    symbol: "none",
+                    silent: true
+                },
+                {
+                    name: d[:code],
+                    type: "scatter",
+                    symbolSize: 14,
+                    data: d[:grid_finish_pairs].map { |grid, finish, label|
+                        delta = grid - finish
+                        color = if delta > 0
+                            "rgba(82, 196, 26, 0.9)"
+                        elsif delta < 0
+                            "rgba(225, 6, 0, 0.9)"
+                        else
+                            "rgba(250, 173, 20, 0.9)"
+                        end
+                        { value: [grid, finish, label], itemStyle: { color: color } }
+                    }
+                }
+            ]
+        }) %>
+    </div>
+<% end %>
+
+<%# ═══ 4. Season Momentum (Rolling 5-Race Avg Position) ═══ %>
+<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+    <h3 style="margin-bottom: 4px;">Season Momentum</h3>
+    <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+        Rolling 5-race average finishing position. Lower = better form. Dips = purple patches, spikes = rough stretches.
+    </p>
+
+    <% momentum_drivers = @drivers_data.select { |d| @champion_driver_ids.include?(d[:driver].id) } %>
+    <%= custom_chart({
+        tooltip: {
+            trigger: "axis",
+            formatter: js.("function(params) { var out = params[0].axisValue; params.sort(function(a,b) { return a.data - b.data; }); params.forEach(function(p) { if (p.data != null) out += '<br/>' + p.marker + ' ' + p.seriesName + ': P' + p.data; }); return out; }")
+        },
+        legend: {
+            data: momentum_drivers.map { |d| d[:code] },
+            textStyle: { color: "#888", fontSize: 11 },
+            top: 0,
+            type: "scroll"
+        },
+        grid: { left: 10, right: 30, top: 40, bottom: 40, containLabel: true },
+        backgroundColor: "transparent",
+        xAxis: {
+            type: "category",
+            data: @race_labels,
+            axisLabel: {
+                color: "#888",
+                fontSize: 10,
+                rotate: @multi_year ? 45 : 0,
+                interval: @multi_year ? "auto" : 0
+            },
+            boundaryGap: false,
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+        },
+        yAxis: {
+            type: "value",
+            name: "Avg Position (5-race)",
+            nameLocation: "middle",
+            nameGap: 40,
+            nameTextStyle: { color: "#888" },
+            axisLabel: { color: "#888" },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+            inverse: true,
+            min: 1
+        },
+        series: momentum_drivers.map { |d|
+            mom_by_label = d[:momentum].each_with_object({}) { |m, h| h[m[:label]] = m[:avg_pos] }
+            data = @race_labels.map { |label| mom_by_label[label] }
+            {
+                name: d[:code],
+                type: "line",
+                data: data,
+                connectNulls: true,
+                lineStyle: { width: 2 },
+                itemStyle: { color: d[:color] },
+                symbol: "none",
+                smooth: true
+            }
+        }
+    }) %>
+</div>
+
+<%# ═══ 5. Points Conversion by Grid Slot ═══ %>
+<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+    <h3 style="margin-bottom: 4px;">Points Conversion by Grid Slot</h3>
+    <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+        Average points scored from each starting position vs the field average for that slot.
+        Green = outperforms the field from that position. Red = underperforms.
+    </p>
+
+    <% conversion_drivers = @drivers_data.first(6) %>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px;">
+        <% conversion_drivers.each do |d| %>
+            <% next if d[:points_by_grid].empty? %>
+            <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: <%= d[:color] %>;"></span>
+                    <span style="font-weight: 600;"><%= d[:code] %></span>
+                </div>
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                            <th style="text-align: left; padding: 4px 6px; color: #888;">Grid</th>
+                            <th style="text-align: right; padding: 4px 6px; color: #888;">Starts</th>
+                            <th style="text-align: right; padding: 4px 6px; color: #888;">Avg Pts</th>
+                            <th style="text-align: right; padding: 4px 6px; color: #888;">Field Avg</th>
+                            <th style="text-align: right; padding: 4px 6px; color: #888;">vs Field</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% d[:points_by_grid].each do |g| %>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                <td style="padding: 4px 6px;">P<%= g[:grid] %></td>
+                                <td style="text-align: right; padding: 4px 6px; color: #888;"><%= g[:count] %></td>
+                                <td style="text-align: right; padding: 4px 6px; font-weight: 600;"><%= g[:avg_pts] %></td>
+                                <td style="text-align: right; padding: 4px 6px; color: #888;"><%= g[:baseline] %></td>
+                                <td style="text-align: right; padding: 4px 6px; font-weight: 600; color: <%= g[:diff] >= 0 ? '#52c41a' : '#e10600' %>;">
+                                    <%= g[:diff] > 0 ? "+#{g[:diff]}" : g[:diff] %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        <% end %>
+    </div>
+</div>
+
+<%# ═══ 6. Consistency Bands ═══ %>
+<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+    <h3 style="margin-bottom: 4px;">Consistency Bands</h3>
+    <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+        What % of races a driver finishes within 2 positions of their average.
+        High = predictable and reliable. Low = boom-or-bust.
+    </p>
+
+    <% consistency_data = @drivers_data.select { |d| d[:consistency_pct] && d[:clean_races] >= 100 }
+                                       .sort_by { |d| -d[:consistency_pct] } %>
+    <%= custom_chart({
+        tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+            formatter: js.("function(p) { var d = p[0]; return d.name + '<br/>Within \\u00b12: ' + d.data.narrow + '%<br/>Within \\u00b15: ' + d.data.wide + '%<br/>Avg pos: P' + d.data.avg + '<br/>' + d.data.clean + ' clean races'; }")
+        },
+        grid: { left: 10, right: 30, top: 10, bottom: 10, containLabel: true },
+        backgroundColor: "transparent",
+        xAxis: {
+            type: "value",
+            max: 100,
+            axisLabel: { color: "#888", formatter: js.("function(v) { return v + '%'; }") },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+        },
+        yAxis: {
+            type: "category",
+            data: consistency_data.reverse.map { |d| d[:code] },
+            axisLabel: { color: "#ccc", fontSize: 11 },
+            axisLine: { lineStyle: { color: "#333" } }
+        },
+        series: [{
+            type: "bar",
+            data: consistency_data.reverse.map { |d|
+                pct = d[:consistency_pct]
+                {
+                    value: pct,
+                    narrow: pct,
+                    wide: d[:wide_pct],
+                    avg: d[:avg_pos_clean],
+                    clean: d[:clean_races],
+                    itemStyle: { color: pct >= 60 ? "rgba(82, 196, 26, 0.8)" : (pct >= 40 ? "rgba(250, 173, 20, 0.8)" : "rgba(225, 6, 0, 0.8)") }
+                }
+            },
+            barWidth: "55%",
+            label: {
+                show: true,
+                position: "right",
+                color: "#aaa",
+                fontSize: 10,
+                formatter: js.("function(p) { return p.data.value + '%'; }")
+            }
+        }]
+    }) %>
+</div>
+
+<%# ═══ 7. Constructor-Adjusted Performance ═══ %>
+<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+    <h3 style="margin-bottom: 4px;">Constructor-Adjusted Performance</h3>
+    <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
+        How much each driver outperforms (green) or underperforms (red) their team's average finishing position.
+        Isolates driver skill from car performance.
+    </p>
+
+    <% car_adj_data = @drivers_data.select { |d| d[:car_adjusted] && d[:clean_races] >= min_races }
+                                   .sort_by { |d| -d[:car_adjusted] } %>
+    <%= custom_chart({
+        tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+            formatter: js.("function(p) { var d = p[0]; var val = d.data.value; var sign = val > 0 ? '+' : ''; return d.name + '<br/>vs team: ' + sign + val + ' positions<br/>Driver avg: P' + d.data.driver_avg + '<br/>Team avg: P' + d.data.team_avg + '<br/>' + d.data.clean + ' clean races'; }")
+        },
+        grid: { left: 10, right: 30, top: 10, bottom: 10, containLabel: true },
+        backgroundColor: "transparent",
+        xAxis: {
+            type: "value",
+            axisLabel: { color: "#888", formatter: js.("function(v) { return v > 0 ? '+' + v : v; }") },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } }
+        },
+        yAxis: {
+            type: "category",
+            data: car_adj_data.reverse.map { |d| d[:code] },
+            axisLabel: { color: "#ccc", fontSize: 11 },
+            axisLine: { lineStyle: { color: "#333" } }
+        },
+        series: [{
+            type: "bar",
+            data: car_adj_data.reverse.map { |d|
+                {
+                    value: d[:car_adjusted],
+                    driver_avg: d[:driver_avg_pos],
+                    team_avg: d[:team_avg_pos],
+                    clean: d[:clean_races],
+                    itemStyle: { color: d[:car_adjusted] >= 0 ? "rgba(82, 196, 26, 0.8)" : "rgba(225, 6, 0, 0.8)" }
+                }
+            },
+            barWidth: "55%",
+            label: {
+                show: true,
+                position: "right",
+                color: "#aaa",
+                fontSize: 10,
+                formatter: js.("function(p) { var v = p.data.value; return (v > 0 ? '+' : '') + v; }")
+            }
+        }]
+    }) %>
+</div>

@@ -28,6 +28,9 @@
           <%= link_to admin_analytics_path, class: "admin-nav-link #{'active' if controller_name == 'analytics'}" do %>
             <i class="fa-solid fa-chart-bar"></i> Analytics
           <% end %>
+          <%= link_to admin_experiments_path, class: "admin-nav-link #{'active' if controller_name == 'experiments'}" do %>
+            <i class="fa-solid fa-flask"></i> Experiments
+          <% end %>
         </nav>
         <div class="admin-sidebar-footer">
           <%= link_to root_path, class: "admin-nav-link" do %>
