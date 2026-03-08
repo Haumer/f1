@@ -1,5 +1,5 @@
 class ConstructorSupport < ApplicationRecord
-  BONUS_CASH = 50
+  BONUS_CASH = 0
 
   belongs_to :user
   belongs_to :constructor
