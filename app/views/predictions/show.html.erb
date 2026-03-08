@@ -1,5 +1,9 @@
 <% content_for(:title) { "Race Preview — #{@race.circuit.name} #{@race.season.year}" } %>
 <% content_for(:description) { "#{@user.username}'s race preview and fantasy picks for #{@race.circuit.name} #{@race.season.year}." } %>
+<% og_img = "og-preview-#{@user.username}.png" %>
+<% if Rails.root.join("public", og_img).exist? %>
+    <% content_for(:og_image) { "#{request.base_url}/#{og_img}" } %>
+<% end %>
 <%
   picks = @prediction.fantasy_picks || {}
   sorted_results = @prediction.predicted_results.sort_by { |r| r["position"] }
@@ -20,9 +24,21 @@
                 <%= @race.circuit.name %> · <%= @race.circuit.location %>, <%= @race.circuit.country %>
                 · <%= @race.date.strftime("%B %d, %Y") %>
             </p>
-            <p class="page-hero-meta">
-                authored by <%= link_to @user.username, fantasy_overview_path(username: @user.username) %>
-            </p>
+            <div class="pred-author">
+                <span class="pred-author-label">authored by</span>
+                <% if @support %>
+                    <% sc = @support.constructor %>
+                    <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                    <%= link_to fantasy_overview_path(username: @user.username), class: "pred-author-name" do %>
+                        <% if sc.logo_url.present? %>
+                            <img src="<%= sc.logo_url %>" alt="<%= sc.name %>" class="pred-author-logo" onerror="this.style.display='none'">
+                        <% end %>
+                        <span style="color: <%= team_color %>"><%= @user.display_name %></span>
+                    <% end %>
+                <% else %>
+                    <%= link_to @user.display_name, fantasy_overview_path(username: @user.username), class: "pred-author-name" %>
+                <% end %>
+            </div>
         </div>
     </div>
 

@@ -25,17 +25,6 @@
     position: relative;
     padding: 0 $space-md;
 
-    &::before {
-        content: '';
-        display: block;
-        width: 40px;
-        height: 2px;
-        background: var(--page-accent, $accent-red);
-        margin: 0 auto $space-md;
-        border-radius: 1px;
-        box-shadow: 0 0 8px rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
-    }
-
     p {
         margin: 0;
         font-family: $headers-font;
@@ -58,6 +47,41 @@
         color: $text-secondary;
         letter-spacing: $ls-heading;
     }
+}
+
+// ── Author byline ──
+.pred-author {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.pred-author-label {
+    font-size: 14px;
+    color: $text-tertiary;
+}
+
+.pred-author-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: $headers-font;
+    font-size: 22px;
+    font-weight: $weight-bold;
+    letter-spacing: $ls-heading;
+    color: $text-primary;
+    text-decoration: none;
+    transition: opacity $t-fast;
+
+    &:hover { opacity: 0.8; }
+}
+
+.pred-author-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
 }
 
 // ── Section headers ──

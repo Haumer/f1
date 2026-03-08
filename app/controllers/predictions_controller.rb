@@ -17,5 +17,8 @@ class PredictionsController < ApplicationController
 
     # Elo changes (pre-computed)
     @elo_changes = @prediction.elo_changes || {}
+
+    # User's team support (for colored username + logo)
+    @support = ConstructorSupport.current_for(@user, @race.season)
   end
 end
