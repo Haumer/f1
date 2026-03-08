@@ -31,6 +31,7 @@ class FantasyStockPortfoliosController < ApplicationController
   def market
     @drivers = Driver.joins(:season_drivers)
                      .where(season_drivers: { season_id: @portfolio.season_id })
+                     .distinct
                      .order(Arel.sql("COALESCE(drivers.elo_v2, 0) DESC"))
                      .includes(:countries)
     @can_trade = @next_race && @portfolio.can_trade?(@next_race)
