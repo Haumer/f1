@@ -102,9 +102,8 @@ class FantasyPortfoliosController < ApplicationController
   # ═══════════════════════════════════════
 
   def market
-    @drivers = Driver.joins(:season_drivers)
-                     .where(season_drivers: { season_id: @portfolio.season_id })
-                     .distinct
+    season_driver_ids = SeasonDriver.where(season_id: @portfolio.season_id).select(:driver_id)
+    @drivers = Driver.where(id: season_driver_ids)
                      .order(Arel.sql("COALESCE(drivers.elo_v2, 0) DESC"))
                      .includes(:countries)
     @active_driver_ids = @portfolio.active_roster_entries.pluck(:driver_id)
