@@ -11,6 +11,9 @@ module Fantasy
     def call
       return { error: "Transfer window is closed" } unless @portfolio.can_swap?(@race)
 
+      net = nil
+      fee = nil
+
       @portfolio.with_lock do
         entry = @portfolio.active_roster_entries.find_by(driver_id: @driver.id)
         return { error: "Driver is not on your roster" } unless entry

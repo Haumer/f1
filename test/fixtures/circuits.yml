@@ -1,0 +1,15 @@
+melbourne:
+  circuit_ref: albert_park
+  name: Albert Park Grand Prix Circuit
+  location: Melbourne
+  country: Australia
+  lat: -37.8497
+  lng: 144.968
+
+bahrain:
+  circuit_ref: bahrain
+  name: Bahrain International Circuit
+  location: Sakhir
+  country: Bahrain
+  lat: 26.0325
+  lng: 50.5106

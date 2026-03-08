@@ -1,0 +1,30 @@
+codex_ver_long:
+  fantasy_stock_portfolio: codex_stock_2026
+  driver: verstappen
+  quantity: 5
+  direction: long
+  entry_price: 240.0
+  collateral: 0.0
+  opened_race: bahrain_2026
+  active: true
+
+codex_nor_short:
+  fantasy_stock_portfolio: codex_stock_2026
+  driver: norris
+  quantity: 3
+  direction: short
+  entry_price: 225.0
+  collateral: 675.0
+  opened_race: bahrain_2026
+  active: true
+
+codex_lec_closed:
+  fantasy_stock_portfolio: codex_stock_2026
+  driver: leclerc
+  quantity: 2
+  direction: long
+  entry_price: 210.0
+  collateral: 0.0
+  opened_race: bahrain_2026
+  closed_race: melbourne_2026
+  active: false

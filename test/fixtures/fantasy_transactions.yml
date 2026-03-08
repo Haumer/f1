@@ -1,0 +1,25 @@
+codex_buy_ver:
+  fantasy_portfolio: codex_2026
+  driver: verstappen
+  race: bahrain_2026
+  kind: buy
+  amount: -2350.0
+
+codex_buy_nor:
+  fantasy_portfolio: codex_2026
+  driver: norris
+  race: bahrain_2026
+  kind: buy
+  amount: -2180.0
+
+codex_sell_lec:
+  fantasy_portfolio: codex_2026
+  driver: leclerc
+  race: melbourne_2026
+  kind: sell
+  amount: 2150.0
+
+codex_team:
+  fantasy_portfolio: codex_2026
+  kind: team_purchase
+  amount: -2100.0

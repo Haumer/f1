@@ -1,0 +1,52 @@
+# Bahrain 2026 results
+bahrain_2026_verstappen:
+  race: bahrain_2026
+  driver: verstappen
+  constructor: red_bull
+  status: finished
+  grid: 1
+  position: 1
+  position_order: 1
+  points: 25
+  laps: 57
+  old_elo_v2: 2380.0
+  new_elo_v2: 2400.0
+
+bahrain_2026_norris:
+  race: bahrain_2026
+  driver: norris
+  constructor: mclaren
+  status: finished
+  grid: 3
+  position: 2
+  position_order: 2
+  points: 18
+  laps: 57
+  old_elo_v2: 2190.0
+  new_elo_v2: 2200.0
+
+bahrain_2026_leclerc:
+  race: bahrain_2026
+  driver: leclerc
+  constructor: ferrari
+  status: finished
+  grid: 2
+  position: 3
+  position_order: 3
+  points: 15
+  laps: 57
+  old_elo_v2: 2145.0
+  new_elo_v2: 2150.0
+
+bahrain_2026_piastri:
+  race: bahrain_2026
+  driver: piastri
+  constructor: mclaren
+  status: retired
+  grid: 4
+  position: 0
+  position_order: 4
+  points: 12
+  laps: 40
+  old_elo_v2: 2060.0
+  new_elo_v2: 2050.0

@@ -1,0 +1,23 @@
+verstappen_2026:
+  driver: verstappen
+  season: season_2026
+  constructor: red_bull
+  active: true
+
+norris_2026:
+  driver: norris
+  season: season_2026
+  constructor: mclaren
+  active: true
+
+leclerc_2026:
+  driver: leclerc
+  season: season_2026
+  constructor: ferrari
+  active: true
+
+piastri_2026:
+  driver: piastri
+  season: season_2026
+  constructor: mclaren
+  active: true

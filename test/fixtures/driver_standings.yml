@@ -1,0 +1,45 @@
+bahrain_2026_verstappen:
+  race: bahrain_2026
+  driver: verstappen
+  points: 25.0
+  position: 1
+  wins: 1
+  podiums: 1
+  season_end: false
+
+bahrain_2026_norris:
+  race: bahrain_2026
+  driver: norris
+  points: 18.0
+  position: 2
+  wins: 0
+  podiums: 1
+  season_end: false
+
+bahrain_2026_leclerc:
+  race: bahrain_2026
+  driver: leclerc
+  points: 15.0
+  position: 3
+  wins: 0
+  podiums: 1
+  season_end: false
+
+bahrain_2026_piastri:
+  race: bahrain_2026
+  driver: piastri
+  points: 12.0
+  position: 4
+  wins: 0
+  podiums: 0
+  season_end: false
+
+# Season-end 2025 standings
+melbourne_2025_verstappen:
+  race: melbourne_2025
+  driver: verstappen
+  points: 400.0
+  position: 1
+  wins: 15
+  podiums: 20
+  season_end: true

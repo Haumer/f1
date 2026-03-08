@@ -1,0 +1,32 @@
+ver_bahrain_2026:
+  race: bahrain_2026
+  driver: verstappen
+  constructor: red_bull
+  position: 1
+  q1: "1:30.123"
+  q2: "1:29.456"
+  q3: "1:28.789"
+
+nor_bahrain_2026:
+  race: bahrain_2026
+  driver: norris
+  constructor: mclaren
+  position: 2
+  q1: "1:30.500"
+  q2: "1:29.800"
+  q3: "1:29.082"
+
+lec_bahrain_2026:
+  race: bahrain_2026
+  driver: leclerc
+  constructor: ferrari
+  position: 3
+  q1: "1:30.200"
+  q2: "1:29.600"
+
+pia_bahrain_2026:
+  race: bahrain_2026
+  driver: piastri
+  constructor: mclaren
+  position: 4
+  q1: "1:31.000"

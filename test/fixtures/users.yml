@@ -1,0 +1,6 @@
+codex:
+  email: codex@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  username: codex
+  admin: false
+  terms_accepted_at: <%= Time.current %>

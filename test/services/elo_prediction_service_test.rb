@@ -1,0 +1,68 @@
+require "test_helper"
+
+class EloPredictionServiceTest < ActiveSupport::TestCase
+  setup do
+    @race = races(:bahrain_2026)
+    @user = User.create!(
+      email: "test@example.com",
+      username: "testuser",
+      password: "password123",
+      terms_accepted: "1"
+    )
+    @prediction = Prediction.create!(
+      race: @race,
+      user: @user,
+      predicted_results: [
+        { "driver_id" => drivers(:verstappen).id, "position" => 1 },
+        { "driver_id" => drivers(:norris).id, "position" => 2 },
+        { "driver_id" => drivers(:leclerc).id, "position" => 3 },
+        { "driver_id" => drivers(:piastri).id, "position" => 4 }
+      ]
+    )
+  end
+
+  test "returns hash keyed by driver_id strings" do
+    changes = EloPredictionService.compute(@prediction)
+    assert_kind_of Hash, changes
+    assert changes.keys.all? { |k| k.is_a?(String) }
+  end
+
+  test "each entry has old_elo, new_elo, and diff" do
+    changes = EloPredictionService.compute(@prediction)
+    changes.each do |_did, entry|
+      assert entry.key?("old_elo"), "Missing old_elo"
+      assert entry.key?("new_elo"), "Missing new_elo"
+      assert entry.key?("diff"), "Missing diff"
+    end
+  end
+
+  test "predicted winner gains elo" do
+    changes = EloPredictionService.compute(@prediction)
+    ver_change = changes[drivers(:verstappen).id.to_s]
+    assert ver_change["diff"] > 0, "Predicted P1 should gain Elo"
+  end
+
+  test "predicted last place loses elo" do
+    changes = EloPredictionService.compute(@prediction)
+    pia_change = changes[drivers(:piastri).id.to_s]
+    assert pia_change["diff"] < 0, "Predicted last should lose Elo"
+  end
+
+  test "changes are zero-sum" do
+    changes = EloPredictionService.compute(@prediction)
+    total_diff = changes.values.sum { |e| e["diff"] }
+    assert_in_delta 0.0, total_diff, 0.1, "Prediction Elo changes must be zero-sum"
+  end
+
+  test "returns empty hash for fewer than 2 predicted results" do
+    @prediction.update!(predicted_results: [
+      { "driver_id" => drivers(:verstappen).id, "position" => 1 }
+    ])
+    assert_equal({}, EloPredictionService.compute(@prediction))
+  end
+
+  test "returns empty hash for blank predicted_results" do
+    @prediction.update_columns(predicted_results: [])
+    assert_equal({}, EloPredictionService.compute(@prediction.reload))
+  end
+end

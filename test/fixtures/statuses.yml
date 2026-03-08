@@ -1,0 +1,29 @@
+finished:
+  status_type: Finished
+
+retired:
+  status_type: Retired
+
+accident:
+  status_type: Accident
+
+engine:
+  status_type: Engine
+
+lapped_one:
+  status_type: "+1 Lap"
+
+disqualified:
+  status_type: Disqualified
+
+injured:
+  status_type: Injured
+
+did_not_qualify:
+  status_type: Did not qualify
+
+spun_off:
+  status_type: Spun off
+
+collision:
+  status_type: Collision

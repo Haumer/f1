@@ -1,0 +1,11 @@
+codex_stock_bahrain:
+  fantasy_stock_portfolio: codex_stock_2026
+  race: bahrain_2026
+  value: 4200.0
+  cash: 3000.0
+
+codex_stock_melbourne:
+  fantasy_stock_portfolio: codex_stock_2026
+  race: melbourne_2026
+  value: 4500.0
+  cash: 3000.0

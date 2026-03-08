@@ -14,7 +14,7 @@ class Race < ApplicationRecord
   scope :sorted_by_most_recent, -> { order(date: :desc) }
 
   def highest_elo_race_result
-    race_results.order(new_elo: :desc).first
+    race_results.order(new_elo_v2: :desc).first
   end
 
   def sorted_race_results

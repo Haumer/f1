@@ -1,0 +1,6 @@
+codex_bahrain_2026:
+  race: bahrain_2026
+  user: codex
+  predicted_results: <%= [{"driver_id" => 1, "position" => 1}, {"driver_id" => 2, "position" => 2}].to_json %>
+  analysis: "Test prediction analysis text."
+  generated_at: <%= Time.current %>

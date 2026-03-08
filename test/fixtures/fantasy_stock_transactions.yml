@@ -1,0 +1,13 @@
+codex_stock_buy_ver:
+  fantasy_stock_portfolio: codex_stock_2026
+  driver: verstappen
+  race: bahrain_2026
+  kind: buy_long
+  amount: -1200.0
+
+codex_stock_short_nor:
+  fantasy_stock_portfolio: codex_stock_2026
+  driver: norris
+  race: bahrain_2026
+  kind: open_short
+  amount: -675.0

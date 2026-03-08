@@ -1,0 +1,23 @@
+mclaren:
+  constructor_ref: mclaren
+  name: McLaren
+  nationality: British
+  active: true
+  elo_v2: 2100.0
+  peak_elo_v2: 2150.0
+
+red_bull:
+  constructor_ref: red_bull
+  name: Red Bull
+  nationality: Austrian
+  active: true
+  elo_v2: 2200.0
+  peak_elo_v2: 2300.0
+
+ferrari:
+  constructor_ref: ferrari
+  name: Ferrari
+  nationality: Italian
+  active: true
+  elo_v2: 2050.0
+  peak_elo_v2: 2250.0

@@ -8,6 +8,8 @@ module Fantasy
     def call
       return { error: "Transfer window is closed" } unless @portfolio.can_trade?(@race)
 
+      cost = nil
+
       @portfolio.with_lock do
         return { error: "Already at maximum teams (#{FantasyPortfolio::MAX_TEAMS})" } unless @portfolio.can_buy_team?
 

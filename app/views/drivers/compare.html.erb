@@ -21,7 +21,7 @@
         <div class="compare-chips" data-compare-target="chips">
             <% if @drivers.present? %>
                 <% @drivers.each do |driver| %>
-                    <span class="compare-chip" data-preloaded-id="<%= driver.id %>" data-preloaded-name="<%= driver.fullname %>" data-preloaded-peak-elo="<%= driver.peak_elo&.round %>">
+                    <span class="compare-chip" data-preloaded-id="<%= driver.id %>" data-preloaded-name="<%= driver.fullname %>" data-preloaded-peak-elo="<%= driver.display_peak_elo&.round %>">
                         <%= driver.fullname %>
                         <button data-action="click->compare#remove" data-id="<%= driver.id %>">&times;</button>
                     </span>

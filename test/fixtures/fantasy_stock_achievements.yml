@@ -1,0 +1,11 @@
+codex_first_stock_trade:
+  fantasy_stock_portfolio: codex_stock_2026
+  key: first_stock_trade
+  tier: bronze
+  earned_at: <%= Time.current %>
+
+codex_first_long:
+  fantasy_stock_portfolio: codex_stock_2026
+  key: first_long
+  tier: bronze
+  earned_at: <%= Time.current %>

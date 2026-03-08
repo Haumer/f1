@@ -1,0 +1,47 @@
+verstappen:
+  driver_ref: max_verstappen
+  forename: Max
+  surname: Verstappen
+  code: VER
+  number: 1
+  nationality: Dutch
+  active: true
+  elo_v2: 2400.0
+  peak_elo_v2: 2450.0
+  dob: "1997-09-30"
+
+norris:
+  driver_ref: norris
+  forename: Lando
+  surname: Norris
+  code: NOR
+  number: 4
+  nationality: British
+  active: true
+  elo_v2: 2200.0
+  peak_elo_v2: 2220.0
+  dob: "1999-11-13"
+
+leclerc:
+  driver_ref: leclerc
+  forename: Charles
+  surname: Leclerc
+  code: LEC
+  number: 16
+  nationality: Monegasque
+  active: true
+  elo_v2: 2150.0
+  peak_elo_v2: 2180.0
+  dob: "1997-10-16"
+
+piastri:
+  driver_ref: piastri
+  forename: Oscar
+  surname: Piastri
+  code: PIA
+  number: 81
+  nationality: Australian
+  active: true
+  elo_v2: 2050.0
+  peak_elo_v2: 2060.0
+  dob: "2001-04-06"
