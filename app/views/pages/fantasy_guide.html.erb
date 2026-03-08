@@ -71,7 +71,7 @@
                         <div class="elo-step-pip" style="background: #52c41a">L</div>
                         <div class="elo-step-content">
                             <strong>Long Positions</strong>
-                            <span>Buy shares at Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>. You profit when the driver's Elo rises. Long positions earn <strong>dividends</strong> after each race: 5 per share for a win, 3 for a podium, 1 for a points finish.</span>
+                            <span>Buy shares at Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>. You profit when the driver's Elo rises. Long positions earn <strong>dividends</strong> after each race: 0.5% of share price for a win, 0.3% for P2, 0.2% for P3, and 0.1% for P4&ndash;P10.</span>
                         </div>
                     </div>
                     <div class="elo-step">
@@ -112,8 +112,8 @@
             <% if Setting.fantasy_stock_market? %>
                 <div class="elo-result-card">
                     <div class="elo-result-label">Dividends</div>
-                    <div class="elo-result-value">+1 to +5 / share</div>
-                    <span class="elo-result-sub">Long positions earn dividends based on race finish</span>
+                    <div class="elo-result-value">0.1%&ndash;0.5% / share</div>
+                    <span class="elo-result-sub">Long positions earn % of share price based on race finish</span>
                 </div>
                 <div class="elo-result-card">
                     <div class="elo-result-label">Short Profits</div>

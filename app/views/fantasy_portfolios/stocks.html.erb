@@ -52,6 +52,10 @@
             </span>
         </div>
         <div class="fantasy-sub-stat">
+            <span class="label">Dividends</span>
+            <span class="value text-green">+<%= number_with_delimiter(@stock_total_dividends.round(1)) %></span>
+        </div>
+        <div class="fantasy-sub-stat">
             <span class="label">Positions</span>
             <span class="value"><%= @stock_portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></span>
         </div>

@@ -1,8 +1,8 @@
 module Fantasy
   module Stock
     class SettleRace
-      DIVIDENDS = { 1 => 5.0, 2 => 3.0, 3 => 3.0 }.freeze
-      POINTS_DIVIDEND = 1.0 # P4-P10
+      DIVIDEND_RATES = { 1 => 0.005, 2 => 0.003, 3 => 0.002 }.freeze
+      POINTS_DIVIDEND_RATE = 0.001 # P4-P10
       BORROW_FEE_RATE = 0.0025 # 0.25% per race
       MAX_LOSS_MULTIPLIER = 2.0 # Auto-liquidate at 2x entry price loss
 
@@ -40,9 +40,11 @@ module Fantasy
           rr = results_by_driver[holding.driver_id]
           next unless rr
 
-          dividend_per_share = dividend_for_position(rr.position_order)
-          next if dividend_per_share.zero?
+          rate = dividend_rate_for_position(rr.position_order)
+          next if rate.zero?
 
+          share_price = portfolio.share_price(holding.driver)
+          dividend_per_share = (share_price * rate).round(2)
           total = dividend_per_share * holding.quantity
           portfolio.update!(cash: portfolio.cash + total)
 
@@ -114,9 +116,9 @@ module Fantasy
         ).update!(value: value, cash: portfolio.cash)
       end
 
-      def dividend_for_position(position)
+      def dividend_rate_for_position(position)
         return 0 unless position
-        DIVIDENDS[position] || (position <= 10 ? POINTS_DIVIDEND : 0)
+        DIVIDEND_RATES[position] || (position <= 10 ? POINTS_DIVIDEND_RATE : 0)
       end
     end
   end

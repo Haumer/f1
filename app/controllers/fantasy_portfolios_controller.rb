@@ -60,6 +60,7 @@ class FantasyPortfoliosController < ApplicationController
     @stock_value_delta = @stock_portfolio.value_change_since_last_race
     @stock_achievements = @stock_portfolio.achievements.to_a
     @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))
+    @stock_total_dividends = @stock_portfolio.transactions.where(kind: "dividend").sum(:amount)
 
     if @is_owner
       @next_race = @stock_portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
