@@ -126,7 +126,14 @@
             </div>
         </div>
 
-        <%# ═══ 2) Driver Standings Graph ═══ %>
+        <%# ═══ 2) Season Results Grid ═══ %>
+        <%= render 'seasons/results_grid',
+            sorted_races: @sorted_races,
+            season_drivers: @season_drivers,
+            grid_standings: @grid_standings,
+            season_race_results: @season_race_results %>
+
+        <%# ═══ 3) Driver Standings Graph ═══ %>
         <div class="chart-container">
             <h4 class="chart-title">Driver Standings</h4>
             <%= custom_chart Graphs::Ranking.new(season: @season).season_driver_standings_data %>

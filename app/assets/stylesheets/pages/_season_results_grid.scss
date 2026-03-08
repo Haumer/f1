@@ -1,0 +1,133 @@
+// Wikipedia-style season results grid
+.season-results-grid {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 12px;
+
+    th, td {
+        padding: 4px 6px;
+        white-space: nowrap;
+        border-bottom: 1px solid $border-color;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background: $bg-card;
+        z-index: 1;
+        font-family: $mono-font;
+        font-size: 10px;
+        font-weight: $weight-bold;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        a {
+            color: $text-tertiary;
+            text-decoration: none;
+            &:hover { color: var(--page-accent, $accent-red); }
+        }
+    }
+
+    tbody tr {
+        transition: background $t-fast;
+        &:hover { background: rgba(255, 255, 255, 0.03); }
+    }
+}
+
+// Fixed columns
+.srg-pos {
+    width: 28px;
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+}
+
+.srg-driver {
+    position: sticky;
+    left: 0;
+    background: $bg-card;
+    z-index: 2;
+    min-width: 100px;
+    font-weight: $weight-semi;
+    font-size: 13px;
+
+    a {
+        color: $text-primary;
+        text-decoration: none;
+        &:hover { color: var(--page-accent, $accent-red); }
+    }
+
+    tr:hover & { background: mix($bg-card, white, 97%); }
+}
+
+.srg-color-dot {
+    display: inline-block;
+    width: 3px;
+    height: 12px;
+    border-radius: 1px;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.srg-pts {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    min-width: 36px;
+}
+
+// Race round cells
+.srg-round {
+    font-family: $mono-font;
+    font-size: 11px;
+    min-width: 30px;
+    color: $text-secondary;
+}
+
+// Position color coding
+.srg-p1 {
+    background: rgba($gold, 0.15);
+    color: $gold;
+    font-weight: $weight-bold;
+}
+
+.srg-p2 {
+    background: rgba($silver, 0.12);
+    color: $silver;
+    font-weight: $weight-bold;
+}
+
+.srg-p3 {
+    background: rgba($bronze, 0.12);
+    color: $bronze;
+    font-weight: $weight-bold;
+}
+
+.srg-points {
+    background: rgba($green, 0.08);
+    color: $green;
+}
+
+.srg-dnf {
+    background: rgba($accent-red, 0.08);
+    color: $accent-red;
+}
+
+.srg-outside {
+    color: $text-tertiary;
+}
+
+.srg-empty {
+    color: $text-tertiary;
+    &::after {
+        content: '';
+    }
+}
+
+.srg-label {
+    font-size: 8px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.5px;
+}

@@ -1,0 +1,72 @@
+<%
+  # sorted_races: races in round order
+  # season_drivers: SeasonDriver records sorted by points (desc)
+  # grid_standings: DriverStanding indexed by driver_id (latest)
+  # season_race_results: { [driver_id, race_id] => RaceResult }
+  races = sorted_races.select(&:has_results?)
+%>
+<% if races.any? %>
+    <div class="table-header"><h3>Season Results</h3></div>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="season-results-grid compact">
+                <thead>
+                    <tr>
+                        <th class="text-center srg-pos">#</th>
+                        <th class="srg-driver">Driver</th>
+                        <th class="text-center srg-pts">Pts</th>
+                        <% races.each do |race| %>
+                            <th class="text-center srg-round">
+                                <%= link_to "R#{race.round}", race_path(race), title: race.circuit.name %>
+                            </th>
+                        <% end %>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% season_drivers.each_with_index do |sd, idx| %>
+                        <% driver = sd.driver %>
+                        <% constructor = sd.constructor %>
+                        <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                        <% ds = grid_standings[driver.id] %>
+                        <tr>
+                            <td class="text-center srg-pos"><%= idx + 1 %></td>
+                            <td class="srg-driver">
+                                <span class="srg-color-dot" style="background: <%= color %>"></span>
+                                <%= link_to driver.surname, driver_path(driver) %>
+                            </td>
+                            <td class="text-center srg-pts"><%= ds ? ds.points&.round : 0 %></td>
+                            <% races.each do |race| %>
+                                <% rr = season_race_results[[driver.id, race.id]] %>
+                                <% if rr %>
+                                    <% pos = rr.position_order %>
+                                    <% status = rr.status&.status_type %>
+                                    <% finished = status == "Finished" || status&.match?(/Lap/) %>
+                                    <% dnf = !finished %>
+                                    <% css =
+                                        if pos == 1 then "srg-p1"
+                                        elsif pos == 2 then "srg-p2"
+                                        elsif pos == 3 then "srg-p3"
+                                        elsif pos <= 10 && finished then "srg-points"
+                                        elsif dnf then "srg-dnf"
+                                        else "srg-outside"
+                                        end
+                                    %>
+                                    <% pts = rr.points&.to_i || 0 %>
+                                    <td class="text-center srg-round <%= css %>" title="<%= race.circuit.name %> — P<%= pos %><%= dnf ? " (#{status})" : '' %>">
+                                        <% if dnf && pos > 20 %>
+                                            <span class="srg-label">DNF</span>
+                                        <% elsif pts > 0 %>
+                                            <%= pts %>
+                                        <% end %>
+                                    </td>
+                                <% else %>
+                                    <td class="text-center srg-round srg-empty"></td>
+                                <% end %>
+                            <% end %>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<% end %>

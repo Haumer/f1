@@ -30,6 +30,8 @@ class ApplicationController < ActionController::Base
   end
 
   def track_action
+    return unless request.get?
+    return unless request.format.html?
     return if self.class.module_parent == Admin
     return if request.path == "/users/username_available"
     return if request.path == "/drivers/search"

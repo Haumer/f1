@@ -6,7 +6,7 @@ module DriverBadges::DubiousBadges
     crashes = total_crashes
     return unless total >= 80 && crashes <= 5
 
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :clean_racer,
       label: "Clean Racer",
       description: "Only #{crashes} accident DNFs in #{total} races",
@@ -22,7 +22,7 @@ module DriverBadges::DubiousBadges
     return unless crashes >= 25
 
     rate = (crashes.to_f / total * 100).round(1)
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :crash_king,
       label: "The Maldonado",
       description: "#{crashes} accident-related DNFs (#{rate}% of races)",
@@ -38,7 +38,7 @@ module DriverBadges::DubiousBadges
     return unless mech >= 30
 
     rate = (mech.to_f / total * 100).round(1)
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :mechanical_magnet,
       label: "Cursed Machinery",
       description: "#{mech} mechanical DNFs (#{rate}% of races)",
@@ -54,7 +54,7 @@ module DriverBadges::DubiousBadges
     return unless total >= 80 && outside.to_f / total >= 0.60
 
     rate = (outside.to_f / total * 100).round(1)
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :backmarker,
       label: "Off the Pace",
       description: "#{rate}% of races finished outside the top 10 (#{outside}/#{total})",
@@ -70,7 +70,7 @@ module DriverBadges::DubiousBadges
     return unless lapped >= 50
 
     rate = (lapped.to_f / total * 100).round(1)
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :lapped,
       label: "Blue Flag Special",
       description: "Lapped in #{lapped} races (#{rate}% of career)",
@@ -85,7 +85,7 @@ module DriverBadges::DubiousBadges
     return unless teams.size >= 4
 
     label = teams.size >= 7 ? "Journeyman" : "Team Hopper"
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :constructor_nomad,
       label: label,
       description: "Raced for #{teams.size} different constructors",
@@ -99,7 +99,7 @@ module DriverBadges::DubiousBadges
     second_places = total_second_places
     return unless second_places >= 20
 
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :bridesmaid,
       label: "Always the Bridesmaid",
       description: "#{second_places} career 2nd-place finishes",
@@ -113,7 +113,7 @@ module DriverBadges::DubiousBadges
     fourths = total_fourth_places
     return unless fourths >= 20
 
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :fourth_place_specialist,
       label: "Wooden Spoon",
       description: "#{fourths} career 4th-place finishes — so close to the podium",
@@ -128,7 +128,7 @@ module DriverBadges::DubiousBadges
     podiums = total_podiums
     return unless total >= 50 && podiums == 0
 
-    @badges << Badge.new(
+    @badges << DriverBadges::Badge.new(
       key: :hulkenberg_award,
       label: "The Hülkenberg",
       description: "#{total} races without a podium finish",

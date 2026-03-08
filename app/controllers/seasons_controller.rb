@@ -87,6 +87,13 @@ class SeasonsController < ApplicationController
     end
     @grid_standings = latest_standings.index_by(&:driver_id)
 
+    # Season results grid (Wikipedia-style race-by-race finishing positions)
+    @season_race_results = RaceResult.where(race_id: race_ids)
+                             .includes(:status)
+                             .each_with_object({}) do |rr, hash|
+      hash[[rr.driver_id, rr.race_id]] = rr
+    end
+
     # Full constructor standings for table
     constructor_seconds = {}
     constructor_thirds = {}
@@ -196,6 +203,7 @@ class SeasonsController < ApplicationController
 
     # Pre-season data: constructors + drivers grid
     @has_standings = @leader_standing.present?
+    @season_race_results ||= {}
     unless @has_standings
       # Use current or previous season's driver lineup
       lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
