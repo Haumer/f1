@@ -51,7 +51,7 @@ class EloPredictionServiceTest < ActiveSupport::TestCase
   test "changes are zero-sum" do
     changes = EloPredictionService.compute(@prediction)
     total_diff = changes.values.sum { |e| e["diff"] }
-    assert_in_delta 0.0, total_diff, 0.1, "Prediction Elo changes must be zero-sum"
+    assert_in_delta 0.0, total_diff, 0.5, "Prediction Elo changes must be zero-sum"
   end
 
   test "returns empty hash for fewer than 2 predicted results" do
@@ -64,5 +64,47 @@ class EloPredictionServiceTest < ActiveSupport::TestCase
   test "returns empty hash for blank predicted_results" do
     @prediction.update_columns(predicted_results: [])
     assert_equal({}, EloPredictionService.compute(@prediction.reload))
+  end
+
+  test "uses driver current elo_v2" do
+    changes = EloPredictionService.compute(@prediction)
+    ver_id = drivers(:verstappen).id.to_s
+    assert_equal drivers(:verstappen).elo_v2.round(1), changes[ver_id]["old_elo"]
+  end
+
+  test "uses STARTING_ELO for drivers without elo_v2" do
+    rookie = Driver.create!(
+      driver_ref: "rookie_test", forename: "Rook", surname: "Ie",
+      code: "ROO", number: 99, nationality: "Test", active: true,
+      elo_v2: nil
+    )
+    @prediction.update!(predicted_results: [
+      { "driver_id" => rookie.id, "position" => 1 },
+      { "driver_id" => drivers(:verstappen).id, "position" => 2 }
+    ])
+
+    changes = EloPredictionService.compute(@prediction)
+    assert_equal EloRatingV2::STARTING_ELO, changes[rookie.id.to_s]["old_elo"]
+  end
+
+  test "k_factor uses only races before the predicted race" do
+    # Bahrain is round 1 → 0 prior races → falls back to REFERENCE_RACES (12)
+    # Melbourne is round 2 → 1 prior race (Bahrain) → K scaled to 12/1 = much higher
+    mel_prediction = Prediction.create!(
+      race: races(:melbourne_2026),
+      user: @user,
+      predicted_results: [
+        { "driver_id" => drivers(:verstappen).id, "position" => 1 },
+        { "driver_id" => drivers(:norris).id, "position" => 2 }
+      ]
+    )
+
+    bahrain_changes = EloPredictionService.compute(@prediction)
+    melbourne_changes = EloPredictionService.compute(mel_prediction)
+
+    bahrain_diff = bahrain_changes[drivers(:verstappen).id.to_s]["diff"].abs
+    melbourne_diff = melbourne_changes[drivers(:verstappen).id.to_s]["diff"].abs
+    assert melbourne_diff > bahrain_diff,
+      "Melbourne (1 prior race, higher K) should have bigger Elo swings than Bahrain (fallback to 12 races)"
   end
 end

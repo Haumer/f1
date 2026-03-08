@@ -2,21 +2,21 @@ class EloPredictionService
   # Uses the same V2 Elo formula to compute expected Elo changes
   # from a predicted finishing order.
   #
+  # Called pre-race, so driver.elo_v2 is already the entering Elo.
+  #
   # Returns: { driver_id => { old_elo:, new_elo:, diff: } }
   def self.compute(prediction)
     race = prediction.race
     results = prediction.predicted_results
     return {} if results.blank? || results.size < 2
 
-    # Load current Elo for all predicted drivers
     driver_ids = results.map { |r| r["driver_id"] }
     drivers = Driver.where(id: driver_ids).index_by(&:id)
-
-    # Sort by predicted position
     sorted = results.sort_by { |r| r["position"] }
 
-    # Use real V2 parameters
-    season_races = Race.joins(:race_results).distinct.where(year: race.year).count
+    # K-factor: use season race count up to (but not including) this race
+    season_races = Race.joins(:race_results).distinct
+                       .where(year: race.year).where("races.round < ?", race.round).count
     season_races = EloRatingV2::REFERENCE_RACES.to_i if season_races == 0
     n = sorted.size
     k_pair = EloRatingV2::BASE_K * (EloRatingV2::REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
@@ -40,7 +40,6 @@ class EloPredictionService
       adjustments[did_b] += k_pair * (0.0 - (1.0 - ea))
     end
 
-    # Build result hash
     changes = {}
     adjustments.each do |did, adj|
       old = elo[did]
