@@ -43,3 +43,4 @@
 # Claude Code
 .claude/
 claude_previews.md
+/PREDICTIONS/
