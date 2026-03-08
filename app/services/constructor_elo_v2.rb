@@ -93,7 +93,8 @@ class ConstructorEloV2
 
   # Process a single race (for incremental updates after sync)
   def self.process_race(race)
-    results = race.race_results.includes(:constructor).select { |rr| rr.position_order.present? }
+    results = race.race_results.includes(:constructor)
+                  .select { |rr| rr.position_order.present? }
     return if results.empty?
 
     by_constructor = results.group_by(&:constructor_id)
@@ -103,7 +104,7 @@ class ConstructorEloV2
 
     return if constructor_scores.size < 2
 
-    season_races = Race.joins(:race_results).distinct.where(year: race.year).count
+    season_races = Race.where(year: race.year).count
     n = constructor_scores.size
     k_pair = BASE_K * (REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
 

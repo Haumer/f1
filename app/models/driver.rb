@@ -29,7 +29,7 @@ class Driver < ApplicationRecord
 
     scope :active, -> { where(active: true) }
     scope :elite, -> { where(skill: 'elite') }
-    scope :by_peak_elo, -> { order(peak_elo: :desc) }
+    scope :by_peak_elo, -> { order(peak_elo_v2: :desc) }
     scope :by_first_race_date_asc, -> { order(first_race_date: :asc) }
     scope :by_first_race_date_desc, -> { order(first_race_date: :desc) }
     scope :by_last_race_date_asc, -> { order(last_race_date: :asc) }
@@ -93,37 +93,27 @@ class Driver < ApplicationRecord
     CONSTRUCTOR_COLORS = Constructor::COLORS
 
     def peak_elo_race_result
-        self.race_results.order(new_elo: :desc).first
-    end
-
-    def lowest_elo
-        self.race_results.minimum(:new_elo)
-    end
-
-    # V2 equivalents
-    def peak_elo_race_result_v2
         self.race_results.order(new_elo_v2: :desc).first
     end
 
-    def lowest_elo_v2
+    def lowest_elo
         self.race_results.minimum(:new_elo_v2)
     end
 
-    # Version-aware accessors
     def display_elo
-        Setting.use_elo_v2? ? elo_v2 : elo
+        elo_v2
     end
 
     def display_peak_elo
-        Setting.use_elo_v2? ? peak_elo_v2 : peak_elo
+        peak_elo_v2
     end
 
     def display_lowest_elo
-        Setting.use_elo_v2? ? lowest_elo_v2 : lowest_elo
+        lowest_elo
     end
 
     def display_peak_elo_race_result
-        Setting.use_elo_v2? ? peak_elo_race_result_v2 : peak_elo_race_result
+        peak_elo_race_result
     end
 
     def country

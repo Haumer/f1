@@ -16,27 +16,18 @@ class Setting < ApplicationRecord
         Rails.cache.delete("setting:#{key}")
     end
 
-    def self.elo_version
-        get("elo_version", "v1")
-    end
-
-    def self.use_elo_v2?
-        elo_version == "v2"
-    end
-
     # Safe column names for dynamic Elo queries — prevents SQL injection
     SAFE_ELO_COLUMNS = {
-        peak_elo: { v1: "peak_elo", v2: "peak_elo_v2" }.freeze,
-        elo: { v1: "elo", v2: "elo_v2" }.freeze,
-        new_elo: { v1: "new_elo", v2: "new_elo_v2" }.freeze,
-        old_elo: { v1: "old_elo", v2: "old_elo_v2" }.freeze,
-        new_constructor_elo: { v1: "new_constructor_elo_v2", v2: "new_constructor_elo_v2" }.freeze,
-        old_constructor_elo: { v1: "old_constructor_elo_v2", v2: "old_constructor_elo_v2" }.freeze,
+        peak_elo: "peak_elo_v2",
+        elo: "elo_v2",
+        new_elo: "new_elo_v2",
+        old_elo: "old_elo_v2",
+        new_constructor_elo: "new_constructor_elo_v2",
+        old_constructor_elo: "old_constructor_elo_v2",
     }.freeze
 
     def self.elo_column(type)
-        version = use_elo_v2? ? :v2 : :v1
-        SAFE_ELO_COLUMNS.fetch(type).fetch(version)
+        SAFE_ELO_COLUMNS.fetch(type)
     end
 
     def self.badge_min_year

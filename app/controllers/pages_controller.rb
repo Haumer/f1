@@ -188,7 +188,7 @@ class PagesController < ApplicationController
 
   def elo
     peak_col = Setting.elo_column(:peak_elo)
-    thresholds = Setting.use_elo_v2? ? [2600, 2450, 2300, 2100] : [1500, 1400, 1300, 1200]
+    thresholds = [2600, 2450, 2300, 2100]
     @tier_counts = {
       elite: Driver.where("#{peak_col} >= ?", thresholds[0]).count,
       world_class: Driver.where("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[1], thresholds[0]).count,
@@ -211,7 +211,6 @@ class PagesController < ApplicationController
                     end
 
     if @example_race
-      elo_diff_col = Setting.use_elo_v2? ? :elo_diff_v2 : :elo_diff
       @example_results = @example_race.race_results
                            .includes(driver: :countries, constructor: [])
                            .order(:position_order)

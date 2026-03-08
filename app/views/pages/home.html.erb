@@ -18,13 +18,7 @@
             <%= render "pages/hero_default" %>
         <% end %>
 
-        <%# 2. Current Season Standings (if races have happened) %>
-        <% if @season.latest_driver_standings&.any? %>
-            <div class="chart-container">
-                <h4 class="chart-title">Driver Standings</h4>
-                <%= custom_chart Graphs::Ranking.new(season: @season).season_driver_standings_data %>
-            </div>
-        <% end %>
+        <%# 2. Driver Standings graph — omitted from homepage to reduce clutter %>
 
         <%# 3. Driver Standings %>
         <% if @season_drivers&.any? %>
@@ -115,7 +109,26 @@
             <% end %>
         <% end %>
 
-        <%# 6. Fantasy portfolio card %>
+        <%# 6. Biggest Elo Movers (post-race) %>
+        <% if @race_elo_changes&.any? %>
+            <div class="card post-race-elo-card">
+                <h4 class="section-label">Biggest Elo Movers</h4>
+                <div class="post-race-movers">
+                    <% @race_elo_changes.each do |result| %>
+                        <div class="post-race-mover-item">
+                            <%= link_to driver_path(result.driver) do %>
+                                <span class="mover-name"><%= result.driver.forename[0] %>.<%= result.driver.surname %></span>
+                            <% end %>
+                            <span class="elo-badge <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                                <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
+                            </span>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        <% end %>
+
+        <%# 7. Fantasy portfolio card %>
         <% if current_user && @fantasy_portfolio %>
             <%= render "fantasy_portfolios/portfolio_card",
                        portfolio: @fantasy_portfolio,

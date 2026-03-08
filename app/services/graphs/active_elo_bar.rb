@@ -40,7 +40,7 @@ class Graphs::ActiveEloBar
             },
             xAxis: {
                 type: 'value',
-                min: Setting.use_elo_v2? ? 1500 : 800
+                min: 1500
             },
             series: [
                 {

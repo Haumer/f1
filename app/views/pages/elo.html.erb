@@ -1,6 +1,5 @@
-<% v2 = Setting.use_elo_v2? %>
-<% peak_col = v2 ? :peak_elo_v2 : :peak_elo %>
-<% thresholds = v2 ? [2600, 2450, 2300, 2100] : [1500, 1400, 1300, 1200] %>
+<% peak_col = :peak_elo_v2 %>
+<% thresholds = [2600, 2450, 2300, 2100] %>
 
 <div class="homepage-container">
     <div class="page-hero page-hero-compact">
@@ -15,7 +14,7 @@
         <h4>What is Elo?</h4>
         <p>
             The Elo rating system, originally developed for chess by Arpad Elo, is a method for calculating
-            the relative skill of players. Every driver starts at a rating of <strong><%= v2 ? 2000 : 1000 %></strong>. After each race,
+            the relative skill of players. Every driver starts at a rating of <strong>2000</strong>. After each race,
             ratings are adjusted based on finishing position — beating a higher-rated driver gains you more points
             than beating a lower-rated one.
         </p>
@@ -27,14 +26,10 @@
         <ul>
             <li>The driver who finishes ahead "wins" the matchup</li>
             <li>An <strong>expected score</strong> is calculated based on the rating difference:
-                <code>E = 1 / (1 + 10^((opponent_rating - player_rating) / <%= v2 ? EloRatingV2::SCALE.to_i : 400 %>))</code></li>
+                <code>E = 1 / (1 + 10^((opponent_rating - player_rating) / <%= EloRatingV2::SCALE.to_i %>))</code></li>
             <li>The rating adjustment is: <code>K × (actual_score - expected_score)</code></li>
-            <% if v2 %>
                 <li>Base K-factor is <strong><%= EloRatingV2::BASE_K %></strong>, scaled by season length (<%= EloRatingV2::REFERENCE_RACES %> reference races) and normalized by <strong>√(grid size − 1)</strong></li>
                 <li>At each season's end, ratings regress <strong><%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong> toward the starting Elo of <%= EloRatingV2::STARTING_ELO.to_i %></li>
-            <% else %>
-                <li>K-factor is set to <strong>2</strong> per matchup, which keeps ratings stable while still responsive</li>
-            <% end %>
         </ul>
         <p>
             A driver's total rating change for a race is the sum of adjustments across all opponents.

@@ -1,7 +1,6 @@
 module Admin
   class SettingsController < BaseController
     def show
-      @elo_version = Setting.elo_version
       @simulated_date = Setting.get("simulated_date")
       @badge_min_year = Setting.badge_min_year
       @fantasy_stock_market = Setting.fantasy_stock_market?
@@ -12,14 +11,7 @@ module Admin
     end
 
     def update
-      if params[:elo_version].present?
-        unless %w[v1 v2].include?(params[:elo_version])
-          redirect_to admin_settings_path, alert: "Invalid Elo version."
-          return
-        end
-        Setting.set("elo_version", params[:elo_version])
-        redirect_to admin_settings_path, notice: "Elo version switched to #{params[:elo_version]}."
-      elsif params[:simulated_date].present?
+      if params[:simulated_date].present?
         Setting.set("simulated_date", params[:simulated_date])
         redirect_to admin_settings_path, notice: "Date override set to #{params[:simulated_date]}."
       elsif params[:clear_simulated_date].present?

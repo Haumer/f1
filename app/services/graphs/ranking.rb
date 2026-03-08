@@ -2,13 +2,15 @@ class Graphs::Ranking
     def initialize(season:)
         @season = season
         @races = @season.races.sorted.includes(:circuit)
+        @completed_race_ids = RaceResult.where(race: @races).select(:race_id).distinct.pluck(:race_id).to_set
         @drivers = @season.drivers.distinct
-        all_standings = DriverStanding.where(race: @races, driver: @drivers).to_a
+        completed_races = @races.select { |r| @completed_race_ids.include?(r.id) }
+        all_standings = DriverStanding.where(race: completed_races, driver: @drivers).to_a
 
         # DriverStanding data is sparse — often only point-scorers are listed.
         # Supplement with RaceResult data: any driver who raced but has no
         # standing gets 0 points and is ranked after the listed drivers.
-        race_results_by_race = RaceResult.where(race: @races, driver: @drivers)
+        race_results_by_race = RaceResult.where(race: completed_races, driver: @drivers)
                                          .group_by(&:race_id)
         existing_by_race = all_standings.group_by(&:race_id)
 
@@ -92,6 +94,19 @@ class Graphs::Ranking
         end
 
         max_position = @standings_lookup.values.flatten.filter_map(&:position).max || 20
+
+        # Add upcoming races shading to first series
+        upcoming_label = first_upcoming_label
+        if upcoming_label && @series_data.any?
+            @series_data.first[:markArea] = {
+                silent: true,
+                itemStyle: { color: 'rgba(150, 150, 150, 0.08)' },
+                label: { show: true, position: 'inside', color: '#888', fontSize: 11 },
+                data: [
+                    [{ name: 'Upcoming', xAxis: upcoming_label }, { xAxis: @races.last ? "#{@races.last.circuit.circuit_ref} #{@races.last.date.strftime("%b %d, %Y")}" : upcoming_label }]
+                ]
+            }
+        end
 
         {
             backgroundColor: 'transparent',
@@ -194,6 +209,19 @@ class Graphs::Ranking
             }
         end
 
+        # Add upcoming races shading to first series
+        upcoming_label = first_upcoming_label
+        if upcoming_label && series_data.any?
+            series_data.first[:markArea] = {
+                silent: true,
+                itemStyle: { color: 'rgba(150, 150, 150, 0.08)' },
+                label: { show: true, position: 'inside', color: '#888', fontSize: 11 },
+                data: [
+                    [{ name: 'Upcoming', xAxis: upcoming_label }, { xAxis: @races.last ? "#{@races.last.circuit.circuit_ref} #{@races.last.date.strftime("%b %d, %Y")}" : upcoming_label }]
+                ]
+            }
+        end
+
         {
             backgroundColor: 'transparent',
             label: { show: false, position: "right" },
@@ -227,13 +255,24 @@ class Graphs::Ranking
 
     private
 
+    # Returns the x-axis label for the first upcoming race (for markArea)
+    def first_upcoming_label
+        upcoming = @races.find { |r| !@completed_race_ids.include?(r.id) }
+        return nil unless upcoming
+        "#{upcoming.circuit.circuit_ref} #{upcoming.date.strftime("%b %d, %Y")}"
+    end
+
     # Forward-fill: carry last known position through mid-season nil gaps
+    # Only fills within completed races, not into future/upcoming races
     def forward_fill!(data, driver_name)
         last_known = nil
         data.each_with_index do |entry, i|
+            race = @races[i]
+            is_completed = race && @completed_race_ids.include?(race.id)
+
             if entry
                 last_known = entry[:value]
-            elsif last_known
+            elsif last_known && is_completed
                 data[i] = { name: driver_name, value: last_known }
             end
         end

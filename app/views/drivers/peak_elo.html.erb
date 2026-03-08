@@ -8,7 +8,7 @@
             <h1 class="page-hero-title">All-Time Peak Elo</h1>
         </div>
     </div>
-    <% min_elo = Setting.use_elo_v2? ? 2350 : 1250 %>
+    <% min_elo = 2350 %>
     <%= custom_chart({
         backgroundColor: 'transparent',
         xAxis: { type: "category", data: @drivers.map(&:surname), axisLabel: { rotate: 45, fontSize: 10, color: 'rgba(255,255,255,0.7)' } },

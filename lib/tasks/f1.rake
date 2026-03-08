@@ -24,29 +24,20 @@ namespace :f1 do
     puts "\nDone."
   end
 
-  desc "Run Elo V2 full historical simulation"
-  task elo_v2_simulate: :environment do
-    puts "Running Elo V2 simulation (K=#{EloRatingV2::BASE_K}, regression=#{EloRatingV2::REGRESSION_FACTOR}, start=#{EloRatingV2::STARTING_ELO})..."
+  desc "Run Elo full historical simulation"
+  task elo_simulate: :environment do
+    puts "Running Elo simulation (K=#{EloRatingV2::BASE_K}, regression=#{EloRatingV2::REGRESSION_FACTOR}, start=#{EloRatingV2::STARTING_ELO})..."
     result = EloRatingV2.simulate_all!
     puts "Done. #{result[:drivers_updated]} drivers, #{result[:race_results_updated]} race results updated."
 
-    # Show top 10 peaks
-    puts "\nTop 10 All-Time Peak Elo V2:"
+    puts "\nTop 10 All-Time Peak Elo:"
     Driver.where.not(peak_elo_v2: nil).order(peak_elo_v2: :desc).limit(10).each_with_index do |d, i|
       puts "  ##{i+1} #{d.fullname.ljust(25)} Peak: #{d.peak_elo_v2.round}  Current: #{d.elo_v2.round}"
     end
   end
 
-  desc "Switch Elo display version (VERSION=v1 or VERSION=v2)"
-  task elo_switch: :environment do
-    version = ENV.fetch("VERSION", "v1")
-    unless %w[v1 v2].include?(version)
-      puts "Invalid version. Use VERSION=v1 or VERSION=v2"
-      exit 1
-    end
-    Setting.set("elo_version", version)
-    puts "Elo display switched to #{version}"
-  end
+  # Keep old task name as alias
+  task elo_v2_simulate: :elo_simulate
 
   desc "Enqueue post-race sync job (for Heroku Scheduler)"
   task post_race_sync: :environment do

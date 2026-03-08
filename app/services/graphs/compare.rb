@@ -46,7 +46,7 @@ class Graphs::Compare
         {
             backgroundColor: 'transparent',
             xAxis: { type: 'category', data: @races.map { |r| "#{r.circuit.circuit_ref} #{r.date.strftime("%b %d, %Y")}" } },
-            yAxis: { type: 'value', min: Setting.use_elo_v2? ? 1500 : 800 },
+            yAxis: { type: 'value', min: 1500 },
             series: series,
             legend: { show: true },
             toolbox: { show: true },

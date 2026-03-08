@@ -60,7 +60,7 @@ class DriversController < ApplicationController
   def peak_elo
     peak_col = Setting.elo_column(:peak_elo)
     new_elo_col = Setting.elo_column(:new_elo).to_sym
-    threshold = Setting.use_elo_v2? ? 2450 : 1300
+    threshold = 2450
     @drivers = Driver.where("#{peak_col} > ?", threshold).order(peak_col => :desc)
     @race_results = Driver.elite.includes(race_results: { race: :circuit, constructor: [] }).map { |driver| driver.race_results.max_by(&new_elo_col) }.compact.sort_by { |rr| -rr.send(new_elo_col) }
     @peak_race_by_driver = @race_results.index_by(&:driver_id)

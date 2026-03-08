@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_08_100001) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_08_100002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -179,13 +179,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_08_100001) do
     t.datetime "updated_at", null: false
     t.boolean "active"
     t.string "logo_url"
-    t.float "elo"
-    t.float "peak_elo"
     t.float "elo_v2"
     t.float "peak_elo_v2"
     t.index ["active"], name: "index_constructors_on_active"
     t.index ["constructor_ref"], name: "index_constructors_on_constructor_ref", unique: true
-    t.index ["elo"], name: "index_constructors_on_elo"
     t.index ["elo_v2"], name: "index_constructors_on_elo_v2"
   end
 
@@ -265,7 +262,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_08_100001) do
     t.string "dob"
     t.string "nationality"
     t.string "url"
-    t.float "elo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "active", default: false
@@ -273,7 +269,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_08_100001) do
     t.string "number_of_races"
     t.date "first_race_date"
     t.date "last_race_date"
-    t.float "peak_elo"
     t.string "color", default: "#4B0082"
     t.float "lowest_elo"
     t.string "image_url"
@@ -502,8 +497,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_08_100001) do
     t.bigint "status_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.float "old_elo"
-    t.float "new_elo"
     t.integer "year"
     t.float "old_elo_v2"
     t.float "new_elo_v2"

@@ -126,6 +126,12 @@
     }
 }
 
+.srg-upcoming {
+    background: rgba(255, 255, 255, 0.02);
+    color: $text-tertiary;
+    opacity: 0.4;
+}
+
 .srg-label {
     font-size: 8px;
     font-weight: $weight-bold;

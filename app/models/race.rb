@@ -24,7 +24,7 @@ class Race < ApplicationRecord
   def average_elos
     return 0 if race_results.count.zero?
 
-    race_results.pluck(:new_elo).compact.sum.to_f / race_results.count
+    race_results.pluck(:new_elo_v2).compact.sum.to_f / race_results.count
   end
 
   def previous_race

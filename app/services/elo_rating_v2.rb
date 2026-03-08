@@ -74,10 +74,13 @@ class EloRatingV2
 
     # Process a single race (for incremental updates)
     def self.process_race(race)
-        results = race.race_results.includes(:driver).select { |rr| rr.position_order.present? }.sort_by(&:position_order)
+        results = race.race_results.includes(:driver)
+                      .select { |rr| rr.position_order.present? }
+                      .sort_by(&:position_order)
         return if results.size < 2
 
-        season_races = Race.joins(:race_results).distinct.where(year: race.year).count
+        # Use total scheduled races (not just those with results) for proper K factor scaling
+        season_races = Race.where(year: race.year).count
         n = results.size
         k_pair = BASE_K * (REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
 

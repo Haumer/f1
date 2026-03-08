@@ -256,19 +256,9 @@ def create_season_drivers
 end
 
 def calculate_elo
-  # Reset all drivers to 1000
-  Driver.update_all(elo: 1000, peak_elo: 1000)
-  RaceResult.update_all(old_elo: nil, new_elo: nil)
-
-  races = Race.order(date: :asc, round: :asc).where(id: RaceResult.select(:race_id).distinct)
-  total = races.count
-  puts "  Processing #{total} races..."
-
-  races.each_with_index do |race, i|
-    EloRating::Race.new(race: race).update_driver_ratings
-    print "\r  ELO: #{i + 1}/#{total} (#{race.year} R#{race.round})" if (i + 1) % 50 == 0
-  end
-  puts "\r  ELO: #{total}/#{total} complete"
+  puts "  Running EloRatingV2.simulate_all!..."
+  result = EloRatingV2.simulate_all!
+  puts "  ELO: #{result[:drivers_updated]} drivers, #{result[:race_results_updated]} race results updated."
 end
 
 def update_driver_standing_stats

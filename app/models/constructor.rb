@@ -104,13 +104,12 @@ class Constructor < ApplicationRecord
         'alfa'         => 'https://media.formula1.com/content/dam/fom-website/teams/2024/alfa-romeo-logo.png',
     }
 
-    # Version-aware Elo accessors
     def display_elo
-        Setting.use_elo_v2? ? elo_v2 : elo
+        elo_v2
     end
 
     def display_peak_elo
-        Setting.use_elo_v2? ? peak_elo_v2 : peak_elo
+        peak_elo_v2
     end
 
     private

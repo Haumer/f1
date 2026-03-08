@@ -60,7 +60,7 @@ class Graphs::Champions
             },
             yAxis: {
                 type: 'value',
-                min: Setting.use_elo_v2? ? 1500 : 800,
+                min: 1500,
             },
             series: @series_data,
             legend: { show: true },

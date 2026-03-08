@@ -1,8 +1,7 @@
 class Graphs::Line
     def initialize(driver:)
         @driver = driver
-        @v2 = Setting.use_elo_v2?
-        @new_elo_col = @v2 ? :new_elo_v2 : :new_elo
+        @new_elo_col = :new_elo_v2
         date_range = @driver.first_race_date..@driver.last_race_date
         @races = Race.where(date: date_range).sorted.includes(:circuit)
         @seasons = @driver.seasons.where.not(year: Date.current.year.to_s)
@@ -70,7 +69,7 @@ class Graphs::Line
             },
             yAxis: {
                 type: 'value',
-                min: [(@driver.display_lowest_elo || 800).round - 50, Setting.use_elo_v2? ? 1500 : 800].min,
+                min: [(@driver.display_lowest_elo || 800).round - 50, 1500].min,
                 max: (@driver.display_peak_elo || 1200).round + 50
             },
             series: @series_data,

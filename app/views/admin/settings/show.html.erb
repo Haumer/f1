@@ -1,28 +1,8 @@
 <h2>Settings</h2>
 
 <div class="admin-card">
-  <h3>Elo Display Version</h3>
-  <p>Switch between the original Elo system (V1) and the adjusted system (V2) with K-factor scaling, grid normalization, and season regression.</p>
-
-  <%= form_with url: admin_settings_path, method: :patch, class: "admin-form" do |f| %>
-    <div class="admin-radio-group">
-      <label class="admin-radio <%= 'selected' if @elo_version == 'v1' %>">
-        <input type="radio" name="elo_version" value="v1" <%= 'checked' if @elo_version == 'v1' %>>
-        <div>
-          <strong>V1 — Original</strong>
-          <span class="admin-radio-desc">Flat K=2 per pair, no regression, starting Elo 1200</span>
-        </div>
-      </label>
-      <label class="admin-radio <%= 'selected' if @elo_version == 'v2' %>">
-        <input type="radio" name="elo_version" value="v2" <%= 'checked' if @elo_version == 'v2' %>>
-        <div>
-          <strong>V2 — Adjusted</strong>
-          <span class="admin-radio-desc">K-factor scaling + grid normalization + season regression</span>
-        </div>
-      </label>
-    </div>
-    <button type="submit" class="admin-btn">Save</button>
-  <% end %>
+  <h3>Elo Version</h3>
+  <p>The system uses Elo V2 with K-factor scaling, grid normalization, and season regression.</p>
 </div>
 
 <div class="admin-card">
