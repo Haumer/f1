@@ -119,11 +119,11 @@
         <% else %>
             <div class="fantasy-status-item fantasy-status-item-action" data-controller="allegiance">
                 <i class="fa-solid fa-shield-halved"></i>
-                <span class="fantasy-status-prompt">Choose your team (<strong>+<%= ConstructorSupport::BONUS_CASH %> cash</strong>)</span>
+                <span class="fantasy-status-prompt">Choose your team</span>
                 <div class="fantasy-allegiance-options-inline">
                     <% Constructor.where(active: true).order(:name).each do |c| %>
                         <% c_color = Constructor::COLORS[c.constructor_ref.to_sym] %>
-                        <%= link_to support_constructor_path(c), data: { turbo_method: :post, turbo_confirm: "Support #{c.name}? Locked until mid-season. +#{ConstructorSupport::BONUS_CASH} cash bonus!" }, class: "fantasy-allegiance-badge-sm", title: c.name do %>
+                        <%= link_to support_constructor_path(c), data: { turbo_method: :post, turbo_confirm: "Support #{c.name}? Locked until mid-season." }, class: "fantasy-allegiance-badge-sm", title: c.name do %>
                             <% if c.logo_url.present? %>
                                 <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="constructor-logo-xs" onerror="this.style.display='none'">
                             <% end %>
