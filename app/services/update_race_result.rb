@@ -90,12 +90,12 @@ class UpdateRaceResult
                 all_drivers[driver.driver_ref] = driver
             end
 
-            SeasonDriver.find_or_create_by(
+            sd = SeasonDriver.find_or_create_by(
                 season: race.season,
                 constructor: constructor,
-                driver: driver,
-                active: true
+                driver: driver
             )
+            sd.update!(active: true) unless sd.active?
             country = all_countries[driver.nationality]
             if country
                 DriverCountry.find_or_create_by(driver: driver, country: country)
@@ -200,12 +200,12 @@ class UpdateRaceResult
                 driver.update(elo_v2: EloRatingV2::STARTING_ELO, peak_elo_v2: EloRatingV2::STARTING_ELO, first_race_date: @race.date)
             end
 
-            SeasonDriver.find_or_create_by(
+            sd = SeasonDriver.find_or_create_by(
                 season: @race.season,
                 constructor: constructor,
-                driver: driver,
-                active: true
+                driver: driver
             )
+            sd.update!(active: true) unless sd.active?
 
             result = RaceResult.find_or_initialize_by(
                 driver: driver,
