@@ -420,7 +420,7 @@
             </div>
 
             <% if @stock_portfolio.total_collateral > 0 %>
-                <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 8px;">
+                <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 8px; margin-bottom: 16px;">
                     <i class="fa-solid fa-lock"></i>
                     <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> locked as short collateral</span>
                 </div>
