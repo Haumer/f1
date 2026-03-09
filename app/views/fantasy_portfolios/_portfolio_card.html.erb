@@ -9,7 +9,7 @@
             <div class="fantasy-mini-header">
                 <div class="fantasy-mini-title">
                     <i class="fa-solid fa-chess-knight"></i>
-                    <span>Fantasy F1</span>
+                    <span>My Portfolio</span>
                 </div>
                 <% if rank %>
                     <span class="fantasy-mini-rank">
@@ -87,6 +87,9 @@
 
         <%# Secondary links row (outside main link to avoid nested <a> tags) %>
         <div class="fantasy-mini-links">
+            <%= link_to combined_leaderboard_path, class: "fantasy-mini-link" do %>
+                <i class="fa-solid fa-ranking-star"></i> Leaderboard
+            <% end %>
             <%= link_to fantasy_roster_path(portfolio.user.username), class: "fantasy-mini-link" do %>
                 <i class="fa-solid fa-users"></i> Roster
             <% end %>
@@ -94,9 +97,6 @@
                 <%= link_to fantasy_stocks_path(portfolio.user.username), class: "fantasy-mini-link" do %>
                     <i class="fa-solid fa-chart-line"></i> Stocks
                 <% end %>
-            <% end %>
-            <%= link_to combined_leaderboard_path, class: "fantasy-mini-link" do %>
-                <i class="fa-solid fa-ranking-star"></i> Leaderboard
             <% end %>
         </div>
     </div>

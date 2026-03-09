@@ -203,6 +203,16 @@
   white-space: nowrap;
 }
 
+.next-race-strip-link {
+  color: $text-tertiary;
+  transition: color $t-fast;
+  display: flex;
+  align-items: center;
+  i { font-size: 12px; transition: transform $t-normal ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(3px); }
+}
+
 // Last Race Card
 .last-race-card {
   margin-bottom: 24px;

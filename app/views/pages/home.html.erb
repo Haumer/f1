@@ -32,6 +32,9 @@
                         Round <%= @next_race.round %> · <%= @next_race.date.strftime("%b %d") %><% if @next_race.starts_at %> · <%= @next_race.starts_at.strftime("%H:%M UTC") %><% end %>
                     </span>
                     <span class="next-race-strip-countdown"><%= (@next_race.date - @today).to_i %> days</span>
+                    <%= link_to calendar_races_path, class: "next-race-strip-link" do %>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    <% end %>
                 </div>
             <% end %>
         <% end %>
@@ -111,19 +114,26 @@
             <% end %>
         <% end %>
 
-        <%# 7. Fantasy section %>
+        <%# 6. Fantasy section %>
         <% if current_user && @fantasy_portfolio %>
+            <div class="table-header">
+                <%= link_to fantasy_overview_path(@fantasy_portfolio.user.username), class: "table-header-link" do %>
+                    <h3>Fantasy F1 <i class="fa-solid fa-arrow-right"></i></h3>
+                <% end %>
+            </div>
             <%= render "fantasy_portfolios/portfolio_card",
                        portfolio: @fantasy_portfolio,
                        stock_portfolio: @fantasy_stock_portfolio,
                        support: @fantasy_support,
                        rank: @fantasy_rank %>
         <% elsif current_user %>
+            <div class="table-header">
+                <h3>Fantasy F1</h3>
+            </div>
             <div class="fantasy-cta-card">
                 <div class="fantasy-cta-content">
                     <i class="fa-solid fa-chess-knight"></i>
                     <div>
-                        <h3>Fantasy F1</h3>
                         <p>Build a roster of drivers, trade stocks based on Elo performance, and compete on the leaderboard.</p>
                     </div>
                 </div>
@@ -132,11 +142,13 @@
                 <% end %>
             </div>
         <% else %>
+            <div class="table-header">
+                <h3>Fantasy F1</h3>
+            </div>
             <div class="fantasy-cta-card">
                 <div class="fantasy-cta-content">
                     <i class="fa-solid fa-chess-knight"></i>
                     <div>
-                        <h3>Fantasy F1</h3>
                         <p>Sign up to build a driver roster, trade Elo-based stocks, and compete against other fans.</p>
                     </div>
                 </div>

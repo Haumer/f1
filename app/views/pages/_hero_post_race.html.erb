@@ -12,9 +12,11 @@
                     <div class="hero-podium-entry" style="--constructor-color: <%= color %>">
                         <span class="hero-podium-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
                         <span class="hero-podium-name"><%= link_to "#{result.driver.forename[0]}.#{result.driver.surname}", driver_path(result.driver) %></span>
-                        <span class="hero-podium-elo <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
-                            <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
-                        </span>
+                        <% if current_user %>
+                            <span class="hero-podium-elo <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                                <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
+                            </span>
+                        <% end %>
                     </div>
                 <% end %>
                 <%= link_to race_path(@post_race), class: "hero-podium-link" do %>
