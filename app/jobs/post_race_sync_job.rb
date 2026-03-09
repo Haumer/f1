@@ -22,29 +22,34 @@ class PostRaceSyncJob < ApplicationJob
     DriverBadges.compute_all_drivers!
     UpdateActiveDrivers.update_season
 
-    # Snapshot fantasy portfolios
+    # Compute Elo for latest race (must happen before stock settlement/snapshots)
     latest_race = season.latest_race
+    if latest_race&.race_results&.exists?
+      EloRatingV2.process_race(latest_race)
+      ConstructorEloV2.process_race(latest_race)
+      Rails.logger.info "[PostRaceSyncJob] Elo computed for race #{latest_race.id}"
+    end
     if latest_race
-      Fantasy::SnapshotPortfolios.new(race: latest_race).call
-      Rails.logger.info "[PostRaceSyncJob] Fantasy snapshots created for race #{latest_race.id}"
-
-      # Check fantasy achievements
-      FantasyPortfolio.where(season: season).find_each do |portfolio|
-        Fantasy::CheckAchievements.new(portfolio: portfolio, race: latest_race).call
-      end
-      Rails.logger.info "[PostRaceSyncJob] Fantasy achievements checked"
-
-      # Settle stock market (dividends, borrow fees, margin calls, snapshots)
+      # Settle stock market first (dividends, borrow fees, margin calls)
+      # so that cash is updated before snapshotting
       if Setting.fantasy_stock_market?
         Fantasy::Stock::SettleRace.new(race: latest_race).call
         Rails.logger.info "[PostRaceSyncJob] Stock market settled for race #{latest_race.id}"
 
-        # Check stock achievements
         FantasyStockPortfolio.where(season: season).find_each do |portfolio|
           Fantasy::Stock::CheckAchievements.new(portfolio: portfolio, race: latest_race).call
         end
         Rails.logger.info "[PostRaceSyncJob] Stock achievements checked"
       end
+
+      # Snapshot after settlement so cash reflects dividends/fees
+      Fantasy::SnapshotPortfolios.new(race: latest_race).call
+      Rails.logger.info "[PostRaceSyncJob] Fantasy snapshots created for race #{latest_race.id}"
+
+      FantasyPortfolio.where(season: season).find_each do |portfolio|
+        Fantasy::CheckAchievements.new(portfolio: portfolio, race: latest_race).call
+      end
+      Rails.logger.info "[PostRaceSyncJob] Fantasy achievements checked"
     end
   end
 end
