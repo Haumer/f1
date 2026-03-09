@@ -20,7 +20,7 @@ module HomepageData
   end
 
   def determine_homepage_phase
-    return :default unless @contextual_race
+    return :pre_race unless @contextual_race
 
     race = @contextual_race
     fp1_date = race.fp1_date
@@ -43,9 +43,6 @@ module HomepageData
     # Race weekend (FP1 day through day before race)
     return :race_weekend if @today >= fp1_date && @today < race_date
 
-    # Pre-race lead-up (7 days before FP1)
-    return :pre_race if @today >= (fp1_date - 7.days) && @today < fp1_date
-
     # Season start (current season exists but has no results yet)
     first_race = @season.first_race
     if first_race && !@season.latest_driver_standings&.any? && first_race.date > @today
@@ -55,7 +52,8 @@ module HomepageData
     # Season complete (only when no active race context)
     return :season_complete if @season_complete && @champion
 
-    :default
+    # Pre-race: any gap before next race (no 7-day limit)
+    :pre_race
   end
 
   def prepare_phase_data

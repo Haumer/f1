@@ -58,24 +58,63 @@
     }
 }
 
-// MINI PORTFOLIO CARD (HOMEPAGE)
+// ═══════════════════════════════════════
+// MINI PORTFOLIO CARD — PIT WALL TERMINAL
 // ═══════════════════════════════════════
 
 .fantasy-mini-card-wrapper {
     margin-bottom: $space-lg;
+    position: relative;
 }
 
 .fantasy-mini-card {
     display: block;
     text-decoration: none;
     color: $text-primary;
-    transition: border-color $t-fast;
+    position: relative;
+    overflow: hidden;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
     margin-bottom: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: border-color $t-normal, box-shadow $t-normal;
+
+    // Subtle top accent line
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+            90deg,
+            var(--page-accent, $accent-red),
+            rgba(var(--page-accent-rgb, 225, 6, 0), 0.3) 60%,
+            transparent
+        );
+        z-index: 1;
+    }
+
+    // Scan-line texture overlay
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.03) 2px,
+            rgba(0, 0, 0, 0.03) 4px
+        );
+        pointer-events: none;
+        z-index: 1;
+    }
 
     &:hover {
-        border-color: var(--page-accent, $accent-red);
+        border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.25);
+        box-shadow: 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
         color: $text-primary;
     }
 }
@@ -84,68 +123,103 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: $space-md;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $border-color;
 }
 
 .fantasy-mini-title {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 700;
-    font-size: 14px;
-    i { color: var(--page-accent, $accent-red); }
+    font-weight: $weight-bold;
+    font-size: $type-small;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: $text-secondary;
+
+    i {
+        color: var(--page-accent, $accent-red);
+        font-size: 14px;
+    }
 }
 
 .fantasy-mini-rank {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     font-family: $mono-font;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: $weight-bold;
     color: $gold;
-    background: rgba($gold, 0.1);
-    padding: 3px 10px;
-    border-radius: 20px;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    background:
+        linear-gradient(135deg, rgba($gold, 0.12), rgba($gold, 0.04));
+    border: 1px solid rgba($gold, 0.2);
+    letter-spacing: -0.5px;
 
-    i { font-size: 10px; }
+    i {
+        font-size: 10px;
+        opacity: 0.7;
+    }
 }
 
 .fantasy-mini-stats {
     display: flex;
-    align-items: flex-start;
-    gap: $space-lg;
+    align-items: flex-end;
+    gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: $space-md;
+    margin-bottom: 14px;
 }
 
 .fantasy-mini-stat {
     display: flex;
     flex-direction: column;
+    gap: 2px;
+
     .label {
-        font-size: 10px;
+        font-size: $type-label;
+        font-weight: $weight-semi;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: $text-secondary;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
     }
+
     .value {
         font-family: $mono-font;
-        font-size: 18px;
+        font-size: 22px;
         font-weight: $weight-bold;
         font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+    }
+
+    // P&L stat gets extra emphasis
+    &:nth-child(2) .value {
+        font-size: 22px;
+
+        &.text-green {
+            text-shadow: 0 0 12px rgba($green, 0.25);
+        }
+        &.text-red {
+            text-shadow: 0 0 12px rgba($accent-red, 0.2);
+        }
     }
 }
 
 .fantasy-mini-allegiance {
     display: flex;
     flex-direction: column;
+    gap: 2px;
     margin-left: auto;
 
     .label {
-        font-size: 10px;
+        font-size: $type-label;
+        font-weight: $weight-semi;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: $text-secondary;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
     }
 
     @media (max-width: 480px) {
@@ -156,40 +230,42 @@
 .fantasy-mini-team-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 13px;
-    font-weight: $weight-semi;
+    font-weight: $weight-bold;
     color: $text-primary;
 
     .constructor-logo-xs {
-        width: 16px;
-        height: 16px;
-        opacity: 0.85;
+        width: 18px;
+        height: 18px;
+        opacity: 0.9;
         margin-left: 0;
     }
 }
 
 .fantasy-mini-roster {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: wrap;
-    margin-bottom: $space-md;
+    margin-bottom: 12px;
 }
 
 .fantasy-mini-pill {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    font-family: $mono-font;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    padding: 3px 10px;
-    background: $bg-surface;
-    border-radius: 20px;
-    border-left: 3px solid var(--pill-color, $border-color);
-    color: $text-secondary;
-    transition: color $t-fast;
+    letter-spacing: 0.5px;
+    padding: 3px 8px 3px 10px;
+    background: $bg-inset;
+    border-radius: 3px;
+    border-left: 2px solid var(--pill-color, $text-tertiary);
+    color: $text-tertiary;
+    transition: color $t-fast, background $t-fast;
 
     .fantasy-mini-card:hover & {
-        color: $text-primary;
+        color: $text-secondary;
+        background: $bg-surface;
     }
 }
 
@@ -197,63 +273,67 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    background: $bg-surface;
-    border-radius: $radius-sm;
-    font-size: 13px;
+    padding: 7px 10px;
+    background: $bg-inset;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid $border-color;
 
     > i {
         color: $text-tertiary;
-        font-size: 12px;
+        font-size: 11px;
     }
 }
 
 .fantasy-mini-stocks-label {
-    font-weight: $weight-semi;
-    color: $text-secondary;
-    font-size: 12px;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    font-size: $type-label;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: $ls-label;
 }
 
 .fantasy-mini-positions {
     display: flex;
-    gap: 4px;
+    gap: 3px;
 }
 
 .fantasy-mini-pos-badge {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: $weight-bold;
     font-family: $mono-font;
-    padding: 1px 6px;
+    padding: 2px 6px;
     border-radius: 3px;
 
     &.pos-long {
-        background: rgba($green, 0.1);
+        background: rgba($green, 0.12);
         color: $green;
+        border: 1px solid rgba($green, 0.15);
     }
     &.pos-short {
         background: rgba($accent-red, 0.1);
         color: $accent-red;
+        border: 1px solid rgba($accent-red, 0.12);
     }
 }
 
 .fantasy-mini-stock-pl {
     margin-left: auto;
     font-family: $mono-font;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
 }
 
-// Secondary links bar
+// Action bar — segmented control feel
 .fantasy-mini-links {
     display: flex;
     gap: 0;
-    border: 1px solid $border-color;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-top: none;
     border-radius: 0 0 $radius-md $radius-md;
     overflow: hidden;
-    background: $bg-card;
+    background: $bg-inset;
 }
 
 .fantasy-mini-link {
@@ -262,22 +342,24 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
-    padding: 8px $space-sm;
-    font-size: 11px;
-    font-weight: 700;
+    padding: 9px $space-sm;
+    font-size: 10px;
+    font-weight: $weight-bold;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     color: $text-tertiary;
     text-decoration: none;
-    transition: all $t-fast;
+    transition: color $t-fast, background $t-fast;
     border-right: 1px solid $border-color;
+    position: relative;
 
     &:last-child { border-right: none; }
 
     i { font-size: 10px; }
+
     &:hover {
-        color: var(--page-accent, $accent-red);
-        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+        color: $text-primary;
+        background: rgba(255, 255, 255, 0.04);
         text-decoration: none;
     }
 }

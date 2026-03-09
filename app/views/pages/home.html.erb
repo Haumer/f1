@@ -14,13 +14,28 @@
             <%= render "pages/hero_race_weekend" %>
         <% when :pre_race %>
             <%= render "pages/hero_pre_race" %>
-        <% else %>
-            <%= render "pages/hero_default" %>
         <% end %>
 
-        <%# 2. Driver Standings graph — omitted from homepage to reduce clutter %>
+        <%# 2. Persistent Latest Result Strip (skip during post_race — hero already shows it) %>
+        <% if @latest_race&.has_results? && @homepage_phase != :post_race %>
+            <%= render "pages/latest_result_strip", race: @latest_race, podium: @podium_results %>
+        <% end %>
 
-        <%# 3. Driver Standings %>
+        <%# 3. Next Race (always visible when available, skip if hero already covers it) %>
+        <% unless [:race_weekend, :race_day, :pre_race, :season_start].include?(@homepage_phase) %>
+            <% if @next_race && @next_race.date > @today %>
+                <div class="card next-race-card">
+                    <span class="next-race-label">Next Race</span>
+                    <h4><%= link_to @next_race.circuit.name, circuit_path(@next_race.circuit) %></h4>
+                    <span class="next-race-meta">
+                        Round <%= @next_race.round %> · <%= @next_race.date.strftime("%B %d, %Y") %>
+                        <% if @next_race.starts_at %> · <%= @next_race.starts_at.strftime("%H:%M UTC") %><% end %>
+                    </span>
+                </div>
+            <% end %>
+        <% end %>
+
+        <%# 4. Driver Standings %>
         <% if @season_drivers&.any? %>
             <div class="table-header">
                 <%= link_to season_path(@season), class: "table-header-link" do %>
@@ -41,21 +56,26 @@
             </div>
         <% end %>
 
-        <%# 4. Next Race %>
-        <% unless [:race_weekend, :race_day, :pre_race, :season_start].include?(@homepage_phase) %>
-            <% if @next_race && @next_race.date > @today %>
-                <div class="card next-race-card">
-                    <span class="next-race-label">Next Race</span>
-                    <h4><%= link_to @next_race.circuit.name, circuit_path(@next_race.circuit) %></h4>
-                    <span class="next-race-meta">
-                        Round <%= @next_race.round %> · <%= @next_race.date.strftime("%B %d, %Y") %>
-                        <% if @next_race.starts_at %> · <%= @next_race.starts_at.strftime("%H:%M UTC") %><% end %>
-                    </span>
+        <%# 5. Biggest Elo Movers (post-race) %>
+        <% if @race_elo_changes&.any? %>
+            <div class="card post-race-elo-card">
+                <h4 class="section-label">Biggest Elo Movers</h4>
+                <div class="post-race-movers">
+                    <% @race_elo_changes.each do |result| %>
+                        <div class="post-race-mover-item">
+                            <%= link_to driver_path(result.driver) do %>
+                                <span class="mover-name"><%= result.driver.forename[0] %>.<%= result.driver.surname %></span>
+                            <% end %>
+                            <span class="elo-badge <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                                <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
+                            </span>
+                        </div>
+                    <% end %>
                 </div>
-            <% end %>
+            </div>
         <% end %>
 
-        <%# 5. Previous Season Recap %>
+        <%# 6. Previous Season Recap %>
         <% if @standings_season && @standings_season != @season %>
             <div class="table-header">
                 <%= link_to season_path(@standings_season), class: "table-header-link" do %>
@@ -109,26 +129,7 @@
             <% end %>
         <% end %>
 
-        <%# 6. Biggest Elo Movers (post-race) %>
-        <% if @race_elo_changes&.any? %>
-            <div class="card post-race-elo-card">
-                <h4 class="section-label">Biggest Elo Movers</h4>
-                <div class="post-race-movers">
-                    <% @race_elo_changes.each do |result| %>
-                        <div class="post-race-mover-item">
-                            <%= link_to driver_path(result.driver) do %>
-                                <span class="mover-name"><%= result.driver.forename[0] %>.<%= result.driver.surname %></span>
-                            <% end %>
-                            <span class="elo-badge <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
-                                <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
-                            </span>
-                        </div>
-                    <% end %>
-                </div>
-            </div>
-        <% end %>
-
-        <%# 7. Fantasy portfolio card %>
+        <%# 7. Fantasy section %>
         <% if current_user && @fantasy_portfolio %>
             <%= render "fantasy_portfolios/portfolio_card",
                        portfolio: @fantasy_portfolio,
@@ -162,6 +163,78 @@
                 <% end %>
             </div>
         <% end %>
+
+        <%# 8. Leaderboard Preview %>
+        <% if @leaderboard_preview&.any? %>
+            <div class="card leaderboard-preview-card">
+                <div class="leaderboard-preview-header">
+                    <h4><i class="fa-solid fa-ranking-star"></i> Fantasy Leaderboard</h4>
+                    <%= link_to combined_leaderboard_path, class: "last-race-link" do %>
+                        Full Leaderboard <i class="fa-solid fa-arrow-right"></i>
+                    <% end %>
+                </div>
+                <div class="leaderboard-preview-list">
+                    <% @leaderboard_preview.each do |entry| %>
+                        <div class="leaderboard-preview-row">
+                            <span class="leaderboard-preview-rank place-<%= entry[:rank] %>">#<%= entry[:rank] %></span>
+                            <span class="leaderboard-preview-name"><%= entry[:user].username %></span>
+                            <span class="leaderboard-preview-net <%= entry[:net] >= 0 ? 'text-green' : 'text-red' %>">
+                                <%= entry[:net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:net].round(0)) %>
+                            </span>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        <% end %>
+
+        <%# 9. Explore Grid (always visible) %>
+        <div class="explore-archive">
+            <div class="explore-header">Explore</div>
+            <div class="explore-grid">
+                <%= link_to peak_elo_drivers_path, class: "card explore-card" do %>
+                    <div class="explore-icon"><i class="fa-solid fa-ranking-star"></i></div>
+                    <div class="explore-info">
+                        <span class="explore-name">Peak Elo</span>
+                        <span class="explore-desc">All-time highest ratings</span>
+                    </div>
+                <% end %>
+                <%= link_to compare_drivers_path, class: "card explore-card" do %>
+                    <div class="explore-icon"><i class="fa-solid fa-code-compare"></i></div>
+                    <div class="explore-info">
+                        <span class="explore-name">Compare Drivers</span>
+                        <span class="explore-desc">Head-to-head Elo history</span>
+                    </div>
+                <% end %>
+                <%= link_to seasons_path, class: "card explore-card" do %>
+                    <div class="explore-icon"><i class="fa-solid fa-calendar"></i></div>
+                    <div class="explore-info">
+                        <span class="explore-name">All Seasons</span>
+                        <span class="explore-desc">Browse every F1 season</span>
+                    </div>
+                <% end %>
+                <%= link_to circuits_path, class: "card explore-card" do %>
+                    <div class="explore-icon"><i class="fa-solid fa-location-dot"></i></div>
+                    <div class="explore-info">
+                        <span class="explore-name">Circuits</span>
+                        <span class="explore-desc">Tracks around the world</span>
+                    </div>
+                <% end %>
+                <%= link_to constructors_path, class: "card explore-card" do %>
+                    <div class="explore-icon"><i class="fa-solid fa-warehouse"></i></div>
+                    <div class="explore-info">
+                        <span class="explore-name">Constructors</span>
+                        <span class="explore-desc">Team histories & Elo</span>
+                    </div>
+                <% end %>
+                <%= link_to podiums_races_path, class: "card explore-card" do %>
+                    <div class="explore-icon"><i class="fa-solid fa-medal"></i></div>
+                    <div class="explore-info">
+                        <span class="explore-name">Podium Leaders</span>
+                        <span class="explore-desc">Most podiums all-time</span>
+                    </div>
+                <% end %>
+            </div>
+        </div>
     <% else %>
         <div class="empty-state">
             <i class="fa-solid fa-flag-checkered"></i>

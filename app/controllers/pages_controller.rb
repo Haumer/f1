@@ -19,6 +19,7 @@ class PagesController < ApplicationController
     build_constructor_top3
     prepare_homepage_phase
     load_fantasy_portfolio
+    load_leaderboard_preview
   end
 
   def about
@@ -200,5 +201,19 @@ class PagesController < ApplicationController
       @fantasy_support = ConstructorSupport.current_for(current_user, @season)
       @fantasy_rank = @fantasy_portfolio.snapshots.order(created_at: :desc).first&.rank
     end
+  end
+
+  def load_leaderboard_preview
+    entries = Fantasy::Leaderboard.new(season: @season).call.first(5)
+    @leaderboard_preview = entries.map.with_index(1) do |entry, rank|
+      {
+        user: entry[:portfolio].user,
+        value: entry[:value],
+        net: entry[:net],
+        rank: rank
+      }
+    end
+  rescue StandardError
+    @leaderboard_preview = []
   end
 end

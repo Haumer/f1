@@ -1,0 +1,18 @@
+<div class="latest-result-strip">
+    <div class="latest-result-label">
+        <i class="fa-solid fa-flag-checkered"></i>
+        <%= link_to race.circuit.name, race_path(race) %>
+    </div>
+    <div class="latest-result-podium">
+        <% podium&.each do |result| %>
+            <span class="latest-result-driver">
+                <span class="latest-result-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
+                <% color = Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                <span class="latest-result-name" style="border-color: <%= color %>"><%= result.driver.surname %></span>
+            </span>
+        <% end %>
+    </div>
+    <%= link_to race_path(race), class: "latest-result-link" do %>
+        Results <i class="fa-solid fa-arrow-right"></i>
+    <% end %>
+</div>
