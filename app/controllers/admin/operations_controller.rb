@@ -77,6 +77,20 @@ module Admin
         msg = issues.any? ? "Issues found: #{issues.join('; ')}" : "All portfolios consistent."
         redirect_to admin_operations_path, notice: msg
 
+      when "fix_collateral"
+        season = Season.sorted_by_year.first
+        count = 0
+        FantasyStockHolding.joins(:fantasy_stock_portfolio)
+          .where(fantasy_stock_portfolios: { season_id: season.id }, active: true, direction: "short")
+          .includes(:driver, :fantasy_stock_portfolio).each do |h|
+          price = h.fantasy_stock_portfolio.share_price(h.driver)
+          correct = price * h.quantity * FantasyStockPortfolio::COLLATERAL_RATIO
+          next if (h.collateral - correct).abs < 0.01
+          h.update!(collateral: correct)
+          count += 1
+        end
+        redirect_to admin_operations_path, notice: "Fixed collateral for #{count} short positions (#{(FantasyStockPortfolio::COLLATERAL_RATIO * 100).round(0)}% ratio)."
+
       when "recapitalize_fantasy"
         season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
         avg_elo = Driver.where.not(elo_v2: nil)

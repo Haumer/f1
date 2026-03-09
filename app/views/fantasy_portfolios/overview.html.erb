@@ -305,7 +305,7 @@
                                 <strong>Expand Roster</strong>
                                 <span class="fantasy-expand-meta">+<%= FantasyPortfolio::SLOTS_PER_TEAM %> seats, +1 swap</span>
                             </div>
-                            <% if @portfolio.cash >= @portfolio.team_cost %>
+                            <% if @portfolio.available_cash >= @portfolio.team_cost %>
                                 <%= form_with url: buy_team_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
                                     <%= submit_tag "#{number_with_delimiter(@portfolio.team_cost)}", class: "fantasy-btn fantasy-btn-outline fantasy-btn-sm", data: { turbo_confirm: "Purchase a new team for #{number_with_delimiter(@portfolio.team_cost)}? You'll have #{@portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM} seats." } %>
                                 <% end %>

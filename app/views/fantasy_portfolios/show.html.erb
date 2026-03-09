@@ -617,7 +617,7 @@
                         <span>Purchase another team for <strong><%= number_with_delimiter(@portfolio.team_cost) %></strong> &mdash; adds <%= FantasyPortfolio::SLOTS_PER_TEAM %> driver seats and 1 swap per race</span>
                     </div>
                 </div>
-                <% if @portfolio.cash >= @portfolio.team_cost %>
+                <% if @portfolio.available_cash >= @portfolio.team_cost %>
                     <%= form_with url: buy_team_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
                         <%= submit_tag "Buy Team (#{number_with_delimiter(@portfolio.team_cost)})", class: "fantasy-btn fantasy-btn-outline", data: { turbo_confirm: "Purchase a new team for #{number_with_delimiter(@portfolio.team_cost)}? You'll have #{@portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM} seats." } %>
                     <% end %>

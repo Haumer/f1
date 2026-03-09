@@ -14,7 +14,8 @@ module Fantasy
         return { error: "Already at maximum teams (#{FantasyPortfolio::MAX_TEAMS})" } unless @portfolio.can_buy_team?
 
         cost = @portfolio.team_cost
-        return { error: "Not enough cash (need #{cost}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < cost
+        available = @portfolio.available_cash
+        return { error: "Not enough cash (need #{cost}, have #{available.round(0)})" } if available < cost
 
         @portfolio.update!(
           roster_slots: @portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM,

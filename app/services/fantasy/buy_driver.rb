@@ -14,7 +14,8 @@ module Fantasy
         return { error: "Roster is full (#{@portfolio.roster_slots} seats)" } if @portfolio.roster_full?
 
         price = Fantasy::Pricing.price_for(@driver, @portfolio.season)
-        return { error: "Not enough cash (need #{price.round(0)}, have #{@portfolio.cash.round(0)})" } if @portfolio.cash < price
+        available = @portfolio.available_cash
+        return { error: "Not enough cash (need #{price.round(0)}, have #{available.round(0)})" } if available < price
 
         @portfolio.roster_entries.create!(
           driver: @driver,

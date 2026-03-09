@@ -32,6 +32,12 @@ class FantasyPortfolio < ApplicationRecord
     starting_capital + (stock&.starting_capital || 0)
   end
 
+  # Cash available after subtracting locked collateral from stock shorts
+  def available_cash
+    stock = FantasyStockPortfolio.find_by(user_id: user_id, season_id: season_id)
+    cash - (stock&.total_collateral || 0)
+  end
+
   def can_trade?(race)
     return false unless race&.starts_at
     (race.starts_at - 1.minute) > Time.current
