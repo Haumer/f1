@@ -18,6 +18,12 @@ module Fantasy
         starting_capital: starting_capital
       )
 
+      portfolio.transactions.create!(
+        kind: "starting_capital",
+        amount: starting_capital,
+        note: "Roster starting capital"
+      )
+
       { portfolio: portfolio }
     end
 

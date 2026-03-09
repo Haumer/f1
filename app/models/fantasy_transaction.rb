@@ -3,7 +3,7 @@ class FantasyTransaction < ApplicationRecord
   belongs_to :driver, optional: true
   belongs_to :race, optional: true
 
-  KINDS = %w[buy sell team_purchase bonus].freeze
+  KINDS = %w[buy sell team_purchase bonus starting_capital].freeze
 
   validates :kind, inclusion: { in: KINDS }
   validates :amount, presence: true

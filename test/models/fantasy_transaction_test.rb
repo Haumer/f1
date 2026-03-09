@@ -32,7 +32,7 @@ class FantasyTransactionTest < ActiveSupport::TestCase
   end
 
   test "KINDS constant has all valid kinds" do
-    assert_equal %w[buy sell team_purchase bonus], FantasyTransaction::KINDS
+    assert_equal %w[buy sell team_purchase bonus starting_capital], FantasyTransaction::KINDS
   end
 
   test "all valid kinds pass validation" do

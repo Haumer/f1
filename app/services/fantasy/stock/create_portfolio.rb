@@ -25,6 +25,12 @@ module Fantasy
           roster.with_lock do
             roster.update!(cash: roster.cash + capital)
           end
+
+          roster.transactions.create!(
+            kind: "starting_capital",
+            amount: capital,
+            note: "Stock market unlocked"
+          )
         end
 
         { portfolio: portfolio }

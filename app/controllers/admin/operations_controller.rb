@@ -4,7 +4,7 @@ module Admin
       sync_season full_data_sync fetch_wikipedia_images
       elo_v2_simulate backfill_careers update_active_drivers compute_badges
       recalc_net_demand resnap_portfolios recalc_dividends
-      verify_cash fix_collateral
+      verify_cash fix_collateral replay_transactions
     ].freeze
 
     def index
@@ -112,6 +112,15 @@ module Admin
         count += 1
       end
       redirect_to admin_operations_path, notice: "Fixed collateral for #{count} short positions (#{(FantasyStockPortfolio::COLLATERAL_RATIO * 100).round(0)}% ratio)."
+    end
+
+    def replay_transactions
+      season = Season.sorted_by_year.first
+      dry_run = params[:dry_run] == "1"
+      results = Fantasy::ReplayTransactions.new(season: season, dry_run: dry_run).call
+      summary = results.map { |r| "#{r[:user]}: #{r[:old_cash]}→#{r[:new_cash]} (#{r[:diff] >= 0 ? '+' : ''}#{r[:diff]})" }.join("; ")
+      prefix = dry_run ? "[DRY RUN] " : ""
+      redirect_to admin_operations_path, notice: "#{prefix}Replayed transactions: #{summary}"
     end
 
     def recalc_dividends

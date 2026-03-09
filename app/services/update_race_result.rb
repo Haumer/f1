@@ -103,8 +103,9 @@ class UpdateRaceResult
 
             status = all_statuses[race_result['status']]
             unless status
-                puts "Unknown status '#{race_result['status']}' for driver #{driver.driver_ref} in race #{@race.id}, skipping"
-                next
+                status = Status.create!(status_type: race_result['status'])
+                all_statuses[status.status_type] = status
+                puts "Created new status '#{status.status_type}'"
             end
 
             result = RaceResult.find_or_initialize_by(
