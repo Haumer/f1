@@ -177,13 +177,18 @@ module Fantasy
         @constructor_mults ||= {}
         return @constructor_mults[driver.id] if @constructor_mults.key?(driver.id)
 
+        standing_pos = nil
         prev_season = @race.season.previous_season
-        standing_pos = if prev_season
+        if prev_season
           # Find which constructor this driver races for this season
           sd = SeasonDriver.find_by(driver_id: driver.id, season_id: @race.season_id)
           if sd&.constructor_id
-            cs = ConstructorStanding.find_by(constructor_id: sd.constructor_id, season_id: prev_season.id)
-            cs&.position
+            # Standings are per-race — get the last race of previous season
+            last_race = Race.where(season: prev_season).order(:round).last
+            if last_race
+              cs = ConstructorStanding.find_by(constructor_id: sd.constructor_id, race_id: last_race.id)
+              standing_pos = cs&.position
+            end
           end
         end
 
