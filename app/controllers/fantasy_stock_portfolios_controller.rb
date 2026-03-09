@@ -9,7 +9,7 @@ class FantasyStockPortfoliosController < ApplicationController
     current_season = Season.sorted_by_year.first
     existing = current_user.fantasy_stock_portfolio_for(current_season)
     if existing
-      redirect_to fantasy_stocks_path(current_user.username)
+      redirect_to fantasy_overview_path(current_user.username)
       return
     end
 
@@ -24,7 +24,7 @@ class FantasyStockPortfoliosController < ApplicationController
     if result[:error]
       redirect_to new_fantasy_stock_portfolio_path, alert: result[:error]
     else
-      redirect_to fantasy_stocks_path(current_user.username), notice: "Stock portfolio created with #{result[:portfolio].cash.round(1)} cash."
+      redirect_to fantasy_overview_path(current_user.username), notice: "Stock portfolio created with #{result[:portfolio].cash.round(1)} cash."
     end
   end
 
@@ -48,7 +48,7 @@ class FantasyStockPortfoliosController < ApplicationController
       redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: result[:error]
     else
       check_stock_achievements(@portfolio)
-      redirect_to fantasy_stocks_path(current_user.username), notice: "Bought #{quantity}x #{driver.fullname}!"
+      redirect_to fantasy_overview_path(current_user.username), notice: "Bought #{quantity}x #{driver.fullname}!"
     end
   end
 
@@ -58,10 +58,10 @@ class FantasyStockPortfoliosController < ApplicationController
     result = Fantasy::Stock::SellShares.new(portfolio: @portfolio, driver: driver, quantity: quantity, race: @next_race).call
 
     if result[:error]
-      redirect_to fantasy_stocks_path(current_user.username), alert: result[:error]
+      redirect_to fantasy_overview_path(current_user.username), alert: result[:error]
     else
       check_stock_achievements(@portfolio)
-      redirect_to fantasy_stocks_path(current_user.username), notice: "Sold #{quantity}x #{driver.fullname}!"
+      redirect_to fantasy_overview_path(current_user.username), notice: "Sold #{quantity}x #{driver.fullname}!"
     end
   end
 
@@ -74,7 +74,7 @@ class FantasyStockPortfoliosController < ApplicationController
       redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: result[:error]
     else
       check_stock_achievements(@portfolio)
-      redirect_to fantasy_stocks_path(current_user.username), notice: "Shorted #{quantity}x #{driver.fullname}!"
+      redirect_to fantasy_overview_path(current_user.username), notice: "Shorted #{quantity}x #{driver.fullname}!"
     end
   end
 
@@ -84,10 +84,10 @@ class FantasyStockPortfoliosController < ApplicationController
     result = Fantasy::Stock::CloseShort.new(portfolio: @portfolio, driver: driver, quantity: quantity, race: @next_race).call
 
     if result[:error]
-      redirect_to fantasy_stocks_path(current_user.username), alert: result[:error]
+      redirect_to fantasy_overview_path(current_user.username), alert: result[:error]
     else
       check_stock_achievements(@portfolio)
-      redirect_to fantasy_stocks_path(current_user.username), notice: "Closed short on #{driver.fullname}!"
+      redirect_to fantasy_overview_path(current_user.username), notice: "Closed short on #{driver.fullname}!"
     end
   end
 
@@ -122,7 +122,7 @@ class FantasyStockPortfoliosController < ApplicationController
     if errors.any?
       redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: errors.join(". ")
     else
-      redirect_to fantasy_stocks_path(current_user.username), notice: "Opened #{bought.join(', ')}"
+      redirect_to fantasy_overview_path(current_user.username), notice: "Opened #{bought.join(', ')}"
     end
   end
 

@@ -37,9 +37,8 @@ class FantasyStockPortfolioTest < ActiveSupport::TestCase
     assert_includes dup.errors[:user_id], "has already been taken"
   end
 
-  test "validates cash presence" do
-    @portfolio.cash = nil
-    refute @portfolio.valid?
+  test "cash is always zero on stock portfolio (lives on wallet)" do
+    assert_in_delta 0, @portfolio.cash, 0.01
   end
 
   test "validates starting_capital presence" do
@@ -95,18 +94,18 @@ class FantasyStockPortfolioTest < ActiveSupport::TestCase
   end
 
   # profit_loss
-  test "profit_loss is portfolio_value minus starting_capital" do
-    expected = @portfolio.portfolio_value - @portfolio.starting_capital
+  test "profit_loss equals positions_value minus total_invested" do
+    expected = (@portfolio.positions_value - @portfolio.total_invested).round(2)
     assert_in_delta expected, @portfolio.profit_loss, 0.01
   end
 
   # total_collateral / available_cash
   test "total_collateral sums active shorts collateral" do
-    assert_in_delta 675.0, @portfolio.total_collateral, 0.01
+    assert_in_delta 337.5, @portfolio.total_collateral, 0.01
   end
 
-  test "available_cash is cash minus total_collateral" do
-    expected = @portfolio.cash - @portfolio.total_collateral
+  test "available_cash is wallet cash minus total_collateral" do
+    expected = (@portfolio.wallet&.cash || 0) - @portfolio.total_collateral
     assert_in_delta expected, @portfolio.available_cash, 0.01
   end
 

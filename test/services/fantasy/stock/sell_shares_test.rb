@@ -11,14 +11,15 @@ class Fantasy::Stock::SellSharesTest < ActiveSupport::TestCase
   test "successfully sells all shares" do
     holding = @portfolio.active_longs.find_by(driver: @driver)
     qty = holding.quantity
-    cash_before = @portfolio.cash
+    wallet = @portfolio.wallet
+    cash_before = wallet.cash
     price = @portfolio.share_price(@driver)
 
     result = Fantasy::Stock::SellShares.new(portfolio: @portfolio, driver: @driver, quantity: qty, race: @race).call
 
     assert result[:success]
-    @portfolio.reload
-    assert_in_delta cash_before + (price * qty), @portfolio.cash, 0.01
+    wallet.reload
+    assert_in_delta cash_before + (price * qty), wallet.cash, 0.01
 
     holding.reload
     refute holding.active

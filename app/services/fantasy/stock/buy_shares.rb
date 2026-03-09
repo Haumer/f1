@@ -36,7 +36,9 @@ module Fantasy
             )
           end
 
-          @portfolio.update!(cash: @portfolio.cash - total_cost)
+          wallet = @portfolio.wallet
+          wallet.lock!
+          wallet.update!(cash: wallet.cash - total_cost)
 
           @portfolio.transactions.create!(
             kind: "buy",

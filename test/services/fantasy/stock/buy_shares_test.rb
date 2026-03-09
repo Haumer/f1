@@ -9,15 +9,16 @@ class Fantasy::Stock::BuySharesTest < ActiveSupport::TestCase
   end
 
   test "successfully buys shares" do
-    cash_before = @portfolio.cash
+    wallet = @portfolio.wallet
+    cash_before = wallet.cash
     price = @portfolio.share_price(@driver)
     qty = 2
 
     result = Fantasy::Stock::BuyShares.new(portfolio: @portfolio, driver: @driver, quantity: qty, race: @race).call
 
     assert result[:success]
-    @portfolio.reload
-    assert_in_delta cash_before - (price * qty), @portfolio.cash, 0.01
+    wallet.reload
+    assert_in_delta cash_before - (price * qty), wallet.cash, 0.01
   end
 
   test "creates long holding" do
@@ -67,7 +68,7 @@ class Fantasy::Stock::BuySharesTest < ActiveSupport::TestCase
   end
 
   test "returns error when not enough cash" do
-    @portfolio.update_columns(cash: 1.0)
+    @portfolio.wallet.update_columns(cash: 1.0)
     result = Fantasy::Stock::BuyShares.new(portfolio: @portfolio, driver: @driver, quantity: 1, race: @race).call
     assert_match(/Not enough cash/, result[:error])
   end

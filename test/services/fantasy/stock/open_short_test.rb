@@ -19,19 +19,21 @@ class Fantasy::Stock::OpenShortTest < ActiveSupport::TestCase
     assert_equal @race, holding.opened_race
   end
 
-  test "locks collateral equal to price times quantity" do
+  test "locks collateral at 50% of position value" do
     price = @portfolio.share_price(@driver)
     Fantasy::Stock::OpenShort.new(portfolio: @portfolio, driver: @driver, quantity: 3, race: @race).call
 
     holding = @portfolio.active_shorts.find_by(driver: @driver)
-    assert_in_delta price * 3, holding.collateral, 0.01
+    expected = price * 3 * FantasyStockPortfolio::COLLATERAL_RATIO
+    assert_in_delta expected, holding.collateral, 0.01
   end
 
   test "cash does not change on short open (collateral is tracked separately)" do
-    cash_before = @portfolio.cash
+    wallet = @portfolio.wallet
+    cash_before = wallet.cash
     Fantasy::Stock::OpenShort.new(portfolio: @portfolio, driver: @driver, quantity: 1, race: @race).call
-    @portfolio.reload
-    assert_in_delta cash_before, @portfolio.cash, 0.01
+    wallet.reload
+    assert_in_delta cash_before, wallet.cash, 0.01
   end
 
   test "creates short_open transaction with zero amount" do
@@ -62,7 +64,7 @@ class Fantasy::Stock::OpenShortTest < ActiveSupport::TestCase
   end
 
   test "returns error when not enough cash for collateral" do
-    @portfolio.update_columns(cash: 1.0)
+    @portfolio.wallet.update_columns(cash: 1.0)
     result = Fantasy::Stock::OpenShort.new(portfolio: @portfolio, driver: @driver, quantity: 1, race: @race).call
     assert_match(/Not enough cash for collateral/, result[:error])
   end

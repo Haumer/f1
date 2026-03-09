@@ -26,7 +26,9 @@ module Fantasy
             holding.update!(quantity: holding.quantity - @quantity)
           end
 
-          @portfolio.update!(cash: @portfolio.cash + total)
+          wallet = @portfolio.wallet
+          wallet.lock!
+          wallet.update!(cash: wallet.cash + total)
 
           @portfolio.transactions.create!(
             kind: "sell",

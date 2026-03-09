@@ -14,7 +14,7 @@ codex_nor_short:
   quantity: 3
   direction: short
   entry_price: 225.0
-  collateral: 675.0
+  collateral: 337.5
   opened_race: bahrain_2026
   active: true
 

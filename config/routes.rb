@@ -73,6 +73,7 @@ Rails.application.routes.draw do
       post :buy_multiple
       post :sell
       post :buy_team
+      post :unified_trade
     end
     collection do
       get :leaderboard

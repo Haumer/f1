@@ -90,7 +90,8 @@
                 <% if current_user %>
                     <% roster = current_user.fantasy_portfolio_for(current_season) %>
                     <% if roster %>
-                        <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: ("active" if request.path.start_with?('/fantasy')), role: "menuitem" %>
+                        <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: ("active" if request.path.include?("/fantasy/u/")), role: "menuitem" %>
+                        <%= link_to "Market", market_fantasy_portfolio_path(roster), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
                     <% else %>
                         <%= link_to "Create Portfolio", new_fantasy_portfolio_path, role: "menuitem" %>
                     <% end %>

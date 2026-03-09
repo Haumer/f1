@@ -20,10 +20,17 @@ class Fantasy::Stock::CreatePortfolioTest < ActiveSupport::TestCase
     assert_equal @season, result[:portfolio].season
   end
 
-  test "sets cash equal to starting_capital" do
+  test "stock portfolio cash is zero, capital added to roster wallet" do
+    # Create a roster portfolio first so capital can be added to it
+    roster = FantasyPortfolio.create!(user: @user, season: @season, cash: 1000.0, starting_capital: 1000.0, roster_slots: 4)
+    roster_cash_before = roster.cash
+
     result = Fantasy::Stock::CreatePortfolio.new(user: @user, season: @season).call
     portfolio = result[:portfolio]
-    assert_in_delta portfolio.starting_capital, portfolio.cash, 0.01
+
+    assert_in_delta 0, portfolio.cash, 0.01
+    roster.reload
+    assert_in_delta roster_cash_before + portfolio.starting_capital, roster.cash, 0.01
   end
 
   test "starting capital based on avg elo times multiplier" do

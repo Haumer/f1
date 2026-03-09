@@ -19,11 +19,12 @@ module Fantasy
 
         portfolios.each do |portfolio|
           ActiveRecord::Base.transaction do
-            # Lock the portfolio row to prevent concurrent settlement
+            # Lock both the stock portfolio and its wallet (roster portfolio)
             portfolio.lock!
+            portfolio.wallet&.lock!
 
-            # Idempotency: skip if already settled for this race
-            next if portfolio.snapshots.exists?(race: @race)
+            # Idempotency: skip if already settled (dividends/fees paid) for this race
+            next if portfolio.transactions.where(race: @race, kind: %w[dividend borrow_fee liquidation]).exists?
 
             pay_dividends(portfolio, results_by_driver)
             charge_borrow_fees(portfolio)
@@ -36,6 +37,7 @@ module Fantasy
       private
 
       def pay_dividends(portfolio, results_by_driver)
+        wallet = portfolio.wallet
         portfolio.active_longs.each do |holding|
           rr = results_by_driver[holding.driver_id]
           next unless rr
@@ -46,7 +48,7 @@ module Fantasy
           share_price = portfolio.share_price(holding.driver)
           dividend_per_share = (share_price * rate).round(2)
           total = dividend_per_share * holding.quantity
-          portfolio.update!(cash: portfolio.cash + total)
+          wallet.update!(cash: wallet.cash + total)
 
           portfolio.transactions.create!(
             kind: "dividend",
@@ -61,13 +63,14 @@ module Fantasy
       end
 
       def charge_borrow_fees(portfolio)
+        wallet = portfolio.wallet
         portfolio.active_shorts.each do |holding|
           fee_per_share = holding.entry_price * BORROW_FEE_RATE
           total_fee = fee_per_share * holding.quantity
 
-          new_cash = [portfolio.cash - total_fee, 0].max
-          actual_fee = portfolio.cash - new_cash
-          portfolio.update!(cash: new_cash)
+          new_cash = [wallet.cash - total_fee, 0].max
+          actual_fee = wallet.cash - new_cash
+          wallet.update!(cash: new_cash)
 
           portfolio.transactions.create!(
             kind: "borrow_fee",
@@ -82,6 +85,7 @@ module Fantasy
       end
 
       def check_margin_calls(portfolio)
+        wallet = portfolio.wallet
         portfolio.active_shorts.reload.each do |holding|
           current = portfolio.share_price(holding.driver)
           max_price = holding.entry_price * (1 + MAX_LOSS_MULTIPLIER)
@@ -90,11 +94,11 @@ module Fantasy
 
           # Auto-liquidate — cap loss so cash doesn't go negative
           loss = (holding.entry_price - current) * holding.quantity
-          new_cash = [portfolio.cash + loss, 0].max
-          actual_loss = new_cash - portfolio.cash
+          new_cash = [wallet.cash + loss, 0].max
+          actual_loss = new_cash - wallet.cash
 
           holding.update!(active: false, closed_race: @race, collateral: 0)
-          portfolio.update!(cash: new_cash)
+          wallet.update!(cash: new_cash)
 
           portfolio.transactions.create!(
             kind: "liquidation",
@@ -109,11 +113,11 @@ module Fantasy
       end
 
       def snapshot(portfolio)
-        value = portfolio.reload.portfolio_value
+        value = portfolio.reload.positions_value
         FantasyStockSnapshot.find_or_initialize_by(
           fantasy_stock_portfolio: portfolio,
           race: @race
-        ).update!(value: value, cash: portfolio.cash)
+        ).update!(value: value, cash: 0)
       end
 
       def dividend_rate_for_position(position)

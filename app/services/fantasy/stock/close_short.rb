@@ -20,9 +20,11 @@ module Fantasy
           current_price = @portfolio.share_price(@driver)
           pnl = (holding.entry_price - current_price) * @quantity
 
+          wallet = @portfolio.wallet
+          wallet.lock!
           # Prevent cash from going negative
-          new_cash = [@portfolio.cash + pnl, 0].max
-          actual_pnl = new_cash - @portfolio.cash
+          new_cash = [wallet.cash + pnl, 0].max
+          actual_pnl = new_cash - wallet.cash
 
           # Release proportional collateral
           released_collateral = (holding.collateral.to_f / holding.quantity) * @quantity
@@ -36,7 +38,7 @@ module Fantasy
             )
           end
 
-          @portfolio.update!(cash: new_cash)
+          wallet.update!(cash: new_cash)
 
           @portfolio.transactions.create!(
             kind: "short_close",

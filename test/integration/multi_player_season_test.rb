@@ -58,6 +58,7 @@ class MultiPlayerSeasonTest < ActiveSupport::TestCase
     alice_p  = create_portfolio(@alice)
     bob_p    = create_portfolio(@bob)
     carol_p  = create_portfolio(@carol)
+    dave_p   = create_portfolio(@dave)
     alice_sp = create_stock_portfolio(@alice)
     bob_sp   = create_stock_portfolio(@bob)
     dave_sp  = create_stock_portfolio(@dave)
@@ -318,7 +319,7 @@ class MultiPlayerSeasonTest < ActiveSupport::TestCase
 
   def verify_leaderboard(alice_p, bob_p, carol_p)
     board = Fantasy::Leaderboard.new(season: @season).call
-    assert_equal 3, board.size
+    assert_equal 4, board.size
 
     # Sorted by net P&L descending
     nets = board.map { |e| e[:net] }
@@ -353,11 +354,11 @@ class MultiPlayerSeasonTest < ActiveSupport::TestCase
         "#{sp.user.username} should have #{RACE_COUNT} stock snapshots"
     end
 
-    # Per-race roster ranks should be [1,2,3] — unique, no gaps
+    # Per-race roster ranks should be [1,2,3,4] — unique, no gaps
     @races.each do |race|
       ranks = FantasySnapshot.where(race: race).pluck(:rank).compact.sort
-      assert_equal [1, 2, 3], ranks,
-        "Race #{race.round} roster ranks should be [1,2,3], got #{ranks}"
+      assert_equal [1, 2, 3, 4], ranks,
+        "Race #{race.round} roster ranks should be [1,2,3,4], got #{ranks}"
     end
   end
 

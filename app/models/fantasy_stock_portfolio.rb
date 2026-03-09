@@ -8,11 +8,17 @@ class FantasyStockPortfolio < ApplicationRecord
   has_many :achievements, class_name: "FantasyStockAchievement", dependent: :destroy
 
   validates :user_id, uniqueness: { scope: :season_id }
-  validates :cash, :starting_capital, presence: true
+  validates :starting_capital, presence: true
 
   PRICE_DIVISOR = 10.0
   MAX_POSITIONS = 6
   CAPITAL_MULTIPLIER = 2.2
+  COLLATERAL_RATIO = 0.5 # 50% margin requirement for shorts
+
+  # Unified cash: stock portfolio uses roster portfolio as its wallet
+  def wallet
+    @wallet ||= FantasyPortfolio.find_by(user_id: user_id, season_id: season_id)
+  end
 
   def active_holdings
     holdings.where(active: true)
@@ -38,19 +44,32 @@ class FantasyStockPortfolio < ApplicationRecord
     Fantasy::Pricing.price_for(driver, season) / PRICE_DIVISOR
   end
 
-  def portfolio_value
+  # Positions-only value (no cash — cash lives in the wallet/roster portfolio)
+  def positions_value
     active = holdings.loaded? ? holdings.select(&:active) : active_holdings.includes(:driver).to_a
     longs_value = active.select { |h| h.direction == "long" }.sum do |h|
       share_price(h.driver) * h.quantity
     end
-    shorts_value = active.select { |h| h.direction == "short" }.sum do |h|
+    shorts_pnl = active.select { |h| h.direction == "short" }.sum do |h|
       (h.entry_price - share_price(h.driver)) * h.quantity
     end
-    cash + longs_value + shorts_value
+    longs_value + shorts_pnl
   end
 
+  # Total invested = sum of what was spent opening positions
+  def total_invested
+    active = holdings.loaded? ? holdings.select(&:active) : active_holdings.to_a
+    active.select { |h| h.direction == "long" }.sum { |h| h.entry_price * h.quantity }
+  end
+
+  # Stock P&L = current positions value - total invested
   def profit_loss
-    (portfolio_value - starting_capital).round(2)
+    (positions_value - total_invested).round(2)
+  end
+
+  # For backward compat — portfolio_value now means positions only
+  def portfolio_value
+    positions_value
   end
 
   def can_trade?(race)
@@ -65,7 +84,7 @@ class FantasyStockPortfolio < ApplicationRecord
   end
 
   def available_cash
-    cash - total_collateral
+    (wallet&.cash || 0) - total_collateral
   end
 
   def has_achievement?(key)
@@ -74,7 +93,10 @@ class FantasyStockPortfolio < ApplicationRecord
 
   def value_change_since_last_race
     last_two = snapshots.order(created_at: :desc).limit(2).to_a
-    return nil if last_two.size < 2
-    last_two[0].value - last_two[1].value
+    if last_two.size >= 2
+      last_two[0].value - last_two[1].value
+    elsif last_two.size == 1
+      last_two[0].value - total_invested # appreciation since buying
+    end
   end
 end

@@ -51,8 +51,8 @@
                                 <th class="text-end d-none d-md-table-cell">Roster P&L</th>
                                 <th class="text-end d-none d-md-table-cell">Stocks P&L</th>
                                 <th class="text-end">Net Value</th>
-                                <th class="text-end d-none d-sm-table-cell">Last Race</th>
-                                <th class="text-end d-none d-sm-table-cell">Total Value</th>
+                                <th class="text-end">Last Race</th>
+                                <th class="text-end d-none d-md-table-cell">Total Value</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -97,7 +97,7 @@
                                             <%= entry[:net_value] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:net_value].round(0)) %>
                                         </span>
                                     </td>
-                                    <td class="text-end d-none d-sm-table-cell">
+                                    <td class="text-end">
                                         <% if last_race != 0 %>
                                             <span class="<%= last_race >= 0 ? 'text-green' : 'text-red' %>">
                                                 <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %>
@@ -106,7 +106,7 @@
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:total_value].round(0)) %></td>
+                                    <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:total_value].round(0)) %></td>
                                 </tr>
                             <% end %>
                         </tbody>
@@ -132,8 +132,8 @@
                                 <th>Player</th>
                                 <th class="d-none d-md-table-cell">Roster</th>
                                 <th class="text-end">Net Value</th>
-                                <th class="text-end d-none d-sm-table-cell">Last Race</th>
-                                <th class="text-end d-none d-sm-table-cell">Total Value</th>
+                                <th class="text-end">Last Race</th>
+                                <th class="text-end d-none d-md-table-cell">Total Value</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -167,7 +167,7 @@
                                             <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                                         </span>
                                     </td>
-                                    <td class="text-end d-none d-sm-table-cell">
+                                    <td class="text-end">
                                         <% if r_delta != 0 %>
                                             <span class="<%= r_delta >= 0 ? 'text-green' : 'text-red' %>">
                                                 <%= r_delta >= 0 ? '+' : '' %><%= number_with_delimiter(r_delta.round(0)) %>
@@ -176,7 +176,7 @@
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:value].round(0)) %></td>
+                                    <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:value].round(0)) %></td>
                                 </tr>
                             <% end %>
                         </tbody>
@@ -202,8 +202,8 @@
                                 <th>Player</th>
                                 <th class="d-none d-md-table-cell">Holdings</th>
                                 <th class="text-end">Net Value</th>
-                                <th class="text-end d-none d-sm-table-cell">Last Race</th>
-                                <th class="text-end d-none d-sm-table-cell">Total Value</th>
+                                <th class="text-end">Last Race</th>
+                                <th class="text-end d-none d-md-table-cell">Total Value</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -240,7 +240,7 @@
                                             <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                                         </span>
                                     </td>
-                                    <td class="text-end d-none d-sm-table-cell">
+                                    <td class="text-end">
                                         <% if s_delta != 0 %>
                                             <span class="<%= s_delta >= 0 ? 'text-green' : 'text-red' %>">
                                                 <%= s_delta >= 0 ? '+' : '' %><%= number_with_delimiter(s_delta.round(0)) %>
@@ -249,7 +249,7 @@
                                             <span class="text-secondary">&mdash;</span>
                                         <% end %>
                                     </td>
-                                    <td class="text-end d-none d-sm-table-cell"><%= number_with_delimiter(entry[:value].round(1)) %></td>
+                                    <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:value].round(1)) %></td>
                                 </tr>
                             <% end %>
                         </tbody>

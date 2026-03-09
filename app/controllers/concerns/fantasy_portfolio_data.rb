@@ -85,7 +85,7 @@ module FantasyPortfolioData
   end
 
   # Returns { portfolio_id => delta } for the most recent race snapshot
-  def last_race_deltas(snapshot_class, fk, portfolio_ids)
+  def last_race_deltas(snapshot_class, fk, portfolio_ids, starting_values: {})
     return {} if portfolio_ids.empty?
 
     # Get the two most recent snapshots per portfolio
@@ -98,6 +98,8 @@ module FantasyPortfolioData
     snapshots.each_with_object({}) do |(pid, snaps), hash|
       if snaps.size >= 2
         hash[pid] = snaps[0].value - snaps[1].value
+      elsif snaps.size == 1 && starting_values[pid]
+        hash[pid] = snaps[0].value - starting_values[pid]
       else
         hash[pid] = 0
       end

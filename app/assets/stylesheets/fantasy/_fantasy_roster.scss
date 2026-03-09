@@ -98,3 +98,29 @@
     color: $text-secondary;
     &:hover { color: var(--page-accent, $accent-red); }
 }
+
+.fantasy-expand-card {
+    border: 1px dashed $border-accent;
+    background: transparent;
+    min-height: 120px;
+}
+
+.fantasy-expand-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: $space-xs;
+    color: $text-tertiary;
+    text-align: center;
+    padding: $space-sm 0;
+
+    i { font-size: 20px; color: var(--page-accent, $accent-red); }
+    strong { font-size: 13px; color: $text-primary; }
+}
+
+.fantasy-expand-meta {
+    font-size: 11px;
+    color: $text-tertiary;
+}

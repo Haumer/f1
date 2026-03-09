@@ -6,16 +6,23 @@ module Fantasy
 
     def call
       portfolios = FantasyPortfolio.where(season: @race.season)
-                     .includes(roster_entries: :driver)
+                     .includes(:user, roster_entries: :driver)
+      stock_portfolios = FantasyStockPortfolio.where(season: @race.season)
+                           .includes(holdings: :driver)
+                           .index_by(&:user_id)
 
       snapshots = portfolios.map do |portfolio|
-        value = portfolio.portfolio_value
+        sp = stock_portfolios[portfolio.user_id]
+        # Total value = roster portfolio_value (cash + drivers) + stock positions
+        value = portfolio.portfolio_value + (sp&.positions_value || 0)
         { fantasy_portfolio_id: portfolio.id, race_id: @race.id, value: value, cash: portfolio.cash }
       end
 
-      # Rank by net P&L (value minus starting capital)
-      capitals = portfolios.index_by(&:id).transform_values(&:starting_capital)
-      ranked = snapshots.sort_by { |s| -(s[:value] - (capitals[s[:fantasy_portfolio_id]] || 0)) }
+      # Rank by net P&L (total value minus total starting capital)
+      ranked = snapshots.sort_by do |s|
+        p = portfolios.find { |p| p.id == s[:fantasy_portfolio_id] }
+        -(s[:value] - p.total_starting_capital)
+      end
       ranked.each_with_index { |s, i| s[:rank] = i + 1 }
 
       # Upsert all snapshots
@@ -24,6 +31,19 @@ module Fantasy
           fantasy_portfolio_id: attrs[:fantasy_portfolio_id],
           race_id: attrs[:race_id]
         ).update!(value: attrs[:value], cash: attrs[:cash], rank: attrs[:rank])
+      end
+
+      # Also snapshot stock portfolios — but only if SettleRace hasn't already
+      # (SettleRace creates snapshots after paying dividends/fees, so don't overwrite)
+      FantasyStockPortfolio.where(season: @race.season)
+        .includes(holdings: :driver).each do |sp|
+        next if sp.snapshots.exists?(race: @race)
+        FantasyStockSnapshot.create!(
+          fantasy_stock_portfolio: sp,
+          race: @race,
+          value: sp.positions_value,
+          cash: 0
+        )
       end
 
       ranked.size

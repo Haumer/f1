@@ -26,6 +26,12 @@ class FantasyPortfolio < ApplicationRecord
     (portfolio_value - starting_capital).round(2)
   end
 
+  # Total starting capital across roster + stock (for combined P&L)
+  def total_starting_capital
+    stock = FantasyStockPortfolio.find_by(user_id: user_id, season_id: season_id)
+    starting_capital + (stock&.starting_capital || 0)
+  end
+
   def can_trade?(race)
     return false unless race&.starts_at
     (race.starts_at - 1.minute) > Time.current
@@ -91,7 +97,10 @@ class FantasyPortfolio < ApplicationRecord
 
   def value_change_since_last_race
     last_two = snapshots.order(created_at: :desc).limit(2).to_a
-    return nil if last_two.size < 2
-    last_two[0].value - last_two[1].value
+    if last_two.size >= 2
+      last_two[0].value - last_two[1].value
+    elsif last_two.size == 1
+      last_two[0].value - total_starting_capital
+    end
   end
 end

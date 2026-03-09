@@ -200,7 +200,7 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
 
     # Stock portfolio: try same thing
     frank_sp = create_stock_portfolio(frank)
-    frank_sp.update_columns(cash: 0.0)
+    frank_sp.wallet.update_columns(cash: 0.0)
     open_window(@races[5])
     stock_result = Fantasy::Stock::BuyShares.new(
       portfolio: frank_sp, driver: @drivers[0], quantity: 1, race: @races[5]
@@ -216,6 +216,7 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
 
   test "edge cases: short squeeze triggers margin call" do
     grace = create_user("grace")
+    create_portfolio(grace)
 
     # Don't run full season yet — we want to control Elo incrementally
     grace_sp = create_stock_portfolio(grace)
@@ -264,8 +265,8 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     borrow_fees = grace_sp.transactions.where(kind: "borrow_fee")
     assert borrow_fees.count >= 1, "Grace should have been charged borrow fees"
 
-    # Cash should never go negative
-    assert grace_sp.cash >= 0, "Cash should never be negative, got #{grace_sp.cash}"
+    # Wallet cash should never go negative
+    assert grace_sp.wallet.reload.cash >= 0, "Cash should never be negative, got #{grace_sp.wallet.cash}"
 
     # Even if she lost a lot, portfolio_value should handle it
     pv = grace_sp.portfolio_value
@@ -362,7 +363,7 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     assert_match(/You only have/, overclose[:error])
 
     # Buy with no cash
-    hank_sp.update_columns(cash: 0.0)
+    hank_sp.wallet.update_columns(cash: 0.0)
     no_cash = Fantasy::Stock::BuyShares.new(
       portfolio: hank_sp, driver: @drivers[2], quantity: 1, race: @races[1]
     ).call
@@ -373,7 +374,7 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
       portfolio: hank_sp, driver: @drivers[3], quantity: 1, race: @races[1]
     ).call
     assert_match(/Not enough cash for collateral/, no_collateral[:error])
-    hank_sp.update_columns(cash: 5000.0)
+    hank_sp.wallet.update_columns(cash: 5000.0)
 
     # Fill max positions (6), then try to open another
     4.times do |i|
@@ -404,6 +405,7 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
   test "edge cases: cash floor is respected everywhere" do
     # Verify cash never goes negative in any scenario
     user = create_user("cashfloor")
+    create_portfolio(user)
     sp = create_stock_portfolio(user)
 
     # Open a large short at low entry price, then driver surges
@@ -423,8 +425,9 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     end
 
     sp.reload
-    # Cash should never be negative
-    assert sp.cash >= 0, "Cash should never go negative, got #{sp.cash}"
+    # Wallet cash should never be negative
+    wallet = sp.wallet.reload
+    assert wallet.cash >= 0, "Cash should never go negative, got #{wallet.cash}"
 
     # Try to manually close the short (if still active)
     if sp.active_shorts.any?
@@ -436,7 +439,7 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
       ).call
       close_window(@races.last, RACE_COUNT - 1)
       sp.reload
-      assert sp.cash >= 0, "Cash should still not be negative after closing short, got #{sp.cash}"
+      assert sp.wallet.reload.cash >= 0, "Cash should still not be negative after closing short, got #{sp.wallet.cash}"
     end
 
     # Every snapshot should have non-negative cash

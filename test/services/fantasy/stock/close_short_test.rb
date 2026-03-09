@@ -36,16 +36,17 @@ class Fantasy::Stock::CloseShortTest < ActiveSupport::TestCase
   end
 
   test "adjusts cash by P&L" do
-    cash_before = @portfolio.cash
+    wallet = @portfolio.wallet
+    cash_before = wallet.cash
     holding = @portfolio.active_shorts.find_by(driver: @driver)
     current_price = @portfolio.share_price(@driver)
     pnl = (holding.entry_price - current_price) * holding.quantity
 
     Fantasy::Stock::CloseShort.new(portfolio: @portfolio, driver: @driver, quantity: holding.quantity, race: @race).call
 
-    @portfolio.reload
+    wallet.reload
     expected = [cash_before + pnl, 0].max
-    assert_in_delta expected, @portfolio.cash, 0.01
+    assert_in_delta expected, wallet.cash, 0.01
   end
 
   test "creates short_close transaction" do

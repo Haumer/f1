@@ -336,6 +336,17 @@
     color: $text-secondary;
 }
 
+.fantasy-cart-section-label {
+    font-size: 10px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-tertiary;
+    padding: 6px 0 2px;
+    border-bottom: 1px solid rgba($border-color, 0.5);
+    margin-bottom: 4px;
+}
+
 .fantasy-cart-remove {
     background: none;
     border: none;
@@ -461,4 +472,49 @@
 .fantasy-chart-card {
     padding: 16px;
     margin-bottom: $space-lg;
+}
+
+// Unified action cell: roster + stock actions in one column
+.fantasy-market-actions-unified {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+
+    .fantasy-market-add-btn {
+        margin-bottom: 2px;
+    }
+
+    .stock-trade-actions {
+        @media (max-width: 860px) {
+            .stock-qty-stepper { display: none; }
+            .stock-cost-preview { display: none; }
+
+            // Just show compact long/short buttons on mobile
+            gap: 2px;
+        }
+    }
+}
+
+// Stock price shown under main price in unified market
+.fantasy-market-stock-price {
+    display: block;
+    font-size: 10px;
+    color: $text-tertiary;
+    font-family: $mono-font;
+}
+
+// Source badge for combined transaction list
+.fantasy-txn-source-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(#6b9eff, 0.1);
+    color: #6b9eff;
+    margin-left: 4px;
+    vertical-align: middle;
 }
