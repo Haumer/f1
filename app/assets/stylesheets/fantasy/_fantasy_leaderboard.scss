@@ -36,6 +36,21 @@
     }
 }
 
+// Source badge (stocks indicator on combined views)
+.fantasy-txn-source,
+.fantasy-achievement-source {
+    font-size: 9px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    color: $text-tertiary;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
 // ═══════════════════════════════════════
 // LEADERBOARD
 // ═══════════════════════════════════════
