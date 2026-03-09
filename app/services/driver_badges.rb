@@ -131,6 +131,10 @@ class DriverBadges
     check_hulkenberg_award
   end
 
+  def add_badge(key, label:, description:, icon:, color:, value:)
+    @badges << Badge.new(key: key, label: label, description: description, icon: icon, color: color, value: value)
+  end
+
   def sort_badges
     @badges.sort_by! { |b| BADGE_ORDER.index(b.key.to_s.sub(/^circuit_king_.*/, "circuit_king").to_sym) || 99 }
   end
@@ -158,14 +162,9 @@ class DriverBadges
       rank = sorted.index { |did, _| did == @driver.id }
       next unless rank && rank < 3
 
-      @badges << Badge.new(
-        key: :"circuit_king_#{circuit.id}",
-        label: "King of #{circuit.name}",
-        description: "#{win_count} wins at #{circuit.name}",
-        icon: "fa-solid fa-crown",
-        color: "gold",
-        value: win_count
-      )
+      add_badge(:"circuit_king_#{circuit.id}",
+        label: "King of #{circuit.name}", description: "#{win_count} wins at #{circuit.name}",
+        icon: "fa-solid fa-crown", color: "gold", value: win_count)
     end
   end
 
