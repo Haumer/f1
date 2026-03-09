@@ -25,15 +25,13 @@
         <% unless [:race_weekend, :race_day, :pre_race, :season_start].include?(@homepage_phase) %>
             <% if @next_race && @next_race.date > @today %>
                 <div class="next-race-strip">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span class="next-race-strip-label">Next Race</span>
+                    <span class="next-race-strip-countdown">in <%= (@next_race.date - @today).to_i %> days</span>
                     <span class="next-race-strip-name"><%= link_to @next_race.circuit.name, race_path(@next_race) %></span>
                     <span class="next-race-strip-meta">
                         Round <%= @next_race.round %> · <%= @next_race.date.strftime("%b %d") %><% if @next_race.starts_at %> · <%= @next_race.starts_at.strftime("%H:%M UTC") %><% end %>
                     </span>
-                    <span class="next-race-strip-countdown"><%= (@next_race.date - @today).to_i %> days</span>
                     <%= link_to calendar_races_path, class: "next-race-strip-link" do %>
-                        <i class="fa-solid fa-arrow-right"></i>
+                        Full Race Calendar <i class="fa-solid fa-arrow-right"></i>
                     <% end %>
                 </div>
             <% end %>

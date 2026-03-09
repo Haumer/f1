@@ -196,7 +196,6 @@
 }
 
 .next-race-strip-countdown {
-  margin-left: auto;
   font-family: $mono-font;
   font-weight: $weight-bold;
   color: var(--page-accent, $accent-red);
@@ -204,11 +203,16 @@
 }
 
 .next-race-strip-link {
+  margin-left: auto;
   color: $text-tertiary;
+  font-size: $type-small;
+  font-weight: $weight-bold;
+  white-space: nowrap;
   transition: color $t-fast;
   display: flex;
   align-items: center;
-  i { font-size: 12px; transition: transform $t-normal ease; }
+  gap: 4px;
+  i { font-size: 10px; transition: transform $t-normal ease; }
   &:hover { color: var(--page-accent, $accent-red); }
   &:hover i { transform: translateX(3px); }
 }
