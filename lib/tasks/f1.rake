@@ -192,9 +192,16 @@ namespace :f1 do
   desc "Replay all fantasy transactions to recalculate cash balances (DRY_RUN=1 for preview)"
   task replay_transactions: :environment do
     dry_run = ENV.fetch("DRY_RUN", "0") == "1"
+    season = Season.sorted_by_year.first
     puts dry_run ? "DRY RUN — no changes will be saved" : "LIVE — recalculating cash balances"
+    puts "Season: #{season.year}"
 
-    Fantasy::ReplayTransactions.new(dry_run: dry_run).call
+    results = Fantasy::ReplayTransactions.new(season: season, dry_run: dry_run).call
+    results.each do |r|
+      status = r[:diff].abs < 0.01 ? "OK" : "CHANGED"
+      puts "  #{r[:user].ljust(15)} #{r[:old_cash]} -> #{r[:new_cash]} (#{r[:diff] >= 0 ? '+' : ''}#{r[:diff]}) [#{status}]"
+    end
+    puts "Done."
   end
 
   desc "Settle stock market for a race (pays dividends, charges borrow fees, snapshots)"
