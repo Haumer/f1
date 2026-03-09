@@ -41,7 +41,7 @@ class FantasyStockPortfolio < ApplicationRecord
   end
 
   def share_price(driver)
-    Fantasy::Pricing.price_for(driver, season) / PRICE_DIVISOR
+    Fantasy::Pricing.stock_price_for(driver, season)
   end
 
   # Positions-only value (no cash — cash lives in the wallet/roster portfolio)

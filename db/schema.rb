@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_09_070551) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_09_102924) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -541,6 +541,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_09_070551) do
     t.datetime "updated_at", null: false
     t.boolean "active"
     t.boolean "standin"
+    t.integer "net_demand", default: 0, null: false
     t.index ["constructor_id"], name: "index_season_drivers_on_constructor_id"
     t.index ["driver_id"], name: "index_season_drivers_on_driver_id"
     t.index ["season_id", "driver_id"], name: "index_season_drivers_on_season_id_and_driver_id"
@@ -662,6 +663,19 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_09_070551) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "stock_price_snapshots", force: :cascade do |t|
+    t.bigint "driver_id", null: false
+    t.bigint "race_id", null: false
+    t.decimal "elo", precision: 10, scale: 2, null: false
+    t.integer "net_demand", default: 0, null: false
+    t.decimal "price", precision: 10, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["driver_id", "race_id"], name: "index_stock_price_snapshots_on_driver_id_and_race_id", unique: true
+    t.index ["driver_id"], name: "index_stock_price_snapshots_on_driver_id"
+    t.index ["race_id"], name: "index_stock_price_snapshots_on_race_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -747,4 +761,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_09_070551) do
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "stock_price_snapshots", "drivers"
+  add_foreign_key "stock_price_snapshots", "races"
 end

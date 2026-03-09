@@ -1,8 +1,14 @@
 module Fantasy
   module Stock
     class SettleRace
+      # Flat base dividends per share (position-based, same for everyone)
+      DIVIDEND_BASES = { 1 => 1.25, 2 => 0.75, 3 => 0.50 }.freeze
+      # Surprise bonus rates (price-based, only when overperforming)
       DIVIDEND_RATES = { 1 => 0.005, 2 => 0.003, 3 => 0.002 }.freeze
-      POINTS_DIVIDEND_RATE = 0.001 # P4-P10
+      POINTS_DIVIDEND_BASE = 0.25  # P4-P10 flat base
+      POINTS_DIVIDEND_RATE = 0.001 # P4-P10 surprise bonus rate
+      SURPRISE_SCALE = 0.3 # Dampening factor for surprise bonus
+
       BORROW_FEE_RATE = 0.0025 # 0.25% per race
       MAX_LOSS_MULTIPLIER = 2.0 # Auto-liquidate at 2x entry price loss
 
@@ -16,6 +22,13 @@ module Fantasy
 
         results_by_driver = RaceResult.where(race: @race)
                               .index_by(&:driver_id)
+
+        # Rank drivers by Elo for surprise factor calculation
+        @elo_ranks = Driver.where(active: true)
+                       .order(elo_v2: :desc)
+                       .pluck(:id)
+                       .each_with_index
+                       .to_h { |id, idx| [id, idx + 1] }
 
         portfolios.each do |portfolio|
           ActiveRecord::Base.transaction do
@@ -32,6 +45,8 @@ module Fantasy
             snapshot(portfolio)
           end
         end
+
+        snapshot_prices(portfolios)
       end
 
       private
@@ -41,13 +56,12 @@ module Fantasy
         portfolio.active_longs.each do |holding|
           rr = results_by_driver[holding.driver_id]
           next unless rr
+          next unless rr.position_order && rr.position_order <= 10
 
-          rate = dividend_rate_for_position(rr.position_order)
-          next if rate.zero?
+          dividend_per_share = calculate_dividend(holding.driver, rr.position_order, portfolio)
+          next if dividend_per_share <= 0
 
-          share_price = portfolio.share_price(holding.driver)
-          dividend_per_share = (share_price * rate).round(2)
-          total = dividend_per_share * holding.quantity
+          total = (dividend_per_share * holding.quantity).round(2)
           wallet.update!(cash: wallet.cash + total)
 
           portfolio.transactions.create!(
@@ -55,9 +69,9 @@ module Fantasy
             driver: holding.driver,
             race: @race,
             quantity: holding.quantity,
-            price: dividend_per_share,
+            price: dividend_per_share.round(2),
             amount: total,
-            note: "Dividend: P#{rr.position_order} #{holding.driver.fullname} (#{holding.quantity}x #{dividend_per_share})"
+            note: "Dividend: P#{rr.position_order} #{holding.driver.fullname} (#{holding.quantity}x #{dividend_per_share.round(2)})"
           )
         end
       end
@@ -109,6 +123,9 @@ module Fantasy
             amount: actual_loss,
             note: "Margin call: #{holding.driver.fullname} hit #{MAX_LOSS_MULTIPLIER}x max loss, auto-closed"
           )
+
+          # Closing a short increases net demand
+          SeasonDriver.adjust_demand!(holding.driver_id, portfolio.season_id, holding.quantity)
         end
       end
 
@@ -120,9 +137,47 @@ module Fantasy
         ).update!(value: value, cash: 0)
       end
 
-      def dividend_rate_for_position(position)
-        return 0 unless position
-        DIVIDEND_RATES[position] || (position <= 10 ? POINTS_DIVIDEND_RATE : 0)
+      # Snapshot stock prices for all drivers with active holdings
+      def snapshot_prices(portfolios)
+        return if StockPriceSnapshot.exists?(race: @race)
+
+        driver_ids = portfolios.flat_map { |p| p.holdings.select(&:active).map(&:driver_id) }.uniq
+        season = @race.season
+
+        driver_ids.each do |driver_id|
+          driver = Driver.find(driver_id)
+          sd = SeasonDriver.find_by(driver_id: driver_id, season_id: season.id)
+          net = sd&.net_demand || 0
+          price = Fantasy::Pricing.stock_price_for(driver, season)
+
+          StockPriceSnapshot.create!(
+            driver_id: driver_id,
+            race: @race,
+            elo: driver.elo_v2,
+            net_demand: net,
+            price: price
+          )
+        end
+      end
+
+      # Dividend = flat_base + (share_price × rate × √(surprise-1) × 0.3)
+      # Surprise = elo_rank - finish_position + 1 (min 1)
+      # At 1x (no overperformance), everyone gets the same flat base
+      def calculate_dividend(driver, position, portfolio)
+        base = DIVIDEND_BASES[position] || (position <= 10 ? POINTS_DIVIDEND_BASE : 0)
+        return 0 if base.zero?
+
+        rate = DIVIDEND_RATES[position] || (position <= 10 ? POINTS_DIVIDEND_RATE : 0)
+        elo_rank = @elo_ranks[driver.id] || 1
+        surprise = [elo_rank - position + 1, 1].max
+        bonus = if surprise > 1
+          share_price = portfolio.share_price(driver)
+          share_price * rate * Math.sqrt(surprise - 1) * SURPRISE_SCALE
+        else
+          0
+        end
+
+        base + bonus
       end
     end
   end

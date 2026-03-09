@@ -49,6 +49,8 @@ module Fantasy
             amount: -total_cost,
             note: "Bought #{@quantity}x #{@driver.fullname} at #{price.round(1)}"
           )
+
+          SeasonDriver.adjust_demand!(@driver.id, @portfolio.season_id, @quantity)
         end
 
         { success: true }

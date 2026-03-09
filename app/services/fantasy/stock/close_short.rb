@@ -49,6 +49,8 @@ module Fantasy
             amount: actual_pnl,
             note: "Closed short #{@quantity}x #{@driver.fullname} at #{current_price.round(1)} (P&L: #{actual_pnl >= 0 ? '+' : ''}#{actual_pnl.round(1)})"
           )
+
+          SeasonDriver.adjust_demand!(@driver.id, @portfolio.season_id, @quantity)
         end
 
         { success: true }

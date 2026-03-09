@@ -51,6 +51,8 @@ module Fantasy
             amount: 0, # No cash movement — collateral is locked
             note: "Shorted #{@quantity}x #{@driver.fullname} at #{price.round(1)} (#{collateral_needed.round(1)} collateral locked)"
           )
+
+          SeasonDriver.adjust_demand!(@driver.id, @portfolio.season_id, -@quantity)
         end
 
         { success: true }
