@@ -174,6 +174,19 @@
             ss ? ss.value.round(0) : nil
         } : nil
 
+        # Roster-only values (total minus stock)
+        chart_roster = chart_total.each_with_index.map do |total, i|
+            if i == 0
+                # Starting: roster starting capital
+                (@portfolio ? @portfolio.starting_capital : 0).round(0)
+            else
+                r = snapped_rounds[i - 1]
+                rs = roster_snaps[r]
+                ss = stock_snaps[r]
+                rs ? (rs.value - (ss&.value || 0)).round(0) : nil
+            end
+        end
+
         chart_series = [
             {
                 name: "Total Value",
@@ -200,6 +213,54 @@
                 itemStyle: { color: "#6b9eff" }
             }
         end
+        # Hidden series for roster-only (used in tooltip)
+        chart_series << {
+            name: "Roster Value",
+            type: "line",
+            data: chart_roster,
+            showSymbol: false,
+            lineStyle: { width: 0 },
+            itemStyle: { color: "transparent" },
+            emphasis: { disabled: true },
+            silent: true
+        }
+
+        tooltip_formatter = RailsCharts::Javascript.new(<<~JS)
+          function(params) {
+            if (!params || params.length === 0) return '';
+            var total = null, stock = null, roster = null, start = #{chart_start};
+            params.forEach(function(p) {
+              if (p.value == null) return;
+              if (p.seriesName === 'Total Value') total = p.value;
+              if (p.seriesName === 'Stock Positions') stock = p.value;
+              if (p.seriesName === 'Roster Value') roster = p.value;
+            });
+            if (total == null) return '';
+            var pl = total - start;
+            var sign = pl >= 0 ? '+' : '';
+            var plColor = pl >= 0 ? '#4ade80' : '#f87171';
+            var html = '<div style="font-weight:600;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:4px;font-size:13px">' + params[0].axisValueLabel + '</div>';
+            html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
+            html += '<span style="color:#aaa">Total</span><span style="font-weight:700;font-family:monospace">' + total.toLocaleString() + '</span></div>';
+            if (roster != null) {
+              var rPl = roster - #{(@portfolio ? @portfolio.starting_capital : 0).round(0)};
+              var rSign = rPl >= 0 ? '+' : '';
+              var rColor = rPl >= 0 ? '#4ade80' : '#f87171';
+              html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
+              html += '<span style="color:#aaa">Roster</span><span style="font-family:monospace">' + roster.toLocaleString() + ' <span style="color:' + rColor + ';font-size:11px">' + rSign + rPl.toLocaleString() + '</span></span></div>';
+            }
+            if (stock != null) {
+              var sPl = stock - #{stock_invested};
+              var sSign = sPl >= 0 ? '+' : '';
+              var sColor = sPl >= 0 ? '#4ade80' : '#f87171';
+              html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
+              html += '<span style="color:#aaa">Stocks</span><span style="font-family:monospace">' + stock.toLocaleString() + ' <span style="color:' + sColor + ';font-size:11px">' + sSign + sPl.toLocaleString() + '</span></span></div>';
+            }
+            html += '<div style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
+            html += '<span style="color:#aaa">P&L</span><span style="font-weight:700;font-family:monospace;color:' + plColor + '">' + sign + pl.toLocaleString() + '</span></div>';
+            return html;
+          }
+        JS
 
         # Auto min: 80% of smallest non-nil value, rounded down
         all_vals = chart_total.compact
@@ -208,7 +269,15 @@
     <div class="table-header"><h3>Portfolio Value</h3></div>
     <div class="card card-flush fantasy-chart-card">
         <% chart_options = {
-            tooltip: { trigger: "axis" },
+            tooltip: {
+                trigger: "axis",
+                backgroundColor: "rgba(20, 20, 30, 0.95)",
+                borderColor: "rgba(255, 255, 255, 0.12)",
+                borderWidth: 1,
+                textStyle: { color: "#e0e0e0", fontSize: 13 },
+                confine: true,
+                formatter: tooltip_formatter
+            },
             grid: { left: 10, right: 16, top: 20, bottom: 10, containLabel: true },
             backgroundColor: "transparent",
             xAxis: {
@@ -508,13 +577,19 @@
       FantasyAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v.merge(source: "roster") }
       FantasyStockAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v.merge(source: "stocks") }
       all_earned = [*(@achievements || []), *(@stock_achievements || [])]
+      earned_keys = all_earned.map(&:key).to_set
+      tier_order = { "gold" => 0, "silver" => 1, "bronze" => 2 }
+      sorted_definitions = all_definitions.sort_by do |key, defn|
+        is_earned = earned_keys.include?(key.to_s) ? 0 : 1
+        [is_earned, tier_order[defn[:tier]] || 3]
+      end
     %>
     <div class="table-header">
         <h3>Achievements</h3>
         <span class="table-header-sub"><%= all_earned.size %>/<%= all_definitions.size %></span>
     </div>
     <div class="fantasy-achievements-grid">
-        <% all_definitions.each do |key, defn| %>
+        <% sorted_definitions.each do |key, defn| %>
             <% match = all_earned.find { |a| a.key == key.to_s } %>
             <div class="fantasy-achievement-card <%= match ? "earned tier-#{defn[:tier]}" : 'locked' %>">
                 <div class="fantasy-achievement-icon">
