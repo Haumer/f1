@@ -1,31 +1,22 @@
 class EloRatingV2
     STARTING_ELO = 2000.0
     BASE_K = 48
-    REGRESSION_FACTOR = 0.03
     REFERENCE_RACES = 12.0
     SCALE = EloMath::SCALE
 
     # Run full historical simulation from scratch
     def self.simulate_all!
         races = Race.includes(race_results: :driver).order(:date, :round).to_a
-        races_per_year = Race.joins(:race_results).distinct.group(:year).count
+        races_per_year = Race.group(:year).count
 
         elo = {}
         peak = {}
-        prev_year = nil
 
         race_result_updates = []
         driver_updates = {}
 
         races.each do |race|
-            year = race.year
-
-            if prev_year && year != prev_year
-                elo.each { |did, e| elo[did] = e * (1 - REGRESSION_FACTOR) + STARTING_ELO * REGRESSION_FACTOR }
-            end
-            prev_year = year
-
-            season_races = races_per_year[year] || REFERENCE_RACES.to_i
+            season_races = races_per_year[race.year] || REFERENCE_RACES.to_i
             results = race.race_results.select { |rr| rr.position_order.present? }.sort_by(&:position_order)
             next if results.size < 2
 
@@ -68,7 +59,7 @@ class EloRatingV2
                       .sort_by(&:position_order)
         return if results.size < 2
 
-        season_races = Race.where(year: race.year).count
+        season_races = race.season&.races&.count || Race.where(year: race.year).count
         participants = results.map { |rr| { id: rr.driver_id, elo: rr.driver.elo_v2 || STARTING_ELO, score: rr.position_order } }
         k_pair = EloMath.compute_k_pair(BASE_K, REFERENCE_RACES, season_races, results.size)
         adjustments = EloMath.pairwise_adjustments(participants, k_pair)
@@ -83,14 +74,6 @@ class EloRatingV2
                 rr.update!(old_elo_v2: old_elo, new_elo_v2: new_elo)
                 driver.update!(elo_v2: new_elo, peak_elo_v2: new_peak)
             end
-        end
-    end
-
-    # Apply season-end regression to all drivers with V2 ratings
-    def self.apply_regression!
-        Driver.where.not(elo_v2: nil).find_each do |driver|
-            regressed = driver.elo_v2 * (1 - REGRESSION_FACTOR) + STARTING_ELO * REGRESSION_FACTOR
-            driver.update!(elo_v2: regressed)
         end
     end
 end
