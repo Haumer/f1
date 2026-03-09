@@ -3,6 +3,7 @@ class FantasyStockTransaction < ApplicationRecord
   belongs_to :driver, optional: true
   belongs_to :race, optional: true
 
-  validates :kind, presence: true
+  KINDS = %w[buy sell short_open short_close dividend borrow_fee liquidation].freeze
+  validates :kind, inclusion: { in: KINDS }
   validates :amount, presence: true
 end

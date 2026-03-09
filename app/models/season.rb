@@ -4,6 +4,7 @@ class Season < ApplicationRecord
     has_many :drivers, through: :season_drivers
     has_many :race_results, through: :drivers
     has_many :videos, as: :video_media
+    has_one :points_system
 
     has_many :driver_standings, through: :drivers
 

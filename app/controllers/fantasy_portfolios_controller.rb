@@ -302,7 +302,7 @@ class FantasyPortfoliosController < ApplicationController
 
     Fantasy::Stock::CreatePortfolio.new(user: current_user, season: @portfolio.season).call
   rescue => e
-    Rails.logger.error("Auto stock portfolio creation failed: #{e.message}")
+    Rails.logger.error("Auto stock portfolio creation failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
   end
 
 end

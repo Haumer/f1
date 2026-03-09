@@ -1,0 +1,299 @@
+// Season section divider
+.season-section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0 24px;
+}
+.season-section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, $border-color, transparent);
+}
+.season-section-label {
+    font-size: 11px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: $text-tertiary;
+    white-space: nowrap;
+}
+
+// Season champions strip (compact podium for completed seasons)
+.season-champions-strip {
+    margin-bottom: 24px;
+
+    .champions-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .champions-group {
+        background: $bg-surface;
+        border: 1px solid $border-color;
+        border-radius: $radius-md;
+        padding: 16px;
+    }
+
+    .champions-label {
+        display: block;
+        font-size: 11px;
+        font-weight: $weight-bold;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: $text-tertiary;
+        margin-bottom: 12px;
+    }
+
+    .champions-podium {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .champion-entry {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px;
+        border-radius: $radius-sm;
+        border-left: 3px solid var(--constructor-color, $border-accent);
+        background: rgba(255, 255, 255, 0.015);
+        transition: background $t-fast;
+        &:hover { background: rgba(255, 255, 255, 0.04); }
+        &.champion-p1 {
+            background: rgba($gold, 0.05);
+            border-left-color: $gold;
+        }
+    }
+
+    .champion-pos {
+        font-family: $mono-font;
+        font-size: 13px;
+        font-weight: $weight-bold;
+        min-width: 28px;
+    }
+
+    .champion-name {
+        font-weight: $weight-semi;
+        font-size: 14px;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        a { transition: color $t-fast; }
+        a:hover { color: var(--page-accent, $accent-red); }
+    }
+
+    .champion-stat {
+        font-family: $mono-font;
+        font-size: 12px;
+        color: $text-tertiary;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 640px) {
+    .season-champions-strip .champions-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Season team grid
+.season-team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.season-team-card {
+    padding: 16px 20px;
+    border-left: 3px solid var(--team-color, $border-accent);
+    transition: border-color $t-fast, box-shadow $t-fast;
+    &:hover { box-shadow: $shadow-md; }
+}
+.season-team-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.season-team-name {
+    font-weight: $weight-bold;
+    font-size: 14px;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+.season-team-drivers {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.season-team-driver {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    a { color: $text-secondary; &:hover { color: $text-primary; } }
+}
+.season-team-driver-elo,
+.season-team-elo {
+    margin-left: auto;
+    font-family: $mono-font;
+    font-size: 12px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Calendar table badges
+.calendar-next-race {
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+    td { font-weight: $weight-semi; }
+}
+.calendar-live-badge {
+    font-size: 10px;
+    font-weight: $weight-bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulse-live 2s ease-in-out infinite;
+}
+.calendar-next-badge {
+    font-size: 10px;
+    font-weight: $weight-bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.calendar-winner {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: $text-secondary;
+    i { font-size: 10px; color: $text-tertiary; }
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+.calendar-winner-name { font-weight: $weight-semi; }
+
+// Expand table button (shared but primarily used in season page)
+.expand-table-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--page-accent, #e10600);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    &:hover { background: rgba(255, 255, 255, 0.03); }
+}
+
+// Points System
+.points-system-link {
+    font-size: 12px;
+    color: $text-tertiary;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    transition: color $t-fast;
+    &:hover { color: var(--page-accent, $accent-red); }
+    i { font-size: 11px; }
+}
+
+.points-system-section {
+    margin-top: 32px;
+    scroll-margin-top: 24px;
+}
+
+.points-system-content {
+    padding: 20px 24px;
+}
+
+.points-system-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.points-system-block {
+    flex: 1;
+    min-width: 200px;
+}
+
+.points-system-label {
+    font-size: 12px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: $text-secondary;
+    margin: 0 0 10px;
+}
+
+.points-system-positions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.points-position {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 36px;
+    padding: 6px 8px;
+    background: $bg-surface;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+}
+
+.points-pos {
+    font-size: 10px;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+}
+
+.points-val {
+    font-family: $mono-font;
+    font-size: 15px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+}
+
+.points-system-detail {
+    font-size: 14px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+    .text-secondary { font-weight: normal; }
+}
+
+.points-system-notes {
+    margin: 16px 0 0;
+    font-size: 13px;
+    color: $text-secondary;
+    font-style: italic;
+}
+
+// Season responsive
+@media (max-width: 768px) {
+    .season-team-grid { grid-template-columns: 1fr; }
+    .race-stat-card .race-stat-value { font-size: 16px; }
+    .race-stat-card .race-stat-label { font-size: 10px; }
+    .race-stats-row { gap: 8px; }
+    .points-system-content { padding: 16px; }
+    .points-system-grid { gap: 16px; }
+    .points-system-block { min-width: 100%; }
+}

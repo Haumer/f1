@@ -40,9 +40,7 @@ class Graphs::ConstructorElo
         type: 'scroll',
         bottom: 0,
       },
-      tooltip: {
-        trigger: 'axis',
-      },
+      tooltip: line_tooltip,
       dataZoom: data_zoom_slider,
     }
   end

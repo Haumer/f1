@@ -14,14 +14,18 @@
                     <span class="constructor-active-badge">Active</span>
                 <% end %>
             </h1>
+            <% if current_user && !@user_supports_any && ConstructorSupport.can_change?(current_user, current_season) %>
+                <div class="constructor-hero-support">
+                    <%= link_to support_constructor_path(@constructor), data: { turbo_method: :post, turbo_confirm: "Support #{@constructor.name}? This is locked until mid-season." }, class: "fantasy-btn fantasy-btn-outline" do %>
+                        <i class="fa-solid fa-shield-halved"></i> Support this team
+                    <% end %>
+                </div>
+            <% end %>
         </div>
     </div>
 
+    <%# ── Stats Row ── %>
     <div class="race-stats-row">
-        <div class="race-stat-card">
-            <div class="race-stat-value"><%= @constructor.nationality %></div>
-            <div class="race-stat-label">Nationality</div>
-        </div>
         <div class="race-stat-card">
             <div class="race-stat-value"><%= @total_races %></div>
             <div class="race-stat-label">Races</div>
@@ -34,20 +38,20 @@
             <div class="race-stat-value"><%= @podiums %></div>
             <div class="race-stat-label">Podiums</div>
         </div>
+        <div class="race-stat-card">
+            <div class="race-stat-value"><%= @win_rate %>%</div>
+            <div class="race-stat-label">Win Rate</div>
+        </div>
         <% if @championship_wins > 0 %>
             <div class="race-stat-card">
                 <div class="race-stat-value championship-value"><%= @championship_wins %></div>
                 <div class="race-stat-label">Championships</div>
             </div>
         <% end %>
-        <% if @constructor.display_elo %>
+        <% if @best_season %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= elo_link(@constructor.display_elo) %></div>
-                <div class="race-stat-label">Current Elo</div>
-            </div>
-            <div class="race-stat-card">
-                <div class="race-stat-value"><%= elo_link(@constructor.display_peak_elo) %></div>
-                <div class="race-stat-label">Peak Elo</div>
+                <div class="race-stat-value"><%= @best_season[:year] %></div>
+                <div class="race-stat-label">Best Season (<%= @best_season[:wins] %> wins)</div>
             </div>
         <% end %>
         <% if @supporter_count > 0 %>
@@ -58,36 +62,108 @@
         <% end %>
     </div>
 
-    <% if current_user %>
-        <div class="constructor-support-action">
-            <% if @user_supports %>
-                <span class="fantasy-btn fantasy-btn-primary" style="cursor: default;">
-                    <i class="fa-solid fa-shield-halved"></i> Supporting
-                </span>
-            <% elsif ConstructorSupport.can_change?(current_user, current_season) %>
-                <%= link_to support_constructor_path(@constructor), data: { turbo_method: :post, turbo_confirm: "Support #{@constructor.name}? This is locked until mid-season." }, class: "fantasy-btn fantasy-btn-outline" do %>
-                    <i class="fa-solid fa-shield-halved"></i> Support this team
+    <%# ── Championship Seasons ── %>
+    <% if @championship_years.any? %>
+        <div class="constructor-section">
+            <h4 class="constructor-section-title"><i class="fa-solid fa-trophy"></i> Championship Seasons</h4>
+            <div class="constructor-championship-years">
+                <% @championship_years.each do |year| %>
+                    <%= link_to year, season_path(year), class: "constructor-champ-badge" %>
                 <% end %>
-            <% else %>
-                <span class="fantasy-btn fantasy-btn-outline" style="cursor: not-allowed; opacity: 0.5;">
-                    <i class="fa-solid fa-lock"></i> Allegiance locked
-                </span>
-            <% end %>
+            </div>
         </div>
     <% end %>
 
-    <div class="chart-header">
-        <h4>Elo Over Time</h4>
-    </div>
-    <div class="constructor-chart-full">
-        <%= custom_chart Graphs::Constructor.new(constructor: @constructor).data %>
+    <%# ── Current Lineup ── %>
+    <% if @current_drivers&.any? %>
+        <div class="constructor-section">
+            <h4 class="constructor-section-title"><i class="fa-solid fa-users"></i> Current Lineup</h4>
+            <div class="constructor-lineup-grid">
+                <% @current_drivers.each do |driver| %>
+                    <div class="constructor-driver-card">
+                        <div class="constructor-driver-info">
+                            <% if driver.country.present? %>
+                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                            <% end %>
+                            <%= link_to driver.fullname, driver_path(driver), class: "constructor-driver-name" %>
+                            <% if driver.display_elo %>
+                                <span class="constructor-driver-elo"><%= driver.display_elo.round %></span>
+                            <% end %>
+                        </div>
+                        <% if @recent_form&.dig(driver.id)&.any? %>
+                            <div class="constructor-driver-form">
+                                <% @recent_form[driver.id].reverse.each do |rr| %>
+                                    <% pos = rr.position_order %>
+                                    <% css_class = if pos == 1 then "form-dot-gold"
+                                                   elsif pos && pos <= 3 then "form-dot-podium"
+                                                   elsif pos && pos <= 10 then "form-dot-points"
+                                                   else "form-dot-out"
+                                                   end %>
+                                    <span class="form-dot <%= css_class %>" title="<%= rr.race.circuit.name %> — P<%= pos || 'DNF' %>">
+                                        <%= pos || "R" %>
+                                    </span>
+                                <% end %>
+                            </div>
+                        <% end %>
+                    </div>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+
+    <%# ── Recent Results ── %>
+    <% if @recent_results.any? %>
+        <div class="constructor-section">
+            <h4 class="constructor-section-title"><i class="fa-solid fa-flag-checkered"></i> Recent Results</h4>
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th>Race</th>
+                            <th>Driver</th>
+                            <th class="text-center">Pos</th>
+                            <th class="text-center">Elo +/-</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @recent_results.each do |rr| %>
+                            <tr>
+                                <td><%= link_to rr.race.circuit.name, race_path(rr.race) %></td>
+                                <td>
+                                    <span class="roster-driver-span">
+                                        <% if rr.driver.country.present? %>
+                                            <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                                        <% end %>
+                                        <%= link_to "#{rr.driver.forename&.first}.#{rr.driver.surname}", driver_path(rr.driver) %>
+                                    </span>
+                                </td>
+                                <td class="text-center">P<%= rr.position_order || "DNF" %></td>
+                                <td class="text-center">
+                                    <% diff = rr.display_elo_diff %>
+                                    <span class="<%= diff >= 0 ? 'text-green' : 'text-red' %>">
+                                        <%= diff >= 0 ? "+" : "" %><%= diff.round(1) %>
+                                    </span>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+
+    <%# ── Elo Over Time ── %>
+    <div class="constructor-section">
+        <h4 class="constructor-section-title"><i class="fa-solid fa-chart-line"></i> Elo Over Time</h4>
+        <div class="constructor-chart-full">
+            <%= custom_chart Graphs::Constructor.new(constructor: @constructor).data %>
+        </div>
     </div>
 
+    <%# ── Top Drivers ── %>
     <% if @top_drivers.present? %>
-        <div class="card card-flush">
-            <div class="table-header" style="padding: 16px 24px 8px;">
-                <h4>Top Drivers for <%= @constructor.name %></h4>
-            </div>
+        <div class="constructor-section">
+            <h4 class="constructor-section-title"><i class="fa-solid fa-ranking-star"></i> Top Drivers for <%= @constructor.name %></h4>
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact" data-controller="sortable-table">
                     <thead>
@@ -125,11 +201,10 @@
         </div>
     <% end %>
 
+    <%# ── Driver Roster History ── %>
     <% if @roster_by_season.present? %>
-        <div class="card card-flush">
-            <div class="table-header" style="padding: 16px 24px 8px;">
-                <h4>Driver Roster History</h4>
-            </div>
+        <div class="constructor-section">
+            <h4 class="constructor-section-title"><i class="fa-solid fa-clock-rotate-left"></i> Driver Roster History</h4>
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact">
                     <thead>
@@ -141,9 +216,7 @@
                     <tbody data-controller="expand">
                         <% @recent_roster.each do |season, season_drivers| %>
                             <tr>
-                                <td>
-                                    <%= link_to season.year, season_path(season) %>
-                                </td>
+                                <td><%= link_to season.year, season_path(season) %></td>
                                 <td>
                                     <% season_drivers.map(&:driver).uniq.each do |driver| %>
                                         <span class="roster-driver-span">
@@ -164,9 +237,7 @@
                             </tr>
                             <% @historical_roster.each do |season, season_drivers| %>
                                 <tr data-expand-target="content" style="display: none;">
-                                    <td>
-                                        <%= link_to season.year, season_path(season) %>
-                                    </td>
+                                    <td><%= link_to season.year, season_path(season) %></td>
                                     <td>
                                         <% season_drivers.map(&:driver).uniq.each do |driver| %>
                                             <span class="roster-driver-span">
@@ -186,15 +257,25 @@
         </div>
     <% end %>
 
+    <%# ── Fans ── %>
     <% if @fans.any? %>
-        <div class="table-header"><h3>Fans</h3></div>
-        <div class="constructor-fans-grid">
-            <% @fans.each do |fan| %>
-                <div class="constructor-fan-badge">
-                    <i class="fa-solid fa-user"></i>
-                    <span><%= fan.display_name %></span>
-                </div>
-            <% end %>
+        <div class="constructor-section">
+            <h4 class="constructor-section-title"><i class="fa-solid fa-heart"></i> Fans</h4>
+            <div class="constructor-fans-grid">
+                <% @fans.each do |fan| %>
+                    <% if fan.public_profile? %>
+                        <%= link_to fantasy_overview_path(fan.username), class: "constructor-fan-badge" do %>
+                            <i class="fa-solid fa-user"></i>
+                            <span><%= fan.display_name %></span>
+                        <% end %>
+                    <% else %>
+                        <div class="constructor-fan-badge">
+                            <i class="fa-solid fa-user"></i>
+                            <span><%= fan.display_name %></span>
+                        </div>
+                    <% end %>
+                <% end %>
+            </div>
         </div>
     <% end %>
 </div>

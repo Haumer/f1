@@ -1,11 +1,18 @@
 module Admin
   class OperationsController < BaseController
+    ALLOWED_OPERATIONS = %w[
+      sync_season full_data_sync fetch_wikipedia_images
+      elo_v2_simulate backfill_careers update_active_drivers compute_badges
+      recalc_net_demand resnap_portfolios recalc_dividends
+      verify_cash fix_collateral
+    ].freeze
+
     def index
     end
 
     def create
       op = params[:operation]
-      if respond_to?(op, true) && private_method_defined?(op)
+      if op.in?(ALLOWED_OPERATIONS)
         send(op)
       else
         redirect_to admin_operations_path, alert: "Unknown operation."
@@ -13,10 +20,6 @@ module Admin
     end
 
     private
-
-    def private_method_defined?(name)
-      self.class.private_method_defined?(name) && name != "create" && name != "index"
-    end
 
     def sync_season
       year = params[:year].presence || Date.current.year

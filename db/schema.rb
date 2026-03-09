@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_09_102924) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_09_152348) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -420,6 +420,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_09_102924) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["driver_id"], name: "index_fantasy_stock_transactions_on_driver_id"
+    t.index ["fantasy_stock_portfolio_id", "race_id", "kind"], name: "idx_stock_txns_portfolio_race_kind"
     t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_transactions_on_fantasy_stock_portfolio_id"
     t.index ["race_id"], name: "index_fantasy_stock_transactions_on_race_id"
   end
@@ -445,6 +446,20 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_09_102924) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["searchable_type", "searchable_id"], name: "index_pg_search_documents_on_searchable"
+  end
+
+  create_table "points_systems", force: :cascade do |t|
+    t.bigint "season_id", null: false
+    t.jsonb "race_points"
+    t.jsonb "sprint_points"
+    t.integer "fastest_lap_eligible"
+    t.integer "fastest_lap_point"
+    t.integer "positions_scoring"
+    t.integer "sprint_positions_scoring"
+    t.string "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["season_id"], name: "index_points_systems_on_season_id", unique: true
   end
 
   create_table "predictions", force: :cascade do |t|
@@ -742,6 +757,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_09_102924) do
   add_foreign_key "fantasy_transactions", "drivers"
   add_foreign_key "fantasy_transactions", "fantasy_portfolios"
   add_foreign_key "fantasy_transactions", "races"
+  add_foreign_key "points_systems", "seasons"
   add_foreign_key "predictions", "races"
   add_foreign_key "predictions", "users"
   add_foreign_key "qualifying_results", "constructors"

@@ -153,13 +153,134 @@
 
 // Constructor show chart — full width, no card
 .constructor-chart-full {
-    margin: 0 -16px 24px;
+    margin: 0 -16px 0;
     @media (min-width: 769px) {
-        margin: 0 0 24px;
+        margin: 0;
     }
 }
 
+// Constructor show — sections
+.constructor-section {
+    margin-bottom: 28px;
+}
+
+.constructor-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    i { color: $text-secondary; margin-right: 6px; }
+}
+
+// Hero support button
+.constructor-hero-support {
+    margin-top: 12px;
+}
+
+// Championship year badges
+.constructor-championship-years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.constructor-champ-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: $radius-sm;
+    background: rgba(201, 176, 55, 0.12);
+    border: 1px solid rgba(201, 176, 55, 0.3);
+    color: #C9B037;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: $mono-font;
+    text-decoration: none;
+    transition: background 0.15s;
+    &:hover { background: rgba(201, 176, 55, 0.22); color: #C9B037; }
+}
+
+// Current lineup
+.constructor-lineup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.constructor-driver-card {
+    background: $bg-card;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: 16px;
+    border-left: 3px solid var(--page-accent, $accent-red);
+}
+
+.constructor-driver-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.constructor-driver-name {
+    font-weight: 700;
+    font-size: 15px;
+    flex: 1;
+}
+
+.constructor-driver-elo {
+    font-family: $mono-font;
+    font-size: 14px;
+    color: $text-secondary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Form dots (last 5 results)
+.constructor-driver-form {
+    display: flex;
+    gap: 4px;
+}
+
+.form-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 24px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: $mono-font;
+    cursor: default;
+}
+
+.form-dot-gold {
+    background: rgba(201, 176, 55, 0.2);
+    color: #C9B037;
+    border: 1px solid rgba(201, 176, 55, 0.4);
+}
+
+.form-dot-podium {
+    background: rgba(128, 128, 128, 0.15);
+    color: #aaa;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.form-dot-points {
+    background: rgba(31, 136, 61, 0.12);
+    color: #1f883d;
+    border: 1px solid rgba(31, 136, 61, 0.25);
+}
+
+.form-dot-out {
+    background: rgba(255, 255, 255, 0.04);
+    color: $text-tertiary;
+    border: 1px solid $border-subtle;
+}
+
 @media (max-width: 768px) {
+    .constructor-lineup-grid {
+        grid-template-columns: 1fr;
+    }
     .constructors-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }

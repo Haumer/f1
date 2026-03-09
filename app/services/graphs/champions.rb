@@ -14,6 +14,13 @@ class Graphs::Champions
     end
 
     def champions_data
+        # Batch-load podium results for all drivers to avoid N+1 in notable_events
+        all_driver_ids = @race_results.filter_map { |rr| rr&.first&.driver_id }.uniq
+        @podium_results_by_driver = RaceResult
+          .where(driver_id: all_driver_ids, race_id: @race_ids, position_order: 1..3)
+          .includes(race: :circuit)
+          .group_by(&:driver_id)
+
         @series_data = @race_results.filter_map do |race_result|
             next if race_result.blank?
 
@@ -35,6 +42,9 @@ class Graphs::Champions
                 }
             end
 
+            # Final Elo for end label
+            final_elo = data.reverse.find { |d| d[:value].is_a?(Numeric) }&.dig(:value)
+
             {
                 data: data,
                 type: 'line',
@@ -43,7 +53,7 @@ class Graphs::Champions
                 smooth: true,
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: final_elo ? js_function("function(p) { return p.seriesName + ' (' + #{final_elo} + ')'; }") : '{a}',
                     distance: 20
                 },
                 markPoint: notable_events(driver)
@@ -83,29 +93,24 @@ class Graphs::Champions
                 show: true,
             },
             data: [
-                { type: "max", label: { formatter: '' } },
-                { type: "min", label: { formatter: '' } },
+                { type: "max", label: { formatter: '{c}', fontSize: 11, color: '#C9B037' } },
+                { type: "min", label: { formatter: '{c}', fontSize: 11, color: '#999' } },
             ],
             symbol: 'circle',
             symbolSize: 8,
         }
-        driver.race_results.where(position_order: 1..3, race_id: @race_ids).includes(race: :circuit).each do |race_result|
+        (@podium_results_by_driver[driver.id] || []).each do |race_result|
+            elo_val = race_result.send(@new_elo_col)
+            next unless elo_val
             position = race_result.position_order
-            points[:data] << {
-                coord: [
-                    race_x_label(race_result.race),
-                    race_result.send(@new_elo_col)
-                ],
-                label: { show: false, color: 'white' },
-                value: race_result.position_order,
-                symbol: 'circle',
-                itemStyle: {
-                    color: Race::PODIUM_COLORS[position],
-                    borderWidth: 1,
-                    borderColor: 'black'
-                },
-                symbolSize: 6
+            style = {
+                color: Race::PODIUM_COLORS[position],
+                borderWidth: 1,
+                borderColor: 'black'
             }
+            style[:shadowBlur] = 3
+            style[:shadowColor] = Race::PODIUM_COLORS[position] if position == 1
+            points[:data] << podium_point(race_result, elo_val, position, style)
         end
         points
     end

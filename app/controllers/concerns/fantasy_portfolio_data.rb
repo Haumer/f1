@@ -57,9 +57,7 @@ module FantasyPortfolioData
   end
 
   def check_roster_achievements(portfolio)
-    Fantasy::CheckAchievements.new(portfolio: portfolio, race: nil).call
-  rescue => e
-    Rails.logger.error("Achievement check failed: #{e.message}")
+    CheckAchievementsJob.perform_later(portfolio_type: "roster", portfolio_id: portfolio.id)
   end
 
   def constructors_for_drivers(drivers)

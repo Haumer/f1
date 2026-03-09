@@ -32,6 +32,7 @@ module Fantasy
       def wallet
         @wallet ||= begin
           w = @portfolio.wallet
+          raise "No wallet found for portfolio ##{@portfolio.id}" unless w
           w.lock!
           w
         end

@@ -53,6 +53,7 @@ module Fantasy
 
       def pay_dividends(portfolio, results_by_driver)
         wallet = portfolio.wallet
+        return unless wallet
         portfolio.active_longs.each do |holding|
           rr = results_by_driver[holding.driver_id]
           next unless rr
@@ -78,6 +79,7 @@ module Fantasy
 
       def charge_borrow_fees(portfolio)
         wallet = portfolio.wallet
+        return unless wallet
         portfolio.active_shorts.each do |holding|
           fee_per_share = holding.entry_price * BORROW_FEE_RATE
           total_fee = fee_per_share * holding.quantity
@@ -100,6 +102,7 @@ module Fantasy
 
       def check_margin_calls(portfolio)
         wallet = portfolio.wallet
+        return unless wallet
         portfolio.active_shorts.reload.each do |holding|
           current = portfolio.share_price(holding.driver)
           max_price = holding.entry_price * (1 + MAX_LOSS_MULTIPLIER)
@@ -143,10 +146,13 @@ module Fantasy
 
         driver_ids = portfolios.flat_map { |p| p.holdings.select(&:active).map(&:driver_id) }.uniq
         season = @race.season
+        drivers_by_id = Driver.where(id: driver_ids).index_by(&:id)
+        season_drivers_by_driver = SeasonDriver.where(driver_id: driver_ids, season_id: season.id).index_by(&:driver_id)
 
         driver_ids.each do |driver_id|
-          driver = Driver.find(driver_id)
-          sd = SeasonDriver.find_by(driver_id: driver_id, season_id: season.id)
+          driver = drivers_by_id[driver_id]
+          next unless driver
+          sd = season_drivers_by_driver[driver_id]
           net = sd&.net_demand || 0
           price = Fantasy::Pricing.stock_price_for(driver, season)
 

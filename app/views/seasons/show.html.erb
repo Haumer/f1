@@ -112,7 +112,12 @@
         <% end %>
 
         <%# ═══ 1) Driver Standings Table ═══ %>
-        <div class="table-header"><h3>Driver Standings</h3></div>
+        <div class="table-header">
+            <h3>Driver Standings</h3>
+            <% if @points_system %>
+                <a href="#points-system" class="points-system-link"><i class="fa-solid fa-circle-info"></i> Points System</a>
+            <% end %>
+        </div>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <div data-controller="expandable-table" data-expandable-table-limit-value="10">
@@ -255,9 +260,12 @@
 
         <% @season.videos.each do |video| %>
             <div class="video-embed">
-                <%= sanitize(video.embed_html, tags: %w[iframe], attributes: %w[src width height frameborder allow allowfullscreen title style]) %>
+                <%= sanitize(video.embed_html, tags: %w[iframe], attributes: %w[src width height frameborder allow allowfullscreen title]) %>
             </div>
         <% end %>
+
+        <%# ═══ Points System ═══ %>
+        <%= render 'seasons/points_system', points_system: @points_system if @points_system %>
 
         <%# ═══ Elo Section ═══ %>
         <div class="season-section-divider">
@@ -433,5 +441,8 @@
                 </table>
             </div>
         </div>
+
+        <%# ═══ Points System ═══ %>
+        <%= render 'seasons/points_system', points_system: @points_system if @points_system %>
     <% end %>
 </div>

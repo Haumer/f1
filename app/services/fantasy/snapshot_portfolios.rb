@@ -11,6 +11,8 @@ module Fantasy
                            .includes(holdings: :driver)
                            .index_by(&:user_id)
 
+      portfolios_by_id = portfolios.index_by(&:id)
+
       snapshots = portfolios.map do |portfolio|
         sp = stock_portfolios[portfolio.user_id]
         # Total value = roster portfolio_value (cash + drivers) + stock positions
@@ -20,7 +22,7 @@ module Fantasy
 
       # Rank by net P&L (total value minus total starting capital)
       ranked = snapshots.sort_by do |s|
-        p = portfolios.find { |p| p.id == s[:fantasy_portfolio_id] }
+        p = portfolios_by_id[s[:fantasy_portfolio_id]]
         -(s[:value] - p.total_starting_capital)
       end
       ranked.each_with_index { |s, i| s[:rank] = i + 1 }

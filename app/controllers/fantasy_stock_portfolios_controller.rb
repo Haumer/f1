@@ -162,9 +162,7 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def check_stock_achievements(portfolio)
-    Fantasy::Stock::CheckAchievements.new(portfolio: portfolio).call
-  rescue => e
-    Rails.logger.error("Stock achievement check failed: #{e.message}")
+    CheckAchievementsJob.perform_later(portfolio_type: "stock", portfolio_id: portfolio.id)
   end
 
   def constructors_for_drivers(drivers)

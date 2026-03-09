@@ -57,7 +57,7 @@ class Graphs::SeasonElo
                 emphasis: { focus: 'series' },
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: js_function("function(p) { return p.seriesName + ' (' + p.value + ')'; }"),
                     distance: 20
                 },
                 smooth: true,
@@ -86,6 +86,7 @@ class Graphs::SeasonElo
                 max: (max_elo + 50),
             },
             series: @series_data,
+            tooltip: line_tooltip,
             dataZoom: data_zoom_slider,
             height: "400px",
             legend: {

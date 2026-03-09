@@ -41,7 +41,7 @@ class Graphs::Line
                 smooth: true,
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: js_function("function(p) { return p.seriesName + ' (' + p.value + ')'; }"),
                     distance: 20
                 },
                 markLine: mark_peak_elo,
@@ -77,7 +77,7 @@ class Graphs::Line
             series: @series_data,
             legend: { show: true },
             toolbox: { show: true },
-            tooltip: line_tooltip,
+            tooltip: single_line_tooltip,
             height: "700px",
             dataZoom: data_zoom_slider(start: zoom_start),
             smoothMonotone: 'y'
@@ -100,9 +100,9 @@ class Graphs::Line
                     xAxis: race_x_label(peak_elo_race.race),
                     label: { formatter: '                                             Elo Peak' },
                 },
-                { type: "max", label: { formatter: 'Max' } },
-                { type: "average", label: { formatter: 'Average' } },
-                { type: "min", label: { formatter: 'Min', position: 'insideStartBottom' } },
+                { type: "max", label: { formatter: 'Max {c}' } },
+                { type: "average", label: { formatter: 'Avg {c}' } },
+                { type: "min", label: { formatter: 'Min {c}', position: 'insideStartBottom' } },
             ],
             symbol: 'none'
         }
@@ -135,8 +135,8 @@ class Graphs::Line
                 show: true,
             },
             data: [
-                { type: "max", label: { formatter: '' } },
-                { type: "min", label: { formatter: '' } },
+                { type: "max", label: { formatter: '{c}', fontSize: 11, color: '#C9B037' } },
+                { type: "min", label: { formatter: '{c}', fontSize: 11, color: '#999' } },
             ],
             symbol: 'circle',
             symbolSize: 8,
@@ -163,18 +163,14 @@ class Graphs::Line
             elo_point = race_result.send(@new_elo_col)
             next unless elo_point
             position = race_result.position_order
-            points[:data] << {
-                coord: [race_x_label(race_result.race), elo_point],
-                label: { show: false, color: 'white' },
-                value: race_result.position_order,
-                symbol: 'circle',
-                itemStyle: {
-                    color: Race::PODIUM_COLORS[position],
-                    borderWidth: 1,
-                    borderColor: 'black'
-                },
-                symbolSize: 8
+            style = {
+                color: Race::PODIUM_COLORS[position],
+                borderWidth: 1,
+                borderColor: 'black'
             }
+            style[:shadowBlur] = 3
+            style[:shadowColor] = Race::PODIUM_COLORS[position] if position == 1
+            points[:data] << podium_point(race_result, elo_point, position, style)
         end
         points
     end

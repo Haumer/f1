@@ -15,7 +15,7 @@ class RacesController < ApplicationController
     @biggest_loser = results.min_by(&:display_elo_diff)
     new_elo_col = Setting.elo_column(:new_elo).to_sym
     @highest_elo_rr = results.max_by { |rr| rr.send(new_elo_col) || 0 }
-    @dnf_count = results.count { |rr| rr.status&.status_type != "Finished" && !rr.status&.status_type.to_s.downcase.include?("lap") }
+    @dnf_count = results.count { |rr| rr.status&.status_type.present? && rr.status.status_type != "Finished" && !rr.status.status_type.match?(/\A\+\d+ Laps?\z/i) }
 
     # Pre-index driver standings to avoid N+1 in view
     @standings_by_driver = @race.driver_standings.index_by(&:driver_id)

@@ -16,20 +16,28 @@ class FantasyStockTransactionTest < ActiveSupport::TestCase
     assert_equal races(:bahrain_2026), tx.race
   end
 
-  test "validates kind presence" do
+  test "validates kind inclusion" do
     tx = FantasyStockTransaction.new(
       fantasy_stock_portfolio: fantasy_stock_portfolios(:codex_stock_2026),
       kind: nil,
       amount: 100
     )
     refute tx.valid?
-    assert_includes tx.errors[:kind], "can't be blank"
+    assert_includes tx.errors[:kind], "is not included in the list"
+
+    tx.kind = "invalid_kind"
+    refute tx.valid?
+    assert_includes tx.errors[:kind], "is not included in the list"
+
+    tx.kind = "buy"
+    tx.valid?
+    assert_empty tx.errors[:kind]
   end
 
   test "validates amount presence" do
     tx = FantasyStockTransaction.new(
       fantasy_stock_portfolio: fantasy_stock_portfolios(:codex_stock_2026),
-      kind: "buy_long",
+      kind: "buy",
       amount: nil
     )
     refute tx.valid?

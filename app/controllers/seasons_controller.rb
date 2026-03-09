@@ -24,6 +24,7 @@ class SeasonsController < ApplicationController
 
   def show
     @season = Season.find_by!(year: params[:id])
+    @points_system = @season.points_system
     set_season_champion_accent(@season)
     set_current_champion_accent if @page_accent == DEFAULT_ACCENT
     @next_season = @season.next_season

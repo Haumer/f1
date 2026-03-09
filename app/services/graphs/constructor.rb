@@ -19,14 +19,22 @@ class Graphs::Constructor
     def data
         legend_selected = {}
 
+        # Sort drivers by recency: most recent race date descending
+        @drivers = @drivers.sort_by { |d| -(@results_by_driver[d.id]&.last&.race&.date&.to_time&.to_i || 0) }
+
+        # Current season driver IDs — these get pre-selected in the legend
+        current_season = Season.sorted_by_year.first
+        current_driver_ids = SeasonDriver.where(season: current_season, constructor: @constructor)
+                                         .pluck(:driver_id).to_set
+
         series = @drivers.filter_map do |driver|
             driver_results = @results_by_driver[driver.id] || []
             next if driver_results.size < MIN_RESULTS_TO_INCLUDE
 
             driver_label = "#{driver.forename&.first}.#{driver.surname}"
 
-            # Drivers unticked by default — only team Elo line is shown
-            legend_selected[driver_label] = false
+            # Pre-select current drivers, hide historical ones
+            legend_selected[driver_label] = current_driver_ids.include?(driver.id)
 
             race_data = @races.map do |race|
                 rr = @results_by_race_driver[[race.id, driver.id]]&.first
@@ -49,15 +57,15 @@ class Graphs::Constructor
                 smooth: true,
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: js_function("function(p) { return p.seriesName + ' (' + p.value + ')'; }"),
                     distance: 20
                 },
                 symbolSize: 0
             }
         end
 
-        # Sort series: highlighted (recent) drivers first, then alphabetical
-        series.sort_by! { |s| [legend_selected[s[:name]] ? 0 : 1, s[:name]] }
+        # Sort series: selected (current) drivers first, then by recency
+        series.sort_by! { |s| legend_selected[s[:name]] ? 0 : 1 }
 
         # Add constructor Elo V2 line (always visible, thicker)
         constructor_elo_data = @races.map do |race|
@@ -84,7 +92,7 @@ class Graphs::Constructor
                 lineStyle: { width: 3 },
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: js_function("function(p) { return p.seriesName + ' (' + p.value + ')'; }"),
                     distance: 20
                 },
                 symbolSize: 0

@@ -85,7 +85,7 @@ class Graphs::Ranking
                 emphasis: { focus: 'series' },
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: js_function("function(p) { return p.seriesName + ' (P' + p.value + ')'; }"),
                     distance: 20,
                 },
                 lineStyle: { width: 2 },
@@ -130,6 +130,7 @@ class Graphs::Ranking
                 max: max_position,
             },
             series: @series_data,
+            tooltip: ranking_tooltip,
             dataZoom: data_zoom_slider,
             height: "500px",
             legend: {
@@ -194,7 +195,7 @@ class Graphs::Ranking
                 emphasis: { focus: 'series' },
                 endLabel: {
                     show: true,
-                    formatter: '{a}',
+                    formatter: js_function("function(p) { return p.seriesName + ' (P' + p.value + ')'; }"),
                     distance: 20,
                 },
                 lineStyle: { width: 3 },
@@ -232,6 +233,7 @@ class Graphs::Ranking
                 max: [max_position, 2].max,
             },
             series: series_data,
+            tooltip: ranking_tooltip,
             dataZoom: data_zoom_slider,
             height: "400px",
             legend: {

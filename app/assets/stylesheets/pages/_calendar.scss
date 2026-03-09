@@ -1,0 +1,293 @@
+// Race Calendar Grid
+.cal {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.cal-header {
+    display: grid;
+    grid-template-columns: 48px repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.cal-gutter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+}
+
+.cal-month {
+    font-size: 12px;
+    font-weight: $weight-bold;
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cal-day-name {
+    text-align: center;
+    font-size: 11px;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 4px 0;
+}
+
+.cal-week {
+    display: grid;
+    grid-template-columns: 48px repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.cal-cell {
+    min-height: 96px;
+    padding: 6px;
+    border-radius: $radius-sm;
+    background: $bg-surface;
+    border: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transition: border-color $t-fast;
+
+    &--active {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: $border-accent;
+    }
+    &--race-day {
+        border-color: var(--cell-accent, $border-accent);
+        background: rgba(255, 255, 255, 0.04);
+    }
+    &--completed {
+        opacity: 0.65;
+        &:hover { opacity: 1; }
+    }
+    &--past {
+        opacity: 0.5;
+        &:hover { opacity: 0.8; }
+    }
+    &--focus {
+        border-color: var(--page-accent, $accent-red);
+        border-width: 2px;
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.05);
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    }
+    &--live {
+        border-color: $accent-red;
+        border-width: 2px;
+        background: rgba($accent-red, 0.08);
+        box-shadow: 0 0 12px rgba($accent-red, 0.15);
+    }
+}
+
+.cal-date {
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    color: $text-secondary;
+    font-variant-numeric: tabular-nums;
+    &--empty { color: $text-tertiary; opacity: 0.4; }
+}
+
+.cal-round {
+    font-family: $mono-font;
+    font-size: 10px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Session rows inside calendar cells
+.cal-sessions {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: auto;
+}
+.cal-session-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2px;
+}
+.cal-session-name {
+    font-size: 9px;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+.cal-session-time {
+    font-family: $mono-font;
+    font-size: 9px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+}
+.cal-session--past {
+    .cal-session-name,
+    .cal-session-time {
+        text-decoration: line-through;
+        opacity: 0.4;
+    }
+}
+.cal-session--next {
+    .cal-session-name {
+        color: var(--page-accent, $accent-red);
+        font-weight: $weight-bold;
+    }
+    .cal-session-time {
+        color: var(--page-accent, $accent-red);
+        opacity: 1;
+    }
+}
+
+// Countdown banner
+.cal-countdown-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    background: $bg-surface;
+    border: 1px solid $border-accent;
+    border-radius: $radius-md;
+    border-left: 3px solid var(--page-accent, $accent-red);
+}
+.cal-countdown-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+.cal-countdown-session {
+    font-weight: $weight-bold;
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+}
+.cal-countdown-circuit {
+    color: $text-primary;
+    font-weight: $weight-semi;
+}
+.cal-countdown-timer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    .countdown-timer-label {
+        font-size: 11px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        margin-right: 4px;
+    }
+    .countdown-timer-value {
+        font-size: 16px;
+        font-weight: $weight-bold;
+        color: $text-primary;
+        letter-spacing: 0.5px;
+    }
+}
+
+.cal-race-link {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.cal-circuit {
+    font-size: 11px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+    line-height: 1.2;
+    .cal-cell--completed & { color: $text-secondary; }
+}
+
+.cal-winner {
+    font-size: 10px;
+    color: var(--cell-accent, $text-secondary);
+    i { font-size: 9px; margin-right: 2px; }
+}
+
+.cal-badge-live {
+    font-size: 9px;
+    font-weight: $weight-bold;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: rgba($accent-red, 0.15);
+    color: $accent-red;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    animation: pulse-live 2s ease-in-out infinite;
+}
+
+.cal-badge-next {
+    font-size: 9px;
+    font-weight: $weight-bold;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+    color: var(--page-accent, $accent-red);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+// Break between non-consecutive race weeks
+.cal-break {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    margin: 2px 0;
+    margin-left: 48px;
+}
+.cal-break-line {
+    flex: 1;
+    height: 1px;
+    background: $border-color;
+    opacity: 0.4;
+}
+.cal-break-label {
+    font-size: 11px;
+    color: $text-tertiary;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+@keyframes pulse-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+// Calendar responsive
+@media (max-width: 768px) {
+    .cal-header, .cal-week {
+        grid-template-columns: 36px repeat(7, 1fr);
+        gap: 2px;
+    }
+    .cal-cell { min-height: 60px; padding: 4px; }
+    .cal-circuit { font-size: 9px; }
+    .cal-winner { font-size: 9px; }
+    .cal-break { margin-left: 36px; }
+}
+
+@media (max-width: 480px) {
+    .cal-header, .cal-week {
+        grid-template-columns: 28px repeat(7, 1fr);
+        gap: 2px;
+    }
+    .cal-cell { min-height: 48px; padding: 3px; }
+    .cal-date { font-size: 9px; }
+    .cal-round { font-size: 8px; }
+    .cal-circuit { font-size: 8px; }
+    .cal-break { margin-left: 28px; }
+}

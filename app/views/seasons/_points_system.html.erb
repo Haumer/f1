@@ -1,0 +1,50 @@
+<div id="points-system" class="points-system-section">
+    <div class="table-header"><h3><i class="fa-solid fa-calculator"></i> Points System</h3></div>
+    <div class="card card-flush">
+        <div class="points-system-content">
+            <div class="points-system-grid">
+                <div class="points-system-block">
+                    <h5 class="points-system-label">Race Points</h5>
+                    <div class="points-system-positions">
+                        <% points_system.race_points.sort_by { |k, _| k.to_i }.each do |pos, pts| %>
+                            <div class="points-position">
+                                <span class="points-pos">P<%= pos %></span>
+                                <span class="points-val"><%= pts %></span>
+                            </div>
+                        <% end %>
+                    </div>
+                </div>
+
+                <% if points_system.has_sprint? %>
+                    <div class="points-system-block">
+                        <h5 class="points-system-label">Sprint Points</h5>
+                        <div class="points-system-positions">
+                            <% points_system.sprint_points.sort_by { |k, _| k.to_i }.each do |pos, pts| %>
+                                <div class="points-position">
+                                    <span class="points-pos">P<%= pos %></span>
+                                    <span class="points-val"><%= pts %></span>
+                                </div>
+                            <% end %>
+                        </div>
+                    </div>
+                <% end %>
+
+                <% if points_system.has_fastest_lap? %>
+                    <div class="points-system-block">
+                        <h5 class="points-system-label">Fastest Lap</h5>
+                        <div class="points-system-detail">
+                            +<%= points_system.fastest_lap_point %> point
+                            <% if points_system.fastest_lap_eligible < 99 %>
+                                <span class="text-secondary">(top <%= points_system.fastest_lap_eligible %> only)</span>
+                            <% end %>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+
+            <% if points_system.notes.present? %>
+                <p class="points-system-notes"><%= points_system.notes %></p>
+            <% end %>
+        </div>
+    </div>
+</div>

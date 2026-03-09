@@ -40,7 +40,7 @@ class Graphs::Compare
                 name: "#{driver.forename.first}.#{driver.surname}",
                 color: driver.color,
                 smooth: true,
-                endLabel: { show: true, formatter: '{a}', distance: 20 },
+                endLabel: { show: true, formatter: js_function("function(p) { return p.seriesName + ' (' + p.value + ')'; }"), distance: 20 },
                 symbolSize: 0
             }
         end
