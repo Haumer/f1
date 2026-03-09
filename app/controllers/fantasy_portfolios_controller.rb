@@ -256,7 +256,7 @@ class FantasyPortfoliosController < ApplicationController
       sp = stock_by_user[p.user_id]
       stock_net = sp ? sp[:portfolio].profit_loss : nil
       stock_value = sp ? sp[:value] : 0
-      total_starting = p.starting_capital + (sp ? sp[:portfolio].starting_capital : 0)
+      total_starting = p.total_starting_capital
       total_value = e[:value] + stock_value  # roster portfolio_value (cash + drivers) + stock positions
       net_value = total_value - total_starting
 

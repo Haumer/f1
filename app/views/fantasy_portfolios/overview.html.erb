@@ -57,7 +57,7 @@
     <% stock_invested = @stock_portfolio ? @stock_portfolio.total_invested : 0 %>
     <% total_invested = roster_invested + stock_invested + collateral %>
     <% total_value = cash + roster_holdings + stock_positions %>
-    <% total_starting = (@portfolio ? @portfolio.starting_capital : 0) + (@stock_portfolio ? @stock_portfolio.starting_capital : 0) %>
+    <% total_starting = @portfolio ? @portfolio.total_starting_capital : (@stock_portfolio ? @stock_portfolio.starting_capital : 0) %>
     <% total_pl = total_value - total_starting %>
     <% total_pl_pct = total_starting > 0 ? (total_pl / total_starting * 100) : 0 %>
     <%# Roster snapshot already includes stock positions, so @value_delta is the combined delta %>
@@ -158,7 +158,7 @@
         # Only include rounds that have at least one snapshot
         snapped_rounds = season_rounds.select { |r| roster_snaps[r] || stock_snaps[r] }
 
-        chart_start = (@portfolio ? @portfolio.starting_capital : 0) + (stock_snaps.any? ? (@stock_portfolio&.starting_capital || 0) : 0)
+        chart_start = @portfolio ? @portfolio.total_starting_capital : (@stock_portfolio&.starting_capital || 0)
         chart_labels = ["Start"] + snapped_rounds.map { |r| "R#{r}" }
         chart_total = [chart_start.round(0)] + snapped_rounds.map do |r|
             rs = roster_snaps[r]

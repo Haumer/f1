@@ -32,6 +32,51 @@ module Admin
       when "fetch_wikipedia_images"
         count = FetchWikipediaImages.fetch_all
         redirect_to admin_operations_path, notice: "Fetched #{count} Wikipedia images."
+      when "recalc_net_demand"
+        season = Season.sorted_by_year.first
+        # Reset all to 0 first
+        SeasonDriver.where(season: season).update_all(net_demand: 0)
+        # Recalculate from active holdings
+        holdings = FantasyStockHolding.joins(:fantasy_stock_portfolio)
+          .where(fantasy_stock_portfolios: { season_id: season.id }, active: true)
+        count = 0
+        holdings.group_by(&:driver_id).each do |driver_id, hs|
+          longs = hs.select(&:long?).sum(&:quantity)
+          shorts = hs.select(&:short?).sum(&:quantity)
+          net = longs - shorts
+          sd = SeasonDriver.find_by(driver_id: driver_id, season_id: season.id)
+          next unless sd
+          sd.update!(net_demand: net)
+          count += 1
+        end
+        redirect_to admin_operations_path, notice: "Recalculated net_demand for #{count} drivers."
+
+      when "resnap_portfolios"
+        race = Race.find(params[:race_id])
+        Fantasy::SnapshotPortfolios.new(race: race).call
+        Fantasy::Stock::SettleRace.new(race: race).call
+        redirect_to admin_operations_path, notice: "Re-snapshotted portfolios for #{race.circuit.name} (R#{race.round})."
+
+      when "verify_cash"
+        season = Season.sorted_by_year.first
+        issues = []
+        FantasyPortfolio.where(season: season).includes(:user).each do |p|
+          sp = FantasyStockPortfolio.find_by(user_id: p.user_id, season_id: season.id)
+          next unless sp
+          # Total capital given = roster starting + stock starting
+          total_starting = p.starting_capital + sp.starting_capital
+          # Total accounted = cash + roster drivers + stock positions + fees/dividends
+          roster_value = p.active_roster_entries.includes(:driver).sum { |e| Fantasy::Pricing.price_for(e.driver, season) }
+          stock_value = sp.positions_value
+          total_accounted = p.cash + roster_value + stock_value
+          diff = (total_accounted - total_starting).round(1)
+          if diff.abs > 50
+            issues << "#{p.user.username}: starting=#{total_starting.round(0)} current=#{total_accounted.round(0)} diff=#{diff}"
+          end
+        end
+        msg = issues.any? ? "Issues found: #{issues.join('; ')}" : "All portfolios consistent."
+        redirect_to admin_operations_path, notice: msg
+
       when "recapitalize_fantasy"
         season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
         avg_elo = Driver.where.not(elo_v2: nil)
