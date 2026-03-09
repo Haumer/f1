@@ -4,34 +4,25 @@
         <span class="page-hero-label"><i class="fa-solid fa-flag-checkered"></i> Race Complete</span>
         <h1 class="page-hero-title"><%= link_to @post_race.circuit.name, race_path(@post_race) %></h1>
         <p class="page-hero-meta">Round <%= @post_race.round %> · <%= @post_race.circuit.location %>, <%= @post_race.circuit.country %></p>
+
+        <% if @podium_results_post&.any? %>
+            <div class="hero-podium-inline">
+                <% @podium_results_post.each do |result| %>
+                    <% color = Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                    <div class="hero-podium-entry" style="--constructor-color: <%= color %>">
+                        <span class="hero-podium-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
+                        <span class="hero-podium-name"><%= link_to "#{result.driver.forename[0]}.#{result.driver.surname}", driver_path(result.driver) %></span>
+                        <span class="hero-podium-elo <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                            <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
+                        </span>
+                    </div>
+                <% end %>
+                <%= link_to race_path(@post_race), class: "hero-podium-link" do %>
+                    Full Results <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            </div>
+        <% end %>
     </div>
 </div>
 
 <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
-
-<% if @podium_results_post&.any? %>
-    <div class="card last-race-card">
-        <div class="last-race-header">
-            <h4>Podium</h4>
-            <%= link_to race_path(@post_race), class: "last-race-link" do %>
-                Full Results <i class="fa-solid fa-arrow-right"></i>
-            <% end %>
-        </div>
-        <div class="podium-display">
-            <% @podium_results_post.each do |result| %>
-                <div class="podium-item podium-p<%= result.position_order %>"
-                     style="--constructor-color: <%= Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>">
-                    <span class="podium-position place-<%= result.position_order %>">P<%= result.position_order %></span>
-                    <span class="podium-driver"><%= link_to "#{result.driver.forename[0]}.#{result.driver.surname}", driver_path(result.driver) %></span>
-                    <% if result.constructor&.logo_url.present? %>
-                        <img src="<%= result.constructor.logo_url %>" alt="<%= result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                    <% end %>
-                    <span class="podium-elo-change <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
-                        <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
-                    </span>
-                </div>
-            <% end %>
-        </div>
-    </div>
-<% end %>
-

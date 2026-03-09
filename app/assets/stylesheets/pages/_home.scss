@@ -86,6 +86,66 @@
   }
 }
 
+// Inline podium within the hero (merged hero + podium)
+.hero-podium-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-podium-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: $radius-sm;
+  border-left: 2px solid var(--constructor-color, $text-secondary);
+  transition: background $t-fast;
+
+  &:hover { background: rgba(255, 255, 255, 0.07); }
+}
+
+.hero-podium-pos {
+  font-family: $mono-font;
+  font-weight: $weight-bold;
+  font-size: $type-small;
+}
+
+.hero-podium-name {
+  font-weight: $weight-bold;
+  font-size: $type-body;
+
+  a {
+    color: $text-primary;
+    transition: color $t-fast;
+    &:hover { color: var(--page-accent, $accent-red); }
+  }
+}
+
+.hero-podium-elo {
+  font-family: $mono-font;
+  font-size: $type-small;
+  font-weight: $weight-bold;
+}
+
+.hero-podium-link {
+  font-size: $type-small;
+  font-weight: $weight-bold;
+  color: $text-tertiary;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color $t-fast;
+
+  i { font-size: 10px; transition: transform $t-normal ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(3px); }
+}
+
 // Pre-Race Hero
 .pre-race-hero {
   .page-hero-label {
@@ -94,41 +154,53 @@
   }
 }
 
-// Next Race Card
-.next-race-card {
-  text-align: center;
-  padding: 20px;
-  margin-bottom: 24px;
+// Next Race Strip (compact inline)
+.next-race-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
   border-left: 2px solid var(--page-accent, $accent-red);
-  box-shadow: $shadow-md, inset 0 1px 0 rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
+  border-radius: $radius-md;
+  margin-bottom: 24px;
+  font-size: $type-small;
 
-  .next-race-label {
-    display: block;
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
-    color: $text-secondary;
-    margin-bottom: 8px;
+  > i {
+    color: $text-tertiary;
+    font-size: 12px;
   }
+}
 
-  h4 {
-    margin: 0 0 4px;
-    font-family: $headers-font;
-    font-size: $type-h3;
-    font-weight: $weight-semi;
+.next-race-strip-label {
+  font-size: $type-label;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  color: $text-tertiary;
+}
 
-    a {
-      color: inherit;
-      transition: color $t-fast;
-      &:hover { color: var(--page-accent, $accent-red); }
-    }
+.next-race-strip-name {
+  font-weight: $weight-bold;
+
+  a {
+    color: $text-primary;
+    transition: color $t-fast;
+    &:hover { color: var(--page-accent, $accent-red); }
   }
+}
 
-  .next-race-meta {
-    font-size: $type-small;
-    color: $text-secondary;
-  }
+.next-race-strip-meta {
+  color: $text-secondary;
+}
+
+.next-race-strip-countdown {
+  margin-left: auto;
+  font-family: $mono-font;
+  font-weight: $weight-bold;
+  color: var(--page-accent, $accent-red);
+  white-space: nowrap;
 }
 
 // Last Race Card
@@ -624,6 +696,24 @@
 }
 
 @media (max-width: 768px) {
+  .hero-podium-inline {
+    gap: 8px;
+  }
+
+  .hero-podium-entry {
+    padding: 5px 10px;
+    gap: 6px;
+  }
+
+  .hero-podium-name { font-size: $type-small; }
+
+  .next-race-strip {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .next-race-strip-countdown { margin-left: 0; }
+  }
+
   .latest-result-strip {
     flex-wrap: wrap;
     gap: 8px;

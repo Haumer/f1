@@ -21,16 +21,17 @@
             <%= render "pages/latest_result_strip", race: @latest_race, podium: @podium_results %>
         <% end %>
 
-        <%# 3. Next Race (always visible when available, skip if hero already covers it) %>
+        <%# 3. Next Race strip (always visible when available, skip if hero already covers it) %>
         <% unless [:race_weekend, :race_day, :pre_race, :season_start].include?(@homepage_phase) %>
             <% if @next_race && @next_race.date > @today %>
-                <div class="card next-race-card">
-                    <span class="next-race-label">Next Race</span>
-                    <h4><%= link_to @next_race.circuit.name, circuit_path(@next_race.circuit) %></h4>
-                    <span class="next-race-meta">
-                        Round <%= @next_race.round %> · <%= @next_race.date.strftime("%B %d, %Y") %>
-                        <% if @next_race.starts_at %> · <%= @next_race.starts_at.strftime("%H:%M UTC") %><% end %>
+                <div class="next-race-strip">
+                    <i class="fa-solid fa-calendar"></i>
+                    <span class="next-race-strip-label">Next Race</span>
+                    <span class="next-race-strip-name"><%= link_to @next_race.circuit.name, race_path(@next_race) %></span>
+                    <span class="next-race-strip-meta">
+                        Round <%= @next_race.round %> · <%= @next_race.date.strftime("%b %d") %><% if @next_race.starts_at %> · <%= @next_race.starts_at.strftime("%H:%M UTC") %><% end %>
                     </span>
+                    <span class="next-race-strip-countdown"><%= (@next_race.date - @today).to_i %> days</span>
                 </div>
             <% end %>
         <% end %>
@@ -56,26 +57,7 @@
             </div>
         <% end %>
 
-        <%# 5. Biggest Elo Movers (post-race) %>
-        <% if @race_elo_changes&.any? %>
-            <div class="card post-race-elo-card">
-                <h4 class="section-label">Biggest Elo Movers</h4>
-                <div class="post-race-movers">
-                    <% @race_elo_changes.each do |result| %>
-                        <div class="post-race-mover-item">
-                            <%= link_to driver_path(result.driver) do %>
-                                <span class="mover-name"><%= result.driver.forename[0] %>.<%= result.driver.surname %></span>
-                            <% end %>
-                            <span class="elo-badge <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
-                                <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
-                            </span>
-                        </div>
-                    <% end %>
-                </div>
-            </div>
-        <% end %>
-
-        <%# 6. Previous Season Recap %>
+        <%# 5. Previous Season Recap %>
         <% if @standings_season && @standings_season != @season %>
             <div class="table-header">
                 <%= link_to season_path(@standings_season), class: "table-header-link" do %>
