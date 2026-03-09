@@ -255,9 +255,10 @@ class FantasyPortfoliosController < ApplicationController
       roster_net = p.profit_loss
       sp = stock_by_user[p.user_id]
       stock_net = sp&.dig(:portfolio)&.profit_loss || 0
+      total_return = p.total_return
       { user: p.user, roster_net: roster_net, stock_net: stock_net == 0 ? nil : stock_net,
         roster_value: e[:value], stock_value: sp ? sp[:value] : 0,
-        total_value: e[:value] + (sp ? sp[:value] : 0), net_value: roster_net + stock_net }
+        total_value: e[:value] + (sp ? sp[:value] : 0), net_value: total_return }
     end
 
     @stock_entries.each do |e|
