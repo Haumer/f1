@@ -3,7 +3,7 @@ class Status < ApplicationRecord
     def finished?
         status_type == "Finished"
     end
-    
+
     def disqualified?
         status_type == "Disqualified"
     end
@@ -13,9 +13,9 @@ class Status < ApplicationRecord
     end
 
     def lapped?
-        status_type.in?(LAPPED_REASONS)
+        status_type == "Lapped" || status_type.match?(/\A\+\d+ Laps?\z/)
     end
-    
+
     def accident?
         status_type.in?(ACCIDENT_REASONS)
     end
@@ -32,184 +32,40 @@ class Status < ApplicationRecord
         status_type.in?(DID_NOT_START_REASONS)
     end
 
-    TECHNICAL_REASONS = [
-        "Engine",
-        "Gearbox",
-        "Transmission",
-        "Clutch",
-        "Hydraulics",
-        "Electrical",
-        "Radiator",
-        "Suspension",
-        "Brakes",
-        "Differential",
-        "Overheating",
-        "Mechanical",
-        "Tyre",
-        "Driver Seat",
-        "Puncture",
-        "Driveshaft",
-        "Fuel pressure",
-        "Front wing",
-        "Water pressure",
-        "Wheel",
-        "Throttle",
-        "Steering",
-        "Technical",
-        "Electronics",
-        "Broken wing",
-        "Heat shield fire",
-        "Exhaust",
-        "Oil leak",
-        "Wheel rim",
-        "Water leak",
-        "Fuel pump",
-        "Track rod",
-        "Engine fire",
-        "Engine misfire",
-        "Tyre puncture",
-        "Wheel nut",
-        "Pneumatics",
-        "Handling",
-        "Rear wing",
-        "Fire",
-        "Wheel bearing",
-        "Physical",
-        "Fuel system",
-        "Oil line",
-        "Fuel rig",
-        "Launch control",
-        "Power loss",
-        "Vibrations",
-        "Ignition",
-        "Halfshaft",
-        "Crankshaft",
-        "Chassis",
-        "Battery",
-        "Alternator",
-        "Oil pump",
-        "Fuel leak",
-        "Injection",
-        "Distributor",
-        "Turbo",
-        "CV joint",
-        "Water pump",
-        "Spark plugs",
-        "Fuel pipe",
-        "Oil pipe",
-        "Axle",
-        "Water pipe",
-        "Supercharger",
-        "Collision damage",
-        "Power Unit",
-        "Seat",
-        "Damage",
-        "Debris",
-        "Undertray",
-        "Cooling system",
-        "Safety belt",
-        "Oil pressure",
-        "Brake duct",
-        "Out of fuel",
-        "ERS",
-        "Drivetrain",
-        "Fuel",
-        "Magneto",
-        "Refuelling",
-        "Stalled",
-    ]
+    TECHNICAL_REASONS = %w[
+        Engine Gearbox Transmission Clutch Hydraulics Electrical Radiator
+        Suspension Brakes Differential Overheating Mechanical Tyre Puncture
+        Driveshaft Throttle Steering Technical Electronics Exhaust Pneumatics
+        Handling Fire Physical Ignition Halfshaft Crankshaft Chassis Battery
+        Alternator Turbo Axle Supercharger Damage Debris Undertray ERS
+        Drivetrain Magneto Stalled Injection Distributor Vibrations Seat
+    ].freeze + [
+        "Driver Seat", "Fuel pressure", "Front wing", "Water pressure",
+        "Wheel", "Broken wing", "Heat shield fire", "Oil leak", "Wheel rim",
+        "Water leak", "Fuel pump", "Track rod", "Engine fire", "Engine misfire",
+        "Tyre puncture", "Wheel nut", "Rear wing", "Wheel bearing",
+        "Fuel system", "Oil line", "Fuel rig", "Launch control", "Power loss",
+        "Oil pump", "Fuel leak", "CV joint", "Water pump", "Spark plugs",
+        "Fuel pipe", "Oil pipe", "Water pipe", "Collision damage", "Power Unit",
+        "Cooling system", "Safety belt", "Oil pressure", "Brake duct",
+        "Out of fuel", "Refuelling",
+    ].freeze
 
     DRIVER_HEALTH_REASONS = [
-        "Injured",
-        "Driver unwell",
-        "Eye injury",
-        "Illness",
-        "Injury",
-    ]
+        "Injured", "Driver unwell", "Eye injury", "Illness", "Injury",
+    ].freeze
 
-    # Generic retirements that don't fit other categories
     RETIRED_REASONS = [
-        "Retired",
-        "Withdrew",
-        "Not classified",
-        "Not restarted",
-        "Safety",
-        "Safety concerns",
-    ]
+        "Retired", "Withdrew", "Not classified", "Not restarted",
+        "Safety", "Safety concerns",
+    ].freeze
 
-    # Driver never started the race
     DID_NOT_START_REASONS = [
-        "Did not qualify",
-        "Did not prequalify",
-        "Did not start",
-        "107% Rule",
-        "Excluded",
-        "Underweight",
-    ]
+        "Did not qualify", "Did not prequalify", "Did not start",
+        "107% Rule", "Excluded", "Underweight",
+    ].freeze
 
     ACCIDENT_REASONS = [
-        "Accident",
-        "Collision",
-        "Spun off",
-        "Fatal accident",
-    ]
-
-    LAPPED_REASONS = [
-        "+1 Lap",
-        "+2 Laps",
-        "+3 Laps",
-        "+4 Laps",
-        "+5 Laps",
-        "+6 Laps",
-        "+7 Laps",
-        "+8 Laps",
-        "+9 Laps",
-        "+14 Laps",
-        "+15 Laps",
-        "+25 Laps",
-        "+18 Laps",
-        "+22 Laps",
-        "+16 Laps",
-        "+24 Laps",
-        "+29 Laps",
-        "+23 Laps",
-        "+21 Laps",
-        "+44 Laps",
-        "+30 Laps",
-        "+19 Laps",
-        "+46 Laps",
-        "+20 Laps",
-        "+49 Laps",
-        "+38 Laps",
-        "+11 Laps",
-        "+17 Laps",
-        "+42 Laps",
-        "+13 Laps",
-        "+12 Laps",
-        "+26 Laps",
-        "+10 Laps",
-        "Lapped",
-    ]
-    OTHER_REASONS = [
-        "ERS",
-        "Spun off",
-        "Retired",
-        "Refuelling",
-        "Withdrew",
-        "Out of fuel",
-        "Not classified",
-        "Fuel",
-        "107% Rule",
-        "Safety",
-        "Drivetrain",
-        "Did not qualify",
-        "Injury",
-        "Stalled",
-        "Safety concerns",
-        "Not restarted",
-        "Underweight",
-        "Excluded",
-        "Did not prequalify",
-        "Magneto",
-    ]
+        "Accident", "Collision", "Spun off", "Fatal accident",
+    ].freeze
 end
