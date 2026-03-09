@@ -26,7 +26,7 @@ namespace :f1 do
 
   desc "Run Elo full historical simulation"
   task elo_simulate: :environment do
-    puts "Running Elo simulation (K=#{EloRatingV2::BASE_K}, regression=#{EloRatingV2::REGRESSION_FACTOR}, start=#{EloRatingV2::STARTING_ELO})..."
+    puts "Running Elo simulation (K=#{EloRatingV2::BASE_K}, ref_races=#{EloRatingV2::REFERENCE_RACES.to_i}, start=#{EloRatingV2::STARTING_ELO})..."
     result = EloRatingV2.simulate_all!
     puts "Done. #{result[:drivers_updated]} drivers, #{result[:race_results_updated]} race results updated."
 

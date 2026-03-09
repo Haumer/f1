@@ -29,7 +29,7 @@
                 <code>E = 1 / (1 + 10^((opponent_rating - player_rating) / <%= EloRatingV2::SCALE.to_i %>))</code></li>
             <li>The rating adjustment is: <code>K × (actual_score - expected_score)</code></li>
                 <li>Base K-factor is <strong><%= EloRatingV2::BASE_K %></strong>, scaled by season length (<%= EloRatingV2::REFERENCE_RACES %> reference races) and normalized by <strong>√(grid size − 1)</strong></li>
-                <li>At each season's end, ratings regress <strong><%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong> toward the starting Elo of <%= EloRatingV2::STARTING_ELO.to_i %></li>
+                <li>No seasonal regression — ratings are purely performance-based</li>
         </ul>
         <p>
             A driver's total rating change for a race is the sum of adjustments across all opponents.
@@ -286,18 +286,11 @@
             <% end %>
         </div>
 
-        <h4>Step 5: Season-end regression</h4>
+        <h4>Step 5: No seasonal regression</h4>
         <p>
-            At the end of each season, every driver's rating regresses <strong><%= (EloRatingV2::REGRESSION_FACTOR * 100).round(0) %>%</strong>
-            toward the starting Elo of <%= EloRatingV2::STARTING_ELO.to_i %>. This prevents ratings from inflating forever
-            and gives returning drivers a slight pull toward the mean:
+            Ratings carry over between seasons with no regression. A driver's Elo is purely based on their
+            race results — sustained dominance compounds over time, and there is no artificial pull toward the mean.
         </p>
-        <div class="elo-formula-block">
-            <div class="elo-formula">New Elo = Current × <%= (1 - EloRatingV2::REGRESSION_FACTOR).round(2) %> + <%= EloRatingV2::STARTING_ELO.to_i %> × <%= EloRatingV2::REGRESSION_FACTOR %></div>
-            <% sample = ex_drivers.first %>
-            <% regressed = sample[:elo] * (1 - EloRatingV2::REGRESSION_FACTOR) + EloRatingV2::STARTING_ELO * EloRatingV2::REGRESSION_FACTOR %>
-            <div class="elo-formula-values">e.g. <%= sample[:name] %>: <%= sample[:elo] %> × <%= (1 - EloRatingV2::REGRESSION_FACTOR).round(2) %> + <%= EloRatingV2::STARTING_ELO.to_i %> × <%= EloRatingV2::REGRESSION_FACTOR %> = <strong><%= regressed.round(1) %></strong> (<%= (sample[:elo] - regressed).round(1) %> toward mean)</div>
-        </div>
 
         <h4>Key takeaways</h4>
         <ul class="elo-takeaways">

@@ -1,30 +1,21 @@
 class ConstructorEloV2
   STARTING_ELO = 2000.0
   BASE_K = 32
-  REGRESSION_FACTOR = 0.03
   REFERENCE_RACES = 12.0
 
   # Run full historical simulation from scratch.
   # Ranks constructors by combined position_order of all their drivers (lower = better).
   def self.simulate_all!
     races = Race.includes(race_results: :constructor).order(:date, :round).to_a
-    races_per_year = Race.joins(:race_results).distinct.group(:year).count
+    races_per_year = Race.group(:year).count
 
     elo = {}
     peak = {}
-    prev_year = nil
 
     race_result_updates = []
     constructor_updates = {}
 
     races.each do |race|
-      year = race.year
-
-      if prev_year && year != prev_year
-        elo.each { |cid, e| elo[cid] = e * (1 - REGRESSION_FACTOR) + STARTING_ELO * REGRESSION_FACTOR }
-      end
-      prev_year = year
-
       results = race.race_results.select { |rr| rr.position_order.present? }
       next if results.empty?
 
@@ -32,7 +23,7 @@ class ConstructorEloV2
       scores = by_constructor.map { |cid, rrs| [cid, rrs.sum(&:position_order), rrs] }
       next if scores.size < 2
 
-      season_races = races_per_year[year] || REFERENCE_RACES.to_i
+      season_races = races_per_year[race.year] || REFERENCE_RACES.to_i
       scores.each { |cid, _, _| elo[cid] ||= STARTING_ELO }
 
       participants = scores.map { |cid, score, _| { id: cid, elo: elo[cid], score: score } }
@@ -75,7 +66,7 @@ class ConstructorEloV2
     scores = by_constructor.map { |cid, rrs| [cid, rrs.sum(&:position_order), rrs] }
     return if scores.size < 2
 
-    season_races = Race.where(year: race.year).count
+    season_races = race.season&.races&.count || Race.where(year: race.year).count
     all_constructors = Constructor.where(id: scores.map(&:first)).index_by(&:id)
 
     participants = scores.map { |cid, score, _| { id: cid, elo: all_constructors[cid].elo_v2 || STARTING_ELO, score: score } }
@@ -92,14 +83,6 @@ class ConstructorEloV2
         constructor.update!(elo_v2: new_elo, peak_elo_v2: new_peak)
         rrs.each { |rr| rr.update!(old_constructor_elo_v2: old_elo, new_constructor_elo_v2: new_elo) }
       end
-    end
-  end
-
-  # Apply season-end regression to all constructors with V2 ratings
-  def self.apply_regression!
-    Constructor.where.not(elo_v2: nil).find_each do |constructor|
-      regressed = constructor.elo_v2 * (1 - REGRESSION_FACTOR) + STARTING_ELO * REGRESSION_FACTOR
-      constructor.update!(elo_v2: regressed)
     end
   end
 end
