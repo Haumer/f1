@@ -1,4 +1,6 @@
 class Graphs::Compare
+    include Graphs::Base
+
     def initialize(drivers:)
         @drivers = drivers
         @new_elo_col = Setting.elo_column(:new_elo).to_sym
@@ -45,14 +47,14 @@ class Graphs::Compare
 
         {
             backgroundColor: 'transparent',
-            xAxis: { type: 'category', data: @races.map { |r| "#{r.circuit.circuit_ref} #{r.date.strftime("%b %d, %Y")}" } },
+            xAxis: { type: 'category', data: @races.map { |r| race_x_label(r) } },
             yAxis: { type: 'value', min: 1500 },
             series: series,
             legend: { show: true },
             toolbox: { show: true },
-            tooltip: { trigger: "axis", formatter: '{b}', position: [10, 10] },
+            tooltip: line_tooltip,
             height: "600px",
-            dataZoom: [{ id: 'dataZoomX', type: 'slider', xAxisIndex: [0], filterMode: 'filter' }],
+            dataZoom: data_zoom_slider,
             smoothMonotone: 'y'
         }
     end

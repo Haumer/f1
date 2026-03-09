@@ -1,4 +1,6 @@
 class Graphs::RaceEloChanges
+    include Graphs::Base
+
     def initialize(race:)
         @race = race
         @race_results = race.race_results.includes(:driver).sort_by { |rr| rr.display_elo_diff }.reverse
@@ -36,10 +38,7 @@ class Graphs::RaceEloChanges
                     }
                 }
             ],
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'shadow' }
-            },
+            tooltip: bar_tooltip,
             grid: {
                 left: '120px',
                 right: '60px',

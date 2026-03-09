@@ -1,4 +1,6 @@
 class Graphs::Ranking
+    include Graphs::Base
+
     def initialize(season:)
         @season = season
         @races = @season.races.sorted.includes(:circuit)
@@ -103,7 +105,7 @@ class Graphs::Ranking
                 itemStyle: { color: 'rgba(150, 150, 150, 0.08)' },
                 label: { show: true, position: 'inside', color: '#888', fontSize: 11 },
                 data: [
-                    [{ name: 'Upcoming', xAxis: upcoming_label }, { xAxis: @races.last ? "#{@races.last.circuit.circuit_ref} #{@races.last.date.strftime("%b %d, %Y")}" : upcoming_label }]
+                    [{ name: 'Upcoming', xAxis: upcoming_label }, { xAxis: @races.last ? race_x_label(@races.last) : upcoming_label }]
                 ]
             }
         end
@@ -119,7 +121,7 @@ class Graphs::Ranking
             },
             xAxis: {
                 type: 'category',
-                data: @races.map { |race| "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}" }
+                data: @races.map { |race| race_x_label(race) }
             },
             yAxis: {
                 type: 'value',
@@ -128,14 +130,7 @@ class Graphs::Ranking
                 max: max_position,
             },
             series: @series_data,
-            dataZoom: [
-                {
-                    id: 'dataZoomX',
-                    type: 'slider',
-                    xAxisIndex: [0],
-                    filterMode: 'filter'
-                }
-            ],
+            dataZoom: data_zoom_slider,
             height: "500px",
             legend: {
                 type: 'scroll',
@@ -217,7 +212,7 @@ class Graphs::Ranking
                 itemStyle: { color: 'rgba(150, 150, 150, 0.08)' },
                 label: { show: true, position: 'inside', color: '#888', fontSize: 11 },
                 data: [
-                    [{ name: 'Upcoming', xAxis: upcoming_label }, { xAxis: @races.last ? "#{@races.last.circuit.circuit_ref} #{@races.last.date.strftime("%b %d, %Y")}" : upcoming_label }]
+                    [{ name: 'Upcoming', xAxis: upcoming_label }, { xAxis: @races.last ? race_x_label(@races.last) : upcoming_label }]
                 ]
             }
         end
@@ -228,7 +223,7 @@ class Graphs::Ranking
             grid: { right: 140 },
             xAxis: {
                 type: 'category',
-                data: @races.map { |race| "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}" }
+                data: @races.map { |race| race_x_label(race) }
             },
             yAxis: {
                 type: 'value',
@@ -237,14 +232,7 @@ class Graphs::Ranking
                 max: [max_position, 2].max,
             },
             series: series_data,
-            dataZoom: [
-                {
-                    id: 'dataZoomX',
-                    type: 'slider',
-                    xAxisIndex: [0],
-                    filterMode: 'filter'
-                }
-            ],
+            dataZoom: data_zoom_slider,
             height: "400px",
             legend: {
                 type: 'scroll',
@@ -259,7 +247,7 @@ class Graphs::Ranking
     def first_upcoming_label
         upcoming = @races.find { |r| !@completed_race_ids.include?(r.id) }
         return nil unless upcoming
-        "#{upcoming.circuit.circuit_ref} #{upcoming.date.strftime("%b %d, %Y")}"
+        race_x_label(upcoming)
     end
 
     # Forward-fill: carry last known position through mid-season nil gaps

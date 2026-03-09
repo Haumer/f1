@@ -1,4 +1,6 @@
 class Graphs::ActiveEloBar
+    include Graphs::Base
+
     def initialize(drivers:)
         @drivers = drivers.sort_by { |d| d.display_elo || 0 }.reverse
     end
@@ -66,10 +68,7 @@ class Graphs::ActiveEloBar
                     z: 1
                 }
             ],
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'shadow' }
-            },
+            tooltip: bar_tooltip,
             legend: {
                 show: true,
                 data: ['Current Elo', 'Peak Elo']

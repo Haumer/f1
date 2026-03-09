@@ -1,4 +1,6 @@
 class Graphs::Champions
+    include Graphs::Base
+
     def initialize(race_results:, year_range: nil)
         @race_results = race_results.reject(&:blank?)
         @year_range = year_range
@@ -56,7 +58,7 @@ class Graphs::Champions
             },
             xAxis: {
                 type: 'category',
-                data: @races.map { |race| "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}" }
+                data: @races.map { |race| race_x_label(race) }
             },
             yAxis: {
                 type: 'value',
@@ -65,20 +67,9 @@ class Graphs::Champions
             series: @series_data,
             legend: { show: true },
             toolbox: { show: true },
-            tooltip: {
-                trigger: "axis",
-                formatter: '{b}',
-                position: [10, 10],
-            },
+            tooltip: line_tooltip,
             height: "700px",
-            dataZoom: [
-                {
-                    id: 'dataZoomX',
-                    type: 'slider',
-                    xAxisIndex: [0],
-                    filterMode: 'filter'
-                }
-            ],
+            dataZoom: data_zoom_slider,
             smoothMonotone: 'y'
         }
     end
@@ -102,7 +93,7 @@ class Graphs::Champions
             position = race_result.position_order
             points[:data] << {
                 coord: [
-                    "#{race_result.race.circuit.circuit_ref} #{race_result.race.date.strftime("%b %d, %Y")}",
+                    race_x_label(race_result.race),
                     race_result.send(@new_elo_col)
                 ],
                 label: { show: false, color: 'white' },
@@ -119,14 +110,4 @@ class Graphs::Champions
         points
     end
 
-    def ordinalize(n)
-        return "#{n}th" if (11..13).include?(n % 100)
-
-        case n % 10
-        when 1 then "#{n}st"
-        when 2 then "#{n}nd"
-        when 3 then "#{n}rd"
-        else "#{n}th"
-        end
-    end
 end

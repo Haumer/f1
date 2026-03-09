@@ -1,4 +1,6 @@
 class Graphs::ConstructorElo
+  include Graphs::Base
+
   def initialize(constructors:)
     @constructors = constructors
     @constructor_ids = constructors.map(&:id)
@@ -41,9 +43,7 @@ class Graphs::ConstructorElo
       tooltip: {
         trigger: 'axis',
       },
-      dataZoom: [
-        { type: 'slider', xAxisIndex: [0], filterMode: 'filter' }
-      ],
+      dataZoom: data_zoom_slider,
     }
   end
 

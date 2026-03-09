@@ -1,4 +1,6 @@
 class Graphs::SeasonElo
+    include Graphs::Base
+
     def initialize(season:, top_n: nil)
         @season = season
         @races = @season.races.sorted.includes(:circuit)
@@ -76,7 +78,7 @@ class Graphs::SeasonElo
             },
             xAxis: {
                 type: 'category',
-                data: @races.map { |race| "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}" }
+                data: @races.map { |race| race_x_label(race) }
             },
             yAxis: {
                 type: 'value',
@@ -84,14 +86,7 @@ class Graphs::SeasonElo
                 max: (max_elo + 50),
             },
             series: @series_data,
-            dataZoom: [
-                {
-                    id: 'dataZoomX',
-                    type: 'slider',
-                    xAxisIndex: [0],
-                    filterMode: 'filter'
-                }
-            ],
+            dataZoom: data_zoom_slider,
             height: "400px",
             legend: {
                 type: 'plain',

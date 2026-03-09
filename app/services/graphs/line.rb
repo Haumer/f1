@@ -1,4 +1,6 @@
 class Graphs::Line
+    include Graphs::Base
+
     def initialize(driver:)
         @driver = driver
         @new_elo_col = :new_elo_v2
@@ -75,31 +77,14 @@ class Graphs::Line
             series: @series_data,
             legend: { show: true },
             toolbox: { show: true },
-            tooltip: {
-                trigger: "axis",
-                formatter: '{b}',
-                position: [10, 10],
-            },
+            tooltip: line_tooltip,
             height: "700px",
-            dataZoom: [
-                {
-                    id: 'dataZoomX',
-                    type: 'slider',
-                    xAxisIndex: [0],
-                    filterMode: 'filter',
-                    start: zoom_start,
-                    end: 100
-                }
-            ],
+            dataZoom: data_zoom_slider(start: zoom_start),
             smoothMonotone: 'y'
         }
     end
 
     private
-
-    def race_x_label(race)
-        "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}"
-    end
 
     def mark_peak_elo
         peak_elo_race = @driver.display_peak_elo_race_result
@@ -209,14 +194,4 @@ class Graphs::Line
         end
     end
 
-    def ordinalize(n)
-        return "#{n}th" if (11..13).include?(n % 100)
-
-        case n % 10
-        when 1 then "#{n}st"
-        when 2 then "#{n}nd"
-        when 3 then "#{n}rd"
-        else "#{n}th"
-        end
-    end
 end

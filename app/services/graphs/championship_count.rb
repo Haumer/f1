@@ -1,4 +1,6 @@
 class Graphs::ChampionshipCount
+    include Graphs::Base
+
     def initialize(champion_data:)
         @champion_data = champion_data.sort_by { |_driver, data| -data[:count] }
     end
@@ -36,10 +38,7 @@ class Graphs::ChampionshipCount
                     }
                 }
             ],
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: { type: 'shadow' }
-            },
+            tooltip: bar_tooltip,
             grid: {
                 left: '140px',
                 right: '50px',

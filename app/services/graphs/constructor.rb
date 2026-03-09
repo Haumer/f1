@@ -1,4 +1,6 @@
 class Graphs::Constructor
+    include Graphs::Base
+
     MIN_RESULTS_TO_INCLUDE = 3   # minimum to appear in legend at all
     RECENT_WINDOW = 8.years      # show drivers active within this window by default
 
@@ -103,7 +105,7 @@ class Graphs::Constructor
             backgroundColor: 'transparent',
             xAxis: {
                 type: 'category',
-                data: @races.map { |r| "#{r.circuit.circuit_ref} #{r.date.strftime("%b %d, %Y")}" }
+                data: @races.map { |r| race_x_label(r) }
             },
             yAxis: {
                 type: 'value',
@@ -116,22 +118,9 @@ class Graphs::Constructor
                 selected: legend_selected
             },
             toolbox: { show: true },
-            tooltip: {
-                trigger: "axis",
-                formatter: '{b}',
-                position: [10, 10]
-            },
+            tooltip: line_tooltip,
             height: "600px",
-            dataZoom: [
-                {
-                    id: 'dataZoomX',
-                    type: 'slider',
-                    xAxisIndex: [0],
-                    filterMode: 'filter',
-                    start: zoom_start,
-                    end: 100
-                }
-            ],
+            dataZoom: data_zoom_slider(start: zoom_start),
             smoothMonotone: 'y'
         }
     end
