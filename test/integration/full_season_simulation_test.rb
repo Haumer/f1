@@ -80,7 +80,7 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
     simulate_stock_portfolio
 
     # ─── Phase 4: Season-end regression ───
-    verify_season_end_regression
+    # No regression — elo is purely performance-based
   end
 
   private
@@ -353,27 +353,5 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
     assert_includes keys, "first_short"
   end
 
-  def verify_season_end_regression
-    elos_before = @drivers.map { |d| [d.id, d.reload.elo_v2] }.to_h
-
-    EloRatingV2.apply_regression!
-
-    @drivers.each do |d|
-      d.reload
-      expected = elos_before[d.id] * (1 - EloRatingV2::REGRESSION_FACTOR) + EloRatingV2::STARTING_ELO * EloRatingV2::REGRESSION_FACTOR
-      assert_in_delta expected, d.elo_v2, 0.01,
-        "#{d.surname} regression incorrect: expected #{expected.round(2)}, got #{d.elo_v2.round(2)}"
-    end
-
-    # After regression, all Elos should be closer to STARTING_ELO
-    @drivers.each do |d|
-      old = elos_before[d.id]
-      new_elo = d.elo_v2
-      if old > EloRatingV2::STARTING_ELO
-        assert new_elo < old, "#{d.surname} above-average Elo should decrease after regression"
-      elsif old < EloRatingV2::STARTING_ELO
-        assert new_elo > old, "#{d.surname} below-average Elo should increase after regression"
-      end
-    end
-  end
+  # No regression — removed. Elo is purely performance-based.
 end

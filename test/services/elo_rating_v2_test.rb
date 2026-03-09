@@ -6,7 +6,6 @@ class EloRatingV2Test < ActiveSupport::TestCase
   test "constants are set correctly" do
     assert_equal 2000.0, EloRatingV2::STARTING_ELO
     assert_equal 48, EloRatingV2::BASE_K
-    assert_equal 0.03, EloRatingV2::REGRESSION_FACTOR
     assert_equal 12.0, EloRatingV2::REFERENCE_RACES
     assert_equal 400.0, EloMath::SCALE
   end
@@ -78,32 +77,15 @@ class EloRatingV2Test < ActiveSupport::TestCase
     assert_nil EloRatingV2.process_race(races(:melbourne_2026))
   end
 
-  # ── Regression ──
+  # ── No Regression ──
 
-  test "apply_regression moves elo toward starting value" do
-    drivers(:verstappen).update_columns(elo_v2: 2400.0)
-    drivers(:piastri).update_columns(elo_v2: 1800.0)
-
-    EloRatingV2.apply_regression!
-
-    ver = drivers(:verstappen).reload.elo_v2
-    pia = drivers(:piastri).reload.elo_v2
-
-    # Verstappen should move down toward 2000
-    assert ver < 2400.0, "High elo should regress down"
-    assert ver > 2000.0, "Should not overshoot starting elo"
-
-    # Piastri should move up toward 2000
-    assert pia > 1800.0, "Low elo should regress up"
-    assert pia < 2000.0, "Should not overshoot starting elo"
+  test "no regression method exists — elo is purely performance-based" do
+    assert_not_respond_to EloRatingV2, :apply_regression!
   end
 
-  test "regression formula is correct" do
+  test "no regression is applied — elo is purely performance-based" do
     drivers(:verstappen).update_columns(elo_v2: 2400.0)
-    EloRatingV2.apply_regression!
-
-    expected = 2400.0 * (1 - 0.03) + 2000.0 * 0.03
-    assert_in_delta expected, drivers(:verstappen).reload.elo_v2, 0.01
+    assert_not_respond_to EloRatingV2, :apply_regression!
   end
 
   # ── K-factor scaling ──
