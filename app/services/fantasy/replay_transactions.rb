@@ -1,12 +1,15 @@
 module Fantasy
   class ReplayTransactions
-    def initialize(season:, dry_run: false)
+    def initialize(season:, dry_run: false, reprice: false)
       @season = season
       @dry_run = dry_run
+      @reprice = reprice
       @results = []
     end
 
     def call
+      reprice_all if @reprice
+
       portfolios = FantasyPortfolio.where(season: @season)
                      .includes(:user, :transactions, roster_entries: :driver)
 
@@ -18,6 +21,110 @@ module Fantasy
     end
 
     private
+
+    # Reprice all trades to use the correct elo at time of trade
+    def reprice_all
+      puts "Repricing all trades to match recomputed elos..."
+
+      # Build a lookup: driver_id -> [[race_date, new_elo_v2], ...]
+      elo_history = RaceResult.joins(:race)
+                      .where.not(new_elo_v2: nil)
+                      .order("races.date ASC, races.round ASC")
+                      .pluck(:driver_id, "races.date", :new_elo_v2)
+                      .group_by(&:first)
+                      .transform_values { |rows| rows.map { |_, date, elo| [date, elo] } }
+
+      # Helper: find elo at a given date
+      find_elo = ->(driver_id, date) {
+        history = elo_history[driver_id]
+        return EloRatingV2::STARTING_ELO unless history
+        # Find the last entry on or before this date
+        entry = history.select { |d, _| d <= date }.last
+        entry ? entry[1] : EloRatingV2::STARTING_ELO
+      }
+
+      changes = 0
+
+      ActiveRecord::Base.transaction do
+        # 1. Reprice roster buy transactions and roster entries
+        FantasyTransaction.where(kind: "buy", fantasy_portfolio_id: FantasyPortfolio.where(season: @season).select(:id))
+          .includes(:driver).each do |txn|
+          correct_elo = find_elo.call(txn.driver_id, txn.created_at.to_date)
+          correct_amount = -correct_elo # roster price = elo
+          next if (txn.amount - correct_amount).abs < 0.01
+
+          puts "  Roster buy #{txn.driver.fullname}: #{txn.amount.round(1)} -> #{correct_amount.round(1)}" unless @dry_run
+          txn.update_column(:amount, correct_amount) unless @dry_run
+          changes += 1
+
+          # Also update the roster entry's bought_at_elo
+          entry = FantasyRosterEntry.find_by(
+            fantasy_portfolio_id: txn.fantasy_portfolio_id,
+            driver_id: txn.driver_id, active: true
+          )
+          entry&.update_column(:bought_at_elo, correct_elo) unless @dry_run
+        end
+
+        # 2. Reprice stock buy transactions and holdings
+        FantasyStockTransaction.where(kind: "buy", fantasy_stock_portfolio_id: FantasyStockPortfolio.where(season: @season).select(:id))
+          .includes(:driver).each do |txn|
+          correct_elo = find_elo.call(txn.driver_id, txn.created_at.to_date)
+          correct_price = correct_elo / FantasyStockPortfolio::PRICE_DIVISOR
+          correct_amount = -(correct_price * txn.quantity)
+          next if (txn.amount - correct_amount).abs < 0.01
+
+          puts "  Stock buy #{txn.quantity}x #{txn.driver.fullname}: #{txn.amount.round(1)} -> #{correct_amount.round(1)}" unless @dry_run
+          unless @dry_run
+            txn.update_columns(amount: correct_amount, price: correct_price)
+          end
+          changes += 1
+        end
+
+        # 3. Reprice stock short_open transactions (amount stays 0, but update price)
+        FantasyStockTransaction.where(kind: "short_open", fantasy_stock_portfolio_id: FantasyStockPortfolio.where(season: @season).select(:id))
+          .includes(:driver).each do |txn|
+          correct_elo = find_elo.call(txn.driver_id, txn.created_at.to_date)
+          correct_price = correct_elo / FantasyStockPortfolio::PRICE_DIVISOR
+          next if (txn.price - correct_price).abs < 0.01
+
+          correct_collateral = (correct_price * txn.quantity * FantasyStockPortfolio::COLLATERAL_RATIO).round(1)
+          puts "  Short #{txn.quantity}x #{txn.driver.fullname}: price #{txn.price.round(1)} -> #{correct_price.round(1)}" unless @dry_run
+          unless @dry_run
+            txn.update_columns(
+              price: correct_price,
+              note: "Shorted #{txn.quantity}x #{txn.driver.fullname} at #{correct_price.round(1)} (#{correct_collateral} collateral locked)"
+            )
+          end
+          changes += 1
+        end
+
+        # 4. Update stock holding entry prices and collateral
+        FantasyStockHolding.where(fantasy_stock_portfolio_id: FantasyStockPortfolio.where(season: @season).select(:id), active: true)
+          .includes(:driver, :fantasy_stock_portfolio).each do |h|
+          # Find the trade transaction to get the correct date
+          txn = h.fantasy_stock_portfolio.transactions
+                  .where(driver: h.driver, kind: %w[buy short_open])
+                  .order(:created_at).last
+          next unless txn
+
+          correct_elo = find_elo.call(h.driver_id, txn.created_at.to_date)
+          correct_price = correct_elo / FantasyStockPortfolio::PRICE_DIVISOR
+          next if (h.entry_price - correct_price).abs < 0.01
+
+          puts "  Holding #{h.direction} #{h.quantity}x #{h.driver.fullname}: entry #{h.entry_price.round(1)} -> #{correct_price.round(1)}" unless @dry_run
+          unless @dry_run
+            attrs = { entry_price: correct_price }
+            if h.direction == "short"
+              attrs[:collateral] = correct_price * h.quantity * FantasyStockPortfolio::COLLATERAL_RATIO
+            end
+            h.update_columns(attrs)
+          end
+          changes += 1
+        end
+      end
+
+      puts "Repriced #{changes} records."
+    end
 
     def replay_portfolio(portfolio)
       sp = FantasyStockPortfolio.find_by(user_id: portfolio.user_id, season_id: @season.id)
