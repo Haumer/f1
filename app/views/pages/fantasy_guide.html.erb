@@ -71,7 +71,7 @@
                         <div class="elo-step-pip" style="background: #52c41a">L</div>
                         <div class="elo-step-content">
                             <strong>Long Positions</strong>
-                            <span>Buy shares at Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>. You profit when the driver's Elo rises. Long positions earn <strong>dividends</strong> after each race: 0.5% of share price for a win, 0.3% for P2, 0.2% for P3, and 0.1% for P4&ndash;P10.</span>
+                            <span>Buy shares at Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>. Share prices adjust based on market demand &mdash; heavy buying pushes prices up, heavy shorting pushes them down. You profit when a driver's Elo rises or demand increases. Long positions earn <strong>dividends</strong> for each top-10 finish.</span>
                         </div>
                     </div>
                     <div class="elo-step">
@@ -112,8 +112,8 @@
             <% if Setting.fantasy_stock_market? %>
                 <div class="elo-result-card">
                     <div class="elo-result-label">Dividends</div>
-                    <div class="elo-result-value">0.1%&ndash;0.5% / share</div>
-                    <span class="elo-result-sub">Long positions earn % of share price based on race finish</span>
+                    <div class="elo-result-value"><%= Fantasy::Stock::SettleRace::DIVIDEND_BASE %> &times; constructor</div>
+                    <span class="elo-result-sub">Top-10 finishes pay dividends scaled by constructor strength (underdogs pay more) + surprise bonus for overperformance</span>
                 </div>
                 <div class="elo-result-card">
                     <div class="elo-result-label">Short Profits</div>

@@ -1,13 +1,13 @@
 module Fantasy
   module Stock
     class SettleRace
-      # Flat base dividends per share (position-based, same for everyone)
-      DIVIDEND_BASES = { 1 => 1.25, 2 => 0.75, 3 => 0.50 }.freeze
-      # Surprise bonus rates (price-based, only when overperforming)
-      DIVIDEND_RATES = { 1 => 0.005, 2 => 0.003, 3 => 0.002 }.freeze
-      POINTS_DIVIDEND_BASE = 0.25  # P4-P10 flat base
-      POINTS_DIVIDEND_RATE = 0.001 # P4-P10 surprise bonus rate
-      SURPRISE_SCALE = 0.3 # Dampening factor for surprise bonus
+      # Constructor-scaled dividends: underdogs pay more
+      # dividend = BASE × constructor_mult + SURPRISE_BONUS × overperformance
+      DIVIDEND_BASE = 0.10
+      DIVIDEND_SURPRISE_BONUS = 0.02
+      # Constructor multiplier range: 0.5 (WCC P1) → 5.0 (WCC P10)
+      CONSTRUCTOR_MULT_MIN = 0.5
+      CONSTRUCTOR_MULT_MAX = 5.0
 
       BORROW_FEE_RATE = 0.0025 # 0.25% per race
       MAX_LOSS_MULTIPLIER = 2.0 # Auto-liquidate at 2x entry price loss
@@ -160,24 +160,38 @@ module Fantasy
         end
       end
 
-      # Dividend = flat_base + (share_price × rate × √(surprise-1) × 0.3)
-      # Surprise = elo_rank - finish_position + 1 (min 1)
-      # At 1x (no overperformance), everyone gets the same flat base
-      def calculate_dividend(driver, position, portfolio)
-        base = DIVIDEND_BASES[position] || (position <= 10 ? POINTS_DIVIDEND_BASE : 0)
-        return 0 if base.zero?
+      # Dividend per top-10 finish = BASE × constructor_mult + SURPRISE_BONUS × overperformance
+      # constructor_mult: 0.5 (WCC P1 last year) → 5.0 (WCC P10)
+      # overperformance: max(elo_rank - finish_position, 0)
+      def calculate_dividend(driver, position, _portfolio)
+        return 0 unless position && position <= 10
 
-        rate = DIVIDEND_RATES[position] || (position <= 10 ? POINTS_DIVIDEND_RATE : 0)
+        constructor_mult = constructor_multiplier(driver)
         elo_rank = @elo_ranks[driver.id] || 1
-        surprise = [elo_rank - position + 1, 1].max
-        bonus = if surprise > 1
-          share_price = portfolio.share_price(driver)
-          share_price * rate * Math.sqrt(surprise - 1) * SURPRISE_SCALE
-        else
-          0
+        overperformance = [elo_rank - position, 0].max
+
+        DIVIDEND_BASE * constructor_mult + DIVIDEND_SURPRISE_BONUS * overperformance
+      end
+
+      def constructor_multiplier(driver)
+        @constructor_mults ||= {}
+        return @constructor_mults[driver.id] if @constructor_mults.key?(driver.id)
+
+        prev_season = @race.season.previous_season
+        standing_pos = if prev_season
+          # Find which constructor this driver races for this season
+          sd = SeasonDriver.find_by(driver_id: driver.id, season_id: @race.season_id)
+          if sd&.constructor_id
+            cs = ConstructorStanding.find_by(constructor_id: sd.constructor_id, season_id: prev_season.id)
+            cs&.position
+          end
         end
 
-        base + bonus
+        # Default to midfield (position 5) if no data
+        standing_pos ||= 5
+        standing_pos = standing_pos.clamp(1, 10)
+
+        @constructor_mults[driver.id] = CONSTRUCTOR_MULT_MIN + (standing_pos - 1) * ((CONSTRUCTOR_MULT_MAX - CONSTRUCTOR_MULT_MIN) / 9.0)
       end
     end
   end

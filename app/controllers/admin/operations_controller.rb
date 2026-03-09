@@ -91,6 +91,44 @@ module Admin
         end
         redirect_to admin_operations_path, notice: "Fixed collateral for #{count} short positions (#{(FantasyStockPortfolio::COLLATERAL_RATIO * 100).round(0)}% ratio)."
 
+      when "recalc_dividends"
+        season = Season.sorted_by_year.first
+        races = Race.where(season: season).where.not(date: nil).where("date < ?", Date.current).order(:round)
+        portfolio_ids = FantasyStockPortfolio.where(season: season).pluck(:id)
+        race_ids = races.pluck(:id)
+
+        # Step 1: Reverse old dividend cash and delete transactions
+        old_divs = FantasyStockTransaction.where(fantasy_stock_portfolio_id: portfolio_ids, race_id: race_ids, kind: "dividend")
+        reversed_cash = Hash.new(0)
+        old_divs.find_each { |t| reversed_cash[t.fantasy_stock_portfolio_id] += t.amount }
+        deleted = old_divs.delete_all
+
+        # Subtract old dividend cash from wallets
+        reversed_cash.each do |portfolio_id, amount|
+          sp = FantasyStockPortfolio.find(portfolio_id)
+          sp.wallet&.update!(cash: sp.wallet.cash - amount)
+        end
+
+        # Step 2: Re-calculate dividends for each race
+        elo_ranks = Driver.where(active: true).order(elo_v2: :desc).pluck(:id)
+                      .each_with_index.to_h { |id, idx| [id, idx + 1] }
+        portfolios = FantasyStockPortfolio.where(season: season).includes(holdings: :driver)
+
+        races.each do |race|
+          results_by_driver = RaceResult.where(race: race).index_by(&:driver_id)
+          settle = Fantasy::Stock::SettleRace.new(race: race)
+          settle.instance_variable_set(:@elo_ranks, elo_ranks)
+
+          portfolios.each do |portfolio|
+            ActiveRecord::Base.transaction do
+              portfolio.lock!
+              portfolio.wallet&.lock!
+              settle.send(:pay_dividends, portfolio, results_by_driver)
+            end
+          end
+        end
+        redirect_to admin_operations_path, notice: "Recalculated dividends for #{races.count} races (deleted #{deleted} old transactions)."
+
       when "recapitalize_fantasy"
         season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
         avg_elo = Driver.where.not(elo_v2: nil)
