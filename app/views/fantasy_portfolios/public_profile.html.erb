@@ -220,26 +220,7 @@
         <% end %>
 
         <%# Stock Achievements %>
-        <% if @stock_achievements.any? %>
-            <div class="table-header">
-                <h3>Achievements</h3>
-                <span class="table-header-sub"><%= @stock_achievements.size %> earned</span>
-            </div>
-            <div class="fantasy-achievements-grid">
-                <% @stock_achievements.each do |a| %>
-                    <% defn = FantasyStockAchievement::DEFINITIONS[a.key.to_sym] %>
-                    <% next unless defn %>
-                    <div class="fantasy-achievement-card earned tier-<%= defn[:tier] %>">
-                        <div class="fantasy-achievement-icon"><i class="fa-solid <%= defn[:icon] %>"></i></div>
-                        <div class="fantasy-achievement-info">
-                            <strong><%= defn[:name] %></strong>
-                            <span><%= defn[:description] %></span>
-                        </div>
-                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
-                    </div>
-                <% end %>
-            </div>
-        <% end %>
+        <%= render "fantasy_portfolios/achievements_grid", earned: @stock_achievements, definitions: FantasyStockAchievement::DEFINITIONS %>
 
     <% elsif @portfolio %>
         <%# ══════════════════════════════════ %>
@@ -354,26 +335,6 @@
         <% end %>
 
         <%# Roster Achievements %>
-        <% earned = @achievements.to_a %>
-        <% if earned.any? %>
-            <div class="table-header">
-                <h3>Achievements</h3>
-                <span class="table-header-sub"><%= earned.size %> earned</span>
-            </div>
-            <div class="fantasy-achievements-grid">
-                <% earned.each do |a| %>
-                    <% defn = FantasyAchievement::DEFINITIONS[a.key.to_sym] %>
-                    <% next unless defn %>
-                    <div class="fantasy-achievement-card earned tier-<%= defn[:tier] %>">
-                        <div class="fantasy-achievement-icon"><i class="fa-solid <%= defn[:icon] %>"></i></div>
-                        <div class="fantasy-achievement-info">
-                            <strong><%= defn[:name] %></strong>
-                            <span><%= defn[:description] %></span>
-                        </div>
-                        <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
-                    </div>
-                <% end %>
-            </div>
-        <% end %>
+        <%= render "fantasy_portfolios/achievements_grid", earned: @achievements, definitions: FantasyAchievement::DEFINITIONS %>
     <% end %>
 </div>

@@ -3,6 +3,7 @@ class EloRatingV2
     BASE_K = 48
     REGRESSION_FACTOR = 0.03
     REFERENCE_RACES = 12.0
+    SCALE = EloMath::SCALE
 
     # Run full historical simulation from scratch
     def self.simulate_all!

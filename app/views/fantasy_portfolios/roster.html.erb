@@ -260,58 +260,10 @@
     <% end %>
 
     <%# Transactions (owner only) %>
-    <% if @is_owner && @transactions.any? %>
-        <div class="table-header"><h3>Recent Transactions</h3></div>
-        <div class="card card-flush">
-            <div class="table-scroll-wrapper">
-                <table class="fantasy-transactions-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Note</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% @transactions.each do |txn| %>
-                            <tr>
-                                <td><%= txn.created_at.strftime("%b %d, %H:%M") %></td>
-                                <td>
-                                    <span class="fantasy-txn-kind fantasy-txn-<%= txn.kind %>"><%= txn.kind.humanize %></span>
-                                </td>
-                                <td class="<%= txn.amount >= 0 ? 'text-green' : 'text-red' %>">
-                                    <%= txn.amount >= 0 ? '+' : '' %><%= txn.amount.round(0) %>
-                                </td>
-                                <td class="fantasy-txn-note"><%= txn.note %></td>
-                            </tr>
-                        <% end %>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <% if @is_owner %>
+        <%= render "fantasy_portfolios/transactions_table", transactions: @transactions, round_amount: false %>
     <% end %>
 
     <%# Achievements %>
-    <div class="table-header">
-        <h3>Achievements</h3>
-        <span class="table-header-sub"><%= @achievements.size %>/<%= FantasyAchievement::DEFINITIONS.size %></span>
-    </div>
-    <div class="fantasy-achievements-grid">
-        <% FantasyAchievement::DEFINITIONS.each do |key, defn| %>
-            <% earned = @achievements.find { |a| a.key == key.to_s } %>
-            <div class="fantasy-achievement-card <%= earned ? "earned tier-#{defn[:tier]}" : 'locked' %>">
-                <div class="fantasy-achievement-icon">
-                    <i class="fa-solid <%= defn[:icon] %>"></i>
-                </div>
-                <div class="fantasy-achievement-info">
-                    <strong><%= defn[:name] %></strong>
-                    <span><%= defn[:description] %></span>
-                </div>
-                <% if earned %>
-                    <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
-                <% end %>
-            </div>
-        <% end %>
-    </div>
+    <%= render "fantasy_portfolios/achievements_grid", earned: @achievements, definitions: FantasyAchievement::DEFINITIONS %>
 </div>

@@ -1,0 +1,21 @@
+<div class="table-header">
+    <h3>Achievements</h3>
+    <span class="table-header-sub"><%= earned.size %>/<%= definitions.size %></span>
+</div>
+<div class="fantasy-achievements-grid">
+    <% definitions.each do |key, defn| %>
+        <% match = earned.find { |a| a.key == key.to_s } %>
+        <div class="fantasy-achievement-card <%= match ? "earned tier-#{defn[:tier]}" : 'locked' %>">
+            <div class="fantasy-achievement-icon">
+                <i class="fa-solid <%= defn[:icon] %>"></i>
+            </div>
+            <div class="fantasy-achievement-info">
+                <strong><%= defn[:name] %></strong>
+                <span><%= defn[:description] %></span>
+            </div>
+            <% if match %>
+                <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+            <% end %>
+        </div>
+    <% end %>
+</div>
