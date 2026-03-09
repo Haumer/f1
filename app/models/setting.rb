@@ -46,6 +46,24 @@ class Setting < ApplicationRecord
         image_source == "wikipedia"
     end
 
+    def self.analytics_excluded_user_ids
+        ids = get("analytics_excluded_users", "[]")
+        JSON.parse(ids).map(&:to_i)
+    rescue JSON::ParserError
+        []
+    end
+
+    def self.analytics_exclude_user!(user_id)
+        ids = analytics_excluded_user_ids
+        ids << user_id.to_i unless ids.include?(user_id.to_i)
+        set("analytics_excluded_users", ids.to_json)
+    end
+
+    def self.analytics_include_user!(user_id)
+        ids = analytics_excluded_user_ids - [user_id.to_i]
+        set("analytics_excluded_users", ids.to_json)
+    end
+
     def self.simulated_date
         val = get("simulated_date")
         Date.parse(val) if val.present?

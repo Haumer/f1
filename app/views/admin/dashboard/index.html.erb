@@ -63,7 +63,12 @@
   </div>
 </div>
 
-<h3 style="margin-top: 32px;"><i class="fa-solid fa-chart-bar"></i> Analytics</h3>
+<h3 style="margin-top: 32px;">
+  <i class="fa-solid fa-chart-bar"></i> Analytics
+  <% if @excluded_count.to_i > 0 %>
+    <span class="admin-filter-badge"><i class="fa-solid fa-filter"></i> <%= @excluded_count %> excluded</span>
+  <% end %>
+</h3>
 <div class="admin-stats-grid">
   <div class="admin-stat-card">
     <div class="admin-stat-value"><%= @users_count %></div>

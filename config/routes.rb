@@ -8,7 +8,11 @@ Rails.application.routes.draw do
     resource :settings, only: [:show, :update]
     resources :operations, only: [:index, :create]
     resources :alerts, only: [:update]
-    resources :analytics, only: [:index, :show]
+    resources :analytics, only: [:index, :show] do
+      collection do
+        post :toggle_exclusion
+      end
+    end
     resources :experiments, only: [:index]
   end
   get 'elo', to: 'pages#elo', as: :elo

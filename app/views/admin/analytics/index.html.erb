@@ -4,6 +4,9 @@
   <% %w[today 7d 30d all].each do |p| %>
     <%= link_to p.titleize, admin_analytics_path(period: p), class: "admin-btn admin-btn-sm #{'admin-btn-active' if @period == p}" %>
   <% end %>
+  <% if @excluded_ids.any? %>
+    <span class="admin-filter-badge"><i class="fa-solid fa-filter"></i> <%= @excluded_ids.size %> excluded</span>
+  <% end %>
   <%= link_to "Blazer", blazer_path, class: "admin-btn admin-btn-sm", style: "margin-left: auto;" %>
 </div>
 
@@ -23,6 +26,74 @@
   <div class="admin-stat-card">
     <div class="admin-stat-value"><%= @visits > 0 ? (@pageviews.to_f / @visits).round(1) : 0 %></div>
     <div class="admin-stat-label">Pages / Visit</div>
+  </div>
+</div>
+
+<%# ═══ Excluded Users Panel ═══ %>
+<div class="admin-card" style="margin-top: 32px;">
+  <h3><i class="fa-solid fa-user-slash"></i> Filter Users from Analytics</h3>
+  <p style="color: #888; font-size: 13px; margin-bottom: 16px;">Excluded users' visits and pageviews are stripped from all analytics counts and charts.</p>
+
+  <div data-controller="expand" style="overflow: hidden;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th class="text-center">All-time Visits</th>
+          <th class="text-center">Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @top_users_for_exclusion.first(5).each do |user| %>
+          <% excluded = @excluded_ids.include?(user.id) %>
+          <tr>
+            <td><%= user.username || user.email %></td>
+            <td class="text-center"><%= number_with_delimiter(user.total_visits) %></td>
+            <td class="text-center">
+              <% if excluded %>
+                <span class="admin-badge" style="background: #6c757d;">Excluded</span>
+              <% else %>
+                <span class="admin-badge" style="background: rgba(31, 136, 61, 0.8);">Included</span>
+              <% end %>
+            </td>
+            <td class="text-center">
+              <%= button_to excluded ? "Include" : "Exclude",
+                    toggle_exclusion_admin_analytics_path(user_id: user.id, period: @period),
+                    class: "admin-btn admin-btn-sm",
+                    style: excluded ? "background: rgba(31, 136, 61, 0.8);" : "background: #6c757d;" %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @top_users_for_exclusion.size > 5 %>
+          <tr data-expand-target="trigger" data-action="click->expand#toggle" style="cursor: pointer;">
+            <td colspan="4" class="text-center" style="color: #e10600; font-size: 13px; font-weight: 600;">
+              <span data-expand-target="label" data-show-text="Show <%= @top_users_for_exclusion.size - 5 %> more users">Show <%= @top_users_for_exclusion.size - 5 %> more users</span>
+            </td>
+          </tr>
+          <% @top_users_for_exclusion.drop(5).each do |user| %>
+            <% excluded = @excluded_ids.include?(user.id) %>
+            <tr data-expand-target="content" style="display: none;">
+              <td><%= user.username || user.email %></td>
+              <td class="text-center"><%= number_with_delimiter(user.total_visits) %></td>
+              <td class="text-center">
+                <% if excluded %>
+                  <span class="admin-badge" style="background: #6c757d;">Excluded</span>
+                <% else %>
+                  <span class="admin-badge" style="background: rgba(31, 136, 61, 0.8);">Included</span>
+                <% end %>
+              </td>
+              <td class="text-center">
+                <%= button_to excluded ? "Include" : "Exclude",
+                      toggle_exclusion_admin_analytics_path(user_id: user.id, period: @period),
+                      class: "admin-btn admin-btn-sm",
+                      style: excluded ? "background: rgba(31, 136, 61, 0.8);" : "background: #6c757d;" %>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 </div>
 
