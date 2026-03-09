@@ -7,7 +7,7 @@ module DriverBadges::EloBadges
     best = @sorted_results.max_by { |rr| rr.display_elo_diff || 0 }
     return unless best && (best.display_elo_diff || 0) >= 80
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :elo_rocket,
       label: "Elo Rocket",
       description: "+#{best.display_elo_diff.round(1)} Elo in a single race at #{best.race.circuit.name}",
@@ -23,7 +23,7 @@ module DriverBadges::EloBadges
     worst = @sorted_results.min_by { |rr| rr.display_elo_diff || 0 }
     return unless worst && (worst.display_elo_diff || 0) <= -80
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :elo_freefall,
       label: "Elo Crater",
       description: "#{worst.display_elo_diff.round(1)} Elo in a single race at #{worst.race.circuit.name}",

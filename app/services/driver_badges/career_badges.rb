@@ -6,7 +6,7 @@ module DriverBadges::CareerBadges
     return unless wins.any?
 
     first_win = wins.first
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :rookie_win,
       label: "Rookie Winner",
       description: "#{wins.size} win#{'s' if wins.size > 1} in debut season (#{first_win.race.date.year})",
@@ -23,7 +23,7 @@ module DriverBadges::CareerBadges
     wins = podiums.count { |rr| rr.position_order == 1 }
     return if wins > 0
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :rookie_podium,
       label: "Rookie Podium",
       description: "#{podiums.size} podium#{'s' if podiums.size > 1} in debut season (#{podiums.first.race.date.year})",
@@ -41,7 +41,7 @@ module DriverBadges::CareerBadges
     win_rr = @sorted_results.find { |rr| rr.position_order == 1 }
     where = win_rr ? " at #{win_rr.race.circuit.name}" : ""
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :one_hit_wonder,
       label: "One Hit Wonder",
       description: "1 win in #{total} races#{where}",
@@ -63,7 +63,7 @@ module DriverBadges::CareerBadges
                    ["Century Club", "fa-solid fa-medal"]
                  end
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :century_club,
       label: tier,
       description: "#{total} career race starts",
@@ -87,7 +87,7 @@ module DriverBadges::CareerBadges
                     ["50 Finishes", "fa-solid fa-medal"]
                   end
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :finishes_milestone,
       label: label,
       description: "#{finished} classified race finishes",
@@ -122,7 +122,7 @@ module DriverBadges::CareerBadges
 
     pct = (max_streak.to_f / total_races * 100).round(0)
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :loyal_servant,
       label: "Loyal Servant",
       description: "#{max_streak} consecutive races with #{max_constructor&.name} (#{pct}% of career)",
@@ -157,7 +157,7 @@ module DriverBadges::CareerBadges
     teammate = Driver.find_by(id: best_id)
     return unless teammate
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :dynamic_duo,
       label: "Dynamic Duo",
       description: "#{count} races alongside #{teammate.forename.first}.#{teammate.surname}",
@@ -173,7 +173,7 @@ module DriverBadges::CareerBadges
     return unless total >= 50 && finished.to_f / total >= 0.90
 
     rate = (finished.to_f / total * 100).round(1)
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :iron_man,
       label: "Iron Man",
       description: "#{rate}% finish rate over #{total} races",
@@ -191,7 +191,7 @@ module DriverBadges::CareerBadges
     rate = (points_finishes.to_f / total * 100).round(1)
     return unless rate >= 70
 
-    @badges << DriverBadges::Badge.new(
+    @badges << ::DriverBadges::Badge.new(
       key: :points_machine,
       label: "Points Machine",
       description: "#{rate}% points-scoring rate (#{points_finishes}/#{total} races)",
