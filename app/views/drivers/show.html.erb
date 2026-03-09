@@ -109,7 +109,7 @@
                 <div class="career-stats-grid">
                     <div class="career-stat-row">
                         <span class="career-stat-label">Races</span>
-                        <span class="career-stat-value"><%= @driver.number_of_races || 0 %></span>
+                        <span class="career-stat-value"><%= @driver.race_results.size %></span>
                     </div>
                     <div class="career-stat-row">
                         <span class="career-stat-label">Finished</span>
@@ -133,18 +133,51 @@
                             <span class="career-stat-value"><%= @driver.disqualified_races %></span>
                         </div>
                     <% end %>
-                    <% if @driver.number_of_races.to_i > 0 %>
+                    <% total_races = @driver.race_results.size %>
+                    <% if total_races > 0 %>
                         <div class="career-stat-row">
                             <span class="career-stat-label">Win Rate</span>
-                            <span class="career-stat-value"><%= ((@driver.wins || 0).to_f / @driver.number_of_races.to_i * 100).round(1) %>%</span>
+                            <span class="career-stat-value"><%= ((@driver.wins || 0).to_f / total_races * 100).round(1) %>%</span>
                         </div>
                         <div class="career-stat-row">
                             <span class="career-stat-label">Podium Rate</span>
-                            <span class="career-stat-value"><%= ((@driver.podiums || 0).to_f / @driver.number_of_races.to_i * 100).round(1) %>%</span>
+                            <span class="career-stat-value"><%= ((@driver.podiums || 0).to_f / total_races * 100).round(1) %>%</span>
                         </div>
                     <% end %>
                 </div>
             </div>
+
+            <% if @constructor_history.any? %>
+                <div class="profile-section">
+                    <div class="section-label">Constructor History</div>
+                    <div class="constructor-history">
+                        <% @constructor_history.each do |stint| %>
+                            <% color = Constructor::COLORS[stint[:constructor].constructor_ref&.to_sym] || '#6c757d' %>
+                            <%= link_to constructor_path(stint[:constructor]), class: "constructor-stint", style: "--stint-color: #{color}" do %>
+                                <div class="stint-color-bar"></div>
+                                <div class="stint-info">
+                                    <div class="stint-header">
+                                        <% if stint[:constructor].logo_url.present? %>
+                                            <img src="<%= stint[:constructor].logo_url %>" alt="" class="stint-logo" loading="lazy" onerror="this.style.display='none'">
+                                        <% end %>
+                                        <span class="stint-name"><%= stint[:constructor].name %></span>
+                                    </div>
+                                    <span class="stint-years"><%= stint[:years] %></span>
+                                </div>
+                                <div class="stint-stats">
+                                    <span class="stint-stat"><%= stint[:races] %> <span class="stint-stat-lbl">races</span></span>
+                                    <% if stint[:wins] > 0 %>
+                                        <span class="stint-stat stint-wins"><%= stint[:wins] %> <span class="stint-stat-lbl"><%= stint[:wins] == 1 ? 'win' : 'wins' %></span></span>
+                                    <% end %>
+                                    <% if stint[:podiums] > 0 && stint[:podiums] != stint[:wins] %>
+                                        <span class="stint-stat"><%= stint[:podiums] %> <span class="stint-stat-lbl"><%= stint[:podiums] == 1 ? 'podium' : 'podiums' %></span></span>
+                                    <% end %>
+                                </div>
+                            <% end %>
+                        <% end %>
+                    </div>
+                </div>
+            <% end %>
 
             <% if @badges.any? %>
                 <div class="profile-section">

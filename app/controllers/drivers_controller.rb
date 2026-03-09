@@ -22,6 +22,31 @@ class DriversController < ApplicationController
     @elo_tier = helpers.elo_tier(peak)
 
     @badges = @driver.badges.ordered_by_tier.order(:id)
+
+    # Constructor history: group race results by constructor, ordered chronologically
+    constructor_stints = @driver.race_results.includes(:constructor, race: :season)
+                           .group_by(&:constructor_id)
+    @constructor_history = constructor_stints.map do |_cid, results|
+      constructor = results.first.constructor
+      years = results.map { |rr| rr.race.date.year }.uniq.sort
+      races = results.size
+      wins = results.count { |rr| rr.position_order == 1 }
+      podiums = results.count { |rr| rr.position_order && rr.position_order <= 3 }
+      best = results.filter_map(&:position_order).min
+
+      # Build year ranges (e.g. "2019-2021, 2023")
+      ranges = []
+      years.each do |y|
+        if ranges.last && ranges.last[:end] == y - 1
+          ranges.last[:end] = y
+        else
+          ranges << { start: y, end: y }
+        end
+      end
+      year_str = ranges.map { |r| r[:start] == r[:end] ? r[:start].to_s : "#{r[:start]}-#{r[:end]}" }.join(", ")
+
+      { constructor: constructor, years: year_str, first_year: years.first, races: races, wins: wins, podiums: podiums, best: best }
+    end.sort_by { |h| -h[:first_year] }
   end
 
   def grid

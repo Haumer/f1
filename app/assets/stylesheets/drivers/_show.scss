@@ -466,6 +466,98 @@
     }
 }
 
+// Constructor history
+.constructor-history {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.constructor-stint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: $radius-sm;
+    background: $bg-surface;
+    border: 1px solid $border-color;
+    transition: border-color $t-fast, background $t-fast;
+    text-decoration: none;
+    color: $text-primary;
+
+    &:hover {
+        border-color: var(--stint-color, $border-accent);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .stint-color-bar {
+        width: 3px;
+        align-self: stretch;
+        border-radius: 2px;
+        background: var(--stint-color, $text-tertiary);
+        flex-shrink: 0;
+    }
+
+    .stint-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .stint-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 2px;
+    }
+
+    .stint-logo {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .stint-name {
+        font-size: 13px;
+        font-weight: $weight-semi;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stint-years {
+        font-size: $type-label;
+        color: $text-tertiary;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .stint-stats {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1px;
+        flex-shrink: 0;
+    }
+
+    .stint-stat {
+        font-family: $mono-font;
+        font-size: 12px;
+        font-weight: $weight-semi;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+
+        &.stint-wins { color: $gold; }
+    }
+
+    .stint-stat-lbl {
+        font-family: inherit;
+        font-weight: $weight-regular;
+        font-size: $type-label;
+        color: $text-tertiary;
+    }
+}
+
 // Career stats grid
 .career-stats-grid {
     text-align: left;
