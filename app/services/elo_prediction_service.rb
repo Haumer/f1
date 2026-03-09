@@ -2,55 +2,30 @@ class EloPredictionService
   # Uses the same V2 Elo formula to compute expected Elo changes
   # from a predicted finishing order.
   #
-  # Called pre-race, so driver.elo_v2 is already the entering Elo.
-  #
   # Returns: { driver_id => { old_elo:, new_elo:, diff: } }
   def self.compute(prediction)
     race = prediction.race
     results = prediction.predicted_results
     return {} if results.blank? || results.size < 2
 
-    driver_ids = results.map { |r| r["driver_id"] }
-    drivers = Driver.where(id: driver_ids).index_by(&:id)
+    drivers = Driver.where(id: results.map { |r| r["driver_id"] }).index_by(&:id)
     sorted = results.sort_by { |r| r["position"] }
 
-    # K-factor: use season race count up to (but not including) this race
     season_races = Race.joins(:race_results).distinct
                        .where(year: race.year).where("races.round < ?", race.round).count
     season_races = EloRatingV2::REFERENCE_RACES.to_i if season_races == 0
-    n = sorted.size
-    k_pair = EloRatingV2::BASE_K * (EloRatingV2::REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
 
-    # Build elo lookup
-    elo = {}
-    sorted.each do |r|
+    participants = sorted.map do |r|
       did = r["driver_id"]
-      elo[did] = drivers[did]&.elo_v2 || EloRatingV2::STARTING_ELO
+      { id: did, elo: drivers[did]&.elo_v2 || EloRatingV2::STARTING_ELO, score: r["position"] }
     end
 
-    # Pairwise comparisons — identical to EloRatingV2
-    adjustments = Hash.new(0.0)
-    sorted.combination(2) do |a, b|
-      did_a = a["driver_id"]
-      did_b = b["driver_id"]
-      ra = elo[did_a]
-      rb = elo[did_b]
-      ea = 1.0 / (1 + 10**((rb - ra) / EloRatingV2::SCALE))
-      adjustments[did_a] += k_pair * (1.0 - ea)
-      adjustments[did_b] += k_pair * (0.0 - (1.0 - ea))
-    end
+    k_pair = EloMath.compute_k_pair(EloRatingV2::BASE_K, EloRatingV2::REFERENCE_RACES, season_races, sorted.size)
+    adjustments = EloMath.pairwise_adjustments(participants, k_pair)
 
-    changes = {}
-    adjustments.each do |did, adj|
-      old = elo[did]
-      new_elo = old + adj
-      changes[did.to_s] = {
-        "old_elo" => old.round(1),
-        "new_elo" => new_elo.round(1),
-        "diff" => adj.round(1)
-      }
+    adjustments.to_h do |did, adj|
+      old = participants.find { |p| p[:id] == did }[:elo]
+      [did.to_s, { "old_elo" => old.round(1), "new_elo" => (old + adj).round(1), "diff" => adj.round(1) }]
     end
-
-    changes
   end
 end

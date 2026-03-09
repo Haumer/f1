@@ -3,7 +3,6 @@ class EloRatingV2
     BASE_K = 48
     REGRESSION_FACTOR = 0.03
     REFERENCE_RACES = 12.0
-    SCALE = 400.0
 
     # Run full historical simulation from scratch
     def self.simulate_all!
@@ -14,14 +13,12 @@ class EloRatingV2
         peak = {}
         prev_year = nil
 
-        # Collect all updates for batch persistence
         race_result_updates = []
         driver_updates = {}
 
         races.each do |race|
             year = race.year
 
-            # Season-end regression
             if prev_year && year != prev_year
                 elo.each { |did, e| elo[did] = e * (1 - REGRESSION_FACTOR) + STARTING_ELO * REGRESSION_FACTOR }
             end
@@ -31,25 +28,16 @@ class EloRatingV2
             results = race.race_results.select { |rr| rr.position_order.present? }.sort_by(&:position_order)
             next if results.size < 2
 
-            n = results.size
-            k_pair = BASE_K * (REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
-
             results.each { |rr| elo[rr.driver_id] ||= STARTING_ELO }
 
-            adjustments = Hash.new(0.0)
-            results.combination(2) do |a, b|
-                ra = elo[a.driver_id]
-                rb = elo[b.driver_id]
-                ea = 1.0 / (1 + 10**((rb - ra) / SCALE))
-                adjustments[a.driver_id] += k_pair * (1.0 - ea)
-                adjustments[b.driver_id] += k_pair * (0.0 - (1.0 - ea))
-            end
+            participants = results.map { |rr| { id: rr.driver_id, elo: elo[rr.driver_id], score: rr.position_order } }
+            k_pair = EloMath.compute_k_pair(BASE_K, REFERENCE_RACES, season_races, results.size)
+            adjustments = EloMath.pairwise_adjustments(participants, k_pair)
 
             adjustments.each do |did, adj|
                 old_elo = elo[did]
                 elo[did] += adj
                 peak[did] = [peak[did] || 0, elo[did]].max
-                # Find the race_result for this driver
                 rr = results.find { |r| r.driver_id == did }
                 race_result_updates << { id: rr.id, old_elo_v2: old_elo, new_elo_v2: elo[did] }
                 driver_updates[did] = { elo_v2: elo[did], peak_elo_v2: peak[did] }
@@ -79,19 +67,10 @@ class EloRatingV2
                       .sort_by(&:position_order)
         return if results.size < 2
 
-        # Use total scheduled races (not just those with results) for proper K factor scaling
         season_races = Race.where(year: race.year).count
-        n = results.size
-        k_pair = BASE_K * (REFERENCE_RACES / season_races.to_f) / Math.sqrt(n - 1)
-
-        adjustments = Hash.new(0.0)
-        results.combination(2) do |a, b|
-            ra = a.driver.elo_v2 || STARTING_ELO
-            rb = b.driver.elo_v2 || STARTING_ELO
-            ea = 1.0 / (1 + 10**((rb - ra) / SCALE))
-            adjustments[a.driver_id] += k_pair * (1.0 - ea)
-            adjustments[b.driver_id] += k_pair * (0.0 - (1.0 - ea))
-        end
+        participants = results.map { |rr| { id: rr.driver_id, elo: rr.driver.elo_v2 || STARTING_ELO, score: rr.position_order } }
+        k_pair = EloMath.compute_k_pair(BASE_K, REFERENCE_RACES, season_races, results.size)
+        adjustments = EloMath.pairwise_adjustments(participants, k_pair)
 
         ActiveRecord::Base.transaction do
             results.each do |rr|

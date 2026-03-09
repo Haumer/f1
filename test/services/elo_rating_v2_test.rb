@@ -8,7 +8,7 @@ class EloRatingV2Test < ActiveSupport::TestCase
     assert_equal 48, EloRatingV2::BASE_K
     assert_equal 0.03, EloRatingV2::REGRESSION_FACTOR
     assert_equal 12.0, EloRatingV2::REFERENCE_RACES
-    assert_equal 400.0, EloRatingV2::SCALE
+    assert_equal 400.0, EloMath::SCALE
   end
 
   # ── Pairwise Elo math ──
