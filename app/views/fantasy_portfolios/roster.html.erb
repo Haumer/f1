@@ -30,7 +30,7 @@
 
     <%# Sub-Stats %>
     <% pl = @portfolio.profit_loss %>
-    <% pl_pct = @portfolio.starting_capital > 0 ? (pl / @portfolio.starting_capital * 100) : 0 %>
+    <% pl_pct = @portfolio.roster_invested > 0 ? (pl / @portfolio.roster_invested * 100) : 0 %>
     <div class="fantasy-sub-stats">
         <div class="fantasy-sub-stat">
             <span class="label">Value</span>

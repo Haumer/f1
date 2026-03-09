@@ -20,10 +20,13 @@ module Fantasy
         { fantasy_portfolio_id: portfolio.id, race_id: @race.id, value: value, cash: portfolio.cash }
       end
 
-      # Rank by net P&L (total value minus total starting capital)
+      # Rank by position-based P&L (roster gains + stock gains)
       ranked = snapshots.sort_by do |s|
         p = portfolios_by_id[s[:fantasy_portfolio_id]]
-        -(s[:value] - p.total_starting_capital)
+        sp = stock_portfolios[p.user_id]
+        roster_pl = p.profit_loss
+        stock_pl = sp&.profit_loss || 0
+        -(roster_pl + stock_pl)
       end
       ranked.each_with_index { |s, i| s[:rank] = i + 1 }
 

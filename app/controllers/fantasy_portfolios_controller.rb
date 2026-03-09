@@ -252,23 +252,21 @@ class FantasyPortfoliosController < ApplicationController
 
     combined = @roster_entries.map do |e|
       p = e[:portfolio]
-      roster_net = p.active_roster_entries.includes(:driver).sum(&:gain_loss).round(2)
+      roster_net = p.profit_loss
       sp = stock_by_user[p.user_id]
-      stock_value = sp ? sp[:value] : 0
-      total_starting = p.total_starting_capital
-      total_value = e[:value] + stock_value
-      { user: p.user, roster_net: roster_net, stock_net: sp&.dig(:portfolio)&.profit_loss,
-        roster_value: e[:value], stock_value: stock_value,
-        total_starting: total_starting, total_value: total_value, net_value: total_value - total_starting }
+      stock_net = sp&.dig(:portfolio)&.profit_loss || 0
+      { user: p.user, roster_net: roster_net, stock_net: stock_net == 0 ? nil : stock_net,
+        roster_value: e[:value], stock_value: sp ? sp[:value] : 0,
+        total_value: e[:value] + (sp ? sp[:value] : 0), net_value: roster_net + stock_net }
     end
 
     @stock_entries.each do |e|
       sp = e[:portfolio]
       next if combined.any? { |c| c[:user].id == sp.user_id }
-      combined << { user: sp.user, roster_net: nil, stock_net: sp.profit_loss,
+      stock_net = sp.profit_loss
+      combined << { user: sp.user, roster_net: nil, stock_net: stock_net,
                     roster_value: nil, stock_value: e[:value],
-                    total_starting: sp.starting_capital, total_value: e[:value],
-                    net_value: e[:value] - sp.starting_capital }
+                    total_value: e[:value], net_value: stock_net }
     end
 
     combined.sort_by { |c| -c[:net_value] }

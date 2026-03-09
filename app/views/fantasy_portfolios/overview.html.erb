@@ -57,9 +57,10 @@
     <% stock_invested = @stock_portfolio ? @stock_portfolio.total_invested : 0 %>
     <% total_invested = roster_invested + stock_invested + collateral %>
     <% total_value = cash + roster_holdings + stock_positions %>
-    <% total_starting = @portfolio ? @portfolio.total_starting_capital : (@stock_portfolio ? @stock_portfolio.starting_capital : 0) %>
-    <% total_pl = total_value - total_starting %>
-    <% total_pl_pct = total_starting > 0 ? (total_pl / total_starting * 100) : 0 %>
+    <% roster_pl = @portfolio ? @portfolio.profit_loss : 0 %>
+    <% stock_pl = @stock_portfolio ? @stock_portfolio.profit_loss : 0 %>
+    <% total_pl = roster_pl + stock_pl %>
+    <% total_pl_pct = total_invested > 0 ? (total_pl / total_invested * 100) : 0 %>
     <div class="fantasy-value-hero">
         <div class="fantasy-value-main">
             <span class="fantasy-value-label">Total Value</span>

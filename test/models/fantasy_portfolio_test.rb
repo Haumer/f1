@@ -71,8 +71,10 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
   end
 
   # profit_loss
-  test "profit_loss is portfolio_value minus starting_capital" do
-    expected = @portfolio.portfolio_value - @portfolio.starting_capital
+  test "profit_loss is sum of active roster entry gains" do
+    expected = @portfolio.active_roster_entries.includes(:driver).sum { |e|
+      Fantasy::Pricing.price_for(e.driver, @portfolio.season) - e.bought_at_elo
+    }
     assert_in_delta expected, @portfolio.profit_loss, 0.01
   end
 

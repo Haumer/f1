@@ -35,8 +35,11 @@
     <% roster_starting = @portfolio ? @portfolio.starting_capital : 0 %>
     <% stock_starting = @stock_portfolio ? @stock_portfolio.starting_capital : 0 %>
     <% total_starting = roster_starting + stock_starting %>
-    <% total_pl = (roster_value - roster_starting) + (stock_value - stock_starting) %>
-    <% total_pl_pct = total_starting > 0 ? (total_pl / total_starting * 100) : 0 %>
+    <% roster_pl = @portfolio ? @portfolio.profit_loss : 0 %>
+    <% stock_pl = @stock_portfolio ? @stock_portfolio.profit_loss : 0 %>
+    <% total_pl = roster_pl + stock_pl %>
+    <% total_invested = (@portfolio ? @portfolio.roster_invested : 0) + (@stock_portfolio ? @stock_portfolio.total_invested : 0) %>
+    <% total_pl_pct = total_invested > 0 ? (total_pl / total_invested * 100) : 0 %>
     <% combined_delta = (@value_delta || 0) + (@stock_value_delta || 0) %>
 
     <div class="fantasy-value-hero">
@@ -93,7 +96,7 @@
         <%# ══════════════════════════════════ %>
 
         <% stock_pl = @stock_portfolio.profit_loss %>
-        <% stock_pl_pct = @stock_portfolio.starting_capital > 0 ? (stock_pl / @stock_portfolio.starting_capital * 100) : 0 %>
+        <% stock_pl_pct = @stock_portfolio.total_invested > 0 ? (stock_pl / @stock_portfolio.total_invested * 100) : 0 %>
         <div class="fantasy-sub-stats">
             <div class="fantasy-sub-stat">
                 <span class="label">Value</span>
@@ -228,7 +231,7 @@
         <%# ══════════════════════════════════ %>
 
         <% pl = @portfolio.profit_loss %>
-        <% pl_pct = @portfolio.starting_capital > 0 ? (pl / @portfolio.starting_capital * 100) : 0 %>
+        <% pl_pct = @portfolio.roster_invested > 0 ? (pl / @portfolio.roster_invested * 100) : 0 %>
         <div class="fantasy-sub-stats">
             <div class="fantasy-sub-stat">
                 <span class="label">Value</span>

@@ -23,7 +23,11 @@ class FantasyPortfolio < ApplicationRecord
   end
 
   def profit_loss
-    (portfolio_value - starting_capital).round(2)
+    active_roster_entries.includes(:driver).sum { |e| Fantasy::Pricing.price_for(e.driver, season) - e.bought_at_elo }.round(2)
+  end
+
+  def roster_invested
+    active_roster_entries.sum(:bought_at_elo)
   end
 
   # Total starting capital across roster + stock (for combined P&L)
