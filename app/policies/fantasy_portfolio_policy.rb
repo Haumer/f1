@@ -25,6 +25,10 @@ class FantasyPortfolioPolicy < ApplicationPolicy
     owner?
   end
 
+  def unified_trade?
+    owner?
+  end
+
   private
 
   def owner?
