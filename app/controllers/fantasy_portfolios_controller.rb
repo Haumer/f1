@@ -107,122 +107,35 @@ class FantasyPortfoliosController < ApplicationController
   def buy
     driver = Driver.find(params[:driver_id])
     result = Fantasy::BuyDriver.new(portfolio: @portfolio, driver: driver, race: @next_race).call
-
-    if result[:error]
-      redirect_to market_fantasy_portfolio_path(@portfolio), alert: result[:error]
-    else
-      check_roster_achievements(@portfolio)
-      auto_create_stock_portfolio_if_ready
-      redirect_to fantasy_overview_path(current_user.username), notice: "#{driver.fullname} added to your roster!"
-    end
+    trade_redirect(result, "#{driver.fullname} added to your roster!")
   end
 
   def buy_multiple
     driver_ids = Array(params[:driver_ids]).map(&:to_i).uniq
-    errors = []
-    bought = []
-
-    ActiveRecord::Base.transaction do
-      driver_ids.each do |driver_id|
-        driver = Driver.find(driver_id)
-        result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
-        if result[:error]
-          errors << "#{driver.fullname}: #{result[:error]}"
-          raise ActiveRecord::Rollback
-        else
-          bought << driver.fullname
-        end
-      end
-    end
-
-    if errors.any?
-      redirect_to market_fantasy_portfolio_path(@portfolio), alert: errors.join(". ")
-    else
-      check_roster_achievements(@portfolio)
-      auto_create_stock_portfolio_if_ready
-      redirect_to fantasy_overview_path(current_user.username), notice: "#{bought.join(' & ')} added to your roster!"
-    end
+    errors, bought = batch_roster_buys(driver_ids)
+    trade_redirect(errors.any? ? { error: errors.join(". ") } : {}, "#{bought.join(' & ')} added to your roster!")
   end
 
   def unified_trade
     roster_ids = Array(params[:roster_driver_ids]).map(&:to_i).uniq.reject(&:zero?)
     stock_orders = Array(params[:stock_orders])
-    errors = []
-    bought_roster = []
-    bought_stock = []
+    errors, bought_roster, bought_stock = execute_unified_trade(roster_ids, stock_orders)
 
-    ActiveRecord::Base.transaction do
-      # Roster buys
-      roster_ids.each do |driver_id|
-        driver = Driver.find(driver_id)
-        result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
-        if result[:error]
-          errors << "#{driver.fullname}: #{result[:error]}"
-          raise ActiveRecord::Rollback
-        else
-          bought_roster << driver.fullname
-        end
-      end
-
-      # Stock trades
-      if stock_orders.any?
-        stock_portfolio = current_user.fantasy_stock_portfolio_for(@portfolio.season)
-        if stock_portfolio
-          stock_orders.each do |order|
-            driver = Driver.find(order[:driver_id])
-            qty = (order[:quantity] || 1).to_i
-            direction = order[:direction]
-
-            result = if direction == "short"
-              Fantasy::Stock::OpenShort.new(portfolio: stock_portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
-            else
-              Fantasy::Stock::BuyShares.new(portfolio: stock_portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
-            end
-
-            if result[:error]
-              errors << "#{driver.fullname}: #{result[:error]}"
-              raise ActiveRecord::Rollback
-            else
-              bought_stock << "#{qty}x #{driver.fullname} (#{direction})"
-            end
-          end
-        end
-      end
-    end
-
-    if errors.any?
-      redirect_to market_fantasy_portfolio_path(@portfolio), alert: errors.join(". ")
-    else
-      check_roster_achievements(@portfolio)
-      auto_create_stock_portfolio_if_ready
-      parts = []
-      parts << "Roster: #{bought_roster.join(' & ')}" if bought_roster.any?
-      parts << "Stocks: #{bought_stock.join(', ')}" if bought_stock.any?
-      redirect_to fantasy_overview_path(current_user.username), notice: parts.join(" | ")
-    end
+    parts = []
+    parts << "Roster: #{bought_roster.join(' & ')}" if bought_roster.any?
+    parts << "Stocks: #{bought_stock.join(', ')}" if bought_stock.any?
+    trade_redirect(errors.any? ? { error: errors.join(". ") } : {}, parts.join(" | "))
   end
 
   def sell
     driver = Driver.find(params[:driver_id])
     result = Fantasy::SellDriver.new(portfolio: @portfolio, driver: driver, race: @next_race).call
-
-    if result[:error]
-      redirect_to fantasy_overview_path(current_user.username), alert: result[:error]
-    else
-      check_roster_achievements(@portfolio)
-      redirect_to fantasy_overview_path(current_user.username), notice: "Sold #{driver.fullname} for #{result[:net].round(0)} (fee: #{result[:fee].round(0)})"
-    end
+    trade_redirect(result, "Sold #{driver.fullname} for #{result[:net]&.round(0)} (fee: #{result[:fee]&.round(0)})", to: fantasy_overview_path(current_user.username))
   end
 
   def buy_team
     result = Fantasy::BuyTeam.new(portfolio: @portfolio, race: @next_race).call
-
-    if result[:error]
-      redirect_to fantasy_overview_path(current_user.username), alert: result[:error]
-    else
-      check_roster_achievements(@portfolio)
-      redirect_to fantasy_overview_path(current_user.username), notice: "New team purchased! You now have #{@portfolio.roster_slots} driver seats."
-    end
+    trade_redirect(result, "New team purchased! You now have #{@portfolio.roster_slots} driver seats.", to: fantasy_overview_path(current_user.username))
   end
 
   # ═══════════════════════════════════════
@@ -246,57 +159,8 @@ class FantasyPortfoliosController < ApplicationController
     @roster_entries = Fantasy::Leaderboard.new(season: @season).call
     @stock_entries = stock_leaderboard_entries
 
-    # Build combined entries per user
-    stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
-
-    combined = @roster_entries.map do |e|
-      p = e[:portfolio]
-      # Roster P&L = driver appreciation only (current values - bought prices)
-      roster_net = p.active_roster_entries.includes(:driver).sum(&:gain_loss).round(2)
-      sp = stock_by_user[p.user_id]
-      stock_net = sp ? sp[:portfolio].profit_loss : nil
-      stock_value = sp ? sp[:value] : 0
-      total_starting = p.total_starting_capital
-      total_value = e[:value] + stock_value  # roster portfolio_value (cash + drivers) + stock positions
-      net_value = total_value - total_starting
-
-      { user: p.user, roster_net: roster_net, stock_net: stock_net,
-        roster_value: e[:value], stock_value: stock_value,
-        total_starting: total_starting, total_value: total_value, net_value: net_value }
-    end
-
-    # Add stock-only users (no roster portfolio)
-    @stock_entries.each do |e|
-      sp = e[:portfolio]
-      next if combined.any? { |c| c[:user].id == sp.user_id }
-      combined << { user: sp.user, roster_net: nil, stock_net: sp.profit_loss,
-                    roster_value: nil, stock_value: e[:value],
-                    total_starting: sp.starting_capital, total_value: e[:value],
-                    net_value: e[:value] - sp.starting_capital }
-    end
-
-    # Last race deltas (use starting capital as baseline for first snapshot)
-    roster_ids = @roster_entries.map { |e| e[:portfolio].id }
-    roster_starts = @roster_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].total_starting_capital }
-    stock_ids = @stock_entries.map { |e| e[:portfolio].id }
-    stock_starts = @stock_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].total_invested }
-    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids, starting_values: roster_starts)
-    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids, starting_values: stock_starts)
-
-    # Map deltas to users for combined view
-    # Roster snapshot already includes stock positions, so roster delta IS the combined delta
-    roster_by_user = @roster_entries.index_by { |e| e[:portfolio].user_id }
-    stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
-    combined.each do |c|
-      r_entry = roster_by_user[c[:user].id]
-      s_entry = stock_by_user[c[:user].id]
-      r_delta = r_entry ? (@roster_deltas[r_entry[:portfolio].id] || 0) : 0
-      # For stock-only users (no roster), use stock delta
-      s_delta = !r_entry && s_entry ? (@stock_deltas[s_entry[:portfolio].id] || 0) : 0
-      c[:last_race] = r_delta + s_delta
-    end
-
-    @combined_entries = combined.sort_by { |c| -c[:net_value] }
+    @combined_entries = build_combined_entries
+    compute_combined_deltas
 
     user_ids = @combined_entries.map { |c| c[:user].id }
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
@@ -317,6 +181,117 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   private
+
+  def trade_redirect(result, success_msg, to: nil)
+    if result[:error]
+      redirect_to(to || market_fantasy_portfolio_path(@portfolio), alert: result[:error])
+    else
+      check_roster_achievements(@portfolio)
+      auto_create_stock_portfolio_if_ready
+      redirect_to(to || fantasy_overview_path(current_user.username), notice: success_msg)
+    end
+  end
+
+  def batch_roster_buys(driver_ids)
+    errors = []
+    bought = []
+    ActiveRecord::Base.transaction do
+      driver_ids.each do |driver_id|
+        driver = Driver.find(driver_id)
+        result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
+        if result[:error]
+          errors << "#{driver.fullname}: #{result[:error]}"
+          raise ActiveRecord::Rollback
+        end
+        bought << driver.fullname
+      end
+    end
+    [errors, bought]
+  end
+
+  def execute_unified_trade(roster_ids, stock_orders)
+    errors = []
+    bought_roster = []
+    bought_stock = []
+
+    ActiveRecord::Base.transaction do
+      roster_ids.each do |driver_id|
+        driver = Driver.find(driver_id)
+        result = Fantasy::BuyDriver.new(portfolio: @portfolio.reload, driver: driver, race: @next_race).call
+        if result[:error]
+          errors << "#{driver.fullname}: #{result[:error]}"
+          raise ActiveRecord::Rollback
+        end
+        bought_roster << driver.fullname
+      end
+
+      if stock_orders.any?
+        stock_portfolio = current_user.fantasy_stock_portfolio_for(@portfolio.season)
+        if stock_portfolio
+          stock_orders.each do |order|
+            driver = Driver.find(order[:driver_id])
+            qty = (order[:quantity] || 1).to_i
+            direction = order[:direction]
+            svc = direction == "short" ? Fantasy::Stock::OpenShort : Fantasy::Stock::BuyShares
+            result = svc.new(portfolio: stock_portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
+            if result[:error]
+              errors << "#{driver.fullname}: #{result[:error]}"
+              raise ActiveRecord::Rollback
+            end
+            bought_stock << "#{qty}x #{driver.fullname} (#{direction})"
+          end
+        end
+      end
+    end
+
+    [errors, bought_roster, bought_stock]
+  end
+
+  def build_combined_entries
+    stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
+
+    combined = @roster_entries.map do |e|
+      p = e[:portfolio]
+      roster_net = p.active_roster_entries.includes(:driver).sum(&:gain_loss).round(2)
+      sp = stock_by_user[p.user_id]
+      stock_value = sp ? sp[:value] : 0
+      total_starting = p.total_starting_capital
+      total_value = e[:value] + stock_value
+      { user: p.user, roster_net: roster_net, stock_net: sp&.dig(:portfolio)&.profit_loss,
+        roster_value: e[:value], stock_value: stock_value,
+        total_starting: total_starting, total_value: total_value, net_value: total_value - total_starting }
+    end
+
+    @stock_entries.each do |e|
+      sp = e[:portfolio]
+      next if combined.any? { |c| c[:user].id == sp.user_id }
+      combined << { user: sp.user, roster_net: nil, stock_net: sp.profit_loss,
+                    roster_value: nil, stock_value: e[:value],
+                    total_starting: sp.starting_capital, total_value: e[:value],
+                    net_value: e[:value] - sp.starting_capital }
+    end
+
+    combined.sort_by { |c| -c[:net_value] }
+  end
+
+  def compute_combined_deltas
+    roster_ids = @roster_entries.map { |e| e[:portfolio].id }
+    roster_starts = @roster_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].total_starting_capital }
+    stock_ids = @stock_entries.map { |e| e[:portfolio].id }
+    stock_starts = @stock_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].total_invested }
+    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids, starting_values: roster_starts)
+    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids, starting_values: stock_starts)
+
+    roster_by_user = @roster_entries.index_by { |e| e[:portfolio].user_id }
+    stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
+    @combined_entries.each do |c|
+      r_entry = roster_by_user[c[:user].id]
+      s_entry = stock_by_user[c[:user].id]
+      r_delta = r_entry ? (@roster_deltas[r_entry[:portfolio].id] || 0) : 0
+      s_delta = !r_entry && s_entry ? (@stock_deltas[s_entry[:portfolio].id] || 0) : 0
+      c[:last_race] = r_delta + s_delta
+    end
+  end
 
   def auto_create_stock_portfolio_if_ready
     return unless Setting.fantasy_stock_market?
