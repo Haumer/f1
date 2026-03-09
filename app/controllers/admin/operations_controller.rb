@@ -29,11 +29,6 @@ module Admin
       redirect_to admin_operations_path, notice: "Elo V2 simulation job enqueued."
     end
 
-    def constructor_elo_v2
-      EloSimulateJob.perform_later
-      redirect_to admin_operations_path, notice: "Elo simulation job enqueued (includes constructor Elo)."
-    end
-
     def backfill_careers
       BackfillCareersJob.perform_later
       redirect_to admin_operations_path, notice: "Career stats backfill job enqueued."
@@ -152,16 +147,5 @@ module Admin
       redirect_to admin_operations_path, notice: "Recalculated dividends for #{races.count} races (deleted #{deleted} old transactions)."
     end
 
-    def recapitalize_fantasy
-      season = Season.find_by(year: Date.current.year.to_s) || Season.sorted_by_year.first
-      avg_elo = Driver.where.not(elo_v2: nil)
-                      .joins(:season_drivers)
-                      .where(season_drivers: { season_id: season.id })
-                      .average(:elo_v2)
-      avg_elo ||= Driver.active.where.not(elo_v2: nil).average(:elo_v2) || 2200
-      new_capital = (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(1)
-      updated = FantasyPortfolio.where(season: season).update_all(cash: new_capital, starting_capital: new_capital)
-      redirect_to admin_operations_path, notice: "Recapitalized #{updated} fantasy portfolio(s) with #{new_capital} credits."
-    end
   end
 end

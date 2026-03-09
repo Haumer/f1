@@ -1,135 +1,142 @@
 <h2>Operations</h2>
 
-<div class="admin-ops-grid">
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-rotate"></i> Sync Season</h3>
-    <p>Fetch schedule and race results from the Jolpica API for a given year.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="sync_season">
-      <div class="admin-op-input-row">
-        <input type="number" name="year" value="<%= Date.current.year %>" min="1950" max="2030" class="admin-input">
-        <button type="submit" class="admin-btn">Sync</button>
-      </div>
-    <% end %>
-  </div>
+<%# ── Data Sync ── %>
+<div class="admin-ops-section">
+  <h3 class="admin-ops-section-title"><i class="fa-solid fa-cloud-arrow-down"></i> Data Sync</h3>
+  <div class="admin-ops-grid">
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-rotate"></i> Sync Season</h3>
+      <p>Fetch schedule and race results from the Jolpica API for a given year.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="sync_season">
+        <div class="admin-op-input-row">
+          <input type="number" name="year" value="<%= Date.current.year %>" min="1950" max="2030" class="admin-input">
+          <button type="submit" class="admin-btn">Sync</button>
+        </div>
+      <% end %>
+    </div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-calculator"></i> Re-simulate Elo V2</h3>
-    <p>Run the full V2 historical simulation from scratch. Updates all driver and race result V2 Elo fields.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="elo_v2_simulate">
-      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will re-simulate all V2 Elo ratings. Continue?">Re-simulate</button>
-    <% end %>
-  </div>
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-database"></i> Full Data Sync</h3>
+      <p>Sync all seasons, re-simulate Elo, backfill careers, compute badges. Takes several minutes.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="full_data_sync">
+        <div class="admin-op-input-row">
+          <input type="number" name="start_year" value="1950" min="1950" max="2030" class="admin-input" placeholder="From">
+          <input type="number" name="end_year" value="<%= Date.current.year %>" min="1950" max="2030" class="admin-input" placeholder="To">
+          <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will run a full data sync and re-simulate everything. This takes several minutes. Continue?">Full Sync</button>
+        </div>
+      <% end %>
+    </div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-building"></i> Re-simulate Constructor Elo V2</h3>
-    <p>Run full Constructor Elo V2 simulation from scratch using combined position metric.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="constructor_elo_v2">
-      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="Re-simulate all Constructor Elo V2? Continue?">Re-simulate</button>
-    <% end %>
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-image"></i> Fetch Wikipedia Images</h3>
+      <p>Download Wikipedia thumbnails for drivers that don't have one yet.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="fetch_wikipedia_images">
+        <button type="submit" class="admin-btn" data-turbo-confirm="Fetch Wikipedia images for all drivers?">Fetch</button>
+      <% end %>
+    </div>
   </div>
+</div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-chart-bar"></i> Backfill Career Stats</h3>
-    <p>Recalculate career stats (wins, podiums, DNFs, etc.) for all drivers from race results.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="backfill_careers">
-      <button type="submit" class="admin-btn" data-turbo-confirm="Backfill career stats for all drivers?">Backfill</button>
-    <% end %>
+<%# ── Elo & Stats ── %>
+<div class="admin-ops-section">
+  <h3 class="admin-ops-section-title"><i class="fa-solid fa-calculator"></i> Elo & Stats</h3>
+  <div class="admin-ops-grid">
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-calculator"></i> Re-simulate Elo V2</h3>
+      <p>Run full V2 historical simulation from scratch. Updates all driver, constructor, and race result Elo fields.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="elo_v2_simulate">
+        <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will re-simulate all V2 Elo ratings. Continue?">Re-simulate</button>
+      <% end %>
+    </div>
+
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-chart-bar"></i> Backfill Career Stats</h3>
+      <p>Recalculate career stats (wins, podiums, DNFs) for all drivers from race results.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="backfill_careers">
+        <button type="submit" class="admin-btn" data-turbo-confirm="Backfill career stats for all drivers?">Backfill</button>
+      <% end %>
+    </div>
+
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-users"></i> Update Active Drivers</h3>
+      <p>Mark drivers as active/inactive based on current season participation.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="update_active_drivers">
+        <button type="submit" class="admin-btn">Update</button>
+      <% end %>
+    </div>
+
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-award"></i> Compute Badges</h3>
+      <p>Recalculate all driver badges from race results and career data.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="compute_badges">
+        <button type="submit" class="admin-btn" data-turbo-confirm="Recompute all driver badges?">Compute</button>
+      <% end %>
+    </div>
   </div>
+</div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-users"></i> Update Active Drivers</h3>
-    <p>Mark drivers as active/inactive based on current season participation.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="update_active_drivers">
-      <button type="submit" class="admin-btn">Update</button>
-    <% end %>
-  </div>
+<%# ── Fantasy Fixes ── %>
+<div class="admin-ops-section">
+  <h3 class="admin-ops-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Fantasy Fixes</h3>
+  <div class="admin-ops-grid">
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-camera"></i> Re-snapshot Race</h3>
+      <p>Re-run portfolio snapshots and stock settlement for a specific race.</p>
+      <% latest_races = Race.joins(:season).where(seasons: { year: Date.current.year.to_s }).order(:round).select(:id, :round, :circuit_id).includes(:circuit) %>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="resnap_portfolios">
+        <div class="admin-op-input-row">
+          <select name="race_id" class="admin-input admin-input-wide">
+            <% latest_races.each do |r| %>
+              <option value="<%= r.id %>">R<%= r.round %> — <%= r.circuit.name %></option>
+            <% end %>
+          </select>
+          <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="Re-snapshot portfolios for this race?">Re-snap</button>
+        </div>
+      <% end %>
+    </div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-database"></i> Full Data Sync</h3>
-    <p>Sync all seasons (1950-present), re-simulate Elo, backfill careers, mark season_end standings, update logos/colors, compute badges. Takes several minutes.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="full_data_sync">
-      <div class="admin-op-input-row">
-        <input type="number" name="start_year" value="1950" min="1950" max="2030" class="admin-input" style="width: 80px;" placeholder="From">
-        <input type="number" name="end_year" value="<%= Date.current.year %>" min="1950" max="2030" class="admin-input" style="width: 80px;" placeholder="To">
-        <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will run a full data sync and re-simulate everything. This takes several minutes. Continue?">Full Sync</button>
-      </div>
-    <% end %>
-  </div>
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-hand-holding-dollar"></i> Recalculate Dividends</h3>
+      <p>Delete and re-calculate all dividends for the current season using the current formula.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="recalc_dividends">
+        <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will delete and recalculate ALL dividends for the current season. Continue?">Recalculate</button>
+      <% end %>
+    </div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-image"></i> Fetch Wikipedia Images</h3>
-    <p>Download Wikipedia thumbnail images for all drivers that don't have one yet. Uses the driver's Wikipedia URL.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="fetch_wikipedia_images">
-      <button type="submit" class="admin-btn" data-turbo-confirm="Fetch Wikipedia images for all drivers?">Fetch</button>
-    <% end %>
-  </div>
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-chart-line"></i> Recalculate Net Demand</h3>
+      <p>Fix stock net_demand counters from active holdings if they've drifted.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="recalc_net_demand">
+        <button type="submit" class="admin-btn" data-turbo-confirm="Recalculate net_demand from holdings?">Recalculate</button>
+      <% end %>
+    </div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-chart-line"></i> Recalculate Net Demand</h3>
-    <p>Recalculate stock net_demand for all drivers from active holdings. Use if demand counters have drifted.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="recalc_net_demand">
-      <button type="submit" class="admin-btn" data-turbo-confirm="Recalculate net_demand from holdings?">Recalculate</button>
-    <% end %>
-  </div>
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-scale-balanced"></i> Fix Short Collateral</h3>
+      <p>Recalculate collateral for active shorts to match current ratio (<%= (FantasyStockPortfolio::COLLATERAL_RATIO * 100).round(0) %>%).</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="fix_collateral">
+        <button type="submit" class="admin-btn" data-turbo-confirm="Recalculate collateral for all active shorts?">Fix Collateral</button>
+      <% end %>
+    </div>
 
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-camera"></i> Re-snapshot Race</h3>
-    <p>Re-run portfolio snapshots and stock settlement for a specific race. Use to fix snapshot data.</p>
-    <% latest_races = Race.joins(:season).where(seasons: { year: Date.current.year.to_s }).order(:round).select(:id, :round, :circuit_id).includes(:circuit) %>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="resnap_portfolios">
-      <div class="admin-op-input-row">
-        <select name="race_id" class="admin-input">
-          <% latest_races.each do |r| %>
-            <option value="<%= r.id %>">R<%= r.round %> — <%= r.circuit.name %></option>
-          <% end %>
-        </select>
-        <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="Re-snapshot portfolios for this race?">Re-snap</button>
-      </div>
-    <% end %>
-  </div>
-
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-magnifying-glass-dollar"></i> Verify Cash Consistency</h3>
-    <p>Check all portfolios for cash discrepancies (starting capital vs current total value). Reports issues > 50 diff.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="verify_cash">
-      <button type="submit" class="admin-btn">Verify</button>
-    <% end %>
-  </div>
-
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-scale-balanced"></i> Fix Short Collateral</h3>
-    <p>Recalculate collateral for all active short positions to match the current COLLATERAL_RATIO (<%= (FantasyStockPortfolio::COLLATERAL_RATIO * 100).round(0) %>%). Use if shorts were opened with an older ratio.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="fix_collateral">
-      <button type="submit" class="admin-btn" data-turbo-confirm="Recalculate collateral for all active shorts?">Fix Collateral</button>
-    <% end %>
-  </div>
-
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-hand-holding-dollar"></i> Recalculate Dividends</h3>
-    <p>Delete all dividend transactions for this season and re-calculate using the current dividend formula. Use after changing dividend logic.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="recalc_dividends">
-      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will delete and recalculate ALL dividends for the current season. Continue?">Recalculate Dividends</button>
-    <% end %>
-  </div>
-
-  <div class="admin-card admin-op-card">
-    <h3><i class="fa-solid fa-coins"></i> Recapitalize Fantasy Portfolios</h3>
-    <p>Reset all current-season fantasy portfolio cash to the computed starting capital (avg Elo × 2.2). Use if portfolios were created before Elo V2 data existed.</p>
-    <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
-      <input type="hidden" name="operation" value="recapitalize_fantasy">
-      <button type="submit" class="admin-btn admin-btn-warning" data-turbo-confirm="This will reset ALL current-season portfolio cash. Continue?">Recapitalize</button>
-    <% end %>
+    <div class="admin-card admin-op-card">
+      <h3><i class="fa-solid fa-magnifying-glass-dollar"></i> Verify Cash Consistency</h3>
+      <p>Check all portfolios for cash discrepancies. Reports issues with > 50 difference.</p>
+      <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
+        <input type="hidden" name="operation" value="verify_cash">
+        <button type="submit" class="admin-btn">Verify</button>
+      <% end %>
+    </div>
   </div>
 </div>

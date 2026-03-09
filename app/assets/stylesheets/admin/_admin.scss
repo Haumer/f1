@@ -11,6 +11,14 @@ $admin-sidebar-width: 240px;
   min-height: 100vh;
 }
 
+.admin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
 .admin-sidebar {
   width: $admin-sidebar-width;
   background: $bg-dark-card;
@@ -23,6 +31,7 @@ $admin-sidebar-width: 240px;
   left: 0;
   bottom: 0;
   z-index: 100;
+  transition: transform 0.2s ease;
 }
 
 .admin-logo {
@@ -52,6 +61,7 @@ $admin-sidebar-width: 240px;
 .admin-nav {
   flex: 1;
   padding: 12px 0;
+  overflow-y: auto;
 }
 
 .admin-nav-link {
@@ -63,7 +73,7 @@ $admin-sidebar-width: 240px;
   text-decoration: none;
   font-size: 14px;
   transition: background 0.15s, color 0.15s;
-  i { width: 18px; text-align: center; }
+  i { width: 18px; text-align: center; flex-shrink: 0; }
   &:hover { background: rgba(255,255,255,0.08); color: $text-on-dark; }
   &.active { background: rgba(255,255,255,0.12); color: $text-on-dark; border-left: 3px solid $accent-red; }
 }
@@ -71,6 +81,31 @@ $admin-sidebar-width: 240px;
 .admin-sidebar-footer {
   border-top: 1px solid rgba($text-on-dark, 0.1);
   padding: 8px 0;
+}
+
+// Top bar (mobile only)
+.admin-topbar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-hamburger {
+  display: none;
+  background: none;
+  border: 1px solid $border-subtle;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 18px;
+  color: $text-primary;
+  cursor: pointer;
+  &:hover { background: rgba(0,0,0,0.05); }
+}
+
+.admin-topbar-title {
+  font-weight: $weight-bold;
+  font-size: 16px;
 }
 
 .admin-main {
@@ -90,8 +125,8 @@ $admin-sidebar-width: 240px;
 // Stats Grid
 .admin-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
   margin-bottom: 32px;
 }
 
@@ -121,7 +156,7 @@ $admin-sidebar-width: 240px;
 // Cards
 .admin-cards-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -129,17 +164,17 @@ $admin-sidebar-width: 240px;
 .admin-card {
   background: $bg-card;
   border-radius: $radius-md;
-  padding: 24px;
+  padding: 20px;
   box-shadow: $shadow-md;
   border: 1px solid $border-subtle;
   margin-bottom: 16px;
 
   h3 {
-    font-size: 16px;
-    margin: 0 0 8px;
+    font-size: 15px;
+    margin: 0 0 6px;
     i { color: $text-secondary; margin-right: 6px; }
   }
-  p { font-size: 14px; color: $text-secondary; margin-bottom: 16px; }
+  p { font-size: 13px; color: $text-secondary; margin-bottom: 12px; line-height: 1.4; }
 }
 
 // Buttons
@@ -155,6 +190,7 @@ $admin-sidebar-width: 240px;
   cursor: pointer;
   text-decoration: none;
   transition: background 0.15s;
+  white-space: nowrap;
   &:hover { opacity: 0.85; color: $text-on-dark; }
 }
 
@@ -178,6 +214,7 @@ $admin-sidebar-width: 240px;
   gap: 8px;
   margin-bottom: 24px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 // Settings Form
@@ -221,11 +258,36 @@ $admin-sidebar-width: 240px;
   .param-desc { color: $text-secondary; font-size: 13px; }
 }
 
+// Admin table (analytics, etc.)
+.admin-table {
+  width: 100%;
+  font-size: 14px;
+  border-collapse: collapse;
+  th { text-align: left; padding: 8px 12px; font-weight: 600; border-bottom: 1px solid $border-color; }
+  td { padding: 8px 12px; border-bottom: 1px solid $border-subtle; }
+}
+
 // Operations
+.admin-ops-section {
+  margin-bottom: 32px;
+}
+
+.admin-ops-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $text-secondary;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid $border-subtle;
+  i { margin-right: 6px; }
+}
+
 .admin-ops-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
 }
 
 .admin-op-card {
@@ -240,6 +302,7 @@ $admin-sidebar-width: 240px;
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .admin-input {
@@ -250,12 +313,148 @@ $admin-sidebar-width: 240px;
   width: 100px;
   background: $bg-card;
   color: $text-primary;
+  min-width: 0;
 }
 
-// Mobile
+.admin-input-wide {
+  width: auto;
+  min-width: 160px;
+  flex: 1;
+}
+
+// Alerts
+.admin-alerts-section {
+  margin-bottom: 24px;
+  h3 { margin-bottom: 12px; }
+}
+
+.admin-alert {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  padding: 16px;
+  margin-bottom: 8px;
+  &-warning { border-left: 3px solid $warning-orange; }
+  &-error { border-left: 3px solid $accent-red; }
+}
+
+.admin-alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.admin-alert-meta {
+  font-size: 12px;
+  color: $text-tertiary;
+}
+
+.admin-alert-message {
+  font-size: 12px;
+  color: $text-secondary;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 8px 12px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 8px;
+  overflow-x: auto;
+}
+
+// ── Mobile ──
 @media (max-width: 768px) {
-  .admin-sidebar { width: 60px; padding: 0; }
-  .admin-logo a { font-size: 0; }
-  .admin-nav-link { justify-content: center; span, div { display: none; } }
-  .admin-main { margin-left: 60px; padding: 16px; }
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .admin-sidebar-open {
+    .admin-sidebar { transform: translateX(0); }
+    .admin-overlay { display: block; }
+  }
+
+  .admin-topbar {
+    display: flex;
+  }
+
+  .admin-hamburger {
+    display: block;
+  }
+
+  .admin-main {
+    margin-left: 0;
+    padding: 16px;
+
+    h2 { font-size: 18px; margin-bottom: 16px; }
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .admin-stat-card {
+    padding: 12px;
+  }
+
+  .admin-stat-value {
+    font-size: 18px;
+  }
+
+  .admin-cards-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-ops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-card {
+    padding: 16px;
+  }
+
+  .admin-op-input-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .admin-input { width: 100%; }
+    .admin-btn { width: 100%; text-align: center; }
+  }
+
+  .admin-input-wide {
+    min-width: unset;
+  }
+
+  .admin-params-table {
+    font-size: 13px;
+    .param-label { width: auto; }
+    .param-desc { display: none; }
+  }
+
+  .admin-table {
+    font-size: 13px;
+    th, td { padding: 6px 8px; }
+  }
+
+  .admin-period-tabs {
+    gap: 6px;
+  }
+
+  .admin-alert-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+// Tablet tweaks
+@media (min-width: 769px) and (max-width: 1024px) {
+  .admin-main {
+    padding: 24px;
+  }
+
+  .admin-ops-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

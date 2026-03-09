@@ -10,6 +10,7 @@
   </head>
   <body>
     <div class="admin-layout">
+      <div class="admin-overlay" onclick="document.body.classList.remove('admin-sidebar-open')"></div>
       <aside class="admin-sidebar">
         <div class="admin-logo">
           <%= link_to "F1 ELO", root_path %>
@@ -17,31 +18,37 @@
         </div>
         <nav class="admin-nav">
           <%= link_to admin_root_path, class: "admin-nav-link #{'active' if controller_name == 'dashboard'}" do %>
-            <i class="fa-solid fa-gauge"></i> Dashboard
+            <i class="fa-solid fa-gauge"></i> <span>Dashboard</span>
           <% end %>
           <%= link_to admin_settings_path, class: "admin-nav-link #{'active' if controller_name == 'settings'}" do %>
-            <i class="fa-solid fa-sliders"></i> Settings
+            <i class="fa-solid fa-sliders"></i> <span>Settings</span>
           <% end %>
           <%= link_to admin_operations_path, class: "admin-nav-link #{'active' if controller_name == 'operations'}" do %>
-            <i class="fa-solid fa-gears"></i> Operations
+            <i class="fa-solid fa-gears"></i> <span>Operations</span>
           <% end %>
           <%= link_to admin_analytics_path, class: "admin-nav-link #{'active' if controller_name == 'analytics'}" do %>
-            <i class="fa-solid fa-chart-bar"></i> Analytics
+            <i class="fa-solid fa-chart-bar"></i> <span>Analytics</span>
           <% end %>
           <%= link_to admin_experiments_path, class: "admin-nav-link #{'active' if controller_name == 'experiments'}" do %>
-            <i class="fa-solid fa-flask"></i> Experiments
+            <i class="fa-solid fa-flask"></i> <span>Experiments</span>
           <% end %>
         </nav>
         <div class="admin-sidebar-footer">
           <%= link_to root_path, class: "admin-nav-link" do %>
-            <i class="fa-solid fa-arrow-left"></i> Back to Site
+            <i class="fa-solid fa-arrow-left"></i> <span>Back to Site</span>
           <% end %>
           <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "admin-nav-link" do %>
-            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+            <i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span>
           <% end %>
         </div>
       </aside>
       <main class="admin-main">
+        <div class="admin-topbar">
+          <button class="admin-hamburger" onclick="document.body.classList.toggle('admin-sidebar-open')" aria-label="Toggle menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <span class="admin-topbar-title"><%= controller_name.titleize %></span>
+        </div>
         <% if notice.present? %>
           <div class="flash flash-notice"><%= notice %></div>
         <% end %>
