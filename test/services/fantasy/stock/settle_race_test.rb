@@ -18,10 +18,8 @@ class Fantasy::Stock::SettleRaceTest < ActiveSupport::TestCase
   end
 
   test "pays dividends to long holders based on race result position" do
-    cash_before = @portfolio.cash
     Fantasy::Stock::SettleRace.new(race: @race).call
 
-    # verstappen won (P1) -> flat base 1.25 + surprise bonus (if overperforming rank)
     @portfolio.reload
 
     tx = @portfolio.transactions.find_by(kind: "dividend", driver: drivers(:verstappen))
@@ -44,20 +42,17 @@ class Fantasy::Stock::SettleRaceTest < ActiveSupport::TestCase
     assert_equal tx_count, @portfolio.transactions.count
   end
 
-  test "dividend rate for P1 is 0.5%" do
-    assert_equal 0.005, Fantasy::Stock::SettleRace::DIVIDEND_RATES[1]
+  test "dividend base is 0.10" do
+    assert_equal 0.10, Fantasy::Stock::SettleRace::DIVIDEND_BASE
   end
 
-  test "dividend rate for P2 is 0.3%" do
-    assert_equal 0.003, Fantasy::Stock::SettleRace::DIVIDEND_RATES[2]
+  test "dividend surprise bonus is 0.02" do
+    assert_equal 0.02, Fantasy::Stock::SettleRace::DIVIDEND_SURPRISE_BONUS
   end
 
-  test "dividend rate for P3 is 0.2%" do
-    assert_equal 0.002, Fantasy::Stock::SettleRace::DIVIDEND_RATES[3]
-  end
-
-  test "dividend rate for P4-P10 is 0.1%" do
-    assert_equal 0.001, Fantasy::Stock::SettleRace::POINTS_DIVIDEND_RATE
+  test "constructor multiplier range is 0.5 to 5.0" do
+    assert_equal 0.5, Fantasy::Stock::SettleRace::CONSTRUCTOR_MULT_MIN
+    assert_equal 5.0, Fantasy::Stock::SettleRace::CONSTRUCTOR_MULT_MAX
   end
 
   test "borrow fee rate is 0.25%" do
