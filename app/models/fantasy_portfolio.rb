@@ -107,10 +107,7 @@ class FantasyPortfolio < ApplicationRecord
 
   def value_change_since_last_race
     last_two = snapshots.order(created_at: :desc).limit(2).to_a
-    if last_two.size >= 2
-      last_two[0].value - last_two[1].value
-    elsif last_two.size == 1
-      last_two[0].value - total_starting_capital
-    end
+    return nil unless last_two.size >= 2
+    last_two[0].value - last_two[1].value
   end
 end
