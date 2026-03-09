@@ -6,7 +6,10 @@ class EloRatingV2
 
     # Run full historical simulation from scratch
     def self.simulate_all!
-        races = Race.includes(race_results: :driver).order(:date, :round).to_a
+        indy_circuit_ids = Circuit.where(circuit_ref: "indianapolis").pluck(:id)
+        races = Race.includes(race_results: :driver)
+                    .where.not(circuit_id: indy_circuit_ids, year: 1950..1960)
+                    .order(:date, :round).to_a
         races_per_year = Race.group(:year).count
 
         elo = {}
