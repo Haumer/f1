@@ -5,51 +5,207 @@
         <div class="page-hero-bg"></div>
         <div class="page-hero-content">
             <h1 class="page-hero-title">Constructors</h1>
+            <p class="page-hero-meta"><%= @team_standings.size %> teams on the <%= @season.year %> grid</p>
         </div>
     </div>
 
-    <% if @active_constructors.any? %>
-        <div class="table-header"><h4>Current Grid</h4></div>
-        <div class="constructors-grid">
-            <% @active_constructors.each do |constructor| %>
-                <%= link_to constructor_path(constructor), class: "constructor-grid-item card" do %>
-                    <% if constructor.logo_url.present? %>
-                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-grid-logo" loading="lazy" onerror="this.style.display='none'">
-                    <% end %>
-                    <span class="constructor-grid-name"><%= constructor.name %></span>
-                    <span class="constructor-grid-nationality"><%= constructor.nationality %></span>
-                <% end %>
+    <%# 1. Constructor Standings Table %>
+    <% if @team_standings.any? %>
+        <div class="table-header">
+            <%= link_to grid_constructors_path, class: "table-header-link" do %>
+                <h3><%= @season.year %> Constructor Standings <i class="fa-solid fa-arrow-right"></i></h3>
             <% end %>
         </div>
-    <% end %>
-
-    <% if @historical_constructors.any? %>
-        <div class="table-header" style="margin-top: 16px;"><h4>Historical Constructors</h4></div>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact" data-controller="sortable-table">
                     <thead>
                         <tr>
+                            <th class="text-center" data-sort="num">#</th>
+                            <th></th>
                             <th data-sort="text">Constructor</th>
-                            <th data-sort="text">Nationality</th>
-                            <th class="text-center" data-sort="num">Races</th>
+                            <th>Drivers</th>
+                            <th class="text-center" data-sort="num">Pts</th>
+                            <th class="text-center" data-sort="num">Wins</th>
+                            <th class="text-center" data-sort="num">Podiums</th>
+                            <th class="text-center" data-sort="num">Elo</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% @historical_constructors.each do |constructor| %>
-                            <tr>
-                                <td>
+                        <% @team_standings.each_with_index do |entry, idx| %>
+                            <% constructor = entry[:constructor] %>
+                            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                            <% pos = idx + 1 %>
+                            <tr class="<%= 'podium-row podium-p1' if pos == 1 %><%= 'podium-row podium-p2' if pos == 2 %><%= 'podium-row podium-p3' if pos == 3 %>">
+                                <td class="text-center position-cell"><%= pos %></td>
+                                <td class="icon-cell">
                                     <% if constructor.logo_url.present? %>
-                                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" style="vertical-align: middle; margin-right: 4px;">
+                                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-sm" loading="lazy" onerror="this.style.display='none'">
+                                    <% else %>
+                                        <span class="srg-color-dot" style="background: <%= color %>"></span>
                                     <% end %>
+                                </td>
+                                <td class="name-cell">
                                     <%= link_to constructor.name, constructor_path(constructor) %>
                                 </td>
-                                <td class="text-secondary"><%= constructor.nationality %></td>
-                                <td class="text-center"><%= constructor.race_count %></td>
+                                <td class="text-secondary" style="font-size: 12px;">
+                                    <% entry[:drivers].each_with_index do |driver, di| %>
+                                        <%= link_to driver.surname, driver_path(driver) %><%= ', ' unless di == entry[:drivers].size - 1 %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><strong><%= entry[:points].round %></strong></td>
+                                <td class="text-center"><%= entry[:wins] %></td>
+                                <td class="text-center"><%= entry[:podiums] %></td>
+                                <td class="text-center">
+                                    <% if entry[:elo] %>
+                                        <span class="text-secondary" style="font-family: var(--mono-font); font-variant-numeric: tabular-nums;"><%= entry[:elo] %></span>
+                                    <% end %>
+                                </td>
                             </tr>
                         <% end %>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    <% end %>
+
+    <%# 2. Championship History %>
+    <% if @championship_leaders.any? %>
+        <div class="table-header"><h3>Constructor Championships</h3></div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th data-sort="text">Constructor</th>
+                            <th class="text-center">Titles</th>
+                            <th>Years</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @championship_leaders.each do |entry| %>
+                            <% constructor = entry[:constructor] %>
+                            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                            <tr>
+                                <td class="icon-cell">
+                                    <% if constructor.logo_url.present? %>
+                                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-sm" loading="lazy" onerror="this.style.display='none'">
+                                    <% end %>
+                                </td>
+                                <td class="name-cell"><%= link_to constructor.name, constructor_path(constructor) %></td>
+                                <td class="text-center"><strong><%= entry[:count] %></strong></td>
+                                <td>
+                                    <% entry[:years].each do |year| %>
+                                        <%= link_to year, season_path(year), class: "constructor-champ-year-link" %>
+                                    <% end %>
+                                </td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+
+    <%# 3. Elo Rankings %>
+    <% if @elo_rankings.any? %>
+        <div class="table-header">
+            <%= link_to elo_rankings_constructors_path, class: "table-header-link" do %>
+                <h3>Elo Rankings <i class="fa-solid fa-arrow-right"></i></h3>
+            <% end %>
+        </div>
+        <div class="constructor-elo-bars">
+            <% max_elo = @elo_rankings.first.display_elo || 1 %>
+            <% @elo_rankings.each_with_index do |constructor, idx| %>
+                <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                <% elo = constructor.display_elo&.round || 0 %>
+                <% pct = (elo.to_f / max_elo * 100).round(1) %>
+                <%= link_to constructor_path(constructor), class: "constructor-elo-bar-row" do %>
+                    <span class="constructor-elo-bar-pos"><%= idx + 1 %></span>
+                    <% if constructor.logo_url.present? %>
+                        <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" loading="lazy" onerror="this.style.display='none'">
+                    <% end %>
+                    <span class="constructor-elo-bar-name"><%= constructor.name %></span>
+                    <div class="constructor-elo-bar-track">
+                        <div class="constructor-elo-bar-fill" style="width: <%= pct %>%; background: <%= color %>;"></div>
+                    </div>
+                    <span class="constructor-elo-bar-value"><%= elo %></span>
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%# 4. Explore Sub-pages %>
+    <div class="explore-archive">
+        <div class="explore-header">Explore</div>
+        <div class="explore-grid">
+            <%= link_to grid_constructors_path, class: "card explore-card" do %>
+                <div class="explore-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="explore-info">
+                    <span class="explore-name"><%= @season.year %> Grid</span>
+                    <span class="explore-desc">Team lineups & form</span>
+                </div>
+            <% end %>
+            <%= link_to elo_rankings_constructors_path, class: "card explore-card" do %>
+                <div class="explore-icon"><i class="fa-solid fa-ranking-star"></i></div>
+                <div class="explore-info">
+                    <span class="explore-name">Elo Rankings</span>
+                    <span class="explore-desc">Constructor power rankings</span>
+                </div>
+            <% end %>
+            <%= link_to families_constructors_path, class: "card explore-card" do %>
+                <div class="explore-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                <div class="explore-info">
+                    <span class="explore-name">Team Families</span>
+                    <span class="explore-desc">Lineages & evolution</span>
+                </div>
+            <% end %>
+            <%= link_to best_pairings_constructors_path, class: "card explore-card" do %>
+                <div class="explore-icon"><i class="fa-solid fa-handshake"></i></div>
+                <div class="explore-info">
+                    <span class="explore-name">Best Pairings</span>
+                    <span class="explore-desc">Top teammate combos</span>
+                </div>
+            <% end %>
+        </div>
+    </div>
+
+    <%# 5. Historical Constructors %>
+    <% if @historical_constructors.any? %>
+        <div class="table-header"><h3>Historical Constructors</h3></div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <div data-controller="expandable-table" data-expandable-table-limit-value="15">
+                    <table class="current-driver-standings compact" data-controller="sortable-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="text">Constructor</th>
+                                <th data-sort="text">Nationality</th>
+                                <th class="text-center" data-sort="num">Races</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @historical_constructors.each do |constructor| %>
+                                <tr>
+                                    <td>
+                                        <% if constructor.logo_url.present? %>
+                                            <img src="<%= constructor.logo_url %>" alt="" class="constructor-logo-xs" style="vertical-align: middle; margin-right: 4px;">
+                                        <% end %>
+                                        <%= link_to constructor.name, constructor_path(constructor) %>
+                                    </td>
+                                    <td class="text-secondary"><%= constructor.nationality %></td>
+                                    <td class="text-center"><%= constructor.race_count %></td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                    <% if @historical_constructors.size > 15 %>
+                        <button class="expand-table-btn" data-action="expandable-table#toggle" data-expandable-table-target="button">
+                            Show all <%= @historical_constructors.size %> constructors
+                        </button>
+                    <% end %>
+                </div>
             </div>
         </div>
     <% end %>

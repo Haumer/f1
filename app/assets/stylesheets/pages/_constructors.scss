@@ -1,7 +1,7 @@
 // Constructor index grid
 .constructors-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
     margin-bottom: 24px;
 }
@@ -10,38 +10,67 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 20px 16px;
+    padding: 16px;
     border-top: 3px solid var(--team-color, $border-color);
     transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
     &:hover {
         border-color: var(--team-color, $accent-red);
         box-shadow: $shadow-md;
     }
 }
+.constructor-grid-rank {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+.constructor-grid-pos {
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
 .constructor-grid-logo {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     transition: opacity 0.15s;
-    &:hover { opacity: 0.8; }
 }
 .constructor-grid-name {
     font-weight: 700;
     font-size: 14px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
     transition: color 0.15s;
-    &:hover { color: var(--team-color, $text-primary); }
 }
-.constructor-grid-nationality {
-    font-size: 12px;
-    color: $text-secondary;
-    margin-bottom: 4px;
+.constructor-grid-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.constructor-grid-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+.constructor-grid-stat-value {
+    font-family: $mono-font;
+    font-size: 14px;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+    color: $text-primary;
+}
+.constructor-grid-stat-label {
+    font-size: 10px;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 .constructor-grid-drivers {
     width: 100%;
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: auto;
+    padding-top: 10px;
     border-top: 1px solid $border-color;
     display: flex;
     flex-direction: column;
@@ -52,7 +81,7 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    a { color: $text-secondary; &:hover { color: var(--team-color, $text-primary); } }
+    color: $text-secondary;
 }
 .constructor-grid-driver-elo {
     margin-left: auto;
@@ -60,6 +89,238 @@
     font-size: 11px;
     color: $text-tertiary;
     font-variant-numeric: tabular-nums;
+}
+
+// Grid detail page (season-specific)
+.team-grid-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.team-grid-card {
+    border-left: 4px solid var(--team-color, $border-color);
+    padding: 20px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    &:hover { box-shadow: $shadow-md; }
+}
+.team-grid-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.team-grid-pos {
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+    color: var(--team-color, $text-tertiary);
+    min-width: 28px;
+}
+.team-grid-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.team-grid-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.team-grid-name {
+    font-weight: $weight-bold;
+    font-size: 20px;
+    color: var(--team-color, $text-primary);
+    transition: opacity 0.15s;
+    &:hover { opacity: 0.8; }
+}
+.team-grid-nationality {
+    font-size: 12px;
+    color: $text-secondary;
+}
+.team-grid-elo {
+    font-family: $mono-font;
+    font-size: 18px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    flex-shrink: 0;
+}
+.team-grid-elo-label {
+    font-size: 10px;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-left: 2px;
+}
+.team-grid-season-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid $border-color;
+}
+.team-grid-stat-pill {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.team-grid-stat-num {
+    font-family: $mono-font;
+    font-size: 16px;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+    color: $text-primary;
+}
+.team-grid-stat-lbl {
+    font-size: 11px;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.team-grid-drivers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.team-grid-driver-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.team-grid-driver-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.team-grid-driver-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: $bg-surface;
+    border: 2px solid var(--team-color, $border-color);
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+    }
+}
+.team-grid-driver-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: $text-tertiary;
+    font-size: 14px;
+}
+.team-grid-driver-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.team-grid-driver-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.team-grid-driver-name {
+    font-size: 14px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+    &:hover { color: var(--team-color, $text-primary); }
+}
+.team-grid-driver-elo {
+    font-family: $mono-font;
+    font-size: 11px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+// Championship year links
+.constructor-champ-year-link {
+    display: inline-block;
+    font-family: $mono-font;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: $text-secondary;
+    margin-right: 4px;
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
+// Elo bar chart
+.constructor-elo-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+.constructor-elo-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+    transition: border-color 0.15s;
+    &:hover {
+        border-color: $border-accent;
+        .constructor-elo-bar-name { color: $text-primary; }
+    }
+}
+.constructor-elo-bar-pos {
+    font-family: $mono-font;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    min-width: 16px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.constructor-elo-bar-name {
+    font-size: 13px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    min-width: 90px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+.constructor-elo-bar-track {
+    flex: 1;
+    height: 6px;
+    background: $bg-surface;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.constructor-elo-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s $ease-out;
+}
+.constructor-elo-bar-value {
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+    min-width: 40px;
+    text-align: right;
+}
+
+@media (max-width: 480px) {
+    .constructor-elo-bar-name { min-width: 70px; font-size: 12px; }
+    .constructor-elo-bar-row { gap: 6px; padding: 6px 8px; }
 }
 
 // Constructor families / lineages
@@ -282,14 +543,24 @@
         grid-template-columns: 1fr;
     }
     .constructors-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
+    .constructor-grid-logo { width: 44px; height: 44px; }
+    .constructor-grid-stats { gap: 8px; }
+    .constructor-grid-stat-value { font-size: 12px; }
     .lineage-cards {
         grid-template-columns: 1fr;
     }
     .families-grid {
         grid-template-columns: 1fr;
     }
+    .team-grid-card { padding: 14px; }
+    .team-grid-logo { width: 36px; height: 36px; }
+    .team-grid-name { font-size: 16px; }
+    .team-grid-driver-avatar { width: 32px; height: 32px; }
+    .team-grid-elo { font-size: 15px; }
+    .team-grid-driver-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .constructor-driver-form { flex-wrap: wrap; }
 }
 
 .constructor-support-action {

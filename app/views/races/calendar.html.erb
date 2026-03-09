@@ -30,10 +30,11 @@
       focus_week = @focus_race&.date&.beginning_of_week(:monday)
     %>
 
+    <%# Show Thu-Sun only (day offsets 3-6 from Monday) %>
     <div class="cal" data-controller="calendar">
         <div class="cal-header">
             <div class="cal-gutter"></div>
-            <% %w[Mon Tue Wed Thu Fri Sat Sun].each do |day| %>
+            <% %w[Thu Fri Sat Sun].each do |day| %>
                 <div class="cal-day-name"><%= day %></div>
             <% end %>
         </div>
@@ -65,7 +66,7 @@
                         <span class="cal-month"><%= week_start.strftime("%b") %></span>
                     <% end %>
                 </div>
-                <% (0..6).each do |day_offset| %>
+                <% (3..6).each do |day_offset| %>
                     <% date = week_start + day_offset.days %>
                     <% race = race_dates[date] %>
                     <% day_sessions = @sessions_by_date[date] %>
@@ -84,12 +85,12 @@
                             <% if is_race_day %>
                                 <% if completed && winner %>
                                     <%= link_to race_path(race), class: "cal-race-link" do %>
-                                        <span class="cal-circuit"><%= race.circuit.name.truncate(18) %></span>
+                                        <span class="cal-circuit"><%= race.circuit.name.truncate(24) %></span>
                                         <span class="cal-winner"><i class="fa-solid fa-flag-checkered"></i> <%= winner.driver.surname %></span>
                                     <% end %>
                                 <% else %>
                                     <%= link_to race_path(race), class: "cal-race-link" do %>
-                                        <span class="cal-circuit"><%= race.circuit.name.truncate(18) %></span>
+                                        <span class="cal-circuit"><%= race.circuit.name.truncate(24) %></span>
                                     <% end %>
                                 <% end %>
                             <% end %>

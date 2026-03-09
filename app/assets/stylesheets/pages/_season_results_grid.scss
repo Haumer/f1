@@ -3,10 +3,10 @@
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
-    font-size: 12px;
+    font-size: 13px;
 
     th, td {
-        padding: 4px 6px;
+        padding: 5px 8px;
         white-space: nowrap;
         border-bottom: 1px solid $border-color;
     }
@@ -16,12 +16,9 @@
         top: 0;
         background: $bg-card;
         z-index: 1;
-        font-family: $mono-font;
-        font-size: 10px;
-        font-weight: $weight-bold;
+        font-size: 11px;
+        font-weight: $weight-semi;
         color: $text-tertiary;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
 
         a {
             color: $text-tertiary;
@@ -31,17 +28,22 @@
     }
 
     tbody tr {
+        border-left: 3px solid transparent;
         transition: background $t-fast;
-        &:hover { background: rgba(255, 255, 255, 0.03); }
+        &:hover { background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04); }
+    }
+
+    @media (max-width: 480px) {
+        font-size: 12px;
+        th, td { padding: 4px 6px; }
     }
 }
 
 // Fixed columns
 .srg-pos {
     width: 28px;
-    font-family: $mono-font;
     font-weight: $weight-bold;
-    color: $text-tertiary;
+    font-size: 14px;
 }
 
 .srg-driver {
@@ -50,8 +52,7 @@
     background: $bg-card;
     z-index: 2;
     min-width: 100px;
-    font-weight: $weight-semi;
-    font-size: 13px;
+    white-space: nowrap;
 
     a {
         color: $text-primary;

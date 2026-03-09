@@ -1,3 +1,5 @@
+<% content_for(:title) { "#{@season_year} Constructor Grid" } %>
+<% content_for(:description) { "#{@season_year} F1 constructor grid — team lineups, driver Elo ratings, season stats, and recent form." } %>
 <div class="homepage-container">
     <div class="page-hero page-hero-compact">
         <div class="page-hero-bg"></div>
@@ -8,27 +10,80 @@
         </div>
     </div>
 
-    <div class="constructors-grid">
-        <% @team_grid.each do |entry| %>
+    <div class="team-grid-detail">
+        <% @team_grid.each_with_index do |entry, idx| %>
             <% constructor = entry[:constructor] %>
             <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
-            <div class="constructor-grid-item card" style="--team-color: <%= color %>">
-                <% if constructor.logo_url.present? %>
-                    <%= link_to constructor_path(constructor) do %>
-                        <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-grid-logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="team-grid-card card" style="--team-color: <%= color %>">
+                <div class="team-grid-header">
+                    <span class="team-grid-pos">P<%= idx + 1 %></span>
+                    <% if constructor.logo_url.present? %>
+                        <%= link_to constructor_path(constructor) do %>
+                            <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="team-grid-logo" loading="lazy" onerror="this.style.display='none'">
+                        <% end %>
                     <% end %>
-                <% end %>
-                <%= link_to constructor.name, constructor_path(constructor), class: "constructor-grid-name" %>
-                <span class="constructor-grid-nationality"><%= constructor.nationality %></span>
-                <div class="constructor-grid-drivers">
+                    <div class="team-grid-info">
+                        <%= link_to constructor.name, constructor_path(constructor), class: "team-grid-name" %>
+                        <span class="team-grid-nationality"><%= constructor.nationality %></span>
+                    </div>
+                    <% if entry[:elo] %>
+                        <span class="team-grid-elo"><%= entry[:elo] %> <span class="team-grid-elo-label">Elo</span></span>
+                    <% end %>
+                </div>
+
+                <div class="team-grid-season-stats">
+                    <div class="team-grid-stat-pill">
+                        <span class="team-grid-stat-num"><%= entry[:points].round %></span>
+                        <span class="team-grid-stat-lbl">pts</span>
+                    </div>
+                    <div class="team-grid-stat-pill">
+                        <span class="team-grid-stat-num"><%= entry[:wins] %></span>
+                        <span class="team-grid-stat-lbl"><%= entry[:wins] == 1 ? 'win' : 'wins' %></span>
+                    </div>
+                    <div class="team-grid-stat-pill">
+                        <span class="team-grid-stat-num"><%= entry[:podiums] %></span>
+                        <span class="team-grid-stat-lbl"><%= entry[:podiums] == 1 ? 'podium' : 'podiums' %></span>
+                    </div>
+                </div>
+
+                <div class="team-grid-drivers">
                     <% entry[:drivers].each do |driver| %>
-                        <div class="constructor-grid-driver">
-                            <% if driver.country.present? %>
-                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                            <% end %>
-                            <%= link_to "#{driver.forename[0]}. #{driver.surname}", driver_path(driver) %>
-                            <% if driver.display_elo %>
-                                <span class="constructor-grid-driver-elo"><%= driver.display_elo.round %></span>
+                        <div class="team-grid-driver-row">
+                            <div class="team-grid-driver-info">
+                                <div class="team-grid-driver-avatar">
+                                    <% if driver.image_url.present? %>
+                                        <img src="<%= driver.image_url %>" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                    <% end %>
+                                    <span class="team-grid-driver-avatar-placeholder" style="<%= 'display:none' if driver.image_url.present? %>"><i class="fa-solid fa-user"></i></span>
+                                </div>
+                                <div class="team-grid-driver-details">
+                                    <div class="team-grid-driver-name-row">
+                                        <% if driver.country.present? %>
+                                            <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
+                                        <% end %>
+                                        <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver), class: "team-grid-driver-name" %>
+                                    </div>
+                                    <% if driver.display_elo %>
+                                        <span class="team-grid-driver-elo"><%= driver.display_elo.round %> Elo</span>
+                                    <% end %>
+                                </div>
+                            </div>
+                            <% form = @recent_form[driver.id] %>
+                            <% if form&.any? %>
+                                <div class="constructor-driver-form">
+                                    <% form.reverse.each do |rr| %>
+                                        <% pos = rr.position_order %>
+                                        <% css = case pos
+                                                  when 1 then 'form-dot-gold'
+                                                  when 2, 3 then 'form-dot-podium'
+                                                  when 4..10 then 'form-dot-points'
+                                                  else 'form-dot-out'
+                                                  end %>
+                                        <span class="form-dot <%= css %>" title="<%= rr.race.circuit.name %>: P<%= pos || 'DNF' %>">
+                                            <%= pos ? "P#{pos}" : 'DNF' %>
+                                        </span>
+                                    <% end %>
+                                </div>
                             <% end %>
                         </div>
                     <% end %>

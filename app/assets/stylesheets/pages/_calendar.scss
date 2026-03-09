@@ -6,7 +6,7 @@
 
 .cal-header {
     display: grid;
-    grid-template-columns: 48px repeat(7, 1fr);
+    grid-template-columns: 48px repeat(4, 1fr);
     gap: 4px;
     margin-bottom: 4px;
 }
@@ -38,7 +38,7 @@
 
 .cal-week {
     display: grid;
-    grid-template-columns: 48px repeat(7, 1fr);
+    grid-template-columns: 48px repeat(4, 1fr);
     gap: 4px;
     margin-bottom: 4px;
 }
@@ -271,7 +271,7 @@
 // Calendar responsive
 @media (max-width: 768px) {
     .cal-header, .cal-week {
-        grid-template-columns: 36px repeat(7, 1fr);
+        grid-template-columns: 36px repeat(4, 1fr);
         gap: 2px;
     }
     .cal-cell { min-height: 60px; padding: 4px; }
@@ -282,7 +282,7 @@
 
 @media (max-width: 480px) {
     .cal-header, .cal-week {
-        grid-template-columns: 28px repeat(7, 1fr);
+        grid-template-columns: 28px repeat(4, 1fr);
         gap: 2px;
     }
     .cal-cell { min-height: 48px; padding: 3px; }
