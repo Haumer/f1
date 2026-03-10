@@ -29,9 +29,9 @@ class PostRaceSyncJob < ApplicationJob
       ConstructorEloV2.process_race(latest_race)
       Rails.logger.info "[PostRaceSyncJob] Elo computed for race #{latest_race.id}"
 
-      # Reprice portfolio entries to match recomputed Elo values
-      Fantasy::ReplayTransactions.new(season: season, reprice: true).call
-      Rails.logger.info "[PostRaceSyncJob] Fantasy portfolios repriced for race #{latest_race.id}"
+      # Replay cash from all transactions to keep wallets in sync
+      Fantasy::ReplayTransactions.new(season: season).call
+      Rails.logger.info "[PostRaceSyncJob] Fantasy cash replayed for race #{latest_race.id}"
     end
     if latest_race
       # Settle stock market first (dividends, borrow fees, margin calls)
