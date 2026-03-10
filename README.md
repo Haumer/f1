@@ -19,6 +19,7 @@ F1 Elo applies the [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_
 - **Badges** — Achievement system for circuit kings, consistency, and career milestones
 - **Dynamic Theming** — Page accent colors match the relevant constructor (Ferrari pages are red, Mercedes pages are teal, etc.)
 - **Fantasy Mode** — Roster-based and stock market-style fantasy game using Elo as currency
+- **Race Predictions** — AI-generated pre-race predictions with methodology breakdown
 - **Calendar** — Current season race calendar with session countdown timers
 
 ## Tech Stack
@@ -81,7 +82,7 @@ Each driver starts at a baseline rating of 2000. After every race, all finishers
 - Beating a higher-rated driver earns more points than beating a lower-rated one
 - Losing to a lower-rated driver costs more than losing to a higher-rated one
 - K-factor scales with season length and grid size
-- Season-end regression pulls ratings toward the mean
+- No seasonal regression — ratings carry over purely based on performance
 
 The system produces meaningful separation between tiers — from developing drivers (~2000) through elite all-time greats (2600+).
 
@@ -89,10 +90,8 @@ The system produces meaningful separation between tiers — from developing driv
 
 Two game modes built on top of the Elo system:
 
-- **Roster Mode** — Draft drivers at their Elo price, profit when they improve
-- **Stock Market** — Trade driver shares (long or short positions), earn dividends from race finishes
-
-Short positions incur a 0.25% per-race borrow fee and are auto-liquidated at 2x loss.
+- **Roster Mode** — Draft drivers at their Elo price. Starting capital = avg Elo × 2.2. Sell drivers at current Elo minus a 1% fee. Expand your roster with up to 3 teams (2 driver slots each).
+- **Stock Market** — Trade driver shares at Elo ÷ 10, with prices adjusted by market demand. Go long (profit when Elo rises) or short (profit when Elo drops). Longs earn dividends from top-10 finishes. Shorts require 50% collateral, incur a 0.25% per-race borrow fee, and are auto-liquidated at 2× loss.
 
 ## License
 
