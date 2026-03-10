@@ -58,9 +58,13 @@ class ConstructorEloV2
   end
 
   # Process a single race (for incremental updates after sync)
+  # Idempotent: skips if elo was already computed for this race.
   def self.process_race(race)
     results = race.race_results.includes(:constructor).select { |rr| rr.position_order.present? }
     return if results.empty?
+
+    # Skip if already processed
+    return if results.first.old_constructor_elo_v2.present?
 
     by_constructor = results.group_by(&:constructor_id)
     scores = by_constructor.map { |cid, rrs| [cid, rrs.sum(&:position_order), rrs] }

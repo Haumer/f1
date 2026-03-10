@@ -55,12 +55,16 @@ class EloRatingV2
         { drivers_updated: driver_updates.size, race_results_updated: race_result_updates.size }
     end
 
-    # Process a single race (for incremental updates)
+    # Process a single race (for incremental updates).
+    # Idempotent: skips if elo was already computed for this race.
     def self.process_race(race)
         results = race.race_results.includes(:driver)
                       .select { |rr| rr.position_order.present? }
                       .sort_by(&:position_order)
         return if results.size < 2
+
+        # Skip if already processed (old_elo_v2 is set during computation)
+        return if results.first.old_elo_v2.present?
 
         season_races = race.season&.races&.count || Race.where(year: race.year).count
         participants = results.map { |rr| { id: rr.driver_id, elo: rr.driver.elo_v2 || STARTING_ELO, score: rr.position_order } }
