@@ -206,6 +206,9 @@ export default class extends Controller {
   initSortable() {
     this.sortable = Sortable.create(this.slotListTarget, {
       animation: 150,
+      delay: 150,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 5,
       filter: ".pick-slot-remove",
       preventOnFilter: false,
       ghostClass: "pick-slot-ghost",

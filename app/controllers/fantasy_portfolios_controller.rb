@@ -39,6 +39,13 @@ class FantasyPortfoliosController < ApplicationController
       end
     end
 
+    # Race picks — upcoming + past
+    @race_picks = RacePick.where(user: @user)
+                          .joins(race: :season)
+                          .where(seasons: { year: @season.year })
+                          .includes(race: [:circuit, :season])
+                          .order("races.round DESC")
+
     @predictions = Prediction.where(user: @user)
                              .joins(race: :season)
                              .where(seasons: { year: @season.year })

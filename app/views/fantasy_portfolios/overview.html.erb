@@ -406,31 +406,47 @@
     <% end %>
 
     <%# ═══════════════════ Race Picks ═══════════════════ %>
-    <% next_race = @season.next_race %>
-    <% if next_race %>
-        <% user_pick = RacePick.find_by(user: @user, race: next_race) %>
-        <% if user_pick&.picks&.any? %>
-            <% all_placed = user_pick.placed_drivers %>
-            <% driver_ids = all_placed.map { |p| p["driver_id"] } %>
-            <% drivers_by_id = Driver.where(id: driver_ids).index_by(&:id) %>
-            <% sd_index = SeasonDriver.where(season: @season, driver_id: driver_ids).includes(:constructor).index_by(&:driver_id) %>
+    <% if @race_picks.any? || (@is_owner && @season.next_race) %>
+        <%
+            next_race = @season.next_race
+            upcoming_pick = @race_picks.find { |rp| next_race && rp.race_id == next_race.id }
+            past_picks = @race_picks.reject { |rp| next_race && rp.race_id == next_race.id }
+            all_pick_driver_ids = @race_picks.flat_map { |rp| (rp.picks || []).map { |p| p["driver_id"] } }.uniq
+            picks_drivers_by_id = Driver.where(id: all_pick_driver_ids).index_by(&:id) if all_pick_driver_ids.any?
+            picks_drivers_by_id ||= {}
+            picks_sd_index = SeasonDriver.where(season: @season, driver_id: all_pick_driver_ids).includes(:constructor).index_by(&:driver_id) if all_pick_driver_ids.any?
+            picks_sd_index ||= {}
+        %>
+        <div class="table-header">
+            <h3><i class="fa-solid fa-hand-pointer" style="opacity:0.5; font-size:14px"></i> Race Picks</h3>
+            <% if @is_owner && next_race %>
+                <span class="table-header-sub">
+                    <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
+                        <% if upcoming_pick&.picks&.any? %>
+                            <i class="fa-solid fa-pen"></i> Edit
+                        <% else %>
+                            Make Picks <i class="fa-solid fa-arrow-right"></i>
+                        <% end %>
+                    <% end %>
+                </span>
+            <% end %>
+        </div>
+
+        <%# ── Upcoming race pick ── %>
+        <% if upcoming_pick&.picks&.any? %>
+            <% all_placed = upcoming_pick.placed_drivers %>
             <div class="picks-compact">
                 <div class="picks-compact-header">
                     <span class="picks-compact-title">
-                        <i class="fa-solid fa-hand-pointer"></i>
-                        Race Picks · <%= next_race.circuit.name %>
+                        <i class="fa-solid fa-circle" style="font-size:6px; color: #4ade80"></i>
+                        <%= next_race.circuit.name %> · R<%= next_race.round %>
                     </span>
-                    <% if @is_owner %>
-                        <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
-                            <i class="fa-solid fa-pen"></i> Edit
-                        <% end %>
-                    <% end %>
                 </div>
                 <div class="picks-compact-grid">
                     <% all_placed.first(10).each do |pick| %>
-                        <% driver = drivers_by_id[pick["driver_id"]] %>
+                        <% driver = picks_drivers_by_id[pick["driver_id"]] %>
                         <% next unless driver %>
-                        <% constructor = sd_index[driver.id]&.constructor %>
+                        <% constructor = picks_sd_index[driver.id]&.constructor %>
                         <% color = constructor_color(constructor) %>
                         <span class="picks-compact-pill" style="--constructor-color: <%= color %>" title="<%= driver.fullname %>">
                             <span class="picks-compact-pos place-<%= pick["position"] <= 3 ? pick["position"] : '' %>"><%= pick["position"] %></span>
@@ -442,15 +458,46 @@
                     <% end %>
                 </div>
             </div>
-        <% elsif @is_owner %>
+        <% elsif @is_owner && next_race %>
             <div class="picks-compact picks-compact-empty">
                 <span class="picks-compact-title">
-                    <i class="fa-solid fa-hand-pointer"></i>
-                    Race Picks · <%= next_race.circuit.name %>
+                    <i class="fa-solid fa-circle" style="font-size:6px; color: #4ade80"></i>
+                    <%= next_race.circuit.name %> · R<%= next_race.round %>
                 </span>
                 <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
                     Make Picks <i class="fa-solid fa-arrow-right"></i>
                 <% end %>
+            </div>
+        <% end %>
+
+        <%# ── Past race picks ── %>
+        <% past_picks.each do |race_pick| %>
+            <% all_placed = race_pick.placed_drivers %>
+            <% next if all_placed.empty? %>
+            <div class="picks-compact picks-compact-past">
+                <div class="picks-compact-header">
+                    <span class="picks-compact-title">
+                        <%= race_pick.race.circuit.name %> · R<%= race_pick.race.round %>
+                        <% if race_pick.score.present? %>
+                            <span class="picks-compact-score"><%= race_pick.score %> pts</span>
+                        <% end %>
+                    </span>
+                </div>
+                <div class="picks-compact-grid">
+                    <% all_placed.first(10).each do |pick| %>
+                        <% driver = picks_drivers_by_id[pick["driver_id"]] %>
+                        <% next unless driver %>
+                        <% constructor = picks_sd_index[driver.id]&.constructor %>
+                        <% color = constructor_color(constructor) %>
+                        <span class="picks-compact-pill" style="--constructor-color: <%= color %>" title="<%= driver.fullname %>">
+                            <span class="picks-compact-pos place-<%= pick["position"] <= 3 ? pick["position"] : '' %>"><%= pick["position"] %></span>
+                            <span class="picks-compact-name"><%= driver.surname %></span>
+                        </span>
+                    <% end %>
+                    <% if all_placed.size > 10 %>
+                        <span class="picks-compact-more">+<%= all_placed.size - 10 %></span>
+                    <% end %>
+                </div>
             </div>
         <% end %>
     <% end %>

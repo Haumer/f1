@@ -4,6 +4,8 @@ class RacePick < ApplicationRecord
 
   validates :user_id, uniqueness: { scope: :race_id }
 
+  after_create :alert_first_picks
+
   # picks format: [{ "driver_id" => 1, "position" => 1, "source" => "manual"|"random" }, ...]
 
   def locked?
@@ -20,5 +22,18 @@ class RacePick < ApplicationRecord
 
   def filled_positions
     (picks || []).size
+  end
+
+  private
+
+  def alert_first_picks
+    return if RacePick.where(user_id: user_id).count > 1
+
+    AdminAlert.create!(
+      title: "First race picks",
+      message: "#{user.username} submitted their first race picks (#{race.circuit.name}, R#{race.round}).",
+      severity: "info",
+      source: "RacePick"
+    )
   end
 end

@@ -330,7 +330,7 @@ th[data-sort] {
         transform: translate(-50%, -50%);
         width: 600px;
         height: 300px;
-        background: radial-gradient(ellipse, rgba(var(--page-accent-rgb, 225, 6, 0), 0.08) 0%, transparent 70%);
+        background: radial-gradient(ellipse, rgba(var(--page-accent-rgb, 225, 6, 0), 0.14) 0%, transparent 70%);
         pointer-events: none;
         z-index: 0;
     }

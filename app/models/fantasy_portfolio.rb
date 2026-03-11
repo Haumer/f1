@@ -10,6 +10,8 @@ class FantasyPortfolio < ApplicationRecord
   validates :user_id, uniqueness: { scope: :season_id }
   validates :cash, :starting_capital, presence: true
 
+  after_create :alert_first_portfolio
+
   def active_roster_entries
     roster_entries.where(active: true)
   end
@@ -118,5 +120,18 @@ class FantasyPortfolio < ApplicationRecord
     last_two = snapshots.order(created_at: :desc).limit(2).to_a
     return nil unless last_two.size >= 2
     last_two[0].value - last_two[1].value
+  end
+
+  private
+
+  def alert_first_portfolio
+    return if user.fantasy_portfolios.count > 1
+
+    AdminAlert.create!(
+      title: "New fantasy portfolio",
+      message: "#{user.username} created their first fantasy portfolio (#{season.year}).",
+      severity: "info",
+      source: "FantasyPortfolio"
+    )
   end
 end

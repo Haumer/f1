@@ -19,6 +19,7 @@ class User < ApplicationRecord
 
   before_validation :normalize_username
   before_create :set_terms_accepted_at
+  after_create :alert_new_user
 
   has_many :fantasy_portfolios, dependent: :destroy
   has_many :fantasy_stock_portfolios, dependent: :destroy
@@ -68,5 +69,14 @@ class User < ApplicationRecord
 
   def username_not_reserved
     errors.add(:username, "is reserved") if RESERVED_USERNAMES.include?(username&.downcase)
+  end
+
+  def alert_new_user
+    AdminAlert.create!(
+      title: "New user signed up",
+      message: "#{username} (#{email}) joined. User ##{User.count}.",
+      severity: "info",
+      source: "User"
+    )
   end
 end
