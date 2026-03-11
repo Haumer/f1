@@ -11,7 +11,7 @@
                 <% circuit = race.circuit %>
                 <% past = race.date < Setting.effective_today %>
                 <% winner = past ? race.race_results.find_by(position_order: 1) : nil %>
-                <% color = winner ? (Constructor::COLORS[winner.constructor&.constructor_ref&.to_sym] || '#6c757d') : nil %>
+                <% color = winner ? constructor_color(winner.constructor) : nil %>
                 <%= link_to circuit_path(circuit), class: "card calendar-race-card #{'calendar-past' if past}" do %>
                     <% if color %>
                         <div class="calendar-accent" style="background: <%= color %>"></div>

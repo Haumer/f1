@@ -13,17 +13,19 @@ module Fantasy
       driver.elo_v2 || ROOKIE_PRICE
     end
 
+    def self.demand_multiplier(net_demand)
+      if net_demand >= 0
+        1 + DEMAND_RATE * (net_demand**DEMAND_EXPONENT)
+      else
+        [1 - DEMAND_RATE * (net_demand.abs**DEMAND_EXPONENT), DEMAND_FLOOR].max
+      end
+    end
+
     # Stock price includes demand premium/discount
     def self.stock_price_for(driver, season)
       base = (driver.elo_v2 || ROOKIE_PRICE) / FantasyStockPortfolio::PRICE_DIVISOR
       sd = SeasonDriver.find_by(driver_id: driver.id, season_id: season.id)
-      net = sd&.net_demand || 0
-      multiplier = if net >= 0
-        1 + DEMAND_RATE * (net**DEMAND_EXPONENT)
-      else
-        [1 - DEMAND_RATE * (net.abs**DEMAND_EXPONENT), DEMAND_FLOOR].max
-      end
-      base * multiplier
+      base * demand_multiplier(sd&.net_demand || 0)
     end
   end
 end

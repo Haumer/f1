@@ -51,7 +51,7 @@ class DriversController < ApplicationController
 
   def grid
     season = current_season
-    lineup_season = SeasonDriver.where(season: season).exists? ? season : season.previous_season
+    lineup_season = season.lineup_season
     @season_year = season.year
     elo_col = Setting.elo_column(:elo)
 

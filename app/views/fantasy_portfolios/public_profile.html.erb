@@ -1,3 +1,5 @@
+<% content_for(:title) { "#{@user.display_name}'s Fantasy Portfolio" } %>
+<% content_for(:description) { "#{@user.display_name}'s #{@season.year} Fantasy F1 portfolio on F1 Elo." } %>
 <div class="homepage-container">
     <%# Header %>
     <div class="fantasy-dashboard-header">
@@ -5,7 +7,7 @@
             <h2>
                 <% if @support %>
                     <% sc = @support.constructor %>
-                    <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                    <% team_color = constructor_color(sc) %>
                     <span style="color: <%= team_color %>"><%= @user.display_name %></span>
                 <% else %>
                     <%= @user.display_name %>
@@ -179,16 +181,14 @@
                         <tbody>
                             <% @stock_holdings.each do |holding| %>
                                 <% constructor = @stock_constructors[holding.driver_id] %>
-                                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                <% color = constructor_color(constructor) %>
                                 <% gl = holding.gain_loss %>
                                 <tr style="border-left: 3px solid <%= color %>">
                                     <td>
                                         <div class="fantasy-market-driver-cell">
                                             <div class="fantasy-market-driver-info">
                                                 <span class="fantasy-market-driver-name">
-                                                    <% if holding.driver.country.present? %>
-                                                        <img src="https://flagsapi.com/<%= holding.driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                                    <% end %>
+                                                    <%= flag_image(holding.driver, size: 16) %>
                                                     <%= link_to holding.driver.fullname, driver_path(holding.driver) %>
                                                 </span>
                                                 <span class="fantasy-market-team-name"><%= constructor&.name %></span>
@@ -297,13 +297,11 @@
             <div class="fantasy-roster-grid">
                 <% @active_entries.each do |entry| %>
                     <% constructor = @constructors_by_driver[entry.driver.id] %>
-                    <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                    <% color = constructor_color(constructor) %>
                     <div class="card fantasy-driver-card" style="--constructor-color: <%= color %>">
                         <div class="fantasy-driver-header">
                             <div class="fantasy-driver-info">
-                                <% if entry.driver.country.present? %>
-                                    <img src="https://flagsapi.com/<%= entry.driver.country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
-                                <% end %>
+                                <%= flag_image(entry.driver, size: 24) %>
                                 <div>
                                     <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
                                     <%= constructor_logo_or_name(constructor, size: "xs") %>

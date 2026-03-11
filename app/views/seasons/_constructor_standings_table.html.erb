@@ -15,7 +15,7 @@
     <tbody>
         <% constructor_standings.each_with_index do |entry, idx| %>
             <% constructor = entry[:constructor] %>
-            <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+            <% color = constructor_color(constructor) %>
             <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                 <td class="text-center position-cell"><%= idx + 1 %></td>
                 <td class="name-cell">

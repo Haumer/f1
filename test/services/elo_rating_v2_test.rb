@@ -1,6 +1,14 @@
 require "test_helper"
 
 class EloRatingV2Test < ActiveSupport::TestCase
+  setup do
+    # Clear pre-computed elo so the idempotency guard doesn't skip processing
+    Race.find(races(:bahrain_2026).id).race_results.update_all(
+      old_elo_v2: nil, new_elo_v2: nil,
+      old_constructor_elo_v2: nil, new_constructor_elo_v2: nil
+    )
+  end
+
   # ── Constants ──
 
   test "constants are set correctly" do

@@ -180,7 +180,7 @@ class SeasonsController < ApplicationController
     @season_race_results ||= {}
     return if @has_standings
 
-    lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
+    lineup_season = @season.lineup_season
     return unless lineup_season
 
     elo_col = Setting.elo_column(:elo)

@@ -13,7 +13,7 @@
     <div class="team-grid-detail">
         <% @team_grid.each_with_index do |entry, idx| %>
             <% constructor = entry[:constructor] %>
-            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+            <% color = constructor_color(constructor) %>
             <div class="team-grid-card card" style="--team-color: <%= color %>">
                 <div class="team-grid-header">
                     <span class="team-grid-pos">P<%= idx + 1 %></span>
@@ -58,9 +58,7 @@
                                 </div>
                                 <div class="team-grid-driver-details">
                                     <div class="team-grid-driver-name-row">
-                                        <% if driver.country.present? %>
-                                            <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                        <% end %>
+                                        <%= flag_image(driver, size: 16) %>
                                         <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver), class: "team-grid-driver-name" %>
                                     </div>
                                     <% if driver.display_elo %>

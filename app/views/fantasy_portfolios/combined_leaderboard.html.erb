@@ -59,7 +59,7 @@
                             <% @combined_entries.each_with_index do |entry, idx| %>
                                 <% is_me = current_user && entry[:user].id == current_user.id %>
                                 <% support = @supports_by_user[entry[:user].id] %>
-                                <% color = support ? Constructor::COLORS[support.constructor.constructor_ref.to_sym] : nil %>
+                                <% color = support ? constructor_color(support.constructor) : nil %>
                                 <% last_race = entry[:last_race] || 0 %>
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
@@ -142,7 +142,7 @@
                                 <% is_me = current_user && portfolio.user_id == current_user.id %>
                                 <% pl = entry[:net] %>
                                 <% r_support = @supports_by_user[portfolio.user_id] %>
-                                <% color = r_support ? Constructor::COLORS[r_support.constructor.constructor_ref.to_sym] : nil %>
+                                <% color = r_support ? constructor_color(r_support.constructor) : nil %>
                                 <% r_delta = @roster_deltas[portfolio.id] || 0 %>
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>
@@ -212,7 +212,7 @@
                                 <% is_me = current_user && p.user_id == current_user.id %>
                                 <% pl = entry[:net] %>
                                 <% s_support = @supports_by_user[p.user_id] %>
-                                <% color = s_support ? Constructor::COLORS[s_support.constructor.constructor_ref.to_sym] : nil %>
+                                <% color = s_support ? constructor_color(s_support.constructor) : nil %>
                                 <% s_delta = @stock_deltas[p.id] || 0 %>
                                 <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                     <td class="text-center position-cell"><%= idx + 1 %></td>

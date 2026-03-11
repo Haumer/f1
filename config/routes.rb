@@ -100,6 +100,9 @@ Rails.application.routes.draw do
 
   get 'leaderboard', to: 'fantasy_portfolios#combined_leaderboard', as: :combined_leaderboard
 
+  # Race Picks
+  resource :race_picks, only: [:edit, :update], path: 'picks'
+
   # User account settings
   get   'u/:username', to: 'users#show',   as: :user_settings
   patch 'u/:username', to: 'users#update'

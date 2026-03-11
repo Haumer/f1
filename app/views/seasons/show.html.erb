@@ -39,7 +39,7 @@
                         <div class="champions-podium">
                             <% @season_top3.each do |ds| %>
                                 <% constructor = @season_top3_constructors[ds.driver_id] %>
-                                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                <% color = constructor_color(constructor) %>
                                 <div class="champion-entry champion-p<%= ds.position %>" style="--constructor-color: <%= color %>">
                                     <span class="champion-pos place-<%= ds.position %>">P<%= ds.position %></span>
                                     <span class="champion-name"><%= link_to "#{ds.driver.forename&.first}.#{ds.driver.surname}", driver_path(ds.driver) %></span>
@@ -55,7 +55,7 @@
                                 <% @constructor_top3.each_with_index do |entry, idx| %>
                                     <% pos = idx + 1 %>
                                     <% constructor = entry[:constructor] %>
-                                    <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                    <% color = constructor_color(constructor) %>
                                     <div class="champion-entry champion-p<%= pos %>" style="--constructor-color: <%= color %>">
                                         <span class="champion-pos place-<%= pos %>">P<%= pos %></span>
                                         <span class="champion-name"><%= link_to constructor.name, constructor_path(constructor) %></span>
@@ -210,7 +210,7 @@
             <div class="season-team-grid">
                 <% @team_grid.each do |entry| %>
                     <% constructor = entry[:constructor] %>
-                    <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                    <% color = constructor_color(constructor) %>
                     <div class="season-team-card card" style="--team-color: <%= color %>">
                         <div class="season-team-header">
                             <% if constructor.logo_url.present? %>
@@ -221,9 +221,7 @@
                         <div class="season-team-drivers">
                             <% entry[:drivers].each do |driver| %>
                                 <div class="season-team-driver">
-                                    <% if driver.country.present? %>
-                                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                    <% end %>
+                                    <%= flag_image(driver, size: 24) %>
                                     <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
                                     <% if driver.display_elo %>
                                         <span class="season-team-driver-elo"><%= driver.display_elo.round %></span>
@@ -248,7 +246,7 @@
                 <div class="podium-display">
                     <% @podium_results.each do |result| %>
                         <div class="podium-item podium-p<%= result.position_order %>"
-                             style="--constructor-color: <%= Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>">
+                             style="--constructor-color: <%= constructor_color(result.constructor) %>">
                             <span class="podium-position place-<%= result.position_order %>">P<%= result.position_order %></span>
                             <span class="podium-driver"><%= link_to "#{result.driver.forename&.first}.#{result.driver.surname}", driver_path(result.driver) %></span>
                             <%= constructor_logo_or_name(result.constructor) %>
@@ -373,7 +371,7 @@
             <div class="season-team-grid">
                 <% @team_grid.each do |entry| %>
                     <% constructor = entry[:constructor] %>
-                    <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                    <% color = constructor_color(constructor) %>
                     <div class="season-team-card card" style="--team-color: <%= color %>">
                         <div class="season-team-header">
                             <% if constructor.logo_url.present? %>
@@ -384,9 +382,7 @@
                         <div class="season-team-drivers">
                             <% entry[:drivers].each do |driver| %>
                                 <div class="season-team-driver">
-                                    <% if driver.country.present? %>
-                                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                    <% end %>
+                                    <%= flag_image(driver, size: 24) %>
                                     <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
                                     <% if driver.display_elo %>
                                         <span class="season-team-driver-elo"><%= driver.display_elo.round %></span>

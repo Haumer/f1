@@ -82,9 +82,7 @@
                 <% @current_drivers.each do |driver| %>
                     <div class="constructor-driver-card">
                         <div class="constructor-driver-info">
-                            <% if driver.country.present? %>
-                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                            <% end %>
+                            <%= flag_image(driver, size: 24) %>
                             <%= link_to driver.fullname, driver_path(driver), class: "constructor-driver-name" %>
                             <% if driver.display_elo %>
                                 <span class="constructor-driver-elo"><%= driver.display_elo.round %></span>
@@ -131,9 +129,7 @@
                                 <td><%= link_to rr.race.circuit.name, race_path(rr.race) %></td>
                                 <td>
                                     <span class="roster-driver-span">
-                                        <% if rr.driver.country.present? %>
-                                            <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                        <% end %>
+                                        <%= flag_image(rr.driver, size: 24) %>
                                         <%= link_to "#{rr.driver.forename&.first}.#{rr.driver.surname}", driver_path(rr.driver) %>
                                     </span>
                                 </td>
@@ -183,9 +179,7 @@
                                 <td>
                                     <% driver = entry[:driver] %>
                                     <span class="roster-driver-span">
-                                        <% if driver.country.present? %>
-                                            <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                        <% end %>
+                                        <%= flag_image(driver, size: 24) %>
                                         <%= link_to driver.fullname, driver_path(driver) %>
                                     </span>
                                 </td>
@@ -220,9 +214,7 @@
                                 <td>
                                     <% season_drivers.map(&:driver).uniq.each do |driver| %>
                                         <span class="roster-driver-span">
-                                            <% if driver.country.present? %>
-                                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                            <% end %>
+                                            <%= flag_image(driver, size: 24) %>
                                             <%= link_to "#{driver.forename&.first}.#{driver.surname}", driver_path(driver) %>
                                         </span>
                                     <% end %>
@@ -241,9 +233,7 @@
                                     <td>
                                         <% season_drivers.map(&:driver).uniq.each do |driver| %>
                                             <span class="roster-driver-span">
-                                                <% if driver.country.present? %>
-                                                    <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" class="roster-flag">
-                                                <% end %>
+                                                <%= flag_image(driver, size: 24) %>
                                                 <%= link_to "#{driver.forename&.first}.#{driver.surname}", driver_path(driver) %>
                                             </span>
                                         <% end %>

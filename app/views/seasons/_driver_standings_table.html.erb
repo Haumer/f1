@@ -20,11 +20,7 @@
             <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
                 <td class="text-center position-cell"><%= index + 1 %></td>
                 <td class="icon-cell d-none d-sm-table-cell">
-                    <% if driver_standing.driver.country.present? %>
-                        <img src="https://flagsapi.com/<%= driver_standing.driver.country.two_letter_country_code %>/shiny/24.png"
-                             width="24" height="24" loading="lazy"
-                             alt="Flag of <%= driver_standing.driver.country.name %>">
-                    <% end %>
+                    <%= flag_image(driver_standing.driver, size: 24) %>
                 </td>
                 <td class="icon-cell constructor-logos d-none d-md-table-cell">
                     <% (extras[:constructors] || []).each do |constructor| %>

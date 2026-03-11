@@ -1,4 +1,5 @@
 <% content_for(:title) { "Market" } %>
+<% content_for(:description) { "Browse and trade F1 drivers on the Fantasy F1 market. Buy low, sell high, and build your dream roster." } %>
 <div class="homepage-container"
      data-controller="unified-cart"
      data-unified-cart-cash-value="<%= @portfolio.cash %>"
@@ -54,7 +55,7 @@
                                 <% on_roster = @active_driver_ids.include?(driver.id) %>
                                 <% elo = Fantasy::Pricing.price_for(driver, @portfolio.season) %>
                                 <% constructor = @constructors_by_driver[driver.id] %>
-                                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                <% color = constructor_color(constructor) %>
                                 <% trends = @elo_trends[driver.id] || [] %>
                                 <% stock_price = @stock_portfolio ? @stock_portfolio.share_price(driver) : 0 %>
                                 <% holdings = @stock_portfolio ? (@holdings_by_driver || {})[driver.id] || [] : [] %>
@@ -72,9 +73,7 @@
                                             <span class="fantasy-market-color-pip" style="background: <%= color %>"></span>
                                             <div class="fantasy-market-driver-info">
                                                 <span class="fantasy-market-driver-name">
-                                                    <% if driver.country.present? %>
-                                                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                                    <% end %>
+                                                    <%= flag_image(driver, size: 16) %>
                                                     <%= link_to driver.fullname, driver_path(driver) %>
                                                 </span>
                                                 <span class="fantasy-market-team-name"><%= constructor&.name %></span>

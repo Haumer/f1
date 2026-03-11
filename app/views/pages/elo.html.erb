@@ -1,3 +1,5 @@
+<% content_for(:title) { "How Elo Works" } %>
+<% content_for(:description) { "Understanding the Elo rating system behind F1 Elo. How drivers gain and lose points, tier thresholds, and the maths behind the rankings." } %>
 <% peak_col = :peak_elo_v2 %>
 <% thresholds = [2600, 2450, 2300, 2100] %>
 
@@ -511,9 +513,7 @@
                             <tr class="<%= 'elo-highlight-gainer' if is_gainer %><%= 'elo-highlight-loser' if is_loser %>">
                                 <td class="text-center"><%= rr.position_order %></td>
                                 <td class="icon-cell">
-                                    <% if rr.driver.country.present? %>
-                                        <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
-                                    <% end %>
+                                    <%= flag_image(rr.driver, size: 24) %>
                                 </td>
                                 <td>
                                     <%= link_to driver_path(rr.driver) do %>

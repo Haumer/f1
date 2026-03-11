@@ -52,7 +52,7 @@
                 <div class="fantasy-mini-roster">
                     <% entries.each do |entry| %>
                         <% constructor = sd_index[entry.driver_id]&.constructor %>
-                        <% color = constructor ? (Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d') : '#6c757d' %>
+                        <% color = constructor_color(constructor) %>
                         <span class="fantasy-mini-pill" style="--pill-color: <%= color %>">
                             <%= entry.driver.surname %>
                         </span>

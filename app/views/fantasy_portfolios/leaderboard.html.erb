@@ -1,3 +1,5 @@
+<% content_for(:title) { "Fantasy Leaderboard" } %>
+<% content_for(:description) { "#{@season.year} Fantasy F1 leaderboard — see who's leading the portfolio rankings on F1 Elo." } %>
 <div class="homepage-container">
     <div class="fantasy-dashboard-header">
         <div class="fantasy-dashboard-title">
@@ -70,7 +72,7 @@
                                 <td class="text-center position-cell"><%= idx + 1 %></td>
                                 <td>
                                     <% lb_support = @supports_by_user[portfolio.user_id] %>
-                                    <% lb_color = lb_support ? Constructor::COLORS[lb_support.constructor.constructor_ref.to_sym] : nil %>
+                                    <% lb_color = lb_support ? constructor_color(lb_support.constructor) : nil %>
                                     <% if lb_support&.constructor&.logo_url.present? %>
                                         <img src="<%= lb_support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.style.display='none'">
                                     <% end %>

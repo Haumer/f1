@@ -20,9 +20,7 @@
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
                             <td class="icon-cell d-none d-sm-table-cell">
-                                <% if driver.country.present? %>
-                                    <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(driver, size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(driver), data: { turbo: false } do %>
@@ -33,7 +31,7 @@
                                 <% recent_constructors = driver.season_drivers.sort_by { |sd| -(sd.season&.year.to_i) }.map(&:constructor).uniq(&:id).first(3) %>
                                 <div class="driver-teams-cell">
                                     <% recent_constructors.each_with_index do |constructor, cidx| %>
-                                        <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] %>
+                                        <% color = constructor_color(constructor) %>
                                         <% if constructor.logo_url.present? %>
                                             <%= link_to constructor_path(constructor), title: constructor.name do %>
                                                 <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-xs" onerror="this.parentNode.innerHTML='<span class=driver-team-tag style=--tc:<%= color || '#555' %>><%= j constructor.name %></span>'">

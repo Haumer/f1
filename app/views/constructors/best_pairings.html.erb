@@ -1,3 +1,5 @@
+<% content_for(:title) { "Best Teammate Pairings" } %>
+<% content_for(:description) { "The best F1 teammate pairings of all time, ranked by 1-2 finish rate. Minimum 5 races together." } %>
 <div class="homepage-container">
     <div class="page-hero page-hero-compact">
         <div class="page-hero-bg"></div>
@@ -30,9 +32,7 @@
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
                             <td class="icon-cell">
-                                <% if pairing[:driver1].country.present? %>
-                                    <img src="https://flagsapi.com/<%= pairing[:driver1].country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(pairing[:driver1], size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(pairing[:driver1]) do %>
@@ -40,9 +40,7 @@
                                 <% end %>
                             </td>
                             <td class="icon-cell">
-                                <% if pairing[:driver2].country.present? %>
-                                    <img src="https://flagsapi.com/<%= pairing[:driver2].country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(pairing[:driver2], size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(pairing[:driver2]) do %>

@@ -8,7 +8,7 @@
                 <% support = ConstructorSupport.current_for(@user, @season) %>
                 <% if support %>
                     <% sc = support.constructor %>
-                    <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                    <% team_color = constructor_color(sc) %>
                     <span style="color: <%= team_color %>"><%= @user.display_name %></span>
                 <% else %>
                     <%= @user.display_name %>
@@ -70,7 +70,7 @@
         <div class="fantasy-status-row">
             <% if @current_support %>
                 <% sc = @current_support.constructor %>
-                <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                <% team_color = constructor_color(sc) %>
                 <div class="fantasy-status-item">
                     <i class="fa-solid fa-shield-halved" style="color: <%= team_color %>"></i>
                     <%= link_to constructor_path(sc), class: "fantasy-status-team", style: "color: #{team_color}" do %>
@@ -171,13 +171,11 @@
         <div class="fantasy-roster-grid">
             <% @active_entries.each do |entry| %>
                 <% constructor = @constructors_by_driver[entry.driver.id] %>
-                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                <% color = constructor_color(constructor) %>
                 <div class="card fantasy-driver-card" style="--constructor-color: <%= color %>">
                     <div class="fantasy-driver-header">
                         <div class="fantasy-driver-info">
-                            <% if entry.driver.country.present? %>
-                                <img src="https://flagsapi.com/<%= entry.driver.country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
-                            <% end %>
+                            <%= flag_image(entry.driver, size: 24) %>
                             <div>
                                 <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
                                 <%= constructor_logo_or_name(constructor, size: "xs") %>

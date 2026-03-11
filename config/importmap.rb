@@ -19,3 +19,4 @@ pin "tslib", to: "https://ga.jspm.io/npm:tslib@2.3.0/tslib.es6.js"
 pin "zrender/lib/", to: "https://ga.jspm.io/npm:zrender@5.4.4/lib/"
 pin "debounce", to: "https://ga.jspm.io/npm:debounce@2.0.0/index.js"
 pin "sweetalert2", to: "https://cdn.jsdelivr.net/npm/sweetalert2@11.22.0/+esm"
+pin "sortablejs" # @1.15.7

@@ -76,7 +76,7 @@
                         <% day_in_past = date < @today %>
                         <% has_next_session = day_sessions&.any? { |s| s == @next_session } %>
                         <% winner = completed ? race.race_results.min_by(&:position_order) : nil %>
-                        <% color = winner ? (Constructor::COLORS[winner.constructor&.constructor_ref&.to_sym] || '#6c757d') : nil %>
+                        <% color = winner ? constructor_color(winner.constructor) : nil %>
 
                         <div class="cal-cell cal-cell--active <%= 'cal-cell--race-day' if is_race_day %> <%= 'cal-cell--completed' if completed %> <%= 'cal-cell--past' if day_in_past && !completed %> <%= 'cal-cell--focus' if has_next_session %>"
                              <% if color && is_race_day %>style="--cell-accent: <%= color %>"<% end %>>

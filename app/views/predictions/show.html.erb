@@ -28,7 +28,7 @@
                 <span class="pred-author-label">authored by</span>
                 <% if @support %>
                     <% sc = @support.constructor %>
-                    <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                    <% team_color = constructor_color(sc) %>
                     <%= link_to fantasy_overview_path(username: @user.username), class: "pred-author-name" do %>
                         <% if sc.logo_url.present? %>
                             <img src="<%= sc.logo_url %>" alt="<%= sc.name %>" class="pred-author-logo" onerror="this.style.display='none'">

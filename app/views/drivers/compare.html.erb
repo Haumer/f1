@@ -60,11 +60,7 @@
                         <% @drivers.sort_by { |d| -(d.display_peak_elo || 0) }.each do |driver| %>
                             <tr>
                                 <td>
-                                    <% if driver.country.present? %>
-                                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png"
-                                             alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'"
-                                             style="vertical-align: middle; margin-right: 4px;">
-                                    <% end %>
+                                    <%= flag_image(driver, size: 16) %>
                                     <%= link_to driver.fullname, driver_path(driver) %>
                                 </td>
                                 <td class="text-center"><%= elo_link(driver.display_peak_elo) %></td>

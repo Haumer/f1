@@ -38,4 +38,18 @@ module ApplicationHelper
         end
     end
 
+    def constructor_color(constructor)
+        Constructor::COLORS[constructor&.constructor_ref&.to_sym] || "#6c757d"
+    end
+
+    def flag_image(driver_or_country, size: 24)
+        country = driver_or_country.respond_to?(:country) ? driver_or_country.country : driver_or_country
+        return "" unless country&.respond_to?(:two_letter_country_code)
+        code = country.two_letter_country_code
+        return "" if code.blank?
+        tag.img(src: "https://flagsapi.com/#{code}/shiny/#{size}.png",
+                alt: "", loading: "lazy", width: size, height: size,
+                onerror: "this.style.display='none'")
+    end
+
 end

@@ -6,11 +6,7 @@
     <div class="driver-hero-content">
         <div class="driver-hero-info">
             <div class="driver-hero-text">
-                <% if @driver.country.present? %>
-                    <img src="https://flagsapi.com/<%= @driver.country.two_letter_country_code %>/shiny/32.png"
-                         alt="<%= @driver.country.name %>" loading="lazy" onerror="this.style.display='none'"
-                         class="driver-hero-flag">
-                <% end %>
+                <%= flag_image(@driver, size: 32) %>
                 <h1 class="driver-hero-name"><%= @driver.fullname %></h1>
                 <% if @driver.current_constructor %>
                     <span class="driver-hero-team"><%= link_to @driver.current_constructor.name, constructor_path(@driver.current_constructor) %></span>
@@ -152,7 +148,7 @@
                     <div class="section-label">Constructor History</div>
                     <div class="constructor-history">
                         <% @constructor_history.each do |stint| %>
-                            <% color = Constructor::COLORS[stint[:constructor].constructor_ref&.to_sym] || '#6c757d' %>
+                            <% color = constructor_color(stint[:constructor]) %>
                             <%= link_to constructor_path(stint[:constructor]), class: "constructor-stint", style: "--stint-color: #{color}" do %>
                                 <div class="stint-color-bar"></div>
                                 <div class="stint-info">

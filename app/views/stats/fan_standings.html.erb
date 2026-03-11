@@ -1,3 +1,5 @@
+<% content_for(:title) { "Fan Standings" } %>
+<% content_for(:description) { "Which F1 drivers have the most fans? See fan counts and rankings across the F1 Elo community." } %>
 <div class="homepage-container">
     <div class="page-back-link">
         <%= link_to stats_path do %>
@@ -12,7 +14,7 @@
     <div class="fan-standings-grid">
         <% @constructors.each_with_index do |entry, idx| %>
             <% c = entry[:constructor] %>
-            <% team_color = Constructor::COLORS[c.constructor_ref.to_sym] || '#666' %>
+            <% team_color = constructor_color(c) %>
             <% pct = @total_fans > 0 ? (entry[:count].to_f / @total_fans * 100).round(1) : 0 %>
             <div class="card fan-standings-card" style="border-left: 3px solid <%= team_color %>">
                 <div class="fan-standings-header">

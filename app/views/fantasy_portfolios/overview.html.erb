@@ -5,7 +5,7 @@
     <% support = ConstructorSupport.current_for(@user, @season) %>
     <% if support %>
         <% sc = support.constructor %>
-        <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+        <% team_color = constructor_color(sc) %>
     <% end %>
     <div class="fantasy-dashboard-header">
         <div class="fantasy-dashboard-title">
@@ -90,7 +90,7 @@
         <div class="fantasy-status-row">
             <% if @current_support %>
                 <% ssc = @current_support.constructor %>
-                <% stc = Constructor::COLORS[ssc.constructor_ref.to_sym] %>
+                <% stc = constructor_color(ssc) %>
                 <div class="fantasy-status-item">
                     <i class="fa-solid fa-shield-halved" style="color: <%= stc %>"></i>
                     <%= link_to constructor_path(ssc), class: "fantasy-status-team", style: "color: #{stc}" do %>
@@ -299,49 +299,7 @@
         <% if @active_entries.any? %>
             <div class="fantasy-roster-grid">
                 <% @active_entries.each do |entry| %>
-                    <% constructor = @constructors_by_driver[entry.driver.id] %>
-                    <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
-                    <div class="card fantasy-driver-card" style="--constructor-color: <%= color %>">
-                        <div class="fantasy-driver-header">
-                            <div class="fantasy-driver-info">
-                                <% if entry.driver.country.present? %>
-                                    <img src="https://flagsapi.com/<%= entry.driver.country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
-                                <% end %>
-                                <div>
-                                    <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
-                                    <%= constructor_logo_or_name(constructor, size: "xs") %>
-                                </div>
-                            </div>
-                            <% gl = entry.gain_loss %>
-                            <span class="elo-pill <%= gl >= 0 ? 'gain' : 'loss' %>">
-                                <%= gl >= 0 ? '+' : '' %><%= gl.round(0) %>
-                            </span>
-                        </div>
-                        <div class="fantasy-driver-stats">
-                            <div class="fantasy-driver-stat">
-                                <span class="label">Bought</span>
-                                <span class="value"><%= entry.bought_at_elo.round(0) %></span>
-                            </div>
-                            <div class="fantasy-driver-stat">
-                                <span class="label">Current</span>
-                                <span class="value"><%= entry.current_value.round(0) %></span>
-                            </div>
-                            <div class="fantasy-driver-stat">
-                                <span class="label">Return</span>
-                                <span class="value <%= gl >= 0 ? 'text-green' : 'text-red' %>"><%= entry.gain_loss_percent %>%</span>
-                            </div>
-                        </div>
-                        <% if @is_owner && @can_trade && (@portfolio.season.latest_race.blank? || @portfolio.held_races_for(entry.driver) >= 1) %>
-                            <div class="fantasy-driver-actions">
-                                <%= form_with url: sell_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
-                                    <%= hidden_field_tag :driver_id, entry.driver.id %>
-                                    <% sell_val = entry.current_value %>
-                                    <% fee = (sell_val * Fantasy::SellDriver::SELL_FEE) %>
-                                    <%= submit_tag "Sell for #{(sell_val - fee).round(0)}", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Sell #{entry.driver.fullname} at #{sell_val.round(0)} (#{(Fantasy::SellDriver::SELL_FEE * 100).round(0)}% fee)?" } %>
-                                <% end %>
-                            </div>
-                        <% end %>
-                    </div>
+                    <%= render "fantasy_portfolios/roster_driver_card", entry: entry, constructors_by_driver: @constructors_by_driver, portfolio: @portfolio, show_sell: @is_owner, can_trade: @can_trade %>
                 <% end %>
 
                 <% if @is_owner %>
@@ -420,56 +378,7 @@
                         </thead>
                         <tbody>
                             <% @stock_holdings.each do |holding| %>
-                                <% constructor = @stock_constructors[holding.driver_id] %>
-                                <% hcolor = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
-                                <% gl = holding.gain_loss %>
-                                <tr style="border-left: 3px solid <%= hcolor %>">
-                                    <td>
-                                        <div class="fantasy-market-driver-cell">
-                                            <div class="fantasy-market-driver-info">
-                                                <span class="fantasy-market-driver-name">
-                                                    <% if holding.driver.country.present? %>
-                                                        <img src="https://flagsapi.com/<%= holding.driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                                    <% end %>
-                                                    <%= link_to holding.driver.fullname, driver_path(holding.driver) %>
-                                                </span>
-                                                <span class="fantasy-market-team-name"><%= constructor&.name %></span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="stock-direction-badge stock-<%= holding.direction %>">
-                                            <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>"></i>
-                                            <%= holding.direction.upcase %>
-                                        </span>
-                                    </td>
-                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.quantity %></span></td>
-                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
-                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
-                                    <td class="text-end">
-                                        <span class="<%= gl >= 0 ? 'text-green' : 'text-red' %>" style="font-weight:700; font-size:13px;">
-                                            <%= gl >= 0 ? '+' : '' %><%= gl.round(1) %>
-                                            <span style="font-size:11px; opacity:0.7">(<%= holding.gain_loss_percent %>%)</span>
-                                        </span>
-                                    </td>
-                                    <% if @is_owner && @stock_can_trade %>
-                                        <td class="text-end">
-                                            <% if holding.long? %>
-                                                <%= form_with url: sell_fantasy_stock_portfolio_path(@stock_portfolio), method: :post, local: true, style: "display:inline" do %>
-                                                    <%= hidden_field_tag :driver_id, holding.driver_id %>
-                                                    <%= hidden_field_tag :quantity, holding.quantity %>
-                                                    <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Sell all #{holding.quantity}x #{holding.driver.fullname}?" } %>
-                                                <% end %>
-                                            <% else %>
-                                                <%= form_with url: short_close_fantasy_stock_portfolio_path(@stock_portfolio), method: :post, local: true, style: "display:inline" do %>
-                                                    <%= hidden_field_tag :driver_id, holding.driver_id %>
-                                                    <%= hidden_field_tag :quantity, holding.quantity %>
-                                                    <%= submit_tag "Close", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Close short on #{holding.driver.fullname}?" } %>
-                                                <% end %>
-                                            <% end %>
-                                        </td>
-                                    <% end %>
-                                </tr>
+                                <%= render "fantasy_portfolios/stock_holding_row", holding: holding, stock_constructors: @stock_constructors, stock_portfolio: @stock_portfolio, show_trade_actions: @is_owner && @stock_can_trade, compact: false %>
                             <% end %>
                         </tbody>
                     </table>
@@ -491,6 +400,56 @@
                     <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                         <i class="fa-solid fa-store"></i> Open your first position
                     <% end %>
+                <% end %>
+            </div>
+        <% end %>
+    <% end %>
+
+    <%# ═══════════════════ Race Picks ═══════════════════ %>
+    <% next_race = @season.next_race %>
+    <% if next_race %>
+        <% user_pick = RacePick.find_by(user: @user, race: next_race) %>
+        <% if user_pick&.picks&.any? %>
+            <% all_placed = user_pick.placed_drivers %>
+            <% driver_ids = all_placed.map { |p| p["driver_id"] } %>
+            <% drivers_by_id = Driver.where(id: driver_ids).index_by(&:id) %>
+            <% sd_index = SeasonDriver.where(season: @season, driver_id: driver_ids).includes(:constructor).index_by(&:driver_id) %>
+            <div class="picks-compact">
+                <div class="picks-compact-header">
+                    <span class="picks-compact-title">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        Race Picks · <%= next_race.circuit.name %>
+                    </span>
+                    <% if @is_owner %>
+                        <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
+                            <i class="fa-solid fa-pen"></i> Edit
+                        <% end %>
+                    <% end %>
+                </div>
+                <div class="picks-compact-grid">
+                    <% all_placed.first(10).each do |pick| %>
+                        <% driver = drivers_by_id[pick["driver_id"]] %>
+                        <% next unless driver %>
+                        <% constructor = sd_index[driver.id]&.constructor %>
+                        <% color = constructor_color(constructor) %>
+                        <span class="picks-compact-pill" style="--constructor-color: <%= color %>" title="<%= driver.fullname %>">
+                            <span class="picks-compact-pos place-<%= pick["position"] <= 3 ? pick["position"] : '' %>"><%= pick["position"] %></span>
+                            <span class="picks-compact-name"><%= driver.surname %></span>
+                        </span>
+                    <% end %>
+                    <% if all_placed.size > 10 %>
+                        <span class="picks-compact-more">+<%= all_placed.size - 10 %></span>
+                    <% end %>
+                </div>
+            </div>
+        <% elsif @is_owner %>
+            <div class="picks-compact picks-compact-empty">
+                <span class="picks-compact-title">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    Race Picks · <%= next_race.circuit.name %>
+                </span>
+                <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
+                    Make Picks <i class="fa-solid fa-arrow-right"></i>
                 <% end %>
             </div>
         <% end %>

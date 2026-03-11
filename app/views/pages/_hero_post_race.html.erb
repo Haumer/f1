@@ -8,7 +8,7 @@
         <% if @podium_results_post&.any? %>
             <div class="hero-podium-inline">
                 <% @podium_results_post.each do |result| %>
-                    <% color = Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                    <% color = constructor_color(result.constructor) %>
                     <div class="hero-podium-entry" style="--constructor-color: <%= color %>">
                         <span class="hero-podium-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
                         <span class="hero-podium-name"><%= link_to "#{result.driver.forename[0]}.#{result.driver.surname}", driver_path(result.driver) %></span>

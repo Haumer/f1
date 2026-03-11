@@ -8,7 +8,7 @@
                 <% support = ConstructorSupport.current_for(@user, @season) %>
                 <% if support %>
                     <% sc = support.constructor %>
-                    <% team_color = Constructor::COLORS[sc.constructor_ref.to_sym] %>
+                    <% team_color = constructor_color(sc) %>
                     <span style="color: <%= team_color %>"><%= @user.display_name %></span>
                 <% else %>
                     <%= @user.display_name %>
@@ -143,16 +143,14 @@
                     <tbody>
                         <% @stock_holdings.each do |holding| %>
                             <% constructor = @stock_constructors[holding.driver_id] %>
-                            <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                            <% color = constructor_color(constructor) %>
                             <% gl = holding.gain_loss %>
                             <tr style="border-left: 3px solid <%= color %>">
                                 <td>
                                     <div class="fantasy-market-driver-cell">
                                         <div class="fantasy-market-driver-info">
                                             <span class="fantasy-market-driver-name">
-                                                <% if holding.driver.country.present? %>
-                                                    <img src="https://flagsapi.com/<%= holding.driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                                <% end %>
+                                                <%= flag_image(holding.driver, size: 16) %>
                                                 <%= link_to holding.driver.fullname, driver_path(holding.driver) %>
                                             </span>
                                             <span class="fantasy-market-team-name"><%= constructor&.name %></span>

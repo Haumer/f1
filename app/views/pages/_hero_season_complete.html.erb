@@ -1,9 +1,7 @@
 <div class="hero-intro champion-hero">
     <span class="champion-label"><i class="fa-solid fa-trophy"></i> <%= @season.year %> World Champion</span>
     <h1>
-        <% if @champion.country.present? %>
-            <img src="https://flagsapi.com/<%= @champion.country.two_letter_country_code %>/shiny/32.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
-        <% end %>
+        <%= flag_image(@champion, size: 32) %>
         <%= link_to "#{@champion.forename} #{@champion.surname}", driver_path(@champion) %>
     </h1>
     <div class="champion-details">

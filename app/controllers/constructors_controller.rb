@@ -1,7 +1,7 @@
 class ConstructorsController < ApplicationController
   def index
     @season = current_season
-    lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
+    lineup_season = @season.lineup_season
 
     # Build team grid with drivers
     season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
@@ -11,15 +11,7 @@ class ConstructorsController < ApplicationController
     # Constructor standings from latest race
     latest_standings = @season.latest_driver_standings
     sd_index = season_drivers.index_by(&:driver_id)
-    constructor_stats = Hash.new { |h, k| h[k] = { points: 0, wins: 0, podiums: 0 } }
-    latest_standings.each do |ds|
-      c = sd_index[ds.driver_id]&.constructor
-      next unless c
-      s = constructor_stats[c.id]
-      s[:points] += ds.points || 0
-      s[:wins] += ds.wins || 0
-      s[:podiums] += (ds.second_places || 0) + (ds.third_places || 0) + (ds.wins || 0)
-    end
+    constructor_stats = compute_constructor_stats(latest_standings, sd_index)
 
     active_constructors = Constructor.where(active: true).index_by(&:id)
     @team_standings = active_constructors.values.filter_map do |constructor|
@@ -64,7 +56,7 @@ class ConstructorsController < ApplicationController
 
   def grid
     @season = current_season
-    lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
+    lineup_season = @season.lineup_season
     @season_year = @season.year
 
     season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
@@ -74,15 +66,7 @@ class ConstructorsController < ApplicationController
 
     # Constructor standings
     latest_standings = @season.latest_driver_standings
-    constructor_stats = Hash.new { |h, k| h[k] = { points: 0, wins: 0, podiums: 0 } }
-    latest_standings.each do |ds|
-      c = sd_index[ds.driver_id]&.constructor
-      next unless c
-      s = constructor_stats[c.id]
-      s[:points] += ds.points || 0
-      s[:wins] += ds.wins || 0
-      s[:podiums] += (ds.second_places || 0) + (ds.third_places || 0) + (ds.wins || 0)
-    end
+    constructor_stats = compute_constructor_stats(latest_standings, sd_index)
 
     # Recent form per driver (last 5 results)
     all_driver_ids = season_drivers.map(&:driver_id)
@@ -325,5 +309,20 @@ class ConstructorsController < ApplicationController
     # Pre-load all constructors referenced in lineages to avoid N+1
     all_refs = @lineages.values.flat_map { |info| info[:chain] }
     @constructors_by_ref = Constructor.where(constructor_ref: all_refs).index_by(&:constructor_ref)
+  end
+
+  private
+
+  def compute_constructor_stats(standings, sd_index)
+    stats = Hash.new { |h, k| h[k] = { points: 0, wins: 0, podiums: 0 } }
+    standings.each do |ds|
+      c = sd_index[ds.driver_id]&.constructor
+      next unless c
+      s = stats[c.id]
+      s[:points] += ds.points || 0
+      s[:wins] += ds.wins || 0
+      s[:podiums] += (ds.second_places || 0) + (ds.third_places || 0) + (ds.wins || 0)
+    end
+    stats
   end
 end

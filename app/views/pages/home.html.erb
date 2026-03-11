@@ -1,3 +1,5 @@
+<% content_for(:title) { "Rating Every F1 Driver Since 1950" } %>
+<% content_for(:description) { "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." } %>
 <div class="homepage-container">
     <% if @season %>
         <%# 1. Contextual Hero %>
@@ -78,7 +80,7 @@
                         <% top3.each do |ds| %>
                             <% constructor = @recap_constructors[ds.driver_id] %>
                             <div class="podium-item podium-p<%= ds.position %>"
-                                 style="--constructor-color: <%= Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>">
+                                 style="--constructor-color: <%= constructor_color(constructor) %>">
                                 <span class="podium-position place-<%= ds.position %>">P<%= ds.position %></span>
                                 <span class="podium-driver"><%= link_to "#{ds.driver.forename&.first}.#{ds.driver.surname}", driver_path(ds.driver) %></span>
                                 <span class="stat-detail"><%= ds.points&.round %> pts · <%= ds.wins || 0 %> wins</span>
@@ -98,7 +100,7 @@
                         <% @constructor_top3.each_with_index do |entry, idx| %>
                             <% pos = idx + 1 %>
                             <% constructor = entry[:constructor] %>
-                            <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                            <% color = constructor_color(constructor) %>
                             <div class="podium-item podium-p<%= pos %>"
                                  style="--constructor-color: <%= color %>">
                                 <span class="podium-position place-<%= pos %>">P<%= pos %></span>
@@ -112,6 +114,24 @@
                     </div>
                 </div>
             <% end %>
+        <% end %>
+
+        <%# 5b. Race Picks CTA %>
+        <% if @next_race && current_user %>
+            <% user_pick = RacePick.find_by(user: current_user, race: @next_race) %>
+            <div class="picks-cta">
+                <div class="picks-cta-text">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <% if user_pick&.picks&.any? %>
+                        <span>You've placed <strong><%= user_pick.manual_picks.size %> picks</strong> for <%= @next_race.circuit.name %></span>
+                    <% else %>
+                        <span>Make your <strong>race picks</strong> for <%= @next_race.circuit.name %></span>
+                    <% end %>
+                </div>
+                <%= link_to edit_race_picks_path, class: "picks-cta-link" do %>
+                    <%= user_pick&.picks&.any? ? "Edit Picks" : "Make Picks" %> <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            </div>
         <% end %>
 
         <%# 6. Fantasy section %>

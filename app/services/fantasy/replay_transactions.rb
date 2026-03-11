@@ -196,12 +196,7 @@ module Fantasy
     end
 
     def apply_demand(base, net_demand)
-      multiplier = if net_demand >= 0
-        1 + Fantasy::Pricing::DEMAND_RATE * (net_demand**Fantasy::Pricing::DEMAND_EXPONENT)
-      else
-        [1 - Fantasy::Pricing::DEMAND_RATE * (net_demand.abs**Fantasy::Pricing::DEMAND_EXPONENT), Fantasy::Pricing::DEMAND_FLOOR].max
-      end
-      base * multiplier
+      base * Fantasy::Pricing.demand_multiplier(net_demand)
     end
 
     # Phase 2: replay cash from all transactions

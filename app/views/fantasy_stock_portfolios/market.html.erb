@@ -1,3 +1,5 @@
+<% content_for(:title) { "Stock Market" } %>
+<% content_for(:description) { "The F1 stock market — buy and sell driver shares based on Elo rating performance." } %>
 <div class="homepage-container"
      data-controller="stock-cart"
      data-stock-cart-cash-value="<%= @portfolio.available_cash %>"
@@ -61,7 +63,7 @@
                             <% @drivers.each do |driver| %>
                                 <% price = @portfolio.share_price(driver) %>
                                 <% constructor = @constructors_by_driver[driver.id] %>
-                                <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                                <% color = constructor_color(constructor) %>
                                 <% trends = @elo_trends[driver.id] || [] %>
                                 <% holdings = @holdings_by_driver[driver.id] || [] %>
                                 <% long_holding = holdings.find { |h| h.direction == "long" } %>
@@ -75,9 +77,7 @@
                                         <div class="fantasy-market-driver-cell">
                                             <div class="fantasy-market-driver-info">
                                                 <span class="fantasy-market-driver-name">
-                                                    <% if driver.country.present? %>
-                                                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="" loading="lazy" onerror="this.style.display='none'">
-                                                    <% end %>
+                                                    <%= flag_image(driver, size: 16) %>
                                                     <%= link_to driver.fullname, driver_path(driver) %>
                                                 </span>
                                                 <span class="fantasy-market-team-name"><%= constructor&.name %></span>

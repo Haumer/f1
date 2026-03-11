@@ -1,3 +1,5 @@
+<% content_for(:title) { "Elo Milestones" } %>
+<% content_for(:description) { "Historic Elo rating milestones in F1 — first drivers to reach each threshold and the races where they achieved it." } %>
 <div class="homepage-container">
     <div class="page-back-link">
         <%= link_to stats_path do %>
@@ -36,9 +38,7 @@
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
                             <td class="icon-cell">
-                                <% if rr.driver.country.present? %>
-                                    <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(rr.driver, size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(rr.driver) do %>
@@ -85,9 +85,7 @@
                         <tr>
                             <td class="text-center position-cell"><%= idx + 1 %></td>
                             <td class="icon-cell">
-                                <% if rr.driver.country.present? %>
-                                    <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(rr.driver, size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(rr.driver) do %>
@@ -133,9 +131,7 @@
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
                             <td class="icon-cell">
-                                <% if rr.driver.country.present? %>
-                                    <img src="https://flagsapi.com/<%= rr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= rr.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(rr.driver, size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(rr.driver) do %>
@@ -179,9 +175,7 @@
                         <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                             <td class="text-center position-cell"><%= idx + 1 %></td>
                             <td class="icon-cell">
-                                <% if entry[:driver].country.present? %>
-                                    <img src="https://flagsapi.com/<%= entry[:driver].country.two_letter_country_code %>/shiny/24.png" alt="<%= entry[:driver].country.name %>" loading="lazy" onerror="this.style.display='none'">
-                                <% end %>
+                                <%= flag_image(entry[:driver], size: 24) %>
                             </td>
                             <td>
                                 <%= link_to driver_path(entry[:driver]) do %>

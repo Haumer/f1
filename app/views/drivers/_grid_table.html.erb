@@ -19,16 +19,14 @@
         <% season_drivers.each_with_index do |sd, idx| %>
             <% driver = sd.driver %>
             <% constructor = sd.constructor %>
-            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+            <% color = constructor_color(constructor) %>
             <% ds = standings[driver.id] %>
             <% driver_extras = extras[driver.id] || {} %>
             <% elo_diff = driver_extras[:elo_diff] %>
             <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
                 <td class="text-center position-cell"><%= idx + 1 %></td>
                 <td class="name-cell">
-                    <% if driver.country.present? %>
-                        <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/16.png" alt="<%= driver.country.name %>" loading="lazy" onerror="this.style.display='none'" style="vertical-align: middle; margin-right: 4px;">
-                    <% end %>
+                    <%= flag_image(driver, size: 16) %>
                     <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
                 </td>
                 <td class="d-none d-md-table-cell">

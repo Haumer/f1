@@ -28,9 +28,8 @@ class FantasyPortfolio < ApplicationRecord
 
   # Total return across roster + stock: value - capital
   def total_return
-    stock = FantasyStockPortfolio.find_by(user_id: user_id, season_id: season_id)
-    total_value = portfolio_value + (stock&.positions_value || 0)
-    total_capital = starting_capital + (stock&.starting_capital || 0)
+    total_value = portfolio_value + (stock_portfolio&.positions_value || 0)
+    total_capital = starting_capital + (stock_portfolio&.starting_capital || 0)
     (total_value - total_capital).round(2)
   end
 
@@ -40,14 +39,16 @@ class FantasyPortfolio < ApplicationRecord
 
   # Total starting capital across roster + stock (for combined P&L)
   def total_starting_capital
-    stock = FantasyStockPortfolio.find_by(user_id: user_id, season_id: season_id)
-    starting_capital + (stock&.starting_capital || 0)
+    starting_capital + (stock_portfolio&.starting_capital || 0)
   end
 
   # Cash available after subtracting locked collateral from stock shorts
   def available_cash
-    stock = FantasyStockPortfolio.find_by(user_id: user_id, season_id: season_id)
-    cash - (stock&.total_collateral || 0)
+    cash - (stock_portfolio&.total_collateral || 0)
+  end
+
+  def stock_portfolio
+    @stock_portfolio ||= FantasyStockPortfolio.find_by(user_id: user_id, season_id: season_id)
   end
 
   def can_trade?(race)

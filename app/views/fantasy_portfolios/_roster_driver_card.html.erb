@@ -1,0 +1,43 @@
+<% constructor = constructors_by_driver[entry.driver.id] %>
+<% color = constructor_color(constructor) %>
+<div class="card fantasy-driver-card" style="--constructor-color: <%= color %>">
+    <div class="fantasy-driver-header">
+        <div class="fantasy-driver-info">
+            <% if entry.driver.country.present? %>
+                <%= flag_image(entry.driver, size: 24) %>
+            <% end %>
+            <div>
+                <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
+                <%= constructor_logo_or_name(constructor, size: "xs") %>
+            </div>
+        </div>
+        <% gl = entry.gain_loss %>
+        <span class="elo-pill <%= gl >= 0 ? 'gain' : 'loss' %>">
+            <%= gl >= 0 ? '+' : '' %><%= gl.round(0) %>
+        </span>
+    </div>
+    <div class="fantasy-driver-stats">
+        <div class="fantasy-driver-stat">
+            <span class="label">Bought</span>
+            <span class="value"><%= entry.bought_at_elo.round(0) %></span>
+        </div>
+        <div class="fantasy-driver-stat">
+            <span class="label">Current</span>
+            <span class="value"><%= entry.current_value.round(0) %></span>
+        </div>
+        <div class="fantasy-driver-stat">
+            <span class="label">Return</span>
+            <span class="value <%= gl >= 0 ? 'text-green' : 'text-red' %>"><%= entry.gain_loss_percent %>%</span>
+        </div>
+    </div>
+    <% if show_sell && can_trade && (portfolio.season.latest_race.blank? || portfolio.held_races_for(entry.driver) >= 1) %>
+        <div class="fantasy-driver-actions">
+            <%= form_with url: sell_fantasy_portfolio_path(portfolio), method: :post, local: true do %>
+                <%= hidden_field_tag :driver_id, entry.driver.id %>
+                <% sell_val = entry.current_value %>
+                <% fee = (sell_val * Fantasy::SellDriver::SELL_FEE) %>
+                <%= submit_tag "Sell for #{(sell_val - fee).round(0)}", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Sell #{entry.driver.fullname} at #{sell_val.round(0)} (#{(Fantasy::SellDriver::SELL_FEE * 100).round(0)}% fee)?" } %>
+            <% end %>
+        </div>
+    <% end %>
+</div>

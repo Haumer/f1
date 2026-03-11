@@ -121,7 +121,7 @@ class PagesController < ApplicationController
   end
 
   def build_season_driver_grid
-    lineup_season = SeasonDriver.where(season: @season).exists? ? @season : @season.previous_season
+    lineup_season = @season.lineup_season
     return unless lineup_season
 
     sd_all = SeasonDriver.where(season: lineup_season, standin: [false, nil])

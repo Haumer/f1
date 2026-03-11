@@ -42,6 +42,10 @@ class Season < ApplicationRecord
         Season.find_by(year: "#{self.year.to_i - 1}")
     end
 
+    def lineup_season
+        SeasonDriver.where(season: self).exists? ? self : previous_season
+    end
+
     def next_race
         last_completed = latest_race
         return races.order(round: :asc).first if last_completed.nil?

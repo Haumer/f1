@@ -34,7 +34,7 @@
                     <tbody>
                         <% @team_standings.each_with_index do |entry, idx| %>
                             <% constructor = entry[:constructor] %>
-                            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                            <% color = constructor_color(constructor) %>
                             <% pos = idx + 1 %>
                             <tr class="<%= 'podium-row podium-p1' if pos == 1 %><%= 'podium-row podium-p2' if pos == 2 %><%= 'podium-row podium-p3' if pos == 3 %>">
                                 <td class="text-center position-cell"><%= pos %></td>
@@ -86,7 +86,7 @@
                     <tbody>
                         <% @championship_leaders.each do |entry| %>
                             <% constructor = entry[:constructor] %>
-                            <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                            <% color = constructor_color(constructor) %>
                             <tr>
                                 <td class="icon-cell">
                                     <% if constructor.logo_url.present? %>
@@ -118,7 +118,7 @@
         <div class="constructor-elo-bars">
             <% max_elo = @elo_rankings.first.display_elo || 1 %>
             <% @elo_rankings.each_with_index do |constructor, idx| %>
-                <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                <% color = constructor_color(constructor) %>
                 <% elo = constructor.display_elo&.round || 0 %>
                 <% pct = (elo.to_f / max_elo * 100).round(1) %>
                 <%= link_to constructor_path(constructor), class: "constructor-elo-bar-row" do %>

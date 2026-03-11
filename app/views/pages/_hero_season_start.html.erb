@@ -35,7 +35,7 @@
             <% next unless driver %>
             <% elo = driver.display_elo&.round || 0 %>
             <% constructor = driver.current_constructor %>
-            <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+            <% color = constructor_color(constructor) %>
             <% tier = elo_tier(driver.display_peak_elo) %>
             <div class="power-podium-card podium-p<%= i + 1 %>" style="--constructor-color: <%= color %>">
                 <span class="podium-rank"><%= i + 1 %></span>
@@ -93,7 +93,7 @@
             <div class="rankings-duo-list">
                 <% @power_rankings[3..9]&.each_with_index do |driver, idx| %>
                     <% constructor = driver.current_constructor %>
-                    <% color = Constructor::COLORS[constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                    <% color = constructor_color(constructor) %>
                     <div class="rank-row" style="--constructor-color: <%= color %>; --rank: <%= idx %>">
                         <span class="rank-pos"><%= idx + 4 %></span>
                         <span class="rank-name">
@@ -117,7 +117,7 @@
                 </div>
                 <div class="rankings-duo-list">
                     <% @constructor_rankings.each_with_index do |constructor, idx| %>
-                        <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                        <% color = constructor_color(constructor) %>
                         <div class="rank-row constructor-row" style="--constructor-color: <%= color %>; --rank: <%= idx %>">
                             <span class="rank-pos"><%= idx + 1 %></span>
                             <%= constructor_logo_or_name(constructor, size: "xs") %>

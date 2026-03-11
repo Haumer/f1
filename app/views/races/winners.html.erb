@@ -55,9 +55,7 @@
                     <tr>
                         <td class="text-center position-cell"><%= idx + 1 %></td>
                         <td>
-                            <% if driver.country.present? %>
-                                <img src="https://flagsapi.com/<%= driver.country.two_letter_country_code %>/shiny/24.png" alt="" loading="lazy" onerror="this.style.display='none'" class="flag-inline">
-                            <% end %>
+                            <%= flag_image(driver, size: 24) %>
                             <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
                             <% if data[:count] > 1 %>
                                 <span class="title-badge champion title-count-inline"><%= data[:count] %>x</span>

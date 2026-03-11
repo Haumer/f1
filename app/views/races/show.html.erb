@@ -124,9 +124,7 @@
                             <tr>
                                 <td class="text-center col-pos"><%= race_result.position_order %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
-                                    <% if race_result.driver.country.present? %>
-                                        <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= race_result.driver.country.name %>';this.style.display='none'">
-                                    <% end %>
+                                    <%= flag_image(race_result.driver, size: 24) %>
                                 </td>
                                 <td class="d-none d-md-table-cell col-logo">
                                     <% constructor = @constructor_by_driver[race_result.driver_id] || race_result.constructor %>
@@ -177,9 +175,7 @@
                             <tr>
                                 <td class="text-center text-muted col-pos"><%= i + 1 %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
-                                    <% if entry[:driver].country.present? %>
-                                        <img src="https://flagsapi.com/<%= entry[:driver].country.two_letter_country_code %>/shiny/24.png" alt="<%= entry[:driver].country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= entry[:driver].country.name %>';this.style.display='none'">
-                                    <% end %>
+                                    <%= flag_image(entry[:driver], size: 24) %>
                                 </td>
                                 <td class="d-none d-md-table-cell col-logo">
                                     <% if entry[:constructor] %>
@@ -241,9 +237,7 @@
                             <tr>
                                 <td class="text-center col-pos"><%= qr.position %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
-                                    <% if qr.driver.country.present? %>
-                                        <img src="https://flagsapi.com/<%= qr.driver.country.two_letter_country_code %>/shiny/24.png" alt="<%= qr.driver.country.name %>" loading="lazy" onerror="this.onerror=null;this.alt='<%= qr.driver.country.name %>';this.style.display='none'">
-                                    <% end %>
+                                    <%= flag_image(qr.driver, size: 24) %>
                                 </td>
                                 <td class="d-none d-md-table-cell col-logo">
                                     <% if qr.constructor %>
@@ -304,7 +298,7 @@
     <div class="card card-flush">
         <% @predictions.each do |prediction| %>
             <% support = ConstructorSupport.current_for(prediction.user, @race.season) %>
-            <% team_color = support ? Constructor::COLORS[support.constructor.constructor_ref.to_sym] : nil %>
+            <% team_color = support ? constructor_color(support.constructor) : nil %>
             <%= link_to preview_race_path(@race, username: prediction.user.username), class: "fantasy-preview-row" do %>
                 <div class="fantasy-preview-user">
                     <% if support&.constructor&.logo_url.present? %>

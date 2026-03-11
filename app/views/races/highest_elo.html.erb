@@ -33,10 +33,7 @@
                     <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
                         <td class="text-center position-cell"><%= index + 1 %></td>
                         <td class="icon-cell d-none d-sm-table-cell">
-                            <% if race_result.driver.country.present? %>
-                                <img src="https://flagsapi.com/<%= race_result.driver.country.two_letter_country_code %>/shiny/24.png"
-                                     alt="<%= race_result.driver.country.name %>" loading="lazy" onerror="this.style.display='none'">
-                            <% end %>
+                            <%= flag_image(race_result.driver, size: 24) %>
                         </td>
                         <td>
                             <%= link_to driver_path(race_result.driver) do %>

@@ -29,7 +29,7 @@
                     <% season_drivers.each_with_index do |sd, idx| %>
                         <% driver = sd.driver %>
                         <% constructor = sd.constructor %>
-                        <% color = Constructor::COLORS[constructor.constructor_ref&.to_sym] || '#6c757d' %>
+                        <% color = constructor_color(constructor) %>
                         <% ds = grid_standings[driver.id] %>
                         <tr>
                             <td class="text-center srg-pos"><%= idx + 1 %></td>

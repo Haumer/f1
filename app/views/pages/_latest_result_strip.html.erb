@@ -7,7 +7,7 @@
         <% podium&.each do |result| %>
             <span class="latest-result-driver">
                 <span class="latest-result-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
-                <% color = Constructor::COLORS[result.constructor&.constructor_ref&.to_sym] || '#6c757d' %>
+                <% color = constructor_color(result.constructor) %>
                 <span class="latest-result-name" style="border-color: <%= color %>"><%= result.driver.surname %></span>
             </span>
         <% end %>
