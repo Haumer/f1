@@ -117,11 +117,20 @@
         </div>
 
         <%# ═══════ Submit ═══════ %>
-        <%= form_with url: race_picks_path, method: :patch, local: true, class: "picks-submit-form" do %>
-            <input type="hidden" name="picks" value="<%= @race_pick.picks&.to_json || '[]' %>" data-race-picks-target="picksInput">
-            <button type="submit" class="fantasy-btn fantasy-btn-primary picks-submit-btn" data-race-picks-target="submitBtn" disabled>
-                <i class="fa-solid fa-check"></i> Save Picks
-            </button>
+        <% if current_user %>
+            <%= form_with url: race_picks_path, method: :patch, local: true, class: "picks-submit-form" do %>
+                <input type="hidden" name="picks" value="<%= @race_pick.picks&.to_json || '[]' %>" data-race-picks-target="picksInput">
+                <button type="submit" class="fantasy-btn fantasy-btn-primary picks-submit-btn" data-race-picks-target="submitBtn" disabled>
+                    <i class="fa-solid fa-check"></i> Save Picks
+                </button>
+            <% end %>
+        <% else %>
+            <%= form_with url: stash_race_picks_path, method: :post, local: true, class: "picks-submit-form" do %>
+                <input type="hidden" name="picks" value="[]" data-race-picks-target="picksInput">
+                <button type="submit" class="fantasy-btn fantasy-btn-primary picks-submit-btn" data-race-picks-target="submitBtn" disabled>
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign Up to Save Picks
+                </button>
+            <% end %>
         <% end %>
     </div>
 </div>

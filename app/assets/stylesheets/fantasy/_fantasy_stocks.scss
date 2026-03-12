@@ -144,6 +144,38 @@
     }
 }
 
+// Sell quantity stepper (inline in holdings table)
+.sell-qty-form {
+    display: inline;
+}
+
+.sell-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+
+    @media (max-width: 480px) {
+        flex-direction: column;
+        gap: 4px;
+        align-items: stretch;
+    }
+}
+
+.sell-qty-stepper {
+    height: 26px;
+
+    .stock-qty-input {
+        width: 28px;
+        font-size: 12px;
+    }
+
+    .stock-qty-btn {
+        width: 22px;
+        font-size: 12px;
+    }
+}
+
 // Stock-specific transaction kinds
 .fantasy-txn-short_open {
     background: rgba($accent-red, 0.1);

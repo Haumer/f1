@@ -10,14 +10,24 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
 
   # ═══════ Authentication ═══════
 
-  test "edit redirects when not signed in" do
+  test "edit renders for guests" do
     get edit_race_picks_path
-    assert_response :redirect
+    assert_response :success
   end
 
   test "update redirects when not signed in" do
     patch race_picks_path, params: { picks: "[]" }
     assert_response :redirect
+  end
+
+  test "stash saves picks to session and redirects to signup" do
+    picks_data = [
+      { driver_id: drivers(:verstappen).id, position: 1, source: "manual" }
+    ].to_json
+
+    post stash_race_picks_path, params: { picks: picks_data }
+    assert_redirected_to new_user_registration_path
+    assert_match /account/, flash[:notice]
   end
 
   # ═══════ Edit ═══════

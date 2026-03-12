@@ -18,6 +18,30 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  protected
+
+  # Devise: restore pending picks after sign in or sign up
+  def after_sign_in_path_for(resource)
+    if session[:pending_picks].present? && session[:pending_picks_race_id].present?
+      race = Race.find_by(id: session[:pending_picks_race_id])
+      if race
+        raw_picks = JSON.parse(session[:pending_picks]) rescue []
+        pick = RacePick.find_or_initialize_by(user: resource, race: race)
+        unless pick.locked?
+          pick.picks = raw_picks
+          pick.locked_at = race.starts_at
+          pick.save!
+        end
+      end
+      session.delete(:pending_picks)
+      session.delete(:pending_picks_race_id)
+      flash[:notice] = "Your picks for #{race&.circuit&.name || 'the race'} have been saved!"
+      return fantasy_overview_path(resource.username)
+    end
+
+    super
+  end
+
   private
 
   def configure_permitted_parameters

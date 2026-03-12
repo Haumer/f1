@@ -34,17 +34,26 @@
     </td>
     <% if show_trade_actions %>
         <td class="text-end">
-            <% if holding.long? %>
-                <%= form_with url: sell_fantasy_stock_portfolio_path(stock_portfolio), method: :post, local: true, style: "display:inline" do %>
-                    <%= hidden_field_tag :driver_id, holding.driver_id %>
-                    <%= hidden_field_tag :quantity, holding.quantity %>
-                    <%= submit_tag "Sell", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Sell all #{holding.quantity}x #{holding.driver.fullname}?" } %>
-                <% end %>
-            <% else %>
-                <%= form_with url: short_close_fantasy_stock_portfolio_path(stock_portfolio), method: :post, local: true, style: "display:inline" do %>
-                    <%= hidden_field_tag :driver_id, holding.driver_id %>
-                    <%= hidden_field_tag :quantity, holding.quantity %>
-                    <%= submit_tag "Close", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm", data: { turbo_confirm: "Close short on #{holding.driver.fullname}?" } %>
+            <% sell_label = holding.long? ? "Sell" : "Close" %>
+            <% sell_url = holding.long? ? sell_fantasy_stock_portfolio_path(stock_portfolio) : short_close_fantasy_stock_portfolio_path(stock_portfolio) %>
+            <%= form_with url: sell_url, method: :post, local: true, class: "sell-qty-form",
+                data: (holding.quantity > 1 ? { controller: "sell-qty", sell_qty_price_value: holding.current_price, sell_qty_max_value: holding.quantity } : {}) do %>
+                <%= hidden_field_tag :driver_id, holding.driver_id %>
+                <%= hidden_field_tag :quantity, holding.quantity %>
+                <% if holding.quantity > 1 %>
+                    <div class="sell-qty-row">
+                        <div class="stock-qty-stepper sell-qty-stepper">
+                            <button type="button" class="stock-qty-btn" data-sell-qty-target="minus" data-action="click->sell-qty#decrement">&minus;</button>
+                            <input type="number" min="1" max="<%= holding.quantity %>" value="<%= holding.quantity %>" class="stock-qty-input" data-sell-qty-target="input" readonly>
+                            <button type="button" class="stock-qty-btn" data-sell-qty-target="plus" data-action="click->sell-qty#increment">+</button>
+                        </div>
+                        <%= submit_tag "#{sell_label} All", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm",
+                            data: { sell_qty_target: "submit", label: sell_label, driver_name: holding.driver.fullname,
+                                    turbo_confirm: "#{sell_label} #{holding.quantity}x #{holding.driver.fullname} for #{(holding.current_price * holding.quantity).round(1)}?" } %>
+                    </div>
+                <% else %>
+                    <%= submit_tag sell_label, class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm",
+                        data: { turbo_confirm: "#{sell_label} 1x #{holding.driver.fullname} for #{holding.current_price.round(1)}?" } %>
                 <% end %>
             <% end %>
         </td>

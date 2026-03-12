@@ -1,9 +1,18 @@
 class RacePicksController < ApplicationController
-  before_action :authenticate_user!
-  before_action :set_race_and_pick
+  before_action :authenticate_user!, only: [:update]
+  before_action :set_race
+  before_action :set_race_pick, only: [:update]
 
   def edit
+    @race_pick = current_user ? RacePick.find_or_initialize_by(user: current_user, race: @race) : RacePick.new(race: @race)
     load_drivers
+  end
+
+  # Guest user: stash picks in session, redirect to signup
+  def stash
+    session[:pending_picks] = params[:picks]
+    session[:pending_picks_race_id] = @race.id
+    redirect_to new_user_registration_path, notice: "Create an account to save your picks!"
   end
 
   def update
@@ -26,14 +35,15 @@ class RacePicksController < ApplicationController
 
   private
 
-  def set_race_and_pick
+  def set_race
     @season = Season.sorted_by_year.first
     @race = @season&.next_race
     unless @race
       redirect_to root_path, alert: "No upcoming race to make picks for."
-      return
     end
+  end
 
+  def set_race_pick
     @race_pick = RacePick.find_or_initialize_by(user: current_user, race: @race)
   end
 
@@ -48,7 +58,6 @@ class RacePicksController < ApplicationController
     @constructors_by_driver = season_driver_records.each_with_object({}) { |sd, h| h[sd.driver_id] = sd.constructor }
 
     # True last 5 results per driver (across seasons)
-    # Use a lateral join approach: get the 5 most recent races with results, then load those
     driver_ids = @drivers.map(&:id)
     recent_race_ids = Race.where("date < ?", @race.date)
                           .where(id: RaceResult.select(:race_id))
