@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_11_101712) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_13_134034) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -555,6 +555,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_11_101712) do
     t.string "fp2_time"
     t.string "fp3_time"
     t.string "quali_time"
+    t.string "sprint_quali_time"
+    t.string "sprint_time"
     t.index ["circuit_id"], name: "index_races_on_circuit_id"
     t.index ["season_id", "date"], name: "index_races_on_season_id_and_date"
     t.index ["season_id", "round"], name: "index_races_on_season_id_and_round"

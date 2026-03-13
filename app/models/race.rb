@@ -54,11 +54,17 @@ class Race < ApplicationRecord
     Time.parse("#{date}T#{time}")
   end
 
+  def sprint?
+    sprint_time.present?
+  end
+
   # Session dates computed from race date (standard weekend layout)
   def fp1_date  = date - 2.days
   def fp2_date  = date - 2.days
   def fp3_date  = date - 1.day
-  def quali_date = date - 1.day
+  def quali_date = sprint? ? date - 1.day : date - 1.day
+  def sprint_quali_date = date - 2.days
+  def sprint_date = date - 1.day
 
   def fp1_starts_at
     fp1_time.present? ? Time.parse("#{fp1_date}T#{fp1_time}") : nil
@@ -76,15 +82,33 @@ class Race < ApplicationRecord
     quali_time.present? ? Time.parse("#{quali_date}T#{quali_time}") : nil
   end
 
+  def sprint_quali_starts_at
+    sprint_quali_time.present? ? Time.parse("#{sprint_quali_date}T#{sprint_quali_time}") : nil
+  end
+
+  def sprint_starts_at
+    sprint_time.present? ? Time.parse("#{sprint_date}T#{sprint_time}") : nil
+  end
+
   # Structured session schedule for views
   def session_schedule
-    [
-      { key: :fp1,   name: "FP1",        date: fp1_date,   starts_at: fp1_starts_at },
-      { key: :fp2,   name: "FP2",        date: fp2_date,   starts_at: fp2_starts_at },
-      { key: :fp3,   name: "FP3",        date: fp3_date,   starts_at: fp3_starts_at },
-      { key: :quali, name: "Qualifying", date: quali_date, starts_at: quali_starts_at },
-      { key: :race,  name: "Race",       date: date,       starts_at: starts_at },
-    ]
+    if sprint?
+      [
+        { key: :fp1,          name: "FP1",              date: fp1_date,          starts_at: fp1_starts_at },
+        { key: :sprint_quali, name: "Sprint Quali",     date: sprint_quali_date, starts_at: sprint_quali_starts_at },
+        { key: :sprint,       name: "Sprint",           date: sprint_date,       starts_at: sprint_starts_at },
+        { key: :quali,        name: "Qualifying",       date: quali_date,        starts_at: quali_starts_at },
+        { key: :race,         name: "Race",             date: date,              starts_at: starts_at },
+      ]
+    else
+      [
+        { key: :fp1,   name: "FP1",        date: fp1_date,   starts_at: fp1_starts_at },
+        { key: :fp2,   name: "FP2",        date: fp2_date,   starts_at: fp2_starts_at },
+        { key: :fp3,   name: "FP3",        date: fp3_date,   starts_at: fp3_starts_at },
+        { key: :quali, name: "Qualifying", date: quali_date, starts_at: quali_starts_at },
+        { key: :race,  name: "Race",       date: date,       starts_at: starts_at },
+      ]
+    end
   end
 
   def has_results?

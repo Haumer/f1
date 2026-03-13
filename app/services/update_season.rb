@@ -34,6 +34,8 @@ class UpdateSeason
             race.fp2_time = race_data.dig("SecondPractice", "time")
             race.fp3_time = race_data.dig("ThirdPractice", "time")
             race.quali_time = race_data.dig("Qualifying", "time")
+            race.sprint_quali_time = race_data.dig("SprintQualifying", "time")
+            race.sprint_time = race_data.dig("Sprint", "time")
             race.save!
         end
 
