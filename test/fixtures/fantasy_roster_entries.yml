@@ -20,3 +20,17 @@ codex_leclerc_sold:
   sold_at_elo: 2150.0
   sold_race: melbourne_2026
   active: false
+
+latejoin_verstappen:
+  fantasy_portfolio: latejoin_2026
+  driver: verstappen
+  bought_at_elo: 2350.0
+  bought_race: bahrain_2026
+  active: true
+
+latejoin_piastri:
+  fantasy_portfolio: latejoin_2026
+  driver: piastri
+  bought_at_elo: 2050.0
+  bought_race: bahrain_2026
+  active: true

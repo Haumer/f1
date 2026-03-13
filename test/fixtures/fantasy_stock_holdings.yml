@@ -28,3 +28,13 @@ codex_lec_closed:
   opened_race: bahrain_2026
   closed_race: melbourne_2026
   active: false
+
+latejoin_ver_long:
+  fantasy_stock_portfolio: latejoin_stock_2026
+  driver: verstappen
+  quantity: 3
+  direction: long
+  entry_price: 240.0
+  collateral: 0.0
+  opened_race: melbourne_2026
+  active: true

@@ -4,3 +4,10 @@ codex:
   username: codex
   admin: false
   terms_accepted_at: <%= Time.current %>
+
+latejoin:
+  email: latejoin@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  username: latejoin
+  admin: false
+  terms_accepted_at: <%= Time.current %>

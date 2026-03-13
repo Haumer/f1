@@ -9,3 +9,10 @@ codex_stock_melbourne:
   race: melbourne_2026
   value: 4500.0
   cash: 3000.0
+
+# Late-join: only has melbourne snapshot (stock portfolio didn't exist for bahrain)
+latejoin_stock_melbourne:
+  fantasy_stock_portfolio: latejoin_stock_2026
+  race: melbourne_2026
+  value: 2300.0
+  cash: 0.0

@@ -109,4 +109,41 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     get fantasy_stocks_path(@user.username)
     assert_redirected_to fantasy_overview_path(@user.username)
   end
+
+  # ── Combined leaderboard with stock timing scenarios ──
+
+  test "combined leaderboard renders for user with stock portfolio created after first snapshot" do
+    Setting.set("fantasy_stock_market", "enabled")
+    get combined_leaderboard_path
+    assert_response :success
+  ensure
+    Setting.find_by(key: "fantasy_stock_market")&.destroy
+  end
+
+  test "combined leaderboard renders for single-snapshot late-stock user without 500 error" do
+    Setting.set("fantasy_stock_market", "enabled")
+    # Delete latejoin's melbourne snapshot → single snapshot, stock created after it
+    fantasy_snapshots(:latejoin_melbourne).destroy!
+    get combined_leaderboard_path
+    assert_response :success
+  ensure
+    Setting.find_by(key: "fantasy_stock_market")&.destroy
+  end
+
+  # ── Overview chart start value ──
+
+  test "overview renders for user with stock portfolio created after first snapshot" do
+    sign_in users(:latejoin)
+    get fantasy_overview_path(users(:latejoin).username)
+    assert_response :success
+  end
+
+  test "overview renders for user with stock portfolio predating first snapshot" do
+    sign_in @user
+    stock_p = fantasy_stock_portfolios(:codex_stock_2026)
+    bahrain_snap = fantasy_snapshots(:codex_bahrain)
+    stock_p.update_columns(created_at: bahrain_snap.created_at - 1.day)
+    get fantasy_overview_path(@user.username)
+    assert_response :success
+  end
 end

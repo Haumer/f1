@@ -146,7 +146,15 @@
         # Only include rounds that have at least one snapshot
         snapped_rounds = season_rounds.select { |r| roster_snaps[r] || stock_snaps[r] }
 
-        chart_start = @portfolio ? @portfolio.total_starting_capital : (@stock_portfolio&.starting_capital || 0)
+        # Use total_starting_capital only if stock portfolio existed at first snapshot;
+        # otherwise the snapshot predates stock capital and chart would show a false drop.
+        chart_start = if @portfolio
+            earliest_snap = (@snapshots || []).min_by(&:created_at)
+            stock_existed = @stock_portfolio && earliest_snap && @stock_portfolio.created_at <= earliest_snap.created_at
+            stock_existed ? @portfolio.total_starting_capital : @portfolio.starting_capital
+        else
+            @stock_portfolio&.starting_capital || 0
+        end
         chart_labels = ["Start"] + snapped_rounds.map { |r| "R#{r}" }
         chart_total = [chart_start.round(0)] + snapped_rounds.map do |r|
             rs = roster_snaps[r]
