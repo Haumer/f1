@@ -1,0 +1,116 @@
+<% content_for(:title) { "Champion Timeline" } %>
+<% content_for(:description) { "Every Formula 1 World Champion visualized across 75 years — dynasties, dominance streaks, and the full timeline of title winners." } %>
+<div class="homepage-container">
+    <div class="page-back-link">
+        <%= link_to stats_path do %>
+            <i class="fa-solid fa-arrow-left"></i> Stats
+        <% end %>
+    </div>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><i class="fa-solid fa-crown" style="color: #f0c850;"></i> 1950–Present</span>
+            <h1 class="page-hero-title">Champion Timeline</h1>
+            <p class="page-hero-meta"><%= @reigns.map { |r| r[:driver] }.uniq.size %> champions across <%= @reigns.sum { |r| r[:titles] } %> seasons</p>
+        </div>
+    </div>
+
+    <div class="table-header"><h4><i class="fa-solid fa-shapes" style="margin-right: 6px;"></i> Championship Share by Era</h4></div>
+    <div class="card">
+        <%= custom_chart Graphs::ChampionTimeline.new(reigns: @reigns).treemap_data %>
+    </div>
+    <span class="data-source">Data: FIA World Drivers' Championship &middot; Block size = titles, color = constructor</span>
+
+    <%# Longest reigns / dominance streaks %>
+    <% streaks = @reigns.select { |r| r[:titles] > 1 }.sort_by { |r| -r[:titles] } %>
+    <% if streaks.any? %>
+        <div class="table-header" style="margin-top: 16px;"><h4><i class="fa-solid fa-fire" style="margin-right: 6px;"></i> Dominance Streaks</h4></div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th></th>
+                        <th>Driver</th>
+                        <th class="text-center">Titles</th>
+                        <th>Years</th>
+                        <th class="d-none d-sm-table-cell">Constructor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% streaks.each_with_index do |reign, idx| %>
+                        <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                            <td class="text-center"><%= idx + 1 %></td>
+                            <td class="icon-cell">
+                                <%= flag_image(reign[:driver], size: 24) %>
+                            </td>
+                            <td>
+                                <%= link_to driver_path(reign[:driver]) do %>
+                                    <%= reign[:driver].forename[0] %>. <%= reign[:driver].surname %>
+                                <% end %>
+                            </td>
+                            <td class="text-center font-bold"><%= reign[:titles] %>x</td>
+                            <td><%= reign[:start_year] %>–<%= reign[:end_year] %></td>
+                            <td class="d-none d-sm-table-cell">
+                                <% if reign[:constructor] %>
+                                    <span style="color: <%= reign[:color] %>"><%= reign[:constructor].name %></span>
+                                <% end %>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    <% end %>
+
+    <%# Full champion list by total titles %>
+    <% champion_totals = @reigns.group_by { |r| r[:driver] }.map do |driver, reigns|
+        total = reigns.sum { |r| r[:titles] }
+        years = reigns.flat_map { |r| (r[:start_year]..r[:end_year]).to_a }
+        { driver: driver, total: total, years: years, reigns: reigns }
+    end.sort_by { |c| [-c[:total], c[:years].first] } %>
+
+    <div class="table-header" style="margin-top: 16px;">
+        <h4><i class="fa-solid fa-trophy" style="margin-right: 6px;"></i> All Champions</h4>
+        <span class="table-header-sub"><%= champion_totals.size %> drivers</span>
+    </div>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact" data-controller="sortable-table">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th class="d-none d-sm-table-cell"></th>
+                    <th data-sort="text">Driver</th>
+                    <th class="text-center" data-sort="num">Titles</th>
+                    <th class="d-none d-sm-table-cell">Years</th>
+                    <th class="text-center d-none d-md-table-cell" data-sort="num">Peak Elo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% champion_totals.each_with_index do |c, idx| %>
+                    <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                        <td class="text-center"><%= idx + 1 %></td>
+                        <td class="icon-cell d-none d-sm-table-cell">
+                            <%= flag_image(c[:driver], size: 24) %>
+                        </td>
+                        <td>
+                            <%= link_to driver_path(c[:driver]) do %>
+                                <%= c[:driver].forename[0] %>. <%= c[:driver].surname %>
+                            <% end %>
+                            <% if c[:total] > 1 %>
+                                <span class="title-badge champion title-count-inline"><%= c[:total] %>x</span>
+                            <% end %>
+                        </td>
+                        <td class="text-center font-bold"><%= c[:total] %></td>
+                        <td class="d-none d-sm-table-cell"><%= c[:years].join(", ") %></td>
+                        <td class="text-center d-none d-md-table-cell"><%= elo_link(c[:driver].display_peak_elo) %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>

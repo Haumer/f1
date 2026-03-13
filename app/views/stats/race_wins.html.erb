@@ -1,0 +1,177 @@
+<% content_for(:title) { "Race Wins & Podiums" } %>
+<% content_for(:description) { "F1 drivers ranked by career race wins and podiums, with milestone breakdowns by era." } %>
+<div class="homepage-container">
+    <div class="page-back-link">
+        <%= link_to stats_path do %>
+            <i class="fa-solid fa-arrow-left"></i> Stats
+        <% end %>
+    </div>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><%= @active_era.present? ? @active_era : "All-Time" %></span>
+            <h1 class="page-hero-title">Race Wins & Podiums</h1>
+        </div>
+    </div>
+
+    <%# Era filter %>
+    <div class="fantasy-tab-bar">
+        <%= link_to race_wins_path, class: "fantasy-tab #{'active' if @active_era.blank?}" do %>
+            All Time
+        <% end %>
+        <% @eras.each do |name, range| %>
+            <%= link_to race_wins_path(era: name), class: "fantasy-tab #{'active' if @active_era == name}" do %>
+                <%= name %>
+                <span class="table-header-sub" style="margin-left: 4px; font-size: 11px;"><%= range.first %>–<%= range.last > 2050 ? "now" : range.last %></span>
+            <% end %>
+        <% end %>
+    </div>
+
+    <%# Win milestones %>
+    <div class="table-header"><h4><i class="fa-solid fa-trophy" style="margin-right: 6px;"></i> Win Milestones <span class="table-header-sub">(<%= @win_drivers.size %> drivers)</span></h4></div>
+    <div class="card card-flush" style="margin-bottom: 16px;">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact">
+            <thead>
+                <tr>
+                    <th>Milestone</th>
+                    <th class="text-center">Drivers</th>
+                    <th class="d-none d-sm-table-cell">Names</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @win_milestones.each do |m| %>
+                    <% next if m[:count] == 0 %>
+                    <tr>
+                        <td><strong><%= m[:label] %></strong></td>
+                        <td class="text-center"><%= m[:count] %></td>
+                        <td class="d-none d-sm-table-cell">
+                            <% if m[:count] <= 5 %>
+                                <%= m[:drivers].map { |d| link_to("#{d.forename[0]}. #{d.surname}", driver_path(d)) }.join(", ").html_safe %>
+                            <% end %>
+                        </td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <%# Podium milestones %>
+    <div class="table-header"><h4><i class="fa-solid fa-medal" style="margin-right: 6px;"></i> Podium Milestones <span class="table-header-sub">(<%= @podium_drivers.size %> drivers)</span></h4></div>
+    <div class="card card-flush" style="margin-bottom: 16px;">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact">
+            <thead>
+                <tr>
+                    <th>Milestone</th>
+                    <th class="text-center">Drivers</th>
+                    <th class="d-none d-sm-table-cell">Names</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @podium_milestones.each do |m| %>
+                    <% next if m[:count] == 0 %>
+                    <tr>
+                        <td><strong><%= m[:label] %></strong></td>
+                        <td class="text-center"><%= m[:count] %></td>
+                        <td class="d-none d-sm-table-cell">
+                            <% if m[:count] <= 5 %>
+                                <%= m[:drivers].map { |d| link_to("#{d.forename[0]}. #{d.surname}", driver_path(d)) }.join(", ").html_safe %>
+                            <% end %>
+                        </td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <%# Race winners chart + table %>
+    <div class="table-header"><h4><i class="fa-solid fa-list-ol" style="margin-right: 6px;"></i> All Race Winners</h4></div>
+    <div class="card" style="margin-bottom: 4px;">
+        <%= custom_chart Graphs::WinsBar.new(drivers: @win_drivers, field: :wins, label: "Wins").data %>
+    </div>
+    <div class="card card-flush" style="margin-bottom: 16px;">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact podium-leaders" data-controller="sortable-table">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th class="d-none d-sm-table-cell"></th>
+                    <th data-sort="text">Driver</th>
+                    <th class="text-center" title="Wins" data-sort="num">W</th>
+                    <th class="text-center" title="Total Podiums" data-sort="num">Pod</th>
+                    <th class="text-center d-none d-sm-table-cell" title="Second Places" data-sort="num">2nd</th>
+                    <th class="text-center d-none d-sm-table-cell" title="Third Places" data-sort="num">3rd</th>
+                    <th class="text-center d-none d-md-table-cell" data-sort="num">Peak Elo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @win_drivers.each_with_index do |driver, index| %>
+                    <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
+                        <td class="text-center"><%= index + 1 %></td>
+                        <td class="icon-cell d-none d-sm-table-cell">
+                            <%= flag_image(driver, size: 24) %>
+                        </td>
+                        <td>
+                            <%= link_to driver_path(driver) do %>
+                                <%= driver.forename[0] %>.<%= driver.surname %>
+                            <% end %>
+                        </td>
+                        <td class="text-center"><%= driver.wins %></td>
+                        <td class="text-center"><%= driver.podiums %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= driver.second_places %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= driver.third_places %></td>
+                        <td class="text-center d-none d-md-table-cell"><%= elo_link(driver.display_peak_elo) %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <%# Podium finishers chart + table %>
+    <div class="table-header"><h4><i class="fa-solid fa-medal" style="margin-right: 6px;"></i> All Podium Finishers</h4></div>
+    <div class="card" style="margin-bottom: 4px;">
+        <%= custom_chart Graphs::WinsBar.new(drivers: @podium_drivers, field: :podiums, label: "Podiums").data %>
+    </div>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact podium-leaders" data-controller="sortable-table">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th class="d-none d-sm-table-cell"></th>
+                    <th data-sort="text">Driver</th>
+                    <th class="text-center" title="Total Podiums" data-sort="num">Pod</th>
+                    <th class="text-center" title="Wins" data-sort="num">W</th>
+                    <th class="text-center d-none d-sm-table-cell" title="Second Places" data-sort="num">2nd</th>
+                    <th class="text-center d-none d-sm-table-cell" title="Third Places" data-sort="num">3rd</th>
+                    <th class="text-center d-none d-md-table-cell" data-sort="num">Peak Elo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @podium_drivers.each_with_index do |driver, index| %>
+                    <tr class="<%= 'podium-row podium-p' + (index + 1).to_s if index < 3 %>">
+                        <td class="text-center"><%= index + 1 %></td>
+                        <td class="icon-cell d-none d-sm-table-cell">
+                            <%= flag_image(driver, size: 24) %>
+                        </td>
+                        <td>
+                            <%= link_to driver_path(driver) do %>
+                                <%= driver.forename[0] %>.<%= driver.surname %>
+                            <% end %>
+                        </td>
+                        <td class="text-center"><%= driver.podiums %></td>
+                        <td class="text-center"><%= driver.wins %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= driver.second_places %></td>
+                        <td class="text-center d-none d-sm-table-cell"><%= driver.third_places %></td>
+                        <td class="text-center d-none d-md-table-cell"><%= elo_link(driver.display_peak_elo) %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>

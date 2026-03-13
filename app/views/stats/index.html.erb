@@ -53,6 +53,13 @@
     <%# Race Stats %>
     <div class="table-header" style="margin-top: 8px;"><h4><i class="fa-solid fa-flag-checkered" style="margin-right: 6px;"></i> Race Stats</h4></div>
     <div class="stats-hub-grid">
+        <%= link_to race_wins_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Race Wins & Podiums</span>
+                <span class="stats-hub-desc">Win and podium milestones across all drivers</span>
+            </div>
+        <% end %>
         <%= link_to podiums_races_path, class: "card stats-hub-card" do %>
             <div class="stats-hub-icon"><i class="fa-solid fa-trophy"></i></div>
             <div class="stats-hub-info">
@@ -65,6 +72,13 @@
             <div class="stats-hub-info">
                 <span class="stats-hub-title">World Champions</span>
                 <span class="stats-hub-desc">Every championship winner and title count</span>
+            </div>
+        <% end %>
+        <%= link_to champion_timeline_path, class: "card stats-hub-card" do %>
+            <div class="stats-hub-icon"><i class="fa-solid fa-timeline"></i></div>
+            <div class="stats-hub-info">
+                <span class="stats-hub-title">Champion Timeline</span>
+                <span class="stats-hub-desc">75 years of champions and dominance streaks</span>
             </div>
         <% end %>
         <%= link_to highest_elo_races_path, class: "card stats-hub-card" do %>
