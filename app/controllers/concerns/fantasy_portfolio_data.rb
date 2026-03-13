@@ -96,9 +96,9 @@ module FantasyPortfolioData
     snapshots.each_with_object({}) do |(pid, snaps), hash|
       if snaps.size >= 2
         hash[pid] = snaps[0].value - snaps[1].value
-      elsif snaps.size == 1 && starting_values[pid]
-        hash[pid] = snaps[0].value - starting_values[pid]
       else
+        # Single snapshot — no previous race to compare against,
+        # so don't show a delta (avoids misleading "total gain" as "last race")
         hash[pid] = 0
       end
     end
