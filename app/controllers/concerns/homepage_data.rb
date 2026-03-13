@@ -131,7 +131,8 @@ module HomepageData
 
   def build_session_schedule(race)
     now = Time.current
-    sessions = race.session_schedule.map.with_index do |session, idx|
+    raw_schedule = race.session_schedule
+    sessions = raw_schedule.map.with_index do |session, idx|
       session_start = session[:starts_at]
       duration = SESSION_DURATIONS[session[:key]] || 1.hour
 
@@ -144,11 +145,18 @@ module HomepageData
                    :upcoming
                  end
                else
-                 # No timestamps, fall back to date
+                 # No timestamps, fall back to date — but respect ordering:
+                 # if an earlier session on the same day hasn't finished yet,
+                 # this one can't be "today" either.
                  if session[:date] < @today
                    :done
                  elsif session[:date] == @today
-                   :today
+                   earlier_still_pending = raw_schedule.any? { |s|
+                     s[:date] == session[:date] &&
+                     s[:starts_at].present? &&
+                     s[:starts_at] + (SESSION_DURATIONS[s[:key]] || 1.hour) > now
+                   }
+                   earlier_still_pending ? :upcoming : :today
                  else
                    :upcoming
                  end
