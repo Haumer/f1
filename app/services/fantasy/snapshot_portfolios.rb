@@ -27,12 +27,20 @@ module Fantasy
       end
       ranked.each_with_index { |s, i| s[:rank] = i + 1 }
 
-      # Upsert all snapshots
+      # Insert snapshots — skip if already snapped for this race
+      # (don't overwrite: later trades would corrupt historical values)
       ranked.each do |attrs|
-        FantasySnapshot.find_or_initialize_by(
+        next if FantasySnapshot.exists?(
           fantasy_portfolio_id: attrs[:fantasy_portfolio_id],
           race_id: attrs[:race_id]
-        ).update!(value: attrs[:value], cash: attrs[:cash], rank: attrs[:rank])
+        )
+        FantasySnapshot.create!(
+          fantasy_portfolio_id: attrs[:fantasy_portfolio_id],
+          race_id: attrs[:race_id],
+          value: attrs[:value],
+          cash: attrs[:cash],
+          rank: attrs[:rank]
+        )
       end
 
       # Also snapshot stock portfolios — but only if SettleRace hasn't already
