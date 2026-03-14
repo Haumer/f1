@@ -173,7 +173,14 @@ class UpdateRaceResult
     def create_standings_from_results
         # Build cumulative standings from all race results in the season so far
         season = @race.season
-        completed_races = season.races.joins(:race_results).distinct.where("races.round <= ?", @race.round).order(:round)
+        # Include races with either race results or sprint results
+        completed_races = season.races
+            .left_joins(:race_results)
+            .joins("LEFT JOIN race_results sprint_rr ON sprint_rr.race_id = races.id AND sprint_rr.result_type = 'sprint'")
+            .where("races.round <= ?", @race.round)
+            .where("race_results.id IS NOT NULL OR sprint_rr.id IS NOT NULL")
+            .distinct
+            .order(:round)
 
         cumulative_points = Hash.new(0.0)
         cumulative_wins = Hash.new(0)
@@ -194,11 +201,12 @@ class UpdateRaceResult
         sorted = cumulative_points.sort_by { |did, pts| [-pts, -cumulative_wins[did]] }
 
         sorted.each_with_index do |(driver_id, points), idx|
-            DriverStanding.find_or_create_by(race: @race, driver_id: driver_id) do |ds|
-                ds.position = idx + 1
-                ds.points = points
-                ds.wins = cumulative_wins[driver_id]
-            end
+            ds = DriverStanding.find_or_initialize_by(race: @race, driver_id: driver_id)
+            ds.update!(
+                position: idx + 1,
+                points: points,
+                wins: cumulative_wins[driver_id]
+            )
             UpdateDriverStanding.new(driver: Driver.find(driver_id), season: season).update
         end
 
