@@ -255,22 +255,18 @@ class FantasyPortfoliosController < ApplicationController
 
     combined = @roster_entries.map do |e|
       p = e[:portfolio]
-      roster_net = p.profit_loss
       sp = stock_by_user[p.user_id]
-      stock_net = sp&.dig(:portfolio)&.profit_loss || 0
-      total_return = p.total_return
-      { user: p.user, roster_net: roster_net, stock_net: stock_net == 0 ? nil : stock_net,
-        roster_value: e[:value], stock_value: sp ? sp[:value] : 0,
-        total_value: e[:value] + (sp ? sp[:value] : 0), net_value: total_return }
+      { user: p.user,
+        total_value: e[:value] + (sp ? sp[:value] : 0),
+        net_value: p.total_return }
     end
 
     @stock_entries.each do |e|
       sp = e[:portfolio]
       next if combined.any? { |c| c[:user].id == sp.user_id }
-      stock_net = sp.profit_loss
-      combined << { user: sp.user, roster_net: nil, stock_net: stock_net,
-                    roster_value: nil, stock_value: e[:value],
-                    total_value: e[:value], net_value: stock_net }
+      combined << { user: sp.user,
+                    total_value: e[:value],
+                    net_value: sp.profit_loss }
     end
 
     combined.sort_by { |c| -c[:net_value] }
@@ -278,26 +274,18 @@ class FantasyPortfoliosController < ApplicationController
 
   def compute_combined_deltas
     roster_ids = @roster_entries.map { |e| e[:portfolio].id }
-    roster_starts = @roster_entries.each_with_object({}) do |e, h|
-      p = e[:portfolio]
-      # Use total_starting_capital only if the stock portfolio existed when
-      # the earliest snapshot was taken; otherwise the snapshot predates
-      # stock capital and comparing against it would show a false loss.
-      sp = p.stock_portfolio
-      earliest_snap = p.snapshots.order(:created_at).first
-      stock_existed = sp && earliest_snap && sp.created_at <= earliest_snap.created_at
-      h[p.id] = stock_existed ? p.total_starting_capital : p.starting_capital
-    end
+    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids)
+
     stock_ids = @stock_entries.map { |e| e[:portfolio].id }
-    stock_starts = @stock_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].total_invested }
-    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids, starting_values: roster_starts)
-    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids, starting_values: stock_starts)
+    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids)
 
     roster_by_user = @roster_entries.index_by { |e| e[:portfolio].user_id }
     stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
     @combined_entries.each do |c|
       r_entry = roster_by_user[c[:user].id]
       s_entry = stock_by_user[c[:user].id]
+      # Roster snapshot already includes stock positions value, so use it as the primary delta.
+      # Only fall back to stock delta for users who have stocks but no roster.
       r_delta = r_entry ? (@roster_deltas[r_entry[:portfolio].id] || 0) : 0
       s_delta = !r_entry && s_entry ? (@stock_deltas[s_entry[:portfolio].id] || 0) : 0
       c[:last_race] = r_delta + s_delta

@@ -48,8 +48,6 @@
                             <tr>
                                 <th class="text-center">#</th>
                                 <th>Player</th>
-                                <th class="text-end d-none d-md-table-cell">Roster P&L</th>
-                                <th class="text-end d-none d-md-table-cell">Stocks P&L</th>
                                 <th class="text-end">Net Value</th>
                                 <th class="text-end">Last Race</th>
                                 <th class="text-end d-none d-md-table-cell">Total Value</th>
@@ -73,24 +71,6 @@
                                             <strong <% if color %>style="color: <%= color %>"<% end %>><%= entry[:user].display_name %></strong>
                                         <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
-                                    </td>
-                                    <td class="text-end d-none d-md-table-cell">
-                                        <% if entry[:roster_net] %>
-                                            <span class="<%= entry[:roster_net] >= 0 ? 'text-green' : 'text-red' %>">
-                                                <%= entry[:roster_net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:roster_net].round(0)) %>
-                                            </span>
-                                        <% else %>
-                                            <span class="text-secondary">&mdash;</span>
-                                        <% end %>
-                                    </td>
-                                    <td class="text-end d-none d-md-table-cell">
-                                        <% if entry[:stock_net] %>
-                                            <span class="<%= entry[:stock_net] >= 0 ? 'text-green' : 'text-red' %>">
-                                                <%= entry[:stock_net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:stock_net].round(0)) %>
-                                            </span>
-                                        <% else %>
-                                            <span class="text-secondary">&mdash;</span>
-                                        <% end %>
                                     </td>
                                     <td class="text-end fantasy-leaderboard-value">
                                         <span class="<%= entry[:net_value] >= 0 ? 'text-green' : 'text-red' %>">
