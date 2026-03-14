@@ -276,7 +276,14 @@ class FantasyPortfoliosController < ApplicationController
   def compute_combined_deltas
     roster_ids = @roster_entries.map { |e| e[:portfolio].id }
     roster_starts = @roster_entries.each_with_object({}) do |e, h|
-      h[e[:portfolio].id] = e[:portfolio].total_starting_capital
+      p = e[:portfolio]
+      # Use total_starting_capital only if stock portfolio existed when the
+      # earliest snapshot was taken; otherwise the snapshot predates stock
+      # capital and comparing against it would show a false loss.
+      sp = p.stock_portfolio
+      earliest_snap = p.snapshots.order(:created_at).first
+      stock_existed = sp && earliest_snap && sp.created_at <= earliest_snap.created_at
+      h[p.id] = stock_existed ? p.total_starting_capital : p.starting_capital
     end
     @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids, starting_values: roster_starts)
 
