@@ -159,7 +159,6 @@ class FantasyPortfoliosController < ApplicationController
 
   def combined_leaderboard
     @season = Season.sorted_by_year.first
-    @tab = params[:tab] || "combined"
 
     @roster_entries = Fantasy::Leaderboard.new(season: @season).call
     @stock_entries = stock_leaderboard_entries

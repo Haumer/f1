@@ -4,18 +4,22 @@ class Fantasy::SellDriverTest < ActiveSupport::TestCase
   setup do
     @portfolio = fantasy_portfolios(:codex_2026)
     @driver = drivers(:verstappen)
+    # Use melbourne as the trade race (future date so transfer window is open)
     @race = races(:melbourne_2026)
     @race.update_columns(date: 1.week.from_now.to_date, time: "15:00:00")
     # Reset swaps so can_swap? passes
     fantasy_roster_entries(:codex_leclerc_sold).update_columns(sold_race_id: races(:bahrain_2026).id)
-    # Set bought_race to an earlier round so held_races_for >= 1
-    # bahrain_2025 is round 1 of 2025 season, but we need a race in the same season
-    # Just set bought_race to bahrain_2025 (different season) won't help;
-    # instead update the entry's bought_race round to be < latest_race round.
-    # bahrain_2026 is round 1, so latest_race (with standings) is round 1.
-    # We need latest_race.round > bought_race.round, so let's add standings for melbourne_2026.
-    DriverStanding.create!(race: races(:melbourne_2026), driver: @driver, position: 1, points: 50, wins: 2)
-    # Now latest_race = melbourne_2026 (round 2), held_races = 2 - 1 = 1 ✓
+    # Ensure bahrain_2026 (round 1) is in the past with standings so latest_race = round 1
+    races(:bahrain_2026).update_columns(date: 1.week.ago.to_date)
+    DriverStanding.find_or_create_by!(race: races(:bahrain_2026), driver: @driver) do |ds|
+      ds.position = 1; ds.points = 50; ds.wins = 2
+    end
+    # Set bought_race to round 0 so held_races >= 1
+    fantasy_roster_entries(:codex_verstappen).update_columns(bought_race_id: nil)
+    # Create a round-0 race for bought_race
+    r0 = Race.create!(year: 2026, round: 0, date: 2.weeks.ago.to_date, time: "15:00:00",
+                       circuit: circuits(:bahrain), season: seasons(:season_2026))
+    fantasy_roster_entries(:codex_verstappen).update_columns(bought_race_id: r0.id)
   end
 
   test "successfully sells a driver" do
@@ -71,8 +75,8 @@ class Fantasy::SellDriverTest < ActiveSupport::TestCase
   end
 
   test "returns error when driver not held for at least 1 race" do
-    # Reset so latest_race = bahrain_2026 (round 1) = bought_race round -> held_races = 0
-    DriverStanding.where(race: races(:melbourne_2026)).destroy_all
+    # Set bought_race = bahrain_2026 (round 1) = latest_race -> held_races = 0
+    fantasy_roster_entries(:codex_verstappen).update_columns(bought_race_id: races(:bahrain_2026).id)
     result = Fantasy::SellDriver.new(portfolio: @portfolio, driver: @driver, race: @race).call
     assert_equal "Must hold driver for at least 1 race", result[:error]
   end
