@@ -26,15 +26,9 @@ class Fantasy::CreatePortfolioTest < ActiveSupport::TestCase
     assert_in_delta portfolio.starting_capital / 2.0, portfolio.cash, 0.1
   end
 
-  test "starting_capital is full amount (roster + stock)" do
-    avg = Driver.where.not(elo_v2: nil)
-                .joins(:season_drivers)
-                .where(season_drivers: { season_id: @season.id })
-                .average(:elo_v2) || 0
-    expected = (avg * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(1)
-
+  test "starting_capital is fixed at 9450" do
     result = Fantasy::CreatePortfolio.new(user: @user, season: @season).call
-    assert_in_delta expected, result[:portfolio].starting_capital, 0.1
+    assert_in_delta 9450.0, result[:portfolio].starting_capital, 0.01
   end
 
   test "returns error when user already has portfolio for season" do
@@ -42,7 +36,7 @@ class Fantasy::CreatePortfolioTest < ActiveSupport::TestCase
     assert_equal "You already have a portfolio for this season", result[:error]
   end
 
-  test "CAPITAL_MULTIPLIER is 4.4" do
-    assert_in_delta 4.4, Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER, 0.01
+  test "STARTING_CAPITAL is 9450" do
+    assert_in_delta 9450.0, Fantasy::CreatePortfolio::STARTING_CAPITAL, 0.01
   end
 end

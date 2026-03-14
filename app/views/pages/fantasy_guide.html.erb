@@ -23,7 +23,7 @@
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">1</div>
                     <div class="elo-step-content">
                         <strong>Starting Capital</strong>
-                        <span>You receive fantasy cash equal to the average driver Elo &times; <%= Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER %>. This is your budget.</span>
+                        <span>You receive <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> fantasy cash. This is your budget.</span>
                     </div>
                 </div>
                 <div class="elo-step">
@@ -98,7 +98,7 @@
         <div class="elo-results-grid elo-results-grid-3">
             <div class="elo-result-card">
                 <div class="elo-result-label">Starting Capital</div>
-                <div class="elo-result-value">Avg Elo &times; <%= Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER %></div>
+                <div class="elo-result-value"><%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %></div>
                 <span class="elo-result-sub">Awarded once when you create a portfolio</span>
             </div>
             <div class="elo-result-card">

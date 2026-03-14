@@ -1,6 +1,6 @@
 module Fantasy
   class CreatePortfolio
-    CAPITAL_MULTIPLIER = 4.4  # Full capital (roster + stock halves)
+    STARTING_CAPITAL = 9450.0  # Fixed starting capital for all users
 
     def initialize(user:, season:)
       @user = user
@@ -10,7 +10,7 @@ module Fantasy
     def call
       return { error: "You already have a portfolio for this season" } if @user.fantasy_portfolio_for(@season)
 
-      starting_capital = compute_starting_capital
+      starting_capital = STARTING_CAPITAL
       roster_cash = (starting_capital / 2.0).round(1)
       portfolio = FantasyPortfolio.create!(
         user: @user,
@@ -29,13 +29,5 @@ module Fantasy
     end
 
     private
-
-    def compute_starting_capital
-      avg_elo = Driver.where.not(elo_v2: nil)
-                      .joins(:season_drivers)
-                      .where(season_drivers: { season_id: @season.id })
-                      .average(:elo_v2) || 0
-      (avg_elo * CAPITAL_MULTIPLIER).round(1)
-    end
   end
 end

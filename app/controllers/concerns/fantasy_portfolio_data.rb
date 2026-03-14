@@ -48,12 +48,7 @@ module FantasyPortfolioData
   end
 
   def compute_starting_capital
-    season = Season.sorted_by_year.first
-    avg_elo = Driver.where.not(elo_v2: nil)
-                    .joins(:season_drivers)
-                    .where(season_drivers: { season_id: season.id })
-                    .average(:elo_v2) || 0
-    (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(0)  # Full capital (roster + stock)
+    Fantasy::CreatePortfolio::STARTING_CAPITAL
   end
 
   def check_roster_achievements(portfolio)
