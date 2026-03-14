@@ -212,9 +212,8 @@ class PagesController < ApplicationController
       sp = stock_portfolios[p.user_id]
       roster_value = p.portfolio_value
       stock_value = sp ? sp.portfolio_value : 0
-      total_starting = p.total_starting_capital
       total_value = roster_value + stock_value
-      { user: p.user, net: total_value - total_starting }
+      { user: p.user, net: total_value - Fantasy::CreatePortfolio::STARTING_CAPITAL }
     end.sort_by { |e| -e[:net] }.first(5)
 
     @leaderboard_preview = combined.map.with_index(1) do |entry, rank|

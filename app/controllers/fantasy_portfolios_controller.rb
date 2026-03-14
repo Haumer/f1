@@ -148,7 +148,8 @@ class FantasyPortfoliosController < ApplicationController
   def leaderboard
     @season = Season.sorted_by_year.first
     @entries = Fantasy::Leaderboard.new(season: @season).call
-    roster_starts = @entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].starting_capital }
+    starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
+    roster_starts = @entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = starting }
     @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, @entries.map { |e| e[:portfolio].id }, starting_values: roster_starts)
     user_ids = @entries.map { |e| e[:portfolio].user_id }
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
@@ -252,34 +253,38 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def build_combined_entries
+    starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
     stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }
 
     combined = @roster_entries.map do |e|
       p = e[:portfolio]
       sp = stock_by_user[p.user_id]
+      net = p.total_return
       { user: p.user,
-        total_value: e[:value] + (sp ? sp[:value] : 0),
-        net_value: p.total_return }
+        total_value: starting + net,
+        net_value: net }
     end
 
     @stock_entries.each do |e|
       sp = e[:portfolio]
       next if combined.any? { |c| c[:user].id == sp.user_id }
+      net = sp.profit_loss
       combined << { user: sp.user,
-                    total_value: e[:value],
-                    net_value: sp.profit_loss }
+                    total_value: starting + net,
+                    net_value: net }
     end
 
     combined.sort_by { |c| -c[:net_value] }
   end
 
   def compute_combined_deltas
+    starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
     roster_ids = @roster_entries.map { |e| e[:portfolio].id }
-    roster_starts = @roster_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].starting_capital }
+    roster_starts = roster_ids.each_with_object({}) { |id, h| h[id] = starting }
     @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids, starting_values: roster_starts)
 
     stock_ids = @stock_entries.map { |e| e[:portfolio].id }
-    stock_starts = @stock_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].starting_capital }
+    stock_starts = stock_ids.each_with_object({}) { |id, h| h[id] = 0 }
     @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids, starting_values: stock_starts)
 
     roster_by_user = @roster_entries.index_by { |e| e[:portfolio].user_id }

@@ -14,7 +14,6 @@ class FantasyStockPortfoliosController < ApplicationController
     end
 
     @season = current_season
-    @starting_capital = compute_starting_capital
   end
 
   def create
@@ -131,7 +130,7 @@ class FantasyStockPortfoliosController < ApplicationController
     @entries = FantasyStockPortfolio.where(season: @season)
                  .includes(:user, :snapshots, holdings: :driver)
                  .sort_by { |p| -p.profit_loss }
-                 .map.with_index(1) { |p, i| { rank: i, portfolio: p, user: p.user, value: p.portfolio_value } }
+                 .map.with_index(1) { |p, i| { rank: i, portfolio: p, user: p.user, value: p.portfolio_value, net: p.profit_loss } }
   end
 
   private
@@ -152,11 +151,6 @@ class FantasyStockPortfoliosController < ApplicationController
                  Race.where("date >= ?", Date.current).order(:date).first
   end
 
-  def compute_starting_capital
-    roster = current_user.fantasy_portfolio_for(current_season)
-    return 0 unless roster
-    (roster.starting_capital / 2.0).round(1)
-  end
 
   def check_stock_achievements(portfolio)
     CheckAchievementsJob.perform_later(portfolio_type: "stock", portfolio_id: portfolio.id)

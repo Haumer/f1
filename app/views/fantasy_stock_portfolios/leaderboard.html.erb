@@ -39,7 +39,7 @@
                                 </span>
                             <% end %>
                         </div>
-                        <% pl = entry[:value] - p.starting_capital %>
+                        <% pl = entry[:net] %>
                         <span class="fantasy-podium-pl <%= pl >= 0 ? 'text-green' : 'text-red' %>">
                             <%= pl >= 0 ? '+' : '' %><%= pl.round(1) %>
                         </span>
@@ -65,7 +65,7 @@
                         <% @entries.each do |entry| %>
                             <% p = entry[:portfolio] %>
                             <% is_me = current_user && p.user_id == current_user.id %>
-                            <% pl = entry[:value] - p.starting_capital %>
+                            <% pl = entry[:net] %>
                             <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{entry[:rank]}" if entry[:rank] <= 3 %>">
                                 <td class="text-center position-cell"><%= entry[:rank] %></td>
                                 <td>

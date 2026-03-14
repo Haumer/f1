@@ -89,7 +89,7 @@ module Admin
       FantasyPortfolio.where(season: season).includes(:user).each do |p|
         sp = FantasyStockPortfolio.find_by(user_id: p.user_id, season_id: season.id)
         next unless sp
-        total_starting = p.starting_capital + sp.starting_capital
+        total_starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
         roster_value = p.active_roster_entries.includes(:driver).sum { |e| Fantasy::Pricing.price_for(e.driver, season) }
         total_accounted = p.cash + roster_value + sp.positions_value
         diff = (total_accounted - total_starting).round(1)

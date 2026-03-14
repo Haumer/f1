@@ -34,9 +34,7 @@
     <% roster_value = @portfolio ? @portfolio.portfolio_value : 0 %>
     <% stock_value = @stock_portfolio ? @stock_portfolio.portfolio_value : 0 %>
     <% total_value = roster_value + stock_value %>
-    <% roster_starting = @portfolio ? @portfolio.starting_capital : 0 %>
-    <% stock_starting = @stock_portfolio ? @stock_portfolio.starting_capital : 0 %>
-    <% total_starting = roster_starting + stock_starting %>
+    <% total_starting = Fantasy::CreatePortfolio::STARTING_CAPITAL %>
     <% roster_pl = @portfolio ? @portfolio.profit_loss : 0 %>
     <% stock_pl = @stock_portfolio ? @stock_portfolio.profit_loss : 0 %>
     <% total_pl = roster_pl + stock_pl %>

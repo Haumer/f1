@@ -28,10 +28,10 @@ class FantasyPortfolio < ApplicationRecord
     active_roster_entries.includes(:driver).sum { |e| Fantasy::Pricing.price_for(e.driver, season) - e.bought_at_elo }.round(2)
   end
 
-  # Total return across roster + stock: value - capital
+  # Total return across roster + stock: value - starting capital
   def total_return
-    total_value = portfolio_value + (stock_portfolio&.positions_value || 0)
-    (total_value - starting_capital).round(2)
+    assets = portfolio_value + (stock_portfolio&.positions_value || 0)
+    (assets - Fantasy::CreatePortfolio::STARTING_CAPITAL).round(2)
   end
 
   def roster_invested

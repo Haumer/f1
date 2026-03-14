@@ -20,10 +20,10 @@ class Fantasy::CreatePortfolioTest < ActiveSupport::TestCase
     assert_equal @season, result[:portfolio].season
   end
 
-  test "cash is half of starting_capital" do
+  test "cash equals starting_capital" do
     result = Fantasy::CreatePortfolio.new(user: @user, season: @season).call
     portfolio = result[:portfolio]
-    assert_in_delta portfolio.starting_capital / 2.0, portfolio.cash, 0.1
+    assert_in_delta portfolio.starting_capital, portfolio.cash, 0.1
   end
 
   test "starting_capital is fixed at 9450" do

@@ -22,15 +22,14 @@ class Fantasy::Stock::CreatePortfolioTest < ActiveSupport::TestCase
     assert_in_delta 0, result[:portfolio].starting_capital, 0.01
   end
 
-  test "unlocks second half of starting capital into roster cash" do
+  test "does not change roster cash" do
     roster = FantasyPortfolio.create!(user: @user, season: @season, cash: 500.0, starting_capital: 2000.0, roster_slots: 4)
     cash_before = roster.cash
 
     Fantasy::Stock::CreatePortfolio.new(user: @user, season: @season).call
 
     roster.reload
-    # Unlock amount = starting_capital / 2 = 1000
-    assert_in_delta cash_before + 1000.0, roster.cash, 0.1
+    assert_in_delta cash_before, roster.cash, 0.1
   end
 
   test "returns error without roster portfolio" do

@@ -10,19 +10,17 @@ module Fantasy
     def call
       return { error: "You already have a portfolio for this season" } if @user.fantasy_portfolio_for(@season)
 
-      starting_capital = STARTING_CAPITAL
-      roster_cash = (starting_capital / 2.0).round(1)
       portfolio = FantasyPortfolio.create!(
         user: @user,
         season: @season,
-        cash: roster_cash,
-        starting_capital: starting_capital
+        cash: STARTING_CAPITAL,
+        starting_capital: STARTING_CAPITAL
       )
 
       portfolio.transactions.create!(
         kind: "starting_capital",
-        amount: roster_cash,
-        note: "Starting capital (roster)"
+        amount: STARTING_CAPITAL,
+        note: "Starting capital"
       )
 
       { portfolio: portfolio }
