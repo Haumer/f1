@@ -53,7 +53,7 @@ module FantasyPortfolioData
                     .joins(:season_drivers)
                     .where(season_drivers: { season_id: season.id })
                     .average(:elo_v2) || 0
-    (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(0)
+    (avg_elo * Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER).round(0)  # Full capital (roster + stock)
   end
 
   def check_roster_achievements(portfolio)

@@ -9,41 +9,30 @@ module Fantasy
       def call
         return { error: "You already have a stock portfolio for this season" } if @user.fantasy_stock_portfolio_for(@season)
 
-        capital = compute_starting_capital
+        roster = @user.fantasy_portfolio_for(@season)
+        return { error: "You need a roster portfolio first" } unless roster
 
-        # Stock portfolio has no cash — capital is added to the roster wallet
+        # Stock portfolio has no starting capital — it's already in roster's starting_capital
         portfolio = FantasyStockPortfolio.create!(
           user: @user,
           season: @season,
           cash: 0,
-          starting_capital: capital
+          starting_capital: 0
         )
 
-        # Add stock capital to the unified wallet (roster portfolio)
-        roster = @user.fantasy_portfolio_for(@season)
-        if roster
-          roster.with_lock do
-            roster.update!(cash: roster.cash + capital)
-          end
-
-          roster.transactions.create!(
-            kind: "starting_capital",
-            amount: capital,
-            note: "Stock market unlocked"
-          )
+        # Unlock the second half of starting capital
+        unlock_amount = (roster.starting_capital / 2.0).round(1)
+        roster.with_lock do
+          roster.update!(cash: roster.cash + unlock_amount)
         end
 
+        roster.transactions.create!(
+          kind: "starting_capital",
+          amount: unlock_amount,
+          note: "Stock market unlocked"
+        )
+
         { portfolio: portfolio }
-      end
-
-      private
-
-      def compute_starting_capital
-        avg_elo = Driver.where.not(elo_v2: nil)
-                        .joins(:season_drivers)
-                        .where(season_drivers: { season_id: @season.id })
-                        .average(:elo_v2) || 0
-        (avg_elo * FantasyStockPortfolio::CAPITAL_MULTIPLIER).round(1)
       end
     end
   end

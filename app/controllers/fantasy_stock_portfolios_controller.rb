@@ -153,12 +153,9 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def compute_starting_capital
-    season = Season.sorted_by_year.first
-    avg_elo = Driver.where.not(elo_v2: nil)
-                    .joins(:season_drivers)
-                    .where(season_drivers: { season_id: season.id })
-                    .average(:elo_v2) || 0
-    (avg_elo * FantasyStockPortfolio::CAPITAL_MULTIPLIER).round(1)
+    roster = current_user.fantasy_portfolio_for(current_season)
+    return 0 unless roster
+    (roster.starting_capital / 2.0).round(1)
   end
 
   def check_stock_achievements(portfolio)

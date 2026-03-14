@@ -20,13 +20,13 @@ class Fantasy::CreatePortfolioTest < ActiveSupport::TestCase
     assert_equal @season, result[:portfolio].season
   end
 
-  test "sets cash equal to starting_capital" do
+  test "cash is half of starting_capital" do
     result = Fantasy::CreatePortfolio.new(user: @user, season: @season).call
     portfolio = result[:portfolio]
-    assert_in_delta portfolio.starting_capital, portfolio.cash, 0.01
+    assert_in_delta portfolio.starting_capital / 2.0, portfolio.cash, 0.1
   end
 
-  test "starting_capital is based on average elo times multiplier" do
+  test "starting_capital is full amount (roster + stock)" do
     avg = Driver.where.not(elo_v2: nil)
                 .joins(:season_drivers)
                 .where(season_drivers: { season_id: @season.id })
@@ -42,7 +42,7 @@ class Fantasy::CreatePortfolioTest < ActiveSupport::TestCase
     assert_equal "You already have a portfolio for this season", result[:error]
   end
 
-  test "CAPITAL_MULTIPLIER is 2.2" do
-    assert_in_delta 2.2, Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER, 0.01
+  test "CAPITAL_MULTIPLIER is 4.4" do
+    assert_in_delta 4.4, Fantasy::CreatePortfolio::CAPITAL_MULTIPLIER, 0.01
   end
 end

@@ -273,7 +273,7 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
     result = Fantasy::Stock::CreatePortfolio.new(user: @user, season: @season).call
     portfolio = result[:portfolio]
     assert portfolio, "Stock portfolio should be created"
-    assert portfolio.starting_capital > 0
+    assert_equal 0, portfolio.starting_capital, "Stock starting_capital should be 0 (unified in roster)"
 
     # Buy shares in dominant driver
     buy_race = @races[0]

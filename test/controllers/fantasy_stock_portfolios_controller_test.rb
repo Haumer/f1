@@ -26,6 +26,8 @@ class FantasyStockPortfoliosControllerTest < ActionDispatch::IntegrationTest
 
   test "create creates a stock portfolio and redirects" do
     user = User.create!(email: "stocktest@example.com", password: "password123", username: "stocktest", terms_accepted: "1")
+    season = seasons(:season_2026)
+    FantasyPortfolio.create!(user: user, season: season, cash: 2000.0, starting_capital: 4000.0, roster_slots: 4)
     sign_in user
     assert_difference "FantasyStockPortfolio.count", 1 do
       post fantasy_stock_portfolios_path

@@ -31,17 +31,16 @@ class FantasyPortfolio < ApplicationRecord
   # Total return across roster + stock: value - capital
   def total_return
     total_value = portfolio_value + (stock_portfolio&.positions_value || 0)
-    total_capital = starting_capital + (stock_portfolio&.starting_capital || 0)
-    (total_value - total_capital).round(2)
+    (total_value - starting_capital).round(2)
   end
 
   def roster_invested
     active_roster_entries.sum(:bought_at_elo)
   end
 
-  # Total starting capital across roster + stock (for combined P&L)
+  # Total starting capital — single unified value set at portfolio creation
   def total_starting_capital
-    starting_capital + (stock_portfolio&.starting_capital || 0)
+    starting_capital
   end
 
   # Cash available after subtracting locked collateral from stock shorts

@@ -83,31 +83,9 @@ class FantasyPortfolioDataTest < ActiveSupport::TestCase
     assert_equal snap.value - starting, deltas[@latejoin_stock.id]
   end
 
-  # ── compute_combined_deltas starting_value logic ──
-  # These tests verify the starting_value selection logic used in the controller,
-  # even though single-snapshot deltas now return 0. The logic matters once users
-  # have 2+ snapshots.
+  # ── Unified starting capital ──
 
-  test "starting_value uses total_starting_capital when stock portfolio predates snapshot" do
-    bahrain_snap = fantasy_snapshots(:codex_bahrain)
-    @codex_stock.update_columns(created_at: bahrain_snap.created_at - 1.day)
-
-    sp = @codex_portfolio.stock_portfolio
-    earliest_snap = @codex_portfolio.snapshots.order(:created_at).first
-    stock_existed = sp && earliest_snap && sp.created_at <= earliest_snap.created_at
-
-    assert stock_existed
-    starting_value = stock_existed ? @codex_portfolio.total_starting_capital : @codex_portfolio.starting_capital
-    assert_equal 6000.0, starting_value, "Should use total_starting_capital (4000 + 2000)"
-  end
-
-  test "starting_value uses starting_capital when stock portfolio created after snapshot" do
-    sp = @latejoin_portfolio.stock_portfolio
-    earliest_snap = @latejoin_portfolio.snapshots.order(:created_at).first
-    stock_existed = sp && earliest_snap && sp.created_at <= earliest_snap.created_at
-
-    refute stock_existed
-    starting_value = stock_existed ? @latejoin_portfolio.total_starting_capital : @latejoin_portfolio.starting_capital
-    assert_equal 4000.0, starting_value, "Should use starting_capital (4000), not total (6000)"
+  test "total_starting_capital equals starting_capital (unified)" do
+    assert_equal @codex_portfolio.starting_capital, @codex_portfolio.total_starting_capital
   end
 end
