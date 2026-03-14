@@ -82,6 +82,10 @@ class SeasonSync
             puts "Syncing sprint results for R#{weekend_race.round}..."
             UpdateSprintResult.new(race: weekend_race).update_all
             sleep 1
+
+            # Update standings immediately so sprint points are reflected
+            puts "Updating standings with sprint points for R#{weekend_race.round}..."
+            UpdateRaceResult.new(race: weekend_race).send(:create_standings_from_results)
         end
     end
 
