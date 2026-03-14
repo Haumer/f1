@@ -8,7 +8,7 @@
         </div>
         <div class="fantasy-header-actions">
             <% if current_user&.fantasy_stock_portfolio_for(@season) %>
-                <%= link_to fantasy_stocks_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
                     <i class="fa-solid fa-arrow-left"></i> My Portfolio
                 <% end %>
             <% end %>

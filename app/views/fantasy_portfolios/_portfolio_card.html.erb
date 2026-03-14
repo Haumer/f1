@@ -90,13 +90,8 @@
             <%= link_to combined_leaderboard_path, class: "fantasy-mini-link" do %>
                 <i class="fa-solid fa-ranking-star"></i> Leaderboard
             <% end %>
-            <%= link_to fantasy_roster_path(portfolio.user.username), class: "fantasy-mini-link" do %>
-                <i class="fa-solid fa-users"></i> Roster
-            <% end %>
-            <% if stock_portfolio %>
-                <%= link_to fantasy_stocks_path(portfolio.user.username), class: "fantasy-mini-link" do %>
-                    <i class="fa-solid fa-chart-line"></i> Stocks
-                <% end %>
+            <%= link_to fantasy_overview_path(portfolio.user.username), class: "fantasy-mini-link" do %>
+                <i class="fa-solid fa-briefcase"></i> Portfolio
             <% end %>
         </div>
     </div>

@@ -68,8 +68,6 @@ Rails.application.routes.draw do
 
   # Fantasy user pages (must be before resources to avoid :id conflicts)
   get  'fantasy/u/:username',         to: 'fantasy_portfolios#overview',  as: :fantasy_overview
-  get  'fantasy/u/:username/roster',  to: 'fantasy_portfolios#roster',    as: :fantasy_roster
-  get  'fantasy/u/:username/stocks',  to: 'fantasy_portfolios#stocks',    as: :fantasy_stocks
   post 'fantasy/toggle_public',       to: 'fantasy_portfolios#toggle_public', as: :toggle_public_profile
 
   resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create] do

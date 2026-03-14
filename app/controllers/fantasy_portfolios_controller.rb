@@ -53,14 +53,6 @@ class FantasyPortfoliosController < ApplicationController
                              .order("races.round DESC")
   end
 
-  def roster
-    redirect_to fantasy_overview_path(params[:username])
-  end
-
-  def stocks
-    redirect_to fantasy_overview_path(params[:username])
-  end
-
   # ═══════════════════════════════════════
   # Portfolio creation
   # ═══════════════════════════════════════

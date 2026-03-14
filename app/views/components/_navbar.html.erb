@@ -66,8 +66,9 @@
                 <%= link_to "Active Elo", current_active_elo_drivers_path, class: ("active" if current_page?(current_active_elo_drivers_path)), role: "menuitem" %>
                 <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
-                <%= link_to "Podium Leaders", podiums_races_path, class: ("active" if current_page?(podiums_races_path)), role: "menuitem" %>
+                <%= link_to "Race Wins & Podiums", race_wins_path, class: ("active" if current_page?(race_wins_path)), role: "menuitem" %>
                 <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
+                <%= link_to "Champion Timeline", champion_timeline_path, class: ("active" if current_page?(champion_timeline_path)), role: "menuitem" %>
                 <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
                 <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>

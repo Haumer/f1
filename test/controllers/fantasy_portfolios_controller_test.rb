@@ -98,18 +98,6 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert @user.reload.public_profile?
   end
 
-  # ── Roster/stocks redirects ──
-
-  test "roster redirects to overview" do
-    get fantasy_roster_path(@user.username)
-    assert_redirected_to fantasy_overview_path(@user.username)
-  end
-
-  test "stocks redirects to overview" do
-    get fantasy_stocks_path(@user.username)
-    assert_redirected_to fantasy_overview_path(@user.username)
-  end
-
   # ── Combined leaderboard with stock timing scenarios ──
 
   test "combined leaderboard renders for user with stock portfolio created after first snapshot" do

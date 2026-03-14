@@ -85,6 +85,26 @@
         </div>
     </div>
 
+    <%# ═══════════════════ Getting Started Banner ═══════════════════ %>
+    <% if @is_owner && @portfolio && @active_entries.empty? %>
+        <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-getting-started-v1">
+            <div class="fantasy-info-banner-content">
+                <i class="fa-solid fa-rocket"></i>
+                <div>
+                    <p style="margin:0"><strong>Welcome to Fantasy F1!</strong> Here's how to get started:</p>
+                    <p style="margin:4px 0 0; opacity:0.8">
+                        <strong>1.</strong> Head to the <strong>Market</strong> and buy your first drivers at their Elo rating.
+                        <strong>2.</strong> Their value changes as they race &mdash; gain Elo to profit, lose Elo and your portfolio dips.
+                        <strong>3.</strong> After buying 2 drivers, the <strong>Stock Market</strong> unlocks &mdash; go long or short on any driver.
+                    </p>
+                </div>
+            </div>
+            <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    <% end %>
+
     <%# ═══════════════════ Transfer Window ═══════════════════ %>
     <% if @is_owner && @next_race %>
         <div class="fantasy-status-row">
@@ -402,9 +422,9 @@
         <% else %>
             <div class="card empty-state">
                 <i class="fa-solid fa-chart-line"></i>
-                <h3>No positions yet</h3>
+                <h3>Stock Market Unlocked</h3>
                 <% if @is_owner %>
-                    <p>Go long or short on drivers from the market.</p>
+                    <p>Buy shares in drivers you think will gain Elo, or short those you think will drop. Shares pay dividends after each race based on performance.</p>
                     <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                         <i class="fa-solid fa-store"></i> Open your first position
                     <% end %>
