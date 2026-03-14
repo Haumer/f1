@@ -148,7 +148,8 @@ class FantasyPortfoliosController < ApplicationController
   def leaderboard
     @season = Season.sorted_by_year.first
     @entries = Fantasy::Leaderboard.new(season: @season).call
-    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, @entries.map { |e| e[:portfolio].id })
+    roster_starts = @entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].starting_capital }
+    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, @entries.map { |e| e[:portfolio].id }, starting_values: roster_starts)
     user_ids = @entries.map { |e| e[:portfolio].user_id }
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
                           .includes(:constructor).index_by(&:user_id)
@@ -274,10 +275,14 @@ class FantasyPortfoliosController < ApplicationController
 
   def compute_combined_deltas
     roster_ids = @roster_entries.map { |e| e[:portfolio].id }
-    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids)
+    roster_starts = @roster_entries.each_with_object({}) do |e, h|
+      h[e[:portfolio].id] = e[:portfolio].total_starting_capital
+    end
+    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, roster_ids, starting_values: roster_starts)
 
     stock_ids = @stock_entries.map { |e| e[:portfolio].id }
-    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids)
+    stock_starts = @stock_entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = e[:portfolio].starting_capital }
+    @stock_deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, stock_ids, starting_values: stock_starts)
 
     roster_by_user = @roster_entries.index_by { |e| e[:portfolio].user_id }
     stock_by_user = @stock_entries.index_by { |e| e[:portfolio].user_id }

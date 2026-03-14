@@ -30,27 +30,27 @@ class FantasyPortfolioDataTest < ActiveSupport::TestCase
     assert_equal 300.0, deltas[@codex_portfolio.id]
   end
 
-  # ── Single-snapshot returns zero (no previous race to compare) ──
+  # ── Single-snapshot uses starting_values as baseline ──
 
-  test "single snapshot returns zero delta to avoid misleading total-as-last-race" do
+  test "single snapshot compares against starting capital" do
     fantasy_snapshots(:codex_melbourne).destroy!
 
     deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, [@codex_portfolio.id],
       starting_values: { @codex_portfolio.id => 6000 })
 
-    assert_equal 0, deltas[@codex_portfolio.id],
-      "Single snapshot should show 0 delta, not total gain since creation"
+    # 8500 (bahrain snapshot) - 6000 (starting capital) = 2500
+    assert_equal 2500.0, deltas[@codex_portfolio.id]
   end
 
-  test "single snapshot for late-stock user returns zero instead of false gain" do
+  test "single snapshot for late-stock user compares against starting capital" do
     fantasy_snapshots(:latejoin_melbourne).destroy!
 
     deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, [@latejoin_portfolio.id],
       starting_values: { @latejoin_portfolio.id => 4000 })
 
-    # Previously this would return 4200 - 4000 = 200, shown as "last race"
-    # but it's really total gain since creation — misleading
-    assert_equal 0, deltas[@latejoin_portfolio.id]
+    # snapshot value - 4000 = gain from first race
+    snap = fantasy_snapshots(:latejoin_bahrain)
+    assert_equal snap.value - 4000, deltas[@latejoin_portfolio.id]
   end
 
   # ── No snapshots ──
@@ -72,13 +72,15 @@ class FantasyPortfolioDataTest < ActiveSupport::TestCase
     assert_equal 300.0, deltas[@codex_stock.id]
   end
 
-  test "stock snapshot single entry returns zero" do
+  test "stock snapshot single entry compares against starting capital" do
     # latejoin only has one stock snapshot (melbourne)
     ids = [@latejoin_stock.id]
+    starting = @latejoin_stock.starting_capital
     deltas = last_race_deltas(FantasyStockSnapshot, :fantasy_stock_portfolio_id, ids,
-      starting_values: { @latejoin_stock.id => @latejoin_stock.total_invested })
+      starting_values: { @latejoin_stock.id => starting })
 
-    assert_equal 0, deltas[@latejoin_stock.id]
+    snap = @latejoin_stock.snapshots.first
+    assert_equal snap.value - starting, deltas[@latejoin_stock.id]
   end
 
   # ── compute_combined_deltas starting_value logic ──
