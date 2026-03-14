@@ -34,6 +34,9 @@ class RacesController < ApplicationController
     # Qualifying results
     @qualifying_results = @race.qualifying_results.sorted.includes(:driver, :constructor)
 
+    # Sprint results
+    @sprint_results = @race.sprint_results.includes(:driver, :constructor, :status).order(:position_order) if @race.sprint?
+
     # Predictions for preview links
     @predictions = @race.predictions.includes(:user)
 

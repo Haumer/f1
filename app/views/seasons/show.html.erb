@@ -223,8 +223,9 @@
                                 <div class="season-team-driver">
                                     <%= flag_image(driver, size: 24) %>
                                     <%= link_to "#{driver.forename} #{driver.surname}", driver_path(driver) %>
-                                    <% if driver.display_elo %>
-                                        <span class="season-team-driver-elo"><%= driver.display_elo.round %></span>
+                                    <% driver_elo = @standings_extras.dig(driver.id, :elo) || driver.display_elo&.round %>
+                                    <% if driver_elo %>
+                                        <span class="season-team-driver-elo"><%= driver_elo %></span>
                                     <% end %>
                                 </div>
                             <% end %>

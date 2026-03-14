@@ -2,6 +2,8 @@ class Race < ApplicationRecord
   belongs_to :circuit
   belongs_to :season
   has_many :race_results, dependent: :destroy
+  has_many :sprint_results, -> { unscope(where: :result_type).where(result_type: "sprint") },
+           class_name: "RaceResult", dependent: :destroy
   has_many :qualifying_results, dependent: :destroy
   has_many :drivers, through: :race_results
   has_many :driver_standings, dependent: :destroy
@@ -113,6 +115,10 @@ class Race < ApplicationRecord
 
   def has_results?
     race_results.any?
+  end
+
+  def has_sprint_results?
+    sprint_results.any?
   end
 
   PODIUM_COLORS = {

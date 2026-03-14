@@ -34,6 +34,10 @@ class UpdateRaceResult
         if has_jolpica_results?
             puts "Using Jolpica API for #{@race.year}/#{@race.round}"
             self.results
+            # Sync sprint results (Jolpica standings already include sprint points)
+            if @race.sprint?
+                UpdateSprintResult.new(race: @race).update_all
+            end
             self.standings
         elsif @race.url.present?
             puts "Jolpica has no results, trying Wikipedia for #{@race.year}/#{@race.round}..."
@@ -41,6 +45,10 @@ class UpdateRaceResult
             if wiki_results&.any?
                 puts "Found #{wiki_results.size} results from Wikipedia"
                 create_results_from_wikipedia(wiki_results)
+                # Sync sprint results before standings so sprint points are included
+                if @race.sprint?
+                    UpdateSprintResult.new(race: @race).update_all
+                end
                 create_standings_from_results
             else
                 puts "No results available from any source for #{@race.year}/#{@race.round}"
@@ -110,7 +118,8 @@ class UpdateRaceResult
 
             result = RaceResult.find_or_initialize_by(
                 driver: driver,
-                race: @race
+                race: @race,
+                result_type: "race"
             )
             result.update!(
                 constructor: constructor,
@@ -170,9 +179,14 @@ class UpdateRaceResult
         cumulative_wins = Hash.new(0)
 
         completed_races.each do |r|
+            # Main race results (points + wins)
             RaceResult.where(race: r).each do |rr|
                 cumulative_points[rr.driver_id] += rr.points.to_f
                 cumulative_wins[rr.driver_id] += 1 if rr.position_order == 1
+            end
+            # Sprint results (points only, no wins counted)
+            RaceResult.sprint.where(race: r).each do |rr|
+                cumulative_points[rr.driver_id] += rr.points.to_f
             end
         end
 
@@ -210,7 +224,8 @@ class UpdateRaceResult
 
             result = RaceResult.find_or_initialize_by(
                 driver: driver,
-                race: @race
+                race: @race,
+                result_type: "race"
             )
             result.update!(
                 constructor: constructor,

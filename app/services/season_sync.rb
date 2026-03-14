@@ -13,6 +13,7 @@ class SeasonSync
         season = UpdateSeason.new(year: @year).create_season
         return unless season
 
+        sync_session_results(season)
         update_race_results(season)
         season.reload
     end
@@ -22,10 +23,14 @@ class SeasonSync
         season = Season.find_by(year: Date.current.year.to_s)
         return true unless season
 
+        # Race results missing for past races
         races_needing_update = season.races.where("date <= ?", Date.current)
                                           .left_joins(:race_results)
                                           .where(race_results: { id: nil })
-        races_needing_update.exists?
+        return true if races_needing_update.exists?
+
+        # Session data (qualifying/sprint) missing for current weekend
+        session_data_stale?(season)
     end
 
     # Light check — only sync if stale, with cooldown to avoid hammering the API
@@ -55,6 +60,31 @@ class SeasonSync
         puts "Error fetching statuses: #{e.message}"
     end
 
+    # Sync qualifying and sprint results for the current weekend race
+    # (these sessions happen before the main race)
+    def sync_session_results(season)
+        today = Date.current
+        # Find races in the current weekend window (FP1 is date-2, race is date)
+        weekend_race = season.races
+                             .where("date - 2 <= ? AND date >= ?", today, today)
+                             .first
+        return unless weekend_race
+
+        # Qualifying: sync if quali date has passed and we don't have results
+        if weekend_race.quali_date && weekend_race.quali_date <= today && weekend_race.qualifying_results.empty?
+            puts "Syncing qualifying for R#{weekend_race.round}..."
+            UpdateQualifyingResult.new(race: weekend_race).call
+            sleep 1
+        end
+
+        # Sprint: sync if sprint date has passed and we don't have sprint results
+        if weekend_race.sprint? && weekend_race.sprint_date && weekend_race.sprint_date <= today && weekend_race.sprint_results.empty?
+            puts "Syncing sprint results for R#{weekend_race.round}..."
+            UpdateSprintResult.new(race: weekend_race).update_all
+            sleep 1
+        end
+    end
+
     def update_race_results(season)
         races_to_update = season.races.where("date <= ?", Date.current)
                                       .left_joins(:race_results)
@@ -66,6 +96,26 @@ class SeasonSync
             UpdateRaceResult.new(race: race).update_all
             sleep 1 # Be polite to the API
         end
+    end
+
+    def self.session_data_stale?(season)
+        today = Date.current
+        weekend_race = season.races
+                             .where("date - 2 <= ? AND date >= ?", today, today)
+                             .first
+        return false unless weekend_race
+
+        # Qualifying should exist if quali date has passed
+        if weekend_race.quali_date && weekend_race.quali_date <= today && weekend_race.qualifying_results.empty?
+            return true
+        end
+
+        # Sprint results should exist if sprint date has passed
+        if weekend_race.sprint? && weekend_race.sprint_date && weekend_race.sprint_date <= today && weekend_race.sprint_results.empty?
+            return true
+        end
+
+        false
     end
 
     def self.recently_synced?

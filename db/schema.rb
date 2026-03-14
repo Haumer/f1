@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_13_134034) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_14_181710) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -530,10 +530,11 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_13_134034) do
     t.float "new_elo_v2"
     t.float "old_constructor_elo_v2"
     t.float "new_constructor_elo_v2"
+    t.string "result_type", default: "race", null: false
     t.index ["constructor_id"], name: "index_race_results_on_constructor_id"
     t.index ["driver_id"], name: "index_race_results_on_driver_id"
     t.index ["position_order"], name: "index_race_results_on_position_order"
-    t.index ["race_id", "driver_id"], name: "index_race_results_on_race_id_and_driver_id", unique: true
+    t.index ["race_id", "driver_id", "result_type"], name: "index_race_results_on_race_driver_type", unique: true
     t.index ["race_id"], name: "index_race_results_on_race_id"
     t.index ["status_id"], name: "index_race_results_on_status_id"
   end

@@ -100,16 +100,34 @@ class SeasonsController < ApplicationController
 
     constructors_by_id = Constructor.where(id: stats.keys).index_by(&:id)
     constructor_elo_diffs = build_constructor_elo_diffs
+    constructor_season_elos = build_constructor_season_elos
 
     @constructor_standings_full = stats.map do |cid, s|
       c = constructors_by_id[cid]
-      s.merge(constructor: c, elo: c&.display_elo&.round, peak_elo: c&.display_peak_elo&.round,
+      season_elo = constructor_season_elos[cid]
+      s.merge(constructor: c,
+              elo: season_elo || c&.display_elo&.round,
+              peak_elo: c&.display_peak_elo&.round,
               elo_diff: constructor_elo_diffs[cid])
     end.sort_by { |e| -e[:points] }
 
     # Expose for champion recap
     @_constructor_pts = stats.transform_values { |s| s[:points] }
     @_constructor_wins_map = stats.transform_values { |s| s[:wins] }
+  end
+
+  # End-of-season constructor Elo from the last race result of the season
+  def build_constructor_season_elos
+    return {} unless @season.latest_race
+
+    new_col = Setting.elo_column(:new_constructor_elo)
+    elos = {}
+    RaceResult.where(race: @season.latest_race).where.not(new_col => nil).each do |rr|
+      next unless rr.constructor_id
+      # Take the value from any result for this constructor (all should be the same post-race)
+      elos[rr.constructor_id] ||= rr.send(new_col)&.round
+    end
+    elos
   end
 
   def build_constructor_elo_diffs

@@ -86,15 +86,21 @@
         </div>
     <% end %>
 
-    <%# ── Race / Qualifying tabs ── %>
+    <%# ── Race / Sprint / Qualifying tabs ── %>
+    <% has_sprint = @sprint_results&.any? %>
     <% auto_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
-    <% default_tab = %w[race qualifying].include?(params[:tab]) ? params[:tab] : auto_tab %>
+    <% default_tab = %w[race sprint qualifying].include?(params[:tab]) ? params[:tab] : auto_tab %>
     <% default_tab = auto_tab if default_tab == "qualifying" && !has_quali %>
+    <% default_tab = auto_tab if default_tab == "sprint" && !has_sprint %>
 
     <div class="card card-flush" data-controller="tab-table">
         <div class="table-header table-header-tabs">
             <h3 class="table-tab <%= 'active' if default_tab == 'race' %>"
                 data-tab="race" data-tab-table-target="tab" data-action="click->tab-table#switch">Race</h3>
+            <% if @race.sprint? %>
+                <h3 class="table-tab <%= 'active' if default_tab == 'sprint' %> <%= 'table-tab--disabled' unless has_sprint %>"
+                    data-tab="sprint" data-tab-table-target="tab" data-action="click->tab-table#switch">Sprint</h3>
+            <% end %>
             <h3 class="table-tab <%= 'active' if default_tab == 'qualifying' %> <%= 'table-tab--disabled' unless has_quali %>"
                 data-tab="qualifying" data-tab-table-target="tab" data-action="click->tab-table#switch">Qualifying</h3>
         </div>
@@ -210,6 +216,87 @@
                 <span class="data-source">Ranked by current Elo</span>
             <% end %>
         </div>
+
+        <%# ── Sprint Panel ── %>
+        <% if @race.sprint? %>
+        <div data-tab="sprint" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'sprint' %>">
+            <% if has_sprint %>
+                <div class="table-scroll-wrapper">
+                <table class="race-results race-results--tabbed" data-controller="sortable-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center col-pos">#</th>
+                            <th class="d-none d-sm-table-cell col-flag"></th>
+                            <th class="d-none d-md-table-cell col-logo"></th>
+                            <th data-sort="text" class="col-name">Driver</th>
+                            <th class="text-center col-data d-none d-sm-table-cell" data-sort="num">Grid</th>
+                            <th class="text-center col-data d-none d-sm-table-cell" data-sort="num">+/-</th>
+                            <th class="text-center col-data d-none d-md-table-cell" data-sort="num">Points</th>
+                            <th class="col-data d-none d-lg-table-cell"></th>
+                            <th class="col-data d-none d-lg-table-cell"></th>
+                            <th class="text-center col-elo" data-sort="num">Time</th>
+                            <th class="text-center col-elo" data-sort="num">Elo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @sprint_results.each do |sr| %>
+                            <tr>
+                                <td class="text-center col-pos"><%= sr.position_order %></td>
+                                <td class="d-none d-sm-table-cell col-flag">
+                                    <%= flag_image(sr.driver, size: 24) %>
+                                </td>
+                                <td class="d-none d-md-table-cell col-logo">
+                                    <% constructor = @constructor_by_driver[sr.driver_id] || sr.constructor %>
+                                    <% if constructor %>
+                                        <%= link_to constructor_path(constructor) do %>
+                                            <% if constructor.logo_url.present? %>
+                                                <img src="<%= constructor.logo_url %>" alt="<%= constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                            <% else %>
+                                                <span class="text-secondary"><%= constructor.name %></span>
+                                            <% end %>
+                                        <% end %>
+                                    <% end %>
+                                </td>
+                                <td class="col-name">
+                                    <%= link_to driver_path(sr.driver) do %>
+                                        <%= sr.driver.forename.first %>.<%= sr.driver.surname %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center col-data d-none d-sm-table-cell"><%= sr.grid %></td>
+                                <td class="text-center col-data d-none d-sm-table-cell">
+                                    <% if sr.grid && sr.grid > 0 %>
+                                        <% positions_changed = sr.grid - sr.position_order %>
+                                        <% if positions_changed > 0 %>
+                                            <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= positions_changed %></span>
+                                        <% elsif positions_changed < 0 %>
+                                            <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= positions_changed %></span>
+                                        <% else %>
+                                            <span class="text-muted">&mdash;</span>
+                                        <% end %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center col-data d-none d-md-table-cell"><%= sr.points.to_i.zero? ? sr.points.to_i : "+#{sr.points.to_i}" %></td>
+                                <td class="col-data d-none d-lg-table-cell"></td>
+                                <td class="col-data d-none d-lg-table-cell"></td>
+                                <td class="text-center col-elo">
+                                    <% if sr.time.present? && sr.time != "0" %>
+                                        <span class="text-muted"><%= sr.time %></span>
+                                    <% else %>
+                                        <span class="text-muted"><%= sr.status&.status_type || "—" %></span>
+                                    <% end %>
+                                </td>
+                                <td class="text-center col-elo"><%= elo_link(sr.driver.elo_v2) %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+                </div>
+                <span class="data-source">Sprint results do not affect Elo ratings</span>
+            <% else %>
+                <p class="text-muted text-center" style="padding: 40px 0;">Sprint results not available yet.</p>
+            <% end %>
+        </div>
+        <% end %>
 
         <%# ── Qualifying Panel ── %>
         <div data-tab="qualifying" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'qualifying' %>">

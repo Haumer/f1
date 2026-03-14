@@ -7,6 +7,12 @@ class RaceResult < ApplicationRecord
 
   validates :driver_id, :race_id, :constructor_id, presence: true
 
+  # Default scope ensures all existing queries only see main race results.
+  # Sprint results must be accessed via .sprint or .all_result_types.
+  default_scope { where(result_type: "race") }
+  scope :sprint, -> { unscope(where: :result_type).where(result_type: "sprint") }
+  scope :all_result_types, -> { unscope(where: :result_type) }
+
   def elo_diff
     return 0 unless new_elo_v2 && old_elo_v2
     new_elo_v2 - old_elo_v2
