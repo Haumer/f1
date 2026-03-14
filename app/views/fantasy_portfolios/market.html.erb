@@ -36,6 +36,21 @@
         </span>
     </div>
 
+    <% if @current_support && @can_change_support %>
+        <div class="fantasy-swap-row">
+            <span class="fantasy-swap-label">Swap team:</span>
+            <% Constructor.where(active: true).order(:name).each do |c| %>
+                <% next if c.id == @current_support.constructor_id %>
+                <%= link_to support_constructor_path(c), data: { turbo_method: :post, turbo_confirm: "Swap your team to #{c.name}? This is your one mid-season swap." }, class: "fantasy-allegiance-badge-sm", title: c.name do %>
+                    <% if c.logo_url.present? %>
+                        <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="constructor-logo-xs" onerror="this.style.display='none'">
+                    <% end %>
+                    <span><%= c.name %></span>
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
+
     <div class="fantasy-market-layout">
         <%# Driver Table %>
         <div class="fantasy-market-main">

@@ -21,6 +21,11 @@
         background: rgba($accent-red, 0.1);
         color: $accent-red;
     }
+
+    &.stock-roster {
+        background: rgba(#6b9eff, 0.1);
+        color: #6b9eff;
+    }
 }
 
 .stock-trade-actions {

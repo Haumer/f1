@@ -101,6 +101,10 @@ class FantasyPortfoliosController < ApplicationController
       @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
       @holdings_by_driver = @stock_portfolio.active_holdings.group_by(&:driver_id)
     end
+
+    # Team support (for swap UI)
+    @current_support = ConstructorSupport.current_for(current_user, @portfolio.season)
+    @can_change_support = ConstructorSupport.can_change?(current_user, @portfolio.season)
   end
 
   def buy

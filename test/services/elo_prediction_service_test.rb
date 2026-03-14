@@ -87,24 +87,23 @@ class EloPredictionServiceTest < ActiveSupport::TestCase
     assert_equal EloRatingV2::STARTING_ELO, changes[rookie.id.to_s]["old_elo"]
   end
 
-  test "k_factor uses only races before the predicted race" do
-    # Bahrain is round 1 → 0 prior races → falls back to REFERENCE_RACES (12)
-    # Melbourne is round 2 → 1 prior race (Bahrain) → K scaled to 12/1 = much higher
+  test "k_factor uses total season race count matching real elo engine" do
+    # The prediction service should use total season race count (same as the real
+    # Elo engine's process_race), NOT the count of completed races before a round.
+    # Both R1 and R2 predictions in the same season should use the same K factor.
     mel_prediction = Prediction.create!(
       race: races(:melbourne_2026),
       user: @user,
-      predicted_results: [
-        { "driver_id" => drivers(:verstappen).id, "position" => 1 },
-        { "driver_id" => drivers(:norris).id, "position" => 2 }
-      ]
+      predicted_results: @prediction.predicted_results
     )
 
     bahrain_changes = EloPredictionService.compute(@prediction)
     melbourne_changes = EloPredictionService.compute(mel_prediction)
 
-    bahrain_diff = bahrain_changes[drivers(:verstappen).id.to_s]["diff"].abs
-    melbourne_diff = melbourne_changes[drivers(:verstappen).id.to_s]["diff"].abs
-    assert melbourne_diff > bahrain_diff,
-      "Melbourne (1 prior race, higher K) should have bigger Elo swings than Bahrain (fallback to 12 races)"
+    # Same drivers, same positions, same season → same K → same diffs
+    bahrain_diff = bahrain_changes[drivers(:verstappen).id.to_s]["diff"]
+    melbourne_diff = melbourne_changes[drivers(:verstappen).id.to_s]["diff"]
+    assert_in_delta bahrain_diff, melbourne_diff, 0.01,
+      "Same season, same matchup should produce identical diffs regardless of round"
   end
 end

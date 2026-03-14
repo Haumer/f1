@@ -1,8 +1,6 @@
 <% constructor = stock_constructors[holding.driver_id] %>
 <% color = constructor_color(constructor) %>
 <% gl = holding.gain_loss %>
-<% hide_sm = compact ? "d-none d-sm-table-cell" : "" %>
-<% hide_md = compact ? "d-none d-md-table-cell" : "" %>
 <tr style="border-left: 3px solid <%= color %>">
     <td>
         <div class="fantasy-market-driver-cell">
@@ -20,12 +18,11 @@
     <td>
         <span class="stock-direction-badge stock-<%= holding.direction %>">
             <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>"></i>
-            <%= holding.direction.upcase %>
+            <%= holding.quantity > 1 ? "#{holding.quantity}x " : "" %><%= holding.direction.upcase %>
         </span>
     </td>
-    <td class="text-end <%= hide_sm %>"><span class="fantasy-market-price-cell"><%= holding.quantity %></span></td>
-    <td class="text-end <%= hide_md %>"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
-    <td class="text-end <%= hide_md %>"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
+    <td class="text-end d-none d-sm-table-cell"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
+    <td class="text-end d-none d-sm-table-cell"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
     <td class="text-end">
         <span class="<%= gl >= 0 ? 'text-green' : 'text-red' %>" style="font-weight:700; font-size:13px;">
             <%= gl >= 0 ? '+' : '' %><%= gl.round(1) %>

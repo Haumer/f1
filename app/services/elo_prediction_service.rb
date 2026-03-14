@@ -11,9 +11,7 @@ class EloPredictionService
     drivers = Driver.where(id: results.map { |r| r["driver_id"] }).index_by(&:id)
     sorted = results.sort_by { |r| r["position"] }
 
-    season_races = Race.joins(:race_results).distinct
-                       .where(year: race.year).where("races.round < ?", race.round).count
-    season_races = EloRatingV2::REFERENCE_RACES.to_i if season_races == 0
+    season_races = race.season&.races&.count || Race.where(year: race.year).count
 
     participants = sorted.map do |r|
       did = r["driver_id"]

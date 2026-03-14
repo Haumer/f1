@@ -229,6 +229,32 @@
     border-radius: $radius-sm;
 }
 
+.fantasy-slots-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    margin-bottom: $space-md;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed $border-color;
+    border-radius: $radius-sm;
+
+    .fantasy-slots-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: $text-secondary;
+
+        a {
+            color: $text-primary;
+            font-weight: $weight-semi;
+        }
+    }
+}
+
 .fantasy-swap-label {
     font-size: 11px;
     font-weight: $weight-bold;
