@@ -362,6 +362,16 @@
         <% end %>
     <% end %>
 
+    <%# ═══════════════════ Stocks (locked notice) ═══════════════════ %>
+    <% if @portfolio && !@stock_portfolio && @is_owner %>
+        <div class="table-header">
+            <h3><i class="fa-solid fa-chart-line" style="opacity:0.5; font-size:14px"></i> Stocks</h3>
+        </div>
+        <div class="card empty-state-inline">
+            <i class="fa-solid fa-lock"></i> Locked until you have 2 drivers on your roster
+        </div>
+    <% end %>
+
     <%# ═══════════════════ Race Picks ═══════════════════ %>
     <% if @race_picks.any? || (@is_owner && @season.next_race) %>
         <%

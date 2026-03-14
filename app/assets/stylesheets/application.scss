@@ -532,7 +532,16 @@ th[data-sort] {
         display: inline-flex;
         font-size: 13px;
         padding: 8px 20px;
+        @media (min-width: 768px) { max-width: 200px; margin: 0 auto; }
     }
+}
+
+.empty-state-inline {
+    text-align: center;
+    padding: 24px;
+    color: $text-secondary;
+    font-size: 13px;
+    i { opacity: 0.4; margin-right: 4px; }
 }
 
 .data-source {
