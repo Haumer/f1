@@ -294,6 +294,8 @@ module Fantasy
 
     def settle_for_replay(race, post_elo, results_by_driver)
       race_cutoff = race.starts_at || race.date
+      # Settlement transactions should be timestamped after the race, not when replay runs
+      settle_time = (race.starts_at || race.date.to_time) + 4.hours
 
       # Build Elo ranks from pre-race Elo for surprise factor
       pre_elo = RaceResult.where(race: race).pluck(:driver_id, :old_elo_v2).to_h
@@ -331,7 +333,8 @@ module Fantasy
             quantity: holding.quantity,
             price: dividend_per_share.round(2),
             amount: total,
-            note: "Dividend: P#{rr.position_order} #{holding.driver.fullname} (#{holding.quantity}x #{dividend_per_share.round(2)})"
+            note: "Dividend: P#{rr.position_order} #{holding.driver.fullname} (#{holding.quantity}x #{dividend_per_share.round(2)})",
+            created_at: settle_time
           )
           puts "  Dividend: #{holding.driver.fullname} P#{rr.position_order} -> #{total.round(2)} (#{holding.quantity}x)"
         end
@@ -351,7 +354,8 @@ module Fantasy
             quantity: holding.quantity,
             price: fee_per_share,
             amount: -total_fee,
-            note: "Borrow fee: #{holding.quantity}x #{holding.driver.fullname} (#{Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100}%)"
+            note: "Borrow fee: #{holding.quantity}x #{holding.driver.fullname} (#{Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100}%)",
+            created_at: settle_time
           )
           puts "  Borrow fee: #{holding.driver.fullname} #{holding.quantity}x -> -#{total_fee.round(2)}"
         end
@@ -375,7 +379,8 @@ module Fantasy
             quantity: holding.quantity,
             price: current_price,
             amount: loss,
-            note: "Margin call: #{holding.driver.fullname} hit #{Fantasy::Stock::SettleRace::MAX_LOSS_MULTIPLIER}x max loss, auto-closed"
+            note: "Margin call: #{holding.driver.fullname} hit #{Fantasy::Stock::SettleRace::MAX_LOSS_MULTIPLIER}x max loss, auto-closed",
+            created_at: settle_time
           )
           @demand[holding.driver_id] += holding.quantity
           puts "  LIQUIDATION: #{holding.driver.fullname} #{holding.quantity}x at #{current_price.round(1)}"
