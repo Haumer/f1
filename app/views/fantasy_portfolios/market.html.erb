@@ -26,7 +26,7 @@
         <% if @can_trade %>
             Window open &mdash; closes at <%= @next_race.starts_at&.strftime("%b %d, %H:%M UTC") || @next_race.date.strftime("%b %d") %>
         <% else %>
-            Window closed
+            Window closed &mdash; Race in progress
         <% end %>
         <span class="fantasy-swaps-remaining">
             Roster: <strong><%= @active_driver_ids.size %>/<%= @portfolio.roster_slots %></strong>
@@ -125,6 +125,8 @@
                                             <%# Roster action %>
                                             <% if on_roster %>
                                                 <span class="fantasy-badge-on-roster"><i class="fa-solid fa-check"></i></span>
+                                            <% elsif !@can_trade %>
+                                                <span class="text-red" style="font-size: 11px; font-weight: 600"><i class="fa-solid fa-lock" style="font-size: 9px"></i> Locked</span>
                                             <% elsif @can_trade && !@portfolio.roster_full? %>
                                                 <button type="button" class="fantasy-market-add-btn"
                                                         data-action="click->unified-cart#addRoster"
@@ -193,41 +195,41 @@
         <%# Unified Cart Sidebar %>
         <div class="fantasy-market-sidebar">
             <div class="fantasy-cart-panel">
-                <div class="fantasy-cart-header">
-                    <div class="fantasy-cart-header-left">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                        <strong>Cart</strong>
-                        <span class="fantasy-cart-badge" data-unified-cart-target="cartCount">0</span>
-                    </div>
-                    <button class="fantasy-cart-clear" data-action="click->unified-cart#clear">Clear</button>
-                </div>
-
-                <%# Empty state %>
-                <div class="fantasy-cart-empty" data-unified-cart-target="cartEmpty">
-                    <i class="fa-solid fa-basket-shopping"></i>
-                    <span>Add drivers or stocks to your cart</span>
-                    <span class="fantasy-cart-empty-meta">
-                        <%= @portfolio.roster_slots - @active_driver_ids.size %> roster seat<%= @portfolio.roster_slots - @active_driver_ids.size == 1 ? '' : 's' %> open
-                        <% if @stock_portfolio %>
-                            &middot; <%= FantasyStockPortfolio::MAX_POSITIONS - @stock_portfolio.position_count %> stock positions
-                        <% end %>
-                    </span>
-                </div>
-
-                <%# Filled state %>
-                <div class="fantasy-cart-filled" data-unified-cart-target="cartItems" style="display:none">
-                    <div data-unified-cart-target="cartList"></div>
-                    <div class="fantasy-cart-summary">
-                        <div class="fantasy-cart-row">
-                            <span>Total Cost</span>
-                            <span class="fantasy-cart-row-value" data-unified-cart-target="totalCost">0</span>
+                <% if @can_trade %>
+                    <div class="fantasy-cart-header">
+                        <div class="fantasy-cart-header-left">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <strong>Cart</strong>
+                            <span class="fantasy-cart-badge" data-unified-cart-target="cartCount">0</span>
                         </div>
-                        <div class="fantasy-cart-row fantasy-cart-row-remaining">
-                            <span>Cash Remaining</span>
-                            <span class="fantasy-cart-row-value" data-unified-cart-target="cashRemaining"><%= (@portfolio.cash - (@stock_portfolio&.total_collateral || 0)).round(0) %></span>
-                        </div>
+                        <button class="fantasy-cart-clear" data-action="click->unified-cart#clear">Clear</button>
                     </div>
-                    <% if @can_trade %>
+
+                    <%# Empty state %>
+                    <div class="fantasy-cart-empty" data-unified-cart-target="cartEmpty">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        <span>Add drivers or stocks to your cart</span>
+                        <span class="fantasy-cart-empty-meta">
+                            <%= @portfolio.roster_slots - @active_driver_ids.size %> roster seat<%= @portfolio.roster_slots - @active_driver_ids.size == 1 ? '' : 's' %> open
+                            <% if @stock_portfolio %>
+                                &middot; <%= FantasyStockPortfolio::MAX_POSITIONS - @stock_portfolio.position_count %> stock positions
+                            <% end %>
+                        </span>
+                    </div>
+
+                    <%# Filled state %>
+                    <div class="fantasy-cart-filled" data-unified-cart-target="cartItems" style="display:none">
+                        <div data-unified-cart-target="cartList"></div>
+                        <div class="fantasy-cart-summary">
+                            <div class="fantasy-cart-row">
+                                <span>Total Cost</span>
+                                <span class="fantasy-cart-row-value" data-unified-cart-target="totalCost">0</span>
+                            </div>
+                            <div class="fantasy-cart-row fantasy-cart-row-remaining">
+                                <span>Cash Remaining</span>
+                                <span class="fantasy-cart-row-value" data-unified-cart-target="cashRemaining"><%= (@portfolio.cash - (@stock_portfolio&.total_collateral || 0)).round(0) %></span>
+                            </div>
+                        </div>
                         <%= form_with url: unified_trade_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
                             <button type="submit" class="fantasy-btn fantasy-btn-primary fantasy-cart-confirm"
                                     data-unified-cart-target="confirmBtn"
@@ -236,8 +238,20 @@
                                 <i class="fa-solid fa-check"></i> Confirm Trades
                             </button>
                         <% end %>
-                    <% end %>
-                </div>
+                    </div>
+                <% else %>
+                    <div class="fantasy-cart-empty">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>Trading locked</span>
+                        <span class="fantasy-cart-empty-meta">
+                            <% if @next_race %>
+                                Window reopens before Round <%= @next_race.round + 1 %>
+                            <% else %>
+                                Season complete
+                            <% end %>
+                        </span>
+                    </div>
+                <% end %>
 
                 <div class="fantasy-cart-cash-display">
                     <span>Cash: <%= number_with_delimiter(@portfolio.cash.round(0)) %></span>
