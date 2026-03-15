@@ -6,6 +6,9 @@ default: &default
         post_race_sync:
           class: PostRaceSyncJob
           schedule: every 30 minutes
+        race_finish_poll:
+          class: RaceFinishPollJob
+          schedule: every 5 minutes
   workers:
     - queues: "*"
       threads: 3
