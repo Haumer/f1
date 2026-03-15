@@ -5,6 +5,10 @@ module Fantasy
     end
 
     def call
+      # Build historical Elo map from race results — this is the Elo as of THIS race
+      elo_map = RaceResult.where(race: @race).pluck(:driver_id, :new_elo_v2).to_h
+      season_drivers = SeasonDriver.where(season_id: @race.season_id).index_by(&:driver_id)
+
       portfolios = FantasyPortfolio.where(season: @race.season)
                      .includes(:user, roster_entries: :driver)
       stock_portfolios = FantasyStockPortfolio.where(season: @race.season)
@@ -14,9 +18,20 @@ module Fantasy
       portfolios_by_id = portfolios.index_by(&:id)
 
       snapshots = portfolios.map do |portfolio|
+        # Roster value using historical Elo
+        roster_value = portfolio.cash + portfolio.active_roster_entries.sum do |e|
+          Fantasy::Pricing.price_for_elo(elo_map[e.driver_id] || e.driver.elo_v2)
+        end
+
+        # Stock positions value using historical Elo
         sp = stock_portfolios[portfolio.user_id]
-        # Total value = roster portfolio_value (cash + drivers) + stock positions
-        value = portfolio.portfolio_value + (sp&.positions_value || 0)
+        stock_value = if sp
+          compute_positions_value(sp, elo_map, season_drivers)
+        else
+          0
+        end
+
+        value = roster_value + stock_value
         { fantasy_portfolio_id: portfolio.id, race_id: @race.id, value: value, cash: portfolio.cash }
       end
 
@@ -27,36 +42,53 @@ module Fantasy
       end
       ranked.each_with_index { |s, i| s[:rank] = i + 1 }
 
-      # Insert snapshots — skip if already snapped for this race
-      # (don't overwrite: later trades would corrupt historical values)
+      # Upsert snapshots so re-running always produces correct values
       ranked.each do |attrs|
-        next if FantasySnapshot.exists?(
+        FantasySnapshot.find_or_initialize_by(
           fantasy_portfolio_id: attrs[:fantasy_portfolio_id],
           race_id: attrs[:race_id]
-        )
-        FantasySnapshot.create!(
-          fantasy_portfolio_id: attrs[:fantasy_portfolio_id],
-          race_id: attrs[:race_id],
+        ).update!(
           value: attrs[:value],
           cash: attrs[:cash],
           rank: attrs[:rank]
         )
       end
 
-      # Also snapshot stock portfolios — but only if SettleRace hasn't already
-      # (SettleRace creates snapshots after paying dividends/fees, so don't overwrite)
+      # Also snapshot stock portfolios — upsert so re-running works
+      # (SettleRace may have already created these with post-dividend values)
       FantasyStockPortfolio.where(season: @race.season)
         .includes(holdings: :driver).each do |sp|
         next if sp.snapshots.exists?(race: @race)
+        stock_value = compute_positions_value(sp, elo_map, season_drivers)
         FantasyStockSnapshot.create!(
           fantasy_stock_portfolio: sp,
           race: @race,
-          value: sp.positions_value,
+          value: stock_value,
           cash: 0
         )
       end
 
       ranked.size
+    end
+
+    private
+
+    def compute_positions_value(portfolio, elo_map, season_drivers)
+      active = portfolio.holdings.loaded? ? portfolio.holdings.select(&:active) : portfolio.active_holdings.includes(:driver).to_a
+
+      longs_value = active.select { |h| h.direction == "long" }.sum do |h|
+        elo = elo_map[h.driver_id] || h.driver.elo_v2
+        net_demand = season_drivers[h.driver_id]&.net_demand || 0
+        Fantasy::Pricing.stock_price_for_elo(elo, net_demand) * h.quantity
+      end
+
+      shorts_pnl = active.select { |h| h.direction == "short" }.sum do |h|
+        elo = elo_map[h.driver_id] || h.driver.elo_v2
+        net_demand = season_drivers[h.driver_id]&.net_demand || 0
+        (h.entry_price - Fantasy::Pricing.stock_price_for_elo(elo, net_demand)) * h.quantity
+      end
+
+      longs_value + shorts_pnl
     end
   end
 end

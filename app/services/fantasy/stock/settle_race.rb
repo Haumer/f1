@@ -23,6 +23,9 @@ module Fantasy
         results_by_driver = RaceResult.where(race: @race)
                               .index_by(&:driver_id)
 
+        # Historical Elo map for snapshots
+        @elo_map = results_by_driver.transform_values(&:new_elo_v2)
+
         # Rank drivers by Elo for surprise factor calculation
         @elo_ranks = Driver.where(active: true)
                        .order(elo_v2: :desc)
@@ -138,7 +141,23 @@ module Fantasy
       end
 
       def snapshot(portfolio)
-        value = portfolio.reload.positions_value
+        # Compute positions value using historical Elo
+        season_drivers = SeasonDriver.where(season_id: @race.season_id).index_by(&:driver_id)
+        active = portfolio.holdings.loaded? ? portfolio.holdings.select(&:active) : portfolio.active_holdings.includes(:driver).to_a
+
+        longs_value = active.select { |h| h.direction == "long" }.sum do |h|
+          elo = @elo_map[h.driver_id] || h.driver.elo_v2
+          net_demand = season_drivers[h.driver_id]&.net_demand || 0
+          Fantasy::Pricing.stock_price_for_elo(elo, net_demand) * h.quantity
+        end
+
+        shorts_pnl = active.select { |h| h.direction == "short" }.sum do |h|
+          elo = @elo_map[h.driver_id] || h.driver.elo_v2
+          net_demand = season_drivers[h.driver_id]&.net_demand || 0
+          (h.entry_price - Fantasy::Pricing.stock_price_for_elo(elo, net_demand)) * h.quantity
+        end
+
+        value = longs_value + shorts_pnl
         FantasyStockSnapshot.find_or_initialize_by(
           fantasy_stock_portfolio: portfolio,
           race: @race
@@ -159,12 +178,13 @@ module Fantasy
           next unless driver
           sd = season_drivers_by_driver[driver_id]
           net = sd&.net_demand || 0
-          price = Fantasy::Pricing.stock_price_for(driver, season)
+          elo = @elo_map[driver_id] || driver.elo_v2
+          price = Fantasy::Pricing.stock_price_for_elo(elo, net)
 
           StockPriceSnapshot.create!(
             driver_id: driver_id,
             race: @race,
-            elo: driver.elo_v2,
+            elo: elo,
             net_demand: net,
             price: price
           )

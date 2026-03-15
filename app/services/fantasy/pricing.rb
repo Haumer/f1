@@ -13,6 +13,16 @@ module Fantasy
       driver.elo_v2 || ROOKIE_PRICE
     end
 
+    # Historical pricing: accept an explicit Elo value instead of reading live driver.elo_v2
+    def self.price_for_elo(elo)
+      elo || ROOKIE_PRICE
+    end
+
+    def self.stock_price_for_elo(elo, net_demand)
+      base = (elo || ROOKIE_PRICE) / FantasyStockPortfolio::PRICE_DIVISOR
+      base * demand_multiplier(net_demand)
+    end
+
     def self.demand_multiplier(net_demand)
       if net_demand >= 0
         1 + DEMAND_RATE * (net_demand**DEMAND_EXPONENT)
