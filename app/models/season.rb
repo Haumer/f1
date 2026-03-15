@@ -31,7 +31,7 @@ class Season < ApplicationRecord
     end
 
     def latest_race
-        races.joins(:driver_standings).where("races.date < ?", Date.current)
+        races.joins(:driver_standings).where("races.date <= ?", Date.current)
              .distinct.order(round: :desc).first
     end
 
