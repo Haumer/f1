@@ -28,10 +28,16 @@ module Fantasy
         reset_state
         load_user_trades
 
+        # Build cutoffs: use when results were actually synced (not starts_at),
+        # because trades before sync used pre-race Elo (it was still live)
+        @race_cutoffs = @races.map do |race|
+          RaceResult.where(race: race).minimum(:created_at) || race.starts_at || race.date.beginning_of_day
+        end
+
         @races.each_with_index do |race, idx|
           puts "\n=== Round #{race.round} (#{race.date}) ==="
-          race_cutoff = race.starts_at || race.date.beginning_of_day
-          prev_cutoff = idx == 0 ? Time.at(0) : (@races[idx - 1].starts_at || @races[idx - 1].date.beginning_of_day)
+          race_cutoff = @race_cutoffs[idx]
+          prev_cutoff = idx == 0 ? Time.at(0) : @race_cutoffs[idx - 1]
 
           # Elo for pricing trades in this window:
           # Before R1 → pre-R1 Elo (old_elo_v2)
@@ -61,7 +67,7 @@ module Fantasy
         end
 
         # Reprice trades after the last race (if any)
-        last_cutoff = @races.last.starts_at || @races.last.date.beginning_of_day
+        last_cutoff = @race_cutoffs.last
         last_elo = RaceResult.where(race: @races.last).pluck(:driver_id, :new_elo_v2).to_h
         remaining_roster = @roster_trades.select { |t| t.created_at >= last_cutoff }
         remaining_stock = @stock_trades.select { |t| t.created_at >= last_cutoff }
