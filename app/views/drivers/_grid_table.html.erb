@@ -47,7 +47,8 @@
                         <span class="text-secondary">—</span>
                     <% end %>
                 </td>
-                <td class="text-center"><%= driver.display_elo ? elo_link(driver.display_elo) : '—' %></td>
+                <% season_elo = driver_extras[:elo] || driver.display_elo %>
+                <td class="text-center"><%= season_elo ? elo_link(season_elo) : '—' %></td>
                 <td class="text-center d-none d-lg-table-cell"><%= driver.display_peak_elo ? elo_link(driver.display_peak_elo) : '—' %></td>
             </tr>
         <% end %>
