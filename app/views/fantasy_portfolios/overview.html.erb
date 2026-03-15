@@ -126,25 +126,7 @@
             (rs ? rs.value : (ss&.value || 0)).round(0)
         end
 
-        has_stock_data = stock_snaps.any?
         stock_invested = @stock_portfolio ? @stock_portfolio.total_invested.round(0) : 0
-        chart_stock = has_stock_data ? [stock_invested] + snapped_rounds.map { |r|
-            ss = stock_snaps[r]
-            ss ? ss.value.round(0) : nil
-        } : nil
-
-        # Roster-only values (total minus stock)
-        chart_roster = chart_total.each_with_index.map do |total, i|
-            if i == 0
-                # Starting: roster starting capital
-                Fantasy::CreatePortfolio::STARTING_CAPITAL.round(0)
-            else
-                r = snapped_rounds[i - 1]
-                rs = roster_snaps[r]
-                ss = stock_snaps[r]
-                rs ? (rs.value - (ss&.value || 0)).round(0) : nil
-            end
-        end
 
         chart_series = [
             {
@@ -160,39 +142,14 @@
                 areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(#{chart_rgb}, 0.15)" }, { offset: 1, color: "rgba(#{chart_rgb}, 0)" }] } }
             }
         ]
-        if has_stock_data
-            chart_series << {
-                name: "Stock Positions",
-                type: "line",
-                data: chart_stock,
-                smooth: true,
-                connectNulls: true,
-                showSymbol: false,
-                lineStyle: { color: "#6b9eff", width: 1.5, type: "dashed" },
-                itemStyle: { color: "#6b9eff" }
-            }
-        end
-        # Hidden series for roster-only (used in tooltip)
-        chart_series << {
-            name: "Roster Value",
-            type: "line",
-            data: chart_roster,
-            showSymbol: false,
-            lineStyle: { width: 0 },
-            itemStyle: { color: "transparent" },
-            emphasis: { disabled: true },
-            silent: true
-        }
 
         tooltip_formatter = RailsCharts::Javascript.new(<<~JS)
           function(params) {
             if (!params || params.length === 0) return '';
-            var total = null, stock = null, roster = null, start = #{chart_start};
+            var total = null, start = #{chart_start};
             params.forEach(function(p) {
               if (p.value == null) return;
               if (p.seriesName === 'Total Value') total = p.value;
-              if (p.seriesName === 'Stock Positions') stock = p.value;
-              if (p.seriesName === 'Roster Value') roster = p.value;
             });
             if (total == null) return '';
             var pl = total - start;
@@ -201,15 +158,7 @@
             var html = '<div style="font-weight:600;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:4px;font-size:13px">' + params[0].axisValueLabel + '</div>';
             html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
             html += '<span style="color:#aaa">Total</span><span style="font-weight:700;font-family:monospace">' + total.toLocaleString() + '</span></div>';
-            if (roster != null) {
-              html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
-              html += '<span style="color:#aaa">Roster</span><span style="font-family:monospace">' + roster.toLocaleString() + '</span></div>';
-            }
-            if (stock != null) {
-              html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
-              html += '<span style="color:#aaa">Stocks</span><span style="font-family:monospace">' + stock.toLocaleString() + '</span></div>';
-            }
-            html += '<div style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
+            html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
             html += '<span style="color:#aaa">P&L</span><span style="font-weight:700;font-family:monospace;color:' + plColor + '">' + sign + pl.toLocaleString() + '</span></div>';
             return html;
           }
