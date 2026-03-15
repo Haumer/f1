@@ -128,9 +128,9 @@ class SeasonSync
         false
     end
 
-    # Initial filter: starts_at + 2h buffer must have passed (or date < today for old races without starts_at)
+    # Initial filter: race start + 2h buffer must have passed (or date < today for races without time)
     def self.race_likely_finished_condition
-        ["(races.starts_at IS NOT NULL AND races.starts_at + INTERVAL '2 hours' <= ?) OR (races.starts_at IS NULL AND races.date < ?)",
+        ["(races.time IS NOT NULL AND (races.date + races.time::time) + INTERVAL '2 hours' <= ?) OR (races.time IS NULL AND races.date < ?)",
          Time.current, Date.current]
     end
 
