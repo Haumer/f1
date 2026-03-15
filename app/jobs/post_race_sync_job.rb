@@ -5,7 +5,12 @@ class PostRaceSyncJob < ApplicationJob
 
   def perform(year: Date.current.year)
     season = SeasonSync.new(year: year).sync
-    return unless season
+    unless season
+      # If sync returned nil and there's a pending race in the post-race window,
+      # start fast polling to catch it as soon as it's confirmed finished
+      maybe_start_polling
+      return
+    end
 
     # Update career stats for drivers who raced this season
     driver_ids = season.race_results.select(:driver_id).distinct
@@ -55,5 +60,21 @@ class PostRaceSyncJob < ApplicationJob
       end
       Rails.logger.info "[PostRaceSyncJob] Fantasy achievements checked"
     end
+  end
+
+  private
+
+  def maybe_start_polling
+    season = Season.find_by(year: Date.current.year.to_s)
+    return unless season
+
+    race = season.next_race
+    return unless race&.starts_at
+    return unless Time.current >= race.starts_at + 2.hours
+    return if race.race_results.exists?
+
+    # Race should be done but wasn't synced — start fast polling
+    Rails.logger.info "[PostRaceSyncJob] Starting fast poll for R#{race.round}"
+    RaceFinishPollJob.perform_later
   end
 end

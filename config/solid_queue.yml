@@ -2,13 +2,6 @@ default: &default
   dispatchers:
     - polling_interval: 1
       batch_size: 500
-      recurring_tasks:
-        post_race_sync:
-          class: PostRaceSyncJob
-          schedule: every 30 minutes
-        race_finish_poll:
-          class: RaceFinishPollJob
-          schedule: every 5 minutes
   workers:
     - queues: "*"
       threads: 3
