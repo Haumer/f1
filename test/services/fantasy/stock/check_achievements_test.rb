@@ -46,6 +46,10 @@ class Fantasy::Stock::CheckAchievementsTest < ActiveSupport::TestCase
   end
 
   test "awards leaderboard achievements based on snapshot rank" do
+    race = races(:bahrain_2026)
+    FantasyStockSnapshot.find_or_create_by!(fantasy_stock_portfolio: @portfolio, race: race) do |s|
+      s.value = 1000; s.cash = 0
+    end
     @portfolio.snapshots.order(created_at: :desc).first&.update!(rank: 1)
     result = Fantasy::Stock::CheckAchievements.new(portfolio: @portfolio).call
     keys = result.compact.map(&:key)

@@ -6,6 +6,8 @@ class Fantasy::Stock::SettleRaceTest < ActiveSupport::TestCase
     @portfolio = fantasy_stock_portfolios(:codex_stock_2026)
     # Clear existing stock snapshots so settlement can run
     FantasyStockSnapshot.where(fantasy_stock_portfolio: @portfolio, race: @race).destroy_all
+    # Ensure holdings predate the race so they're eligible for settlement
+    @portfolio.holdings.update_all(created_at: @race.date - 1.day)
   end
 
   test "creates snapshot for each portfolio" do
