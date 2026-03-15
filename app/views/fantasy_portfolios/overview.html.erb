@@ -202,18 +202,12 @@
             html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
             html += '<span style="color:#aaa">Total</span><span style="font-weight:700;font-family:monospace">' + total.toLocaleString() + '</span></div>';
             if (roster != null) {
-              var rPl = roster - #{Fantasy::CreatePortfolio::STARTING_CAPITAL.round(0)};
-              var rSign = rPl >= 0 ? '+' : '';
-              var rColor = rPl >= 0 ? '#4ade80' : '#f87171';
               html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
-              html += '<span style="color:#aaa">Roster</span><span style="font-family:monospace">' + roster.toLocaleString() + ' <span style="color:' + rColor + ';font-size:11px">' + rSign + rPl.toLocaleString() + '</span></span></div>';
+              html += '<span style="color:#aaa">Roster</span><span style="font-family:monospace">' + roster.toLocaleString() + '</span></div>';
             }
             if (stock != null) {
-              var sPl = stock - #{stock_invested};
-              var sSign = sPl >= 0 ? '+' : '';
-              var sColor = sPl >= 0 ? '#4ade80' : '#f87171';
               html += '<div style="display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
-              html += '<span style="color:#aaa">Stocks</span><span style="font-family:monospace">' + stock.toLocaleString() + ' <span style="color:' + sColor + ';font-size:11px">' + sSign + sPl.toLocaleString() + '</span></span></div>';
+              html += '<span style="color:#aaa">Stocks</span><span style="font-family:monospace">' + stock.toLocaleString() + '</span></div>';
             }
             html += '<div style="margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;gap:16px;line-height:1.7">';
             html += '<span style="color:#aaa">P&L</span><span style="font-weight:700;font-family:monospace;color:' + plColor + '">' + sign + pl.toLocaleString() + '</span></div>';
