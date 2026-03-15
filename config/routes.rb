@@ -37,6 +37,7 @@ Rails.application.routes.draw do
   resources :races, only: [:index, :show] do
     member do
       get 'preview/:username', to: 'predictions#show', as: :preview
+      get 'preview/:username/og.png', to: 'predictions#og_image', as: :preview_og_image
     end
     collection do
       get 'calendar', to: 'races#calendar'

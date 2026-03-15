@@ -1,9 +1,6 @@
 <% content_for(:title) { "Race Preview — #{@race.circuit.name} #{@race.season.year}" } %>
 <% content_for(:description) { "#{@user.username}'s race preview and fantasy picks for #{@race.circuit.name} #{@race.season.year}." } %>
-<% og_img = "og-preview-#{@user.username}.png" %>
-<% if Rails.root.join("public", og_img).exist? %>
-    <% content_for(:og_image) { "#{request.base_url}/#{og_img}" } %>
-<% end %>
+<% content_for(:og_image) { preview_og_image_race_url(@race, username: @user.username) } %>
 <%
   picks = @prediction.fantasy_picks || {}
   sorted_results = @prediction.predicted_results.sort_by { |r| r["position"] }

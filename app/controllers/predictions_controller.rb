@@ -21,4 +21,18 @@ class PredictionsController < ApplicationController
     # User's team support (for colored username + logo)
     @support = ConstructorSupport.current_for(@user, @race.season)
   end
+
+  def og_image
+    race = Race.includes(:circuit, :season).find(params[:id])
+    user = User.find_by!(username: params[:username])
+    prediction = Prediction.find_by!(race: race, user: user)
+
+    # Cache for 1 hour so we don't regenerate on every crawler hit
+    if stale?(etag: "#{prediction.id}-#{prediction.updated_at}", last_modified: prediction.updated_at, public: true)
+      tempfile = OgPreviewGenerator.new(prediction).generate
+      send_data tempfile.read, type: "image/png", disposition: "inline"
+      tempfile.close
+      tempfile.unlink
+    end
+  end
 end
