@@ -2,7 +2,7 @@ require "test_helper"
 
 class FantasyAchievementTest < ActiveSupport::TestCase
   setup do
-    @achievement = fantasy_achievements(:codex_first_trade)
+    @achievement = fantasy_achievements(:codex_first_profit)
   end
 
   test "belongs to fantasy_portfolio" do
@@ -18,7 +18,7 @@ class FantasyAchievementTest < ActiveSupport::TestCase
   test "validates key uniqueness per portfolio" do
     dup = FantasyAchievement.new(
       fantasy_portfolio: fantasy_portfolios(:codex_2026),
-      key: "first_trade",
+      key: "first_profit",
       tier: "silver"
     )
     refute dup.valid?
@@ -48,7 +48,7 @@ class FantasyAchievementTest < ActiveSupport::TestCase
 
   test "definition returns hash for known key" do
     defn = @achievement.definition
-    assert_equal "First Trade", defn[:name]
+    assert_equal "In the Money", defn[:name]
     assert_equal "bronze", defn[:tier]
   end
 
@@ -58,7 +58,7 @@ class FantasyAchievementTest < ActiveSupport::TestCase
   end
 
   test "name returns definition name" do
-    assert_equal "First Trade", @achievement.name
+    assert_equal "In the Money", @achievement.name
   end
 
   test "name falls back to humanized key" do
@@ -67,7 +67,7 @@ class FantasyAchievementTest < ActiveSupport::TestCase
   end
 
   test "description returns definition description" do
-    assert_equal "Made your first driver transaction", @achievement.description
+    assert_equal "Portfolio value exceeded starting capital", @achievement.description
   end
 
   test "description returns empty string for unknown key" do
@@ -76,7 +76,7 @@ class FantasyAchievementTest < ActiveSupport::TestCase
   end
 
   test "icon returns definition icon" do
-    assert_equal "fa-handshake", @achievement.icon
+    assert_equal "fa-arrow-trend-up", @achievement.icon
   end
 
   test "icon returns fa-star for unknown key" do
@@ -85,9 +85,9 @@ class FantasyAchievementTest < ActiveSupport::TestCase
   end
 
   test "DEFINITIONS covers all expected achievement types" do
-    expected_keys = %i[first_trade five_trades ten_trades first_profit profit_500 profit_1000
-                       all_time_high streak_3 driver_won driver_podium driver_elo_surge
-                       second_team third_team top_3 top_1 early_adopter]
+    expected_keys = %i[first_profit profit_500 profit_1000
+                       all_time_high streak_3
+                       top_3 top_1 early_adopter]
     expected_keys.each do |key|
       assert FantasyAchievement::DEFINITIONS.key?(key), "Missing definition for #{key}"
     end

@@ -14,10 +14,6 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
     assert_equal seasons(:season_2026), @portfolio.season
   end
 
-  test "has many roster_entries" do
-    assert @portfolio.roster_entries.count >= 2
-  end
-
   test "has many transactions" do
     assert @portfolio.transactions.count >= 1
   end
@@ -32,7 +28,7 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
 
   # Validations
   test "validates user uniqueness per season" do
-    dup = FantasyPortfolio.new(user: users(:codex), season: seasons(:season_2026), cash: 100, starting_capital: 100, roster_slots: 2)
+    dup = FantasyPortfolio.new(user: users(:codex), season: seasons(:season_2026), cash: 100, starting_capital: 100)
     refute dup.valid?
     assert_includes dup.errors[:user_id], "has already been taken"
   end
@@ -47,34 +43,16 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
     refute @portfolio.valid?
   end
 
-  # active_roster_entries
-  test "active_roster_entries returns only active entries" do
-    active = @portfolio.active_roster_entries
-    assert active.all?(&:active)
-    assert_equal 2, active.count
-  end
-
-  # active_drivers
-  test "active_drivers returns drivers on active roster" do
-    drivers = @portfolio.active_drivers
-    assert_includes drivers, drivers(:verstappen)
-    assert_includes drivers, drivers(:norris)
-    refute_includes drivers, drivers(:leclerc)
-  end
-
   # portfolio_value
-  test "portfolio_value includes cash plus driver prices" do
+  test "portfolio_value includes cash plus stock positions value" do
     value = @portfolio.portfolio_value
-    expected_drivers_value = Fantasy::Pricing.price_for(drivers(:verstappen), seasons(:season_2026)) +
-                             Fantasy::Pricing.price_for(drivers(:norris), seasons(:season_2026))
-    assert_in_delta @portfolio.cash + expected_drivers_value, value, 0.01
+    stock_value = @portfolio.stock_portfolio&.positions_value || 0
+    assert_in_delta @portfolio.cash + stock_value, value, 0.01
   end
 
   # profit_loss
-  test "profit_loss is sum of active roster entry gains" do
-    expected = @portfolio.active_roster_entries.includes(:driver).sum { |e|
-      Fantasy::Pricing.price_for(e.driver, @portfolio.season) - e.bought_at_elo
-    }
+  test "profit_loss delegates to stock portfolio" do
+    expected = @portfolio.stock_portfolio&.profit_loss || 0
     assert_in_delta expected, @portfolio.profit_loss, 0.01
   end
 
@@ -85,54 +63,9 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
 
   test "can_trade? returns true for future race" do
     race = races(:melbourne_2026)
-    # melbourne_2026 has time set, so starts_at should work
     if race.starts_at && race.starts_at > Time.current + 1.minute
       assert @portfolio.can_trade?(race)
     end
-  end
-
-  # roster_full?
-  test "roster_full? returns false when under limit" do
-    # 2 active, 4 roster_slots
-    refute @portfolio.roster_full?
-  end
-
-  test "roster_full? returns true when at limit" do
-    @portfolio.roster_slots = 2
-    assert @portfolio.roster_full?
-  end
-
-  # max_swaps_per_race
-  test "max_swaps_per_race is roster_slots divided by SLOTS_PER_TEAM" do
-    assert_equal 2, @portfolio.max_swaps_per_race  # 4 / 2
-  end
-
-  # teams_owned
-  test "teams_owned is roster_slots divided by SLOTS_PER_TEAM" do
-    assert_equal 2, @portfolio.teams_owned
-  end
-
-  # can_buy_team?
-  test "can_buy_team? returns true when under MAX_TEAMS" do
-    assert @portfolio.can_buy_team?
-  end
-
-  test "can_buy_team? returns false at MAX_TEAMS" do
-    @portfolio.roster_slots = FantasyPortfolio::MAX_TEAMS * FantasyPortfolio::SLOTS_PER_TEAM
-    refute @portfolio.can_buy_team?
-  end
-
-  # has_driver?
-  test "has_driver? returns true for active roster driver" do
-    assert @portfolio.has_driver?(drivers(:verstappen))
-  end
-
-  test "has_driver? returns false for non-roster driver" do
-    refute @portfolio.has_driver?(drivers(:piastri))
-  end
-
-  test "has_driver? returns false for sold driver" do
-    refute @portfolio.has_driver?(drivers(:leclerc))
   end
 
   # has_achievement?
@@ -144,19 +77,6 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
     refute @portfolio.has_achievement?(:ten_trades)
   end
 
-  # Constants
-  test "STARTING_SLOTS is 2" do
-    assert_equal 2, FantasyPortfolio::STARTING_SLOTS
-  end
-
-  test "MAX_TEAMS is 3" do
-    assert_equal 3, FantasyPortfolio::MAX_TEAMS
-  end
-
-  test "MAX_ROSTER_SIZE is 6" do
-    assert_equal 6, FantasyPortfolio::MAX_ROSTER_SIZE
-  end
-
   # value_change_since_last_race
   test "value_change_since_last_race returns diff between last two snapshots" do
     # Ensure ordering is deterministic by touching created_at
@@ -166,13 +86,22 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
     assert_in_delta 300.0, change, 0.01  # 8800 - 8500
   end
 
-  # swaps_this_race
-  test "swaps_this_race counts sold entries for that race" do
-    count = @portfolio.swaps_this_race(races(:melbourne_2026))
-    assert_equal 1, count  # codex_leclerc_sold was sold at melbourne
+  # stock_portfolio
+  test "stock_portfolio returns associated stock portfolio" do
+    sp = @portfolio.stock_portfolio
+    assert_instance_of FantasyStockPortfolio, sp if sp
   end
 
-  test "swaps_this_race returns 0 for race with no swaps" do
-    assert_equal 0, @portfolio.swaps_this_race(races(:bahrain_2025))
+  # available_cash
+  test "available_cash subtracts collateral from cash" do
+    available = @portfolio.available_cash
+    collateral = @portfolio.stock_portfolio&.total_collateral || 0
+    assert_in_delta @portfolio.cash - collateral, available, 0.01
+  end
+
+  # total_return
+  test "total_return is portfolio_value minus starting capital" do
+    expected = (@portfolio.portfolio_value - Fantasy::CreatePortfolio::STARTING_CAPITAL).round(2)
+    assert_in_delta expected, @portfolio.total_return, 0.01
   end
 end

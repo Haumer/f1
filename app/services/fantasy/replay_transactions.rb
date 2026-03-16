@@ -48,10 +48,8 @@ module Fantasy
             RaceResult.where(race: @races[idx - 1]).pluck(:driver_id, :new_elo_v2).to_h
           end
 
-          # Reprice trades that happened before this race
-          window_roster = @roster_trades.select { |t| t.created_at >= prev_cutoff && t.created_at < race_cutoff }
+          # Reprice stock trades that happened before this race
           window_stock = @stock_trades.select { |t| t.created_at >= prev_cutoff && t.created_at < race_cutoff }
-          reprice_roster_in_window(window_roster, elo_map)
           reprice_stock_in_window(window_stock, elo_map)
 
           # Update holdings entry prices from all repriced trades so far
@@ -69,11 +67,9 @@ module Fantasy
         # Reprice trades after the last race (if any)
         last_cutoff = @race_cutoffs.last
         last_elo = RaceResult.where(race: @races.last).pluck(:driver_id, :new_elo_v2).to_h
-        remaining_roster = @roster_trades.select { |t| t.created_at >= last_cutoff }
         remaining_stock = @stock_trades.select { |t| t.created_at >= last_cutoff }
-        if remaining_roster.any? || remaining_stock.any?
+        if remaining_stock.any?
           puts "\n=== Post-season trades ==="
-          reprice_roster_in_window(remaining_roster, last_elo)
           reprice_stock_in_window(remaining_stock, last_elo)
           update_holdings_entry_prices
         end
@@ -126,49 +122,15 @@ module Fantasy
     end
 
     def load_user_trades
-      @roster_trades = FantasyTransaction.where(
-        fantasy_portfolio_id: @roster_portfolio_scope.select(:id),
-        kind: %w[buy sell]
-      ).includes(:driver).order(:created_at).to_a
-
       @stock_trades = FantasyStockTransaction.where(
         fantasy_stock_portfolio_id: @stock_portfolio_scope.select(:id),
         kind: %w[buy sell short_open short_close]
       ).includes(:driver).order(:created_at).to_a
 
-      puts "Loaded #{@roster_trades.size} roster trades, #{@stock_trades.size} stock trades"
+      puts "Loaded #{@stock_trades.size} stock trades"
     end
 
     # ── Reprice trades in a time window ──────────────────────────────────
-
-    def reprice_roster_in_window(trades, elo_map)
-      changes = 0
-      trades.each do |txn|
-        elo = elo_map[txn.driver_id] || EloRatingV2::STARTING_ELO
-        name = @drivers_by_id[txn.driver_id]&.fullname || txn.driver_id
-
-        if txn.kind == "buy"
-          correct_amount = -elo
-          next if (txn.amount - correct_amount).abs < 0.01
-          puts "  Roster buy #{name}: #{txn.amount.round(1)} -> #{correct_amount.round(1)}"
-          txn.update_column(:amount, correct_amount)
-          FantasyRosterEntry.where(
-            fantasy_portfolio_id: txn.fantasy_portfolio_id,
-            driver_id: txn.driver_id, active: true
-          ).update_all(bought_at_elo: elo)
-          changes += 1
-        elsif txn.kind == "sell"
-          sell_price = elo
-          fee = (sell_price * Fantasy::SellDriver::SELL_FEE).round(1)
-          correct_amount = sell_price - fee
-          next if (txn.amount - correct_amount).abs < 0.01
-          puts "  Roster sell #{name}: #{txn.amount.round(1)} -> #{correct_amount.round(1)}"
-          txn.update_column(:amount, correct_amount)
-          changes += 1
-        end
-      end
-      puts "  Repriced #{changes} roster trades" if changes > 0
-    end
 
     def reprice_stock_in_window(trades, elo_map)
       changes = 0
@@ -198,8 +160,6 @@ module Fantasy
           )
           @demand[txn.driver_id] -= txn.quantity
         when "short_close"
-          # Amount depends on entry_price (updated in update_holdings_entry_prices)
-          # For now just update the market price; amount will be fixed after holdings update
           puts "  Short close #{txn.quantity}x #{name}: #{txn.price&.round(1)} -> #{price.round(1)} (demand=#{@demand[txn.driver_id]})"
           txn.update_columns(price: price)
           @demand[txn.driver_id] += txn.quantity
@@ -263,9 +223,7 @@ module Fantasy
       ).to_a
       return if close_txns.empty?
 
-      # Look up entry_price from the holding (or from opening trades if holding is gone)
       close_txns.each do |txn|
-        # Find the holding this close applies to
         holding = FantasyStockHolding.find_by(
           fantasy_stock_portfolio_id: txn.fantasy_stock_portfolio_id,
           driver_id: txn.driver_id,
@@ -273,7 +231,6 @@ module Fantasy
         )
         entry_price = holding&.entry_price
         unless entry_price
-          # Fallback: compute from opening trades
           opens = FantasyStockTransaction.where(
             kind: "short_open",
             fantasy_stock_portfolio_id: txn.fantasy_stock_portfolio_id,
@@ -294,16 +251,13 @@ module Fantasy
 
     def settle_for_replay(race, post_elo, results_by_driver)
       race_cutoff = race.starts_at || race.date
-      # Settlement transactions should be timestamped after the race, not when replay runs
       settle_time = (race.starts_at || race.date.to_time) + 4.hours
 
-      # Build Elo ranks from pre-race Elo for surprise factor
       pre_elo = RaceResult.where(race: race).pluck(:driver_id, :old_elo_v2).to_h
       elo_ranks = pre_elo.sort_by { |_, elo| -(elo || 0) }
                     .each_with_index
                     .to_h { |(id, _), idx| [id, idx + 1] }
 
-      # Constructor multipliers (same logic as SettleRace)
       constructor_mults = build_constructor_mults(race)
 
       stock_portfolios = FantasyStockPortfolio.where(season: @season)
@@ -434,7 +388,7 @@ module Fantasy
 
     def replay_cash
       portfolios = FantasyPortfolio.where(season: @season)
-                     .includes(:user, :transactions, roster_entries: :driver)
+                     .includes(:user, :transactions)
 
       portfolios.each do |portfolio|
         replay_portfolio(portfolio)
@@ -445,7 +399,7 @@ module Fantasy
       sp = FantasyStockPortfolio.find_by(user_id: portfolio.user_id, season_id: @season.id)
       old_cash = portfolio.cash
 
-      backfill_starting_capital(portfolio, sp)
+      backfill_starting_capital(portfolio)
 
       all_txns = portfolio.transactions.reload.order(:created_at).to_a
       if sp
@@ -476,27 +430,14 @@ module Fantasy
       end
     end
 
-    def backfill_starting_capital(portfolio, stock_portfolio)
+    def backfill_starting_capital(portfolio)
       unless portfolio.transactions.exists?(kind: "starting_capital")
         portfolio.transactions.create!(
           kind: "starting_capital",
           amount: portfolio.starting_capital,
-          note: "Roster starting capital",
+          note: "Starting capital",
           created_at: portfolio.created_at
         )
-      end
-
-      if stock_portfolio
-        has_stock_capital = portfolio.transactions.where(kind: "starting_capital")
-                             .where("note LIKE ?", "%Stock%").exists?
-        unless has_stock_capital
-          portfolio.transactions.create!(
-            kind: "starting_capital",
-            amount: stock_portfolio.starting_capital,
-            note: "Stock market unlocked",
-            created_at: stock_portfolio.created_at
-          )
-        end
       end
     end
   end

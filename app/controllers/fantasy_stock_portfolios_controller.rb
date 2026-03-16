@@ -1,31 +1,8 @@
 class FantasyStockPortfoliosController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_feature!
   before_action :set_portfolio, only: [:market, :buy, :sell, :short_open, :short_close, :buy_batch]
   before_action :set_next_race, only: [:market, :buy, :sell, :short_open, :short_close, :buy_batch]
   after_action :verify_authorized, only: [:buy, :sell, :short_open, :short_close, :buy_batch, :market]
-
-  def new
-    current_season = Season.sorted_by_year.first
-    existing = current_user.fantasy_stock_portfolio_for(current_season)
-    if existing
-      redirect_to fantasy_overview_path(current_user.username)
-      return
-    end
-
-    @season = current_season
-  end
-
-  def create
-    season = Season.sorted_by_year.first
-    result = Fantasy::Stock::CreatePortfolio.new(user: current_user, season: season).call
-
-    if result[:error]
-      redirect_to new_fantasy_stock_portfolio_path, alert: result[:error]
-    else
-      redirect_to fantasy_overview_path(current_user.username), notice: "Stock portfolio created with #{result[:portfolio].cash.round(1)} cash."
-    end
-  end
 
   def market
     season_driver_ids = SeasonDriver.where(season_id: @portfolio.season_id).select(:driver_id)
@@ -135,12 +112,6 @@ class FantasyStockPortfoliosController < ApplicationController
 
   private
 
-  def require_feature!
-    unless Setting.fantasy_stock_market?
-      redirect_to root_path, alert: "Stock market is not available."
-    end
-  end
-
   def set_portfolio
     @portfolio = FantasyStockPortfolio.find(params[:id])
     authorize @portfolio
@@ -150,7 +121,6 @@ class FantasyStockPortfoliosController < ApplicationController
     @next_race = @portfolio.season.next_race ||
                  Race.where("date >= ?", Date.current).order(:date).first
   end
-
 
   def check_stock_achievements(portfolio)
     CheckAchievementsJob.perform_later(portfolio_type: "stock", portfolio_id: portfolio.id)

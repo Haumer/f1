@@ -89,10 +89,13 @@
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <% if current_user %>
-                    <% roster = current_user.fantasy_portfolio_for(current_season) %>
-                    <% if roster %>
+                    <% portfolio = current_user.fantasy_portfolio_for(current_season) %>
+                    <% stock_portfolio = current_user.fantasy_stock_portfolio_for(current_season) %>
+                    <% if portfolio %>
                         <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: ("active" if request.path.include?("/fantasy/u/")), role: "menuitem" %>
-                        <%= link_to "Market", market_fantasy_portfolio_path(roster), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
+                        <% if stock_portfolio %>
+                            <%= link_to "Market", market_fantasy_stock_portfolio_path(stock_portfolio), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
+                        <% end %>
                     <% else %>
                         <%= link_to "Create Portfolio", new_fantasy_portfolio_path, role: "menuitem" %>
                     <% end %>

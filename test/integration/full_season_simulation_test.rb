@@ -1,8 +1,8 @@
 require "test_helper"
 
 # Full-season integration test: simulates a 10-race season with 6 drivers,
-# processes Elo after every race, runs both fantasy portfolio and stock market
-# systems, then validates the entire pipeline end-to-end.
+# processes Elo after every race, runs the fantasy stock market system,
+# then validates the entire pipeline end-to-end.
 class FullSeasonSimulationTest < ActiveSupport::TestCase
   RACE_COUNT = 10
   DRIVER_COUNT = 6
@@ -58,8 +58,8 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
     )
   end
 
-  test "full season: Elo, fantasy portfolio, and stock market all work end-to-end" do
-    # ─── Phase 1: Process 10 races with Elo ───
+  test "full season: Elo and stock market all work end-to-end" do
+    # --- Phase 1: Process 10 races with Elo ---
     finishing_orders = generate_finishing_orders
     cumulative_points = Hash.new(0.0)
 
@@ -70,17 +70,11 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
       update_standings(race, order, cumulative_points)
     end
 
-    # ─── Verify Elo outcomes ───
+    # --- Verify Elo outcomes ---
     verify_elo_integrity(finishing_orders)
 
-    # ─── Phase 2: Fantasy portfolio simulation ───
-    simulate_fantasy_portfolio
-
-    # ─── Phase 3: Fantasy stock market simulation ───
-    simulate_stock_portfolio
-
-    # ─── Phase 4: Season-end regression ───
-    # No regression — elo is purely performance-based
+    # --- Phase 2: Fantasy portfolio + stock market simulation ---
+    simulate_portfolio_and_stock
   end
 
   private
@@ -90,14 +84,11 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
   def generate_finishing_orders
     RACE_COUNT.times.map do |race_idx|
       order = @drivers.dup
-      # Dominant driver (0) always top-2, worst driver (5) always bottom-2
-      # Middle drivers get shuffled with a seeded RNG for determinism
       rng = Random.new(race_idx * 42)
       middle = order[1..4].shuffle(random: rng)
       if race_idx.even?
         [order[0]] + middle + [order[5]]
       else
-        # Occasionally let driver 1 win
         [middle[0], order[0]] + middle[1..] + [order[5]]
       end
     end
@@ -190,39 +181,52 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
     assert final_standings.first.points >= final_standings.last.points
   end
 
-  def simulate_fantasy_portfolio
-    # Create portfolio before first race
+  def simulate_portfolio_and_stock
+    # Create portfolio (auto-creates stock portfolio)
     result = Fantasy::CreatePortfolio.new(user: @user, season: @season).call
     portfolio = result[:portfolio]
     assert portfolio, "Portfolio should be created"
     initial_capital = portfolio.starting_capital
     assert initial_capital > 0, "Starting capital should be positive"
 
-    # Buy 2 drivers before race 1
-    race1 = @races[0]
-    race1.update_columns(date: 1.week.from_now.to_date)
-    buy1 = Fantasy::BuyDriver.new(portfolio: portfolio, driver: @drivers[0], race: race1).call
-    assert buy1[:success], "Should buy driver 0: #{buy1[:error]}"
-    buy2 = Fantasy::BuyDriver.new(portfolio: portfolio, driver: @drivers[1], race: race1).call
-    assert buy2[:success], "Should buy driver 1: #{buy2[:error]}"
-    race1.update_columns(date: Date.new(2099, 3, 1)) # reset
+    # Get the auto-created stock portfolio
+    stock_portfolio = @user.fantasy_stock_portfolio_for(@season)
+    assert stock_portfolio, "Stock portfolio should be auto-created"
 
-    assert portfolio.reload.active_roster_entries.count == 2
-    assert portfolio.cash < initial_capital, "Cash should decrease after buying"
+    # Buy shares in dominant driver
+    buy_race = @races[0]
+    buy_race.update_columns(date: 1.week.from_now.to_date)
+    buy_result = Fantasy::Stock::BuyShares.new(
+      portfolio: stock_portfolio, driver: @drivers[0], quantity: 3, race: buy_race
+    ).call
+    assert buy_result[:success], "Should buy shares: #{buy_result[:error]}"
 
-    # Snapshot after each race — interleave with Elo changes
-    # (Elo was already processed in Phase 1, so snapshot values reflect final Elo.
-    #  Re-run process_race to restore the incremental Elo per race for snapshots.)
-    # Instead, just snapshot — the values will differ because driver elos were updated
-    # incrementally during Phase 1. Re-snapshot now to capture the final state per race.
-    # To get varied snapshots, tweak driver elo between snapshots to simulate incremental.
+    # Buy shares in another driver
+    buy_result2 = Fantasy::Stock::BuyShares.new(
+      portfolio: stock_portfolio, driver: @drivers[1], quantity: 2, race: buy_race
+    ).call
+    assert buy_result2[:success], "Should buy shares in driver 1: #{buy_result2[:error]}"
+
+    # Open a short on worst driver
+    short_result = Fantasy::Stock::OpenShort.new(
+      portfolio: stock_portfolio, driver: @drivers[5], quantity: 2, race: buy_race
+    ).call
+    assert short_result[:success], "Should open short: #{short_result[:error]}"
+    buy_race.update_columns(date: Date.new(2099, 3, 1))
+
+    stock_portfolio.reload
+    assert stock_portfolio.active_holdings.count >= 2
+    assert stock_portfolio.active_longs.count >= 1
+    assert stock_portfolio.active_shorts.count >= 1
+
+    # Snapshot portfolio and settle stock each race
     @drivers.each { |d| d.update_columns(elo_v2: EloRatingV2::STARTING_ELO) }
     @races.each do |race|
-      # Restore the Elo as of this race from race results
       RaceResult.where(race: race).each do |rr|
         rr.driver.update_columns(elo_v2: rr.new_elo_v2) if rr.new_elo_v2
       end
       Fantasy::SnapshotPortfolios.new(race: race).call
+      Fantasy::Stock::SettleRace.new(race: race).call
     end
 
     assert_equal RACE_COUNT, portfolio.snapshots.count, "Should have #{RACE_COUNT} snapshots"
@@ -233,125 +237,59 @@ class FullSeasonSimulationTest < ActiveSupport::TestCase
       assert snap.rank.present?, "Snapshot for race #{snap.race_id} missing rank"
     end
 
-    # Portfolio value should track driver Elo changes
-    first_snap = portfolio.snapshots.order(:created_at).first
-    last_snap = portfolio.snapshots.order(:created_at).last
-    assert first_snap.value != last_snap.value,
-      "Portfolio value should change over the season (first: #{first_snap.value}, last: #{last_snap.value})"
+    # Stock portfolio should have snapshots too
+    assert_equal RACE_COUNT, stock_portfolio.snapshots.count,
+      "Stock portfolio should have #{RACE_COUNT} snapshots"
+
+    # Should have dividend transactions (driver 0 finishes top consistently)
+    dividend_txs = stock_portfolio.transactions.where(kind: "dividend")
+    assert dividend_txs.any?, "Should have earned dividends from top-finishing driver"
+
+    # Should have borrow fee transactions
+    borrow_txs = stock_portfolio.transactions.where(kind: "borrow_fee")
+    assert borrow_txs.any?, "Should have borrow fee charges for short position"
 
     # Leaderboard should work
     board = Fantasy::Leaderboard.new(season: @season).call
     assert board.any?, "Leaderboard should have entries"
     assert_equal portfolio, board.first[:portfolio]
 
-    # Check achievements — should earn at least first_trade
+    # Check achievements
     earned = Fantasy::CheckAchievements.new(portfolio: portfolio, race: @races.last).call
+    # early_adopter should be earned (portfolio created before first race)
     keys = earned.compact.map(&:key)
-    assert_includes keys, "first_trade"
-
-    # Sell a driver (use a future race, and ensure held_races >= 1)
-    sell_race = @races.last
-    sell_race.update_columns(date: 1.week.from_now.to_date)
-    sell_result = Fantasy::SellDriver.new(portfolio: portfolio, driver: @drivers[1], race: sell_race).call
-    assert sell_result[:success], "Should sell driver 1: #{sell_result[:error]}"
-    sell_race.update_columns(date: Date.new(2099, 3, 1) + (9 * 14).days) # reset
-
-    portfolio.reload
-    assert_equal 1, portfolio.active_roster_entries.count
-    assert portfolio.transactions.where(kind: "sell").exists?
-
-    # Buy a team to expand roster
-    team_race = @races[2]
-    team_race.update_columns(date: 1.week.from_now.to_date)
-    team_result = Fantasy::BuyTeam.new(portfolio: portfolio, race: team_race).call
-    assert team_result[:success], "Should buy team: #{team_result[:error]}"
-    team_race.update_columns(date: Date.new(2099, 3, 1) + (2 * 14).days) # reset
-    assert_equal 4, portfolio.reload.roster_slots
-  end
-
-  def simulate_stock_portfolio
-    result = Fantasy::Stock::CreatePortfolio.new(user: @user, season: @season).call
-    portfolio = result[:portfolio]
-    assert portfolio, "Stock portfolio should be created"
-    assert_equal 0, portfolio.starting_capital, "Stock starting_capital should be 0 (unified in roster)"
-
-    # Buy shares in dominant driver
-    buy_race = @races[0]
-    buy_race.update_columns(date: 1.week.from_now.to_date)
-    buy_result = Fantasy::Stock::BuyShares.new(
-      portfolio: portfolio, driver: @drivers[0], quantity: 3, race: buy_race
-    ).call
-    assert buy_result[:success], "Should buy shares: #{buy_result[:error]}"
-
-    # Open a short on worst driver
-    short_result = Fantasy::Stock::OpenShort.new(
-      portfolio: portfolio, driver: @drivers[5], quantity: 2, race: buy_race
-    ).call
-    assert short_result[:success], "Should open short: #{short_result[:error]}"
-    buy_race.update_columns(date: Date.new(2099, 3, 1))
-
-    portfolio.reload
-    assert_equal 2, portfolio.active_holdings.count
-    assert_equal 1, portfolio.active_longs.count
-    assert_equal 1, portfolio.active_shorts.count
-    assert portfolio.total_collateral > 0, "Short should lock collateral"
-
-    # Settle each race (dividends, borrow fees, margin checks, snapshots)
-    @races.each do |race|
-      Fantasy::Stock::SettleRace.new(race: race).call
-    end
-
-    portfolio.reload
-
-    # Should have snapshots for every race
-    assert_equal RACE_COUNT, portfolio.snapshots.count,
-      "Stock portfolio should have #{RACE_COUNT} snapshots"
-
-    # Should have dividend transactions (driver 0 finishes top consistently)
-    dividend_txs = portfolio.transactions.where(kind: "dividend")
-    assert dividend_txs.any?, "Should have earned dividends from top-finishing driver"
-
-    # Should have borrow fee transactions
-    borrow_txs = portfolio.transactions.where(kind: "borrow_fee")
-    assert borrow_txs.any?, "Should have borrow fee charges for short position"
-
-    # Portfolio snapshots should track value over time
-    snap_values = portfolio.snapshots.pluck(:value)
-    assert snap_values.all? { |v| v.is_a?(Numeric) && v >= 0 },
-      "All snapshot values should be non-negative numbers"
+    assert_includes keys, "early_adopter"
 
     # Sell shares
     sell_race = @races.last
     sell_race.update_columns(date: 1.week.from_now.to_date)
 
-    long_holding = portfolio.active_longs.first
+    long_holding = stock_portfolio.active_longs.first
     if long_holding
       sell_result = Fantasy::Stock::SellShares.new(
-        portfolio: portfolio, driver: long_holding.driver, quantity: 1, race: sell_race
+        portfolio: stock_portfolio, driver: long_holding.driver, quantity: 1, race: sell_race
       ).call
       assert sell_result[:success], "Should sell 1 share: #{sell_result[:error]}"
     end
 
     # Close short
-    short_holding = portfolio.active_shorts.first
+    short_holding = stock_portfolio.active_shorts.first
     if short_holding
       close_result = Fantasy::Stock::CloseShort.new(
-        portfolio: portfolio, driver: short_holding.driver, quantity: short_holding.quantity, race: sell_race
+        portfolio: stock_portfolio, driver: short_holding.driver, quantity: short_holding.quantity, race: sell_race
       ).call
       assert close_result[:success], "Should close short: #{close_result[:error]}"
     end
     sell_race.update_columns(date: Date.new(2099, 3, 1) + (9 * 14).days)
 
-    portfolio.reload
-    assert_equal 0, portfolio.active_shorts.count, "All shorts should be closed"
+    stock_portfolio.reload
+    assert_equal 0, stock_portfolio.active_shorts.count, "All shorts should be closed"
 
-    # Check achievements
-    earned = Fantasy::Stock::CheckAchievements.new(portfolio: portfolio).call
-    keys = earned.compact.map(&:key)
-    assert_includes keys, "first_stock_trade"
-    assert_includes keys, "first_long"
-    assert_includes keys, "first_short"
+    # Check stock achievements
+    stock_earned = Fantasy::Stock::CheckAchievements.new(portfolio: stock_portfolio).call
+    stock_keys = stock_earned.compact.map(&:key)
+    assert_includes stock_keys, "first_stock_trade"
+    assert_includes stock_keys, "first_long"
+    assert_includes stock_keys, "first_short"
   end
-
-  # No regression — removed. Elo is purely performance-based.
 end

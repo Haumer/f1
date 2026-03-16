@@ -72,20 +72,12 @@ Rails.application.routes.draw do
   post 'fantasy/toggle_public',       to: 'fantasy_portfolios#toggle_public', as: :toggle_public_profile
 
   resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create] do
-    member do
-      get :market
-      post :buy
-      post :buy_multiple
-      post :sell
-      post :buy_team
-      post :unified_trade
-    end
     collection do
       get :leaderboard
     end
   end
 
-  resources :fantasy_stock_portfolios, path: 'stocks', only: [:new, :create] do
+  resources :fantasy_stock_portfolios, path: 'stocks', only: [] do
     member do
       get :market
       post :buy

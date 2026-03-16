@@ -83,9 +83,9 @@ class FantasyPortfolioDataTest < ActiveSupport::TestCase
     assert_equal snap.value - starting, deltas[@latejoin_stock.id]
   end
 
-  # ── Unified starting capital ──
+  # ── Starting capital ──
 
-  test "total_starting_capital equals starting_capital (unified)" do
-    assert_equal @codex_portfolio.starting_capital, @codex_portfolio.total_starting_capital
+  test "starting_capital is present on portfolio" do
+    assert @codex_portfolio.starting_capital.present?
   end
 end

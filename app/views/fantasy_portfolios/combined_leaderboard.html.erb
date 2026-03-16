@@ -1,5 +1,5 @@
 <% content_for(:title) { "Fantasy Leaderboard" } %>
-<% content_for(:description) { "Fantasy F1 leaderboard — roster and stock portfolio rankings for the #{@season.year} season on F1 Elo." } %>
+<% content_for(:description) { "Fantasy F1 leaderboard — portfolio rankings for the #{@season.year} season on F1 Elo." } %>
 <div class="homepage-container">
     <div class="fantasy-dashboard-header">
         <div class="fantasy-dashboard-title">
@@ -25,7 +25,7 @@
         </button>
     </div>
 
-    <% if @combined_entries.any? %>
+    <% if @entries.any? %>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <table class="fantasy-leaderboard-table">
@@ -39,27 +39,30 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% @combined_entries.each_with_index do |entry, idx| %>
-                            <% is_me = current_user && entry[:user].id == current_user.id %>
-                            <% support = @supports_by_user[entry[:user].id] %>
+                        <% @entries.each_with_index do |entry, idx| %>
+                            <% portfolio = entry[:portfolio] %>
+                            <% user = portfolio.user %>
+                            <% is_me = current_user && user.id == current_user.id %>
+                            <% support = @supports_by_user[user.id] %>
                             <% color = support ? constructor_color(support.constructor) : nil %>
-                            <% last_race = entry[:last_race] || 0 %>
+                            <% last_race = @deltas[portfolio.id] || 0 %>
+                            <% net = entry[:net] %>
                             <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                 <td class="text-center position-cell"><%= idx + 1 %></td>
                                 <td>
                                     <% if support&.constructor&.logo_url.present? %>
                                         <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.style.display='none'">
                                     <% end %>
-                                    <% if entry[:user].public_profile? %>
-                                        <%= link_to fantasy_overview_path(entry[:user].username), style: color ? "color: #{color}" : nil do %><strong><%= entry[:user].display_name %></strong><% end %>
+                                    <% if user.public_profile? %>
+                                        <%= link_to fantasy_overview_path(user.username), style: color ? "color: #{color}" : nil do %><strong><%= user.display_name %></strong><% end %>
                                     <% else %>
-                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= entry[:user].display_name %></strong>
+                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= user.display_name %></strong>
                                     <% end %>
                                     <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                 </td>
                                 <td class="text-end fantasy-leaderboard-value">
-                                    <span class="<%= entry[:net_value] >= 0 ? 'text-green' : 'text-red' %>">
-                                        <%= entry[:net_value] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:net_value].round(0)) %>
+                                    <span class="<%= net >= 0 ? 'text-green' : 'text-red' %>">
+                                        <%= net >= 0 ? '+' : '' %><%= number_with_delimiter(net.round(0)) %>
                                     </span>
                                 </td>
                                 <td class="text-end">
@@ -71,7 +74,7 @@
                                         <span class="text-secondary">&mdash;</span>
                                     <% end %>
                                 </td>
-                                <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:total_value].round(0)) %></td>
+                                <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:value].round(0)) %></td>
                             </tr>
                         <% end %>
                     </tbody>

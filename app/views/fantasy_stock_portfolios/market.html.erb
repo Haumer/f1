@@ -1,5 +1,5 @@
-<% content_for(:title) { "Stock Market" } %>
-<% content_for(:description) { "The F1 stock market — buy and sell driver shares based on Elo rating performance." } %>
+<% content_for(:title) { "Market" } %>
+<% content_for(:description) { "Browse and trade F1 drivers — buy shares, go long or short based on Elo rating performance." } %>
 <div class="homepage-container"
      data-controller="stock-cart"
      data-stock-cart-cash-value="<%= @portfolio.available_cash %>"
@@ -8,11 +8,11 @@
 
     <div class="fantasy-dashboard-header">
         <div class="fantasy-dashboard-title">
-            <h2>Stock Market</h2>
+            <h2>Market</h2>
         </div>
         <div class="fantasy-header-actions">
             <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
-                <i class="fa-solid fa-arrow-left"></i> My Portfolio
+                <i class="fa-solid fa-arrow-left"></i> Portfolio
             <% end %>
         </div>
     </div>
@@ -30,10 +30,10 @@
         </span>
     </div>
 
-    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-stock-market-explainer">
+    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-market-explainer-v2">
         <div class="fantasy-info-banner-content">
             <i class="fa-solid fa-circle-info"></i>
-            <p>Go <strong>long</strong> if you think a driver's Elo will rise, or <strong>short</strong> to bet on a decline. Use +/&minus; to set quantity, then add to your cart. Review your selections and execute all trades at once.</p>
+            <p>Go <strong>long</strong> if you think a driver's Elo will rise, or <strong>short</strong> to bet on a decline. Use +/&minus; to set quantity, then add to your cart.</p>
         </div>
         <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
             <i class="fa-solid fa-xmark"></i>

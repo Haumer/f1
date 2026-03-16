@@ -90,8 +90,7 @@ module Admin
         sp = FantasyStockPortfolio.find_by(user_id: p.user_id, season_id: season.id)
         next unless sp
         total_starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
-        roster_value = p.active_roster_entries.includes(:driver).sum { |e| Fantasy::Pricing.price_for(e.driver, season) }
-        total_accounted = p.cash + roster_value + sp.positions_value
+        total_accounted = p.cash + sp.positions_value
         diff = (total_accounted - total_starting).round(1)
         issues << "#{p.user.username}: starting=#{total_starting.round(0)} current=#{total_accounted.round(0)} diff=#{diff}" if diff.abs > 50
       end

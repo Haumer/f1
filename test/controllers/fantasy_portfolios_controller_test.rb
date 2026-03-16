@@ -8,7 +8,7 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     @portfolio = fantasy_portfolios(:codex_2026)
   end
 
-  # ── Public routes ──
+  # -- Public routes --
 
   test "overview returns 200 for logged-in owner" do
     sign_in @user
@@ -32,7 +32,7 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  # ── Authenticated routes ──
+  # -- Authenticated routes --
 
   test "new requires authentication" do
     get new_fantasy_portfolio_path
@@ -61,30 +61,7 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to fantasy_overview_path(user.username)
   end
 
-  test "market requires authentication" do
-    get market_fantasy_portfolio_path(@portfolio)
-    assert_response :redirect
-  end
-
-  test "market returns 200 for portfolio owner" do
-    sign_in @user
-    get market_fantasy_portfolio_path(@portfolio)
-    assert_response :success
-  end
-
-  # ── Trading ──
-
-  test "buy requires authentication" do
-    post buy_fantasy_portfolio_path(@portfolio), params: { driver_id: drivers(:piastri).id }
-    assert_response :redirect
-  end
-
-  test "sell requires authentication" do
-    post sell_fantasy_portfolio_path(@portfolio), params: { driver_id: drivers(:verstappen).id }
-    assert_response :redirect
-  end
-
-  # ── Toggle public ──
+  # -- Toggle public --
 
   test "toggle_public requires authentication" do
     post toggle_public_profile_path
@@ -98,27 +75,21 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert @user.reload.public_profile?
   end
 
-  # ── Combined leaderboard with stock timing scenarios ──
+  # -- Combined leaderboard with stock timing scenarios --
 
   test "combined leaderboard renders for user with stock portfolio created after first snapshot" do
-    Setting.set("fantasy_stock_market", "enabled")
     get combined_leaderboard_path
     assert_response :success
-  ensure
-    Setting.find_by(key: "fantasy_stock_market")&.destroy
   end
 
   test "combined leaderboard renders for single-snapshot late-stock user without 500 error" do
-    Setting.set("fantasy_stock_market", "enabled")
-    # Delete latejoin's melbourne snapshot → single snapshot, stock created after it
+    # Delete latejoin's melbourne snapshot -> single snapshot, stock created after it
     fantasy_snapshots(:latejoin_melbourne).destroy!
     get combined_leaderboard_path
     assert_response :success
-  ensure
-    Setting.find_by(key: "fantasy_stock_market")&.destroy
   end
 
-  # ── Overview chart start value ──
+  # -- Overview chart start value --
 
   test "overview renders for user with stock portfolio created after first snapshot" do
     sign_in users(:latejoin)

@@ -110,6 +110,36 @@
     }
 }
 
+// ── Direction badge (long/short, overlaid on photo) ──
+.driver-card-direction-badge {
+    position: absolute;
+    top: 10px;
+    left: 8px;
+    z-index: 3;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-family: $mono-font;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+
+    &.stock-long {
+        background: rgba($green, 0.2);
+        color: $green;
+        border: 1px solid rgba($green, 0.25);
+    }
+
+    &.stock-short {
+        background: rgba($accent-red, 0.2);
+        color: $accent-red;
+        border: 1px solid rgba($accent-red, 0.25);
+    }
+}
+
 // ── P&L badge (overlaid on photo) ──
 .driver-card-pl-badge {
     position: absolute;
@@ -225,6 +255,20 @@
         font-size: 11px;
         padding: 5px 8px;
         border-radius: 4px;
+    }
+
+    .sell-qty-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sell-qty-stepper {
+        flex-shrink: 0;
+    }
+
+    .sell-qty-row .fantasy-btn-danger {
+        flex: 1;
     }
 }
 

@@ -1,5 +1,5 @@
 <% content_for(:title) { "#{@user.display_name}'s Fantasy Portfolio" } %>
-<% content_for(:description) { "#{@user.display_name}'s fantasy F1 portfolio — roster, stocks, and performance on F1 Elo." } %>
+<% content_for(:description) { "#{@user.display_name}'s fantasy F1 portfolio — stocks, picks, and performance on F1 Elo." } %>
 <div class="homepage-container">
     <%# ═══════════════════ Header ═══════════════════ %>
     <% support = ConstructorSupport.current_for(@user, @season) %>
@@ -36,8 +36,8 @@
             </span>
         </div>
         <div class="fantasy-header-actions">
-            <% if @is_owner && @portfolio %>
-                <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
+            <% if @is_owner && @stock_portfolio %>
+                <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                     <i class="fa-solid fa-store"></i> Market
                 <% end %>
             <% end %>
@@ -51,12 +51,10 @@
     <% cash = @portfolio ? @portfolio.cash : 0 %>
     <% collateral = @stock_portfolio ? @stock_portfolio.total_collateral : 0 %>
     <% cash_available = cash - collateral %>
-    <% roster_holdings = (@active_entries || []).sum { |e| e.current_value } %>
-    <% roster_invested = (@active_entries || []).sum { |e| e.bought_at_elo } %>
     <% stock_positions = @stock_portfolio ? @stock_portfolio.positions_value : 0 %>
     <% stock_invested = @stock_portfolio ? @stock_portfolio.total_invested : 0 %>
-    <% total_invested = roster_invested + stock_invested + collateral %>
-    <% total_value = cash + roster_holdings + stock_positions %>
+    <% total_invested = stock_invested + collateral %>
+    <% total_value = cash + stock_positions %>
     <% total_pl = @portfolio ? @portfolio.total_return : 0 %>
     <% total_pl_pct = total_invested > 0 ? (total_pl / total_invested * 100) : 0 %>
     <div class="fantasy-value-hero">
@@ -86,16 +84,15 @@
     </div>
 
     <%# ═══════════════════ Getting Started Banner ═══════════════════ %>
-    <% if @is_owner && @portfolio && @active_entries.empty? %>
-        <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-getting-started-v1">
+    <% if @is_owner && @stock_portfolio && (@stock_holdings || []).empty? %>
+        <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-getting-started-v2">
             <div class="fantasy-info-banner-content">
                 <i class="fa-solid fa-rocket"></i>
                 <div>
-                    <p style="margin:0"><strong>Welcome to Fantasy F1!</strong> Here's how to get started:</p>
+                    <p style="margin:0"><strong>Welcome to Fantasy F1!</strong></p>
                     <p style="margin:4px 0 0; opacity:0.8">
-                        <strong>1.</strong> Head to the <strong>Market</strong> and buy your first drivers at their Elo rating.
-                        <strong>2.</strong> Their value changes as they race &mdash; gain Elo to profit, lose Elo and your portfolio dips.
-                        <strong>3.</strong> After buying 2 drivers, the <strong>Stock Market</strong> unlocks &mdash; go long or short on any driver.
+                        Head to the <strong>Market</strong> to buy your first shares. Go <strong>long</strong> on drivers you believe in,
+                        or <strong>short</strong> those you think will drop. Your portfolio grows as their Elo changes race by race.
                     </p>
                 </div>
             </div>
@@ -104,7 +101,6 @@
             </button>
         </div>
     <% end %>
-
 
     <%# ═══════════════════ Chart ═══════════════════ %>
     <%
@@ -122,11 +118,8 @@
         chart_total = [chart_start.round(0)] + snapped_rounds.map do |r|
             rs = roster_snaps[r]
             ss = stock_snaps[r]
-            # Roster snapshot already includes stock positions, so don't double-count
             (rs ? rs.value : (ss&.value || 0)).round(0)
         end
-
-        stock_invested = @stock_portfolio ? @stock_portfolio.total_invested.round(0) : 0
 
         chart_series = [
             {
@@ -204,120 +197,56 @@
     </div>
 
     <%# ═══════════════════ HOLDINGS ═══════════════════ %>
-    <% has_roster = @portfolio && @active_entries.any? %>
-    <% has_stocks = @stock_portfolio && (@stock_holdings || []).any? %>
-    <% has_any = has_roster || has_stocks %>
+    <% has_holdings = @stock_portfolio && (@stock_holdings || []).any? %>
 
     <% if @portfolio %>
         <div class="table-header">
-            <h3><i class="fa-solid fa-briefcase" style="opacity:0.5; font-size:14px"></i> Roster</h3>
-            <span class="table-header-sub"><%= @active_entries.size %>/<%= @portfolio.roster_slots %> seats</span>
+            <h3><i class="fa-solid fa-briefcase" style="opacity:0.5; font-size:14px"></i> Holdings</h3>
+            <% if has_holdings %>
+                <span class="table-header-sub"><%= @stock_holdings.size %> position<%= @stock_holdings.size == 1 ? '' : 's' %></span>
+            <% end %>
         </div>
 
-        <% if has_any %>
-            <%# ── Roster Driver Cards ── %>
-            <% if has_roster %>
-                <div class="fantasy-roster-grid">
-                    <% @active_entries.each do |entry| %>
-                        <%= render "fantasy_portfolios/roster_driver_card",
-                            entry: entry,
-                            constructors_by_driver: @constructors_by_driver,
-                            show_sell: @is_owner,
-                            can_trade: @can_trade,
-                            portfolio: @portfolio %>
-                    <% end %>
-                    <%# Empty slots %>
-                    <% if @is_owner %>
-                        <% empty_slots = @portfolio.roster_slots - @active_entries.size %>
-                        <% empty_slots.times do %>
-                            <div class="driver-card-empty">
-                                <div class="driver-card-empty-content">
-                                    <i class="fa-solid fa-plus"></i>
-                                    <%= link_to "Add Driver", market_fantasy_portfolio_path(@portfolio) %>
-                                </div>
-                            </div>
-                        <% end %>
-                    <% end %>
-                </div>
-            <% end %>
-
-            <%# ── Stock Positions Table ── %>
-            <% if has_stocks %>
-                <div class="table-header">
-                    <h3><i class="fa-solid fa-chart-line" style="opacity:0.5; font-size:14px"></i> Stock Positions</h3>
-                    <span class="table-header-sub"><%= @stock_holdings.size %> positions</span>
-                </div>
-                <div class="card card-flush">
-                    <div class="table-scroll-wrapper">
-                        <table class="fantasy-market-table">
-                            <thead>
-                                <tr>
-                                    <th>Driver</th>
-                                    <th>Type</th>
-                                    <th class="text-end d-none d-sm-table-cell">Entry</th>
-                                    <th class="text-end d-none d-sm-table-cell">Current</th>
-                                    <th class="text-end">P&L</th>
-                                    <% if @is_owner && @stock_can_trade %><th></th><% end %>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% @stock_holdings.each do |holding| %>
-                                    <%= render "fantasy_portfolios/stock_holding_row", holding: holding, stock_constructors: @stock_constructors, stock_portfolio: @stock_portfolio, show_trade_actions: @is_owner && @stock_can_trade, compact: false %>
-                                <% end %>
-                            </tbody>
-                        </table>
+        <% if has_holdings %>
+            <div class="fantasy-roster-grid">
+                <% @stock_holdings.each do |holding| %>
+                    <%= render "fantasy_portfolios/holding_card",
+                        holding: holding,
+                        constructors_by_driver: @stock_constructors,
+                        show_sell: @is_owner,
+                        can_trade: @stock_can_trade,
+                        stock_portfolio: @stock_portfolio %>
+                <% end %>
+                <% if @is_owner && !@stock_portfolio.positions_full? %>
+                    <div class="driver-card-empty">
+                        <div class="driver-card-empty-content">
+                            <i class="fa-solid fa-plus"></i>
+                            <%= link_to "Buy Shares", market_fantasy_stock_portfolio_path(@stock_portfolio) %>
+                        </div>
                     </div>
-                </div>
-            <% end %>
+                <% end %>
+            </div>
 
-            <% if @stock_portfolio && @stock_portfolio.total_collateral > 0 %>
+            <% if @stock_portfolio.total_collateral > 0 %>
                 <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 8px; margin-bottom: 16px;">
                     <i class="fa-solid fa-lock"></i>
                     <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> locked as short collateral</span>
                 </div>
             <% end %>
-
-            <%# Expand roster %>
-            <% if @is_owner && has_roster && @portfolio.roster_full? && @portfolio.can_buy_team? %>
-                <div class="fantasy-roster-grid" style="margin-top: 8px">
-                    <div class="driver-card-empty">
-                        <div class="driver-card-empty-content">
-                            <i class="fa-solid fa-users-rectangle"></i>
-                            <span style="font-size: 12px">Expand Roster</span>
-                            <span style="font-size: 11px; opacity: 0.5">+<%= FantasyPortfolio::SLOTS_PER_TEAM %> seats, +1 swap</span>
-                            <% if @portfolio.available_cash >= @portfolio.team_cost %>
-                                <%= form_with url: buy_team_fantasy_portfolio_path(@portfolio), method: :post, local: true do %>
-                                    <%= submit_tag "Buy · #{number_with_delimiter(@portfolio.team_cost)}", class: "fantasy-btn fantasy-btn-outline fantasy-btn-sm", style: "margin-top: 4px", data: { turbo_confirm: "Purchase a new team for #{number_with_delimiter(@portfolio.team_cost)}? You'll have #{@portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM} seats." } %>
-                                <% end %>
-                            <% else %>
-                                <span class="fantasy-badge-cant-afford" style="margin-top: 4px">Not enough cash</span>
-                            <% end %>
-                        </div>
-                    </div>
-                </div>
-            <% end %>
         <% else %>
             <div class="card empty-state">
-                <i class="fa-solid fa-user-plus"></i>
+                <i class="fa-solid fa-chart-line"></i>
                 <h3>No positions yet</h3>
                 <% if @is_owner %>
-                    <p>You have <strong><%= number_with_delimiter(@portfolio.cash.round(0)) %></strong> to start building your portfolio.</p>
-                    <%= link_to market_fantasy_portfolio_path(@portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
-                        <i class="fa-solid fa-store"></i> Browse Market
+                    <p>You have <strong><%= number_with_delimiter(@portfolio.cash.round(0)) %></strong> to start trading.</p>
+                    <% if @stock_portfolio %>
+                        <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
+                            <i class="fa-solid fa-store"></i> Explore Drivers
+                        <% end %>
                     <% end %>
                 <% end %>
             </div>
         <% end %>
-    <% end %>
-
-    <%# ═══════════════════ Stocks (locked notice) ═══════════════════ %>
-    <% if @portfolio && !@stock_portfolio && @is_owner %>
-        <div class="table-header">
-            <h3><i class="fa-solid fa-chart-line" style="opacity:0.5; font-size:14px"></i> Stocks</h3>
-        </div>
-        <div class="card empty-state-inline">
-            <i class="fa-solid fa-lock"></i> Locked until you have 2 drivers on your roster
-        </div>
     <% end %>
 
     <%# ═══════════════════ Race Picks ═══════════════════ %>
@@ -436,11 +365,10 @@
         </div>
     <% end %>
 
-    <%# ═══════════════════ Transactions (combined) ═══════════════════ %>
+    <%# ═══════════════════ Transactions ═══════════════════ %>
     <% if @is_owner %>
         <%
           all_txns = []
-          (@transactions || []).each { |t| all_txns << { txn: t, source: "roster" } }
           (@stock_transactions || []).each { |t| all_txns << { txn: t, source: "stocks" } }
           all_txns.sort_by! { |t| -t[:txn].created_at.to_i }
         %>
@@ -460,15 +388,13 @@
                         <tbody>
                             <% all_txns.first(30).each do |entry| %>
                                 <% txn = entry[:txn] %>
-                                <% is_stock = entry[:source] == "stocks" %>
                                 <tr>
                                     <td><%= txn.created_at.strftime("%b %d, %H:%M") %></td>
                                     <td>
                                         <span class="fantasy-txn-kind fantasy-txn-<%= txn.kind %>"><%= txn.kind.humanize %></span>
-                                        <% if is_stock %><span class="fantasy-txn-source">stocks</span><% end %>
                                     </td>
                                     <td class="<%= txn.amount >= 0 ? 'text-green' : 'text-red' %>">
-                                        <%= txn.amount >= 0 ? '+' : '' %><%= is_stock ? txn.amount.round(1) : txn.amount.round(0) %>
+                                        <%= txn.amount >= 0 ? '+' : '' %><%= txn.amount.round(1) %>
                                     </td>
                                     <td class="fantasy-txn-note d-none d-md-table-cell"><%= txn.note %></td>
                                 </tr>
@@ -483,8 +409,8 @@
     <%# ═══════════════════ Achievements (combined) ═══════════════════ %>
     <%
       all_definitions = {}
-      FantasyAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v.merge(source: "roster") }
-      FantasyStockAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v.merge(source: "stocks") }
+      FantasyAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v }
+      FantasyStockAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v }
       all_earned = [*(@achievements || []), *(@stock_achievements || [])]
       earned_keys = all_earned.map(&:key).to_set
       tier_order = { "gold" => 0, "silver" => 1, "bronze" => 2 }
@@ -508,9 +434,6 @@
                     <strong><%= defn[:name] %></strong>
                     <span><%= defn[:description] %></span>
                 </div>
-                <% if defn[:source] == "stocks" %>
-                    <span class="fantasy-achievement-source">stocks</span>
-                <% end %>
                 <% if match %>
                     <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
                 <% end %>

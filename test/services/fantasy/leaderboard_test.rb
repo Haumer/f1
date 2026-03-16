@@ -26,10 +26,10 @@ class Fantasy::LeaderboardTest < ActiveSupport::TestCase
     assert_equal [], result
   end
 
-  test "net equals portfolio value minus starting capital" do
+  test "net equals total return (portfolio value minus starting capital)" do
     result = Fantasy::Leaderboard.new(season: seasons(:season_2026)).call
     entry = result.first
-    expected_net = entry[:portfolio].profit_loss
+    expected_net = entry[:portfolio].total_return
     assert_in_delta expected_net, entry[:net], 0.01
   end
 end

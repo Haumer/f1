@@ -26,7 +26,7 @@
                 </div>
                 <div class="fantasy-mini-stat">
                     <span class="label">P&L</span>
-                    <% pl = portfolio.profit_loss %>
+                    <% pl = portfolio.total_return %>
                     <span class="value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
                         <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                     </span>
@@ -45,41 +45,21 @@
                 <% end %>
             </div>
 
-            <%# Roster driver pills with constructor color borders %>
-            <% entries = portfolio.active_roster_entries.includes(:driver) %>
-            <% if entries.any? %>
-                <% sd_index = SeasonDriver.where(season: portfolio.season, driver_id: entries.map(&:driver_id)).includes(:constructor).index_by(&:driver_id) %>
-                <div class="fantasy-mini-roster">
-                    <% entries.each do |entry| %>
-                        <% constructor = sd_index[entry.driver_id]&.constructor %>
-                        <% color = constructor_color(constructor) %>
-                        <span class="fantasy-mini-pill" style="--pill-color: <%= color %>">
-                            <%= entry.driver.surname %>
-                        </span>
-                    <% end %>
-                </div>
-            <% end %>
-
-            <%# Stock positions summary (if user has a stock portfolio) %>
+            <%# Holdings pills %>
             <% if stock_portfolio %>
-                <% longs_count = stock_portfolio.active_longs.count %>
-                <% shorts_count = stock_portfolio.active_shorts.count %>
-                <% if longs_count > 0 || shorts_count > 0 %>
-                    <div class="fantasy-mini-stocks-row">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span class="fantasy-mini-stocks-label">Stocks</span>
-                        <div class="fantasy-mini-positions">
-                            <% if longs_count > 0 %>
-                                <span class="fantasy-mini-pos-badge pos-long"><%= longs_count %>L</span>
-                            <% end %>
-                            <% if shorts_count > 0 %>
-                                <span class="fantasy-mini-pos-badge pos-short"><%= shorts_count %>S</span>
-                            <% end %>
-                        </div>
-                        <% stock_pl = stock_portfolio.profit_loss %>
-                        <span class="fantasy-mini-stock-pl <%= stock_pl >= 0 ? 'text-green' : 'text-red' %>">
-                            <%= stock_pl >= 0 ? '+' : '' %><%= number_with_delimiter(stock_pl.round(0)) %>
-                        </span>
+                <% holdings = stock_portfolio.active_holdings.includes(:driver) %>
+                <% if holdings.any? %>
+                    <% sd_index = SeasonDriver.where(season: portfolio.season, driver_id: holdings.map(&:driver_id)).includes(:constructor).index_by(&:driver_id) %>
+                    <div class="fantasy-mini-roster">
+                        <% holdings.each do |holding| %>
+                            <% constructor = sd_index[holding.driver_id]&.constructor %>
+                            <% color = constructor_color(constructor) %>
+                            <span class="fantasy-mini-pill" style="--pill-color: <%= color %>">
+                                <% if holding.short? %><i class="fa-solid fa-arrow-trend-down" style="font-size:9px"></i><% end %>
+                                <%= holding.driver.surname %>
+                                <% if holding.quantity > 1 %><span style="opacity:0.6; font-size:10px"><%= holding.quantity %>x</span><% end %>
+                            </span>
+                        <% end %>
                     </div>
                 <% end %>
             <% end %>

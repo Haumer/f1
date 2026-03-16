@@ -23,6 +23,16 @@ module Fantasy
         note: "Starting capital"
       )
 
+      # Auto-create stock portfolio alongside
+      unless @user.fantasy_stock_portfolio_for(@season)
+        FantasyStockPortfolio.create!(
+          user: @user,
+          season: @season,
+          cash: 0,
+          starting_capital: 0
+        )
+      end
+
       { portfolio: portfolio }
     end
 

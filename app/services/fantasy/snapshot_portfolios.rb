@@ -9,8 +9,7 @@ module Fantasy
       elo_map = RaceResult.where(race: @race).pluck(:driver_id, :new_elo_v2).to_h
       season_drivers = SeasonDriver.where(season_id: @race.season_id).index_by(&:driver_id)
 
-      portfolios = FantasyPortfolio.where(season: @race.season)
-                     .includes(:user, roster_entries: :driver)
+      portfolios = FantasyPortfolio.where(season: @race.season).includes(:user)
       stock_portfolios = FantasyStockPortfolio.where(season: @race.season)
                            .includes(holdings: :driver)
                            .index_by(&:user_id)
@@ -18,12 +17,7 @@ module Fantasy
       portfolios_by_id = portfolios.index_by(&:id)
 
       snapshots = portfolios.map do |portfolio|
-        # Roster value using historical Elo
-        roster_value = portfolio.cash + portfolio.active_roster_entries.sum do |e|
-          Fantasy::Pricing.price_for_elo(elo_map[e.driver_id] || e.driver.elo_v2)
-        end
-
-        # Stock positions value using historical Elo
+        # Portfolio value = cash + stock positions (using historical Elo)
         sp = stock_portfolios[portfolio.user_id]
         stock_value = if sp
           compute_positions_value(sp, elo_map, season_drivers)
@@ -31,7 +25,7 @@ module Fantasy
           0
         end
 
-        value = roster_value + stock_value
+        value = portfolio.cash + stock_value
         { fantasy_portfolio_id: portfolio.id, race_id: @race.id, value: value, cash: portfolio.cash }
       end
 

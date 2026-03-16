@@ -1,21 +1,17 @@
 <% content_for(:title) { "How Fantasy Works" } %>
-<% content_for(:description) { "Learn how Fantasy F1 works — build a roster of drivers, trade shares on the stock market, and compete on the leaderboard." } %>
+<% content_for(:description) { "Learn how Fantasy F1 works — trade driver shares, earn dividends, and compete on the leaderboard." } %>
 <div class="homepage-container">
     <div class="table-header"><h3>How Fantasy Works</h3></div>
 
     <div class="elo-explanation">
         <p>
-            Fantasy F1 lets you build a portfolio of drivers and compete against other players.
-            There are two modes: <strong>Roster</strong> (pick drivers) and <strong>Stocks</strong> (trade driver shares).
-            Your goal is to grow your fantasy cash by making smart picks.
+            Fantasy F1 is a stock market for F1 drivers. Buy and sell driver shares based on
+            their Elo rating performance, earn dividends from top finishes, and compete against other
+            players on the leaderboard.
         </p>
 
-        <%# ═══ ROSTER MODE ═══ %>
-        <div class="table-header"><h3>Roster Mode</h3></div>
-        <p>
-            Draft real F1 drivers onto your roster. Each driver's price equals their current Elo rating.
-            When a driver performs well and their Elo rises, so does your portfolio value.
-        </p>
+        <%# ═══ HOW IT WORKS ═══ %>
+        <div class="table-header"><h3>Getting Started</h3></div>
 
         <div class="elo-worked-example">
             <div class="elo-step-grid">
@@ -29,68 +25,48 @@
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">2</div>
                     <div class="elo-step-content">
-                        <strong>Buy Drivers</strong>
-                        <span>Purchase drivers from the market at their Elo price. You start with <%= FantasyPortfolio::STARTING_SLOTS %> roster slots.</span>
+                        <strong>Buy Shares</strong>
+                        <span>Head to the Market and buy shares of drivers you believe in. Prices are based on Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>, adjusted by market demand.</span>
                     </div>
                 </div>
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">3</div>
                     <div class="elo-step-content">
                         <strong>Race Weekend</strong>
-                        <span>The transfer window closes 1 minute before race start. After the race, driver Elos update and your portfolio value changes.</span>
+                        <span>The market closes 1 minute before race start. After the race, driver Elos update, dividends are paid, and your portfolio value changes.</span>
                     </div>
                 </div>
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">4</div>
                     <div class="elo-step-content">
-                        <strong>Sell &amp; Swap</strong>
-                        <span>Sell drivers at their current Elo (minus a <%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>% fee). You must hold a driver for at least 1 race before selling.</span>
+                        <strong>Trade &amp; Compete</strong>
+                        <span>Sell shares to lock in profits, open new positions, and climb the leaderboard. Up to <%= FantasyStockPortfolio::MAX_POSITIONS %> positions at a time.</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="elo-formula-block">
-            <strong>Expand Your Roster</strong>
-            <p>
-                You can purchase additional teams (up to <%= FantasyPortfolio::MAX_TEAMS %> total) to unlock more roster slots.
-                Each team adds <%= FantasyPortfolio::SLOTS_PER_TEAM %> driver seats and 1 swap per race.
-                The team cost equals the average Elo of current-season drivers.
-            </p>
-        </div>
+        <%# ═══ LONG & SHORT ═══ %>
+        <div class="table-header"><h3>Long &amp; Short Positions</h3></div>
 
-        <% if Setting.fantasy_stock_market? %>
-            <%# ═══ STOCK MODE ═══ %>
-            <div class="table-header"><h3>Stock Market Mode</h3></div>
-            <p>
-                Trade driver shares like stocks. You can go <strong>long</strong> (bet on a driver improving)
-                or <strong>short</strong> (bet on a driver declining). Share prices are derived from Elo ratings.
-            </p>
-
-            <div class="elo-worked-example">
-                <div class="elo-step-grid">
-                    <div class="elo-step">
-                        <div class="elo-step-pip" style="background: #52c41a">L</div>
-                        <div class="elo-step-content">
-                            <strong>Long Positions</strong>
-                            <span>Buy shares at Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>. Share prices adjust based on market demand &mdash; heavy buying pushes prices up, heavy shorting pushes them down. You profit when a driver's Elo rises or demand increases. Long positions earn <strong>dividends</strong> for each top-10 finish.</span>
-                        </div>
+        <div class="elo-worked-example">
+            <div class="elo-step-grid">
+                <div class="elo-step">
+                    <div class="elo-step-pip" style="background: #52c41a">L</div>
+                    <div class="elo-step-content">
+                        <strong>Long Positions</strong>
+                        <span>Buy shares and profit when a driver's Elo rises. Long positions earn <strong>dividends</strong> for each top-10 finish, scaled by constructor strength (underdogs pay more).</span>
                     </div>
-                    <div class="elo-step">
-                        <div class="elo-step-pip" style="background: #e10600">S</div>
-                        <div class="elo-step-content">
-                            <strong>Short Positions</strong>
-                            <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked fantasy cash) and incur a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
-                        </div>
+                </div>
+                <div class="elo-step">
+                    <div class="elo-step-pip" style="background: #e10600">S</div>
+                    <div class="elo-step-content">
+                        <strong>Short Positions</strong>
+                        <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked cash) and incur a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
                     </div>
                 </div>
             </div>
-
-            <div class="elo-formula-block">
-                <strong>Position Limits</strong>
-                <p>You can hold up to <%= FantasyStockPortfolio::MAX_POSITIONS %> positions (longs + shorts combined). Available fantasy cash = total cash minus locked collateral from shorts.</p>
-            </div>
-        <% end %>
+        </div>
 
         <%# ═══ EARNING CASH ═══ %>
         <div class="table-header"><h3>Earning Fantasy Cash</h3></div>
@@ -102,40 +78,33 @@
                 <span class="elo-result-sub">Awarded once when you create a portfolio</span>
             </div>
             <div class="elo-result-card">
-                <div class="elo-result-label">Selling Drivers</div>
-                <div class="elo-result-value">Elo Price &minus; <%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>%</div>
-                <span class="elo-result-sub">Sell drivers whose Elo has risen for a profit</span>
+                <div class="elo-result-label">Dividends</div>
+                <div class="elo-result-value"><%= Fantasy::Stock::SettleRace::DIVIDEND_BASE %> &times; constructor</div>
+                <span class="elo-result-sub">Top-10 finishes pay dividends + surprise bonus for overperformance</span>
+            </div>
+            <div class="elo-result-card">
+                <div class="elo-result-label">Selling Shares</div>
+                <div class="elo-result-value">Buy Low, Sell High</div>
+                <span class="elo-result-sub">Sell long positions when a driver's Elo has risen</span>
+            </div>
+            <div class="elo-result-card">
+                <div class="elo-result-label">Short Profits</div>
+                <div class="elo-result-value">Entry &minus; Current</div>
+                <span class="elo-result-sub">Profit when a shorted driver's Elo drops</span>
             </div>
             <div class="elo-result-card">
                 <div class="elo-result-label">Team Allegiance</div>
                 <div class="elo-result-value"><i class="fa-solid fa-shield-halved"></i></div>
                 <span class="elo-result-sub">Pick a team to support &mdash; shown on leaderboards</span>
             </div>
-            <% if Setting.fantasy_stock_market? %>
-                <div class="elo-result-card">
-                    <div class="elo-result-label">Dividends</div>
-                    <div class="elo-result-value"><%= Fantasy::Stock::SettleRace::DIVIDEND_BASE %> &times; constructor</div>
-                    <span class="elo-result-sub">Top-10 finishes pay dividends scaled by constructor strength (underdogs pay more) + surprise bonus for overperformance</span>
-                </div>
-                <div class="elo-result-card">
-                    <div class="elo-result-label">Short Profits</div>
-                    <div class="elo-result-value">Entry &minus; Current</div>
-                    <span class="elo-result-sub">Profit when a shorted driver's Elo drops</span>
-                </div>
-            <% end %>
         </div>
 
         <%# ═══ LEADERBOARD ═══ %>
         <div class="table-header"><h3>Leaderboard</h3></div>
         <p>
-            All leaderboards rank players by <strong>Net P&amp;L</strong> &mdash; the profit or loss
+            The leaderboard ranks players by <strong>Net P&amp;L</strong> &mdash; the profit or loss
             generated from your starting capital. Everyone starts with the same capital, so whoever
             generates the most value wins.
-        </p>
-        <p>
-            <strong>Roster</strong> tab ranks by roster P&amp;L (current value minus starting capital).
-            <strong>Stocks</strong> tab ranks by stock P&amp;L.
-            The <strong>Combined</strong> tab sums both and ranks by total net profit.
         </p>
 
         <%# ═══ ACHIEVEMENTS ═══ %>
@@ -158,22 +127,14 @@
         <div class="about-card-body">
             <div class="about-links-row">
                 <% if user_signed_in? %>
-                    <% roster = current_user.fantasy_portfolio_for(Season.sorted_by_year.first) %>
-                    <% if roster %>
+                    <% portfolio = current_user.fantasy_portfolio_for(Season.sorted_by_year.first) %>
+                    <% if portfolio %>
                         <%= link_to fantasy_overview_path(current_user.username), class: "about-link about-link-primary" do %>
                             <i class="fa-solid fa-briefcase"></i> My Portfolio
                         <% end %>
                     <% else %>
                         <%= link_to new_fantasy_portfolio_path, class: "about-link about-link-primary" do %>
-                            <i class="fa-solid fa-plus"></i> Start Roster
-                        <% end %>
-                    <% end %>
-                    <% if Setting.fantasy_stock_market? %>
-                        <% stock = current_user.fantasy_stock_portfolio_for(Season.sorted_by_year.first) %>
-                        <% unless stock %>
-                            <%= link_to new_fantasy_stock_portfolio_path, class: "about-link" do %>
-                                <i class="fa-solid fa-chart-line"></i> Start Stocks
-                            <% end %>
+                            <i class="fa-solid fa-plus"></i> Start Trading
                         <% end %>
                     <% end %>
                 <% else %>

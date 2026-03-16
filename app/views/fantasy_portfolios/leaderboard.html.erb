@@ -39,8 +39,11 @@
                             <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
                         </span>
                         <div class="fantasy-podium-drivers">
-                            <% portfolio.roster_entries.select(&:active?).each do |re| %>
-                                <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-podium-driver" %>
+                            <% sp = portfolio.stock_portfolio %>
+                            <% if sp %>
+                                <% sp.active_longs.includes(:driver).each do |h| %>
+                                    <%= link_to h.driver.surname, driver_path(h.driver), class: "fantasy-podium-driver" %>
+                                <% end %>
                             <% end %>
                         </div>
                     </div>
@@ -56,7 +59,7 @@
                         <tr>
                             <th class="text-center">#</th>
                             <th>Player</th>
-                            <th class="d-none d-md-table-cell">Roster</th>
+                            <th class="d-none d-md-table-cell">Holdings</th>
                             <th class="text-end">Net Value</th>
                             <th class="text-end d-none d-sm-table-cell">Last Race</th>
                             <th class="text-end d-none d-sm-table-cell">Total Value</th>
@@ -84,8 +87,11 @@
                                     <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                 </td>
                                 <td class="d-none d-md-table-cell">
-                                    <% portfolio.roster_entries.select(&:active?).each do |re| %>
-                                        <%= link_to re.driver.surname, driver_path(re.driver), class: "fantasy-leaderboard-driver" %>
+                                    <% sp = portfolio.stock_portfolio %>
+                                    <% if sp %>
+                                        <% sp.active_longs.includes(:driver).each do |h| %>
+                                            <%= link_to h.driver.surname, driver_path(h.driver), class: "fantasy-leaderboard-driver" %>
+                                        <% end %>
                                     <% end %>
                                 </td>
                                 <td class="text-end fantasy-leaderboard-value">

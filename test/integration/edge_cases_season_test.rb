@@ -1,19 +1,16 @@
 require "test_helper"
 
 # Edge-case season simulation: stress-tests the fantasy system with players
-# who push every limit — maxing budgets, buying all teams, filling rosters,
-# running out of cash, getting margin-called, rapid-fire trading to farm
-# achievements, and attempting invalid trades that should be rejected.
+# who push every limit — maxing positions, running out of cash, getting
+# margin-called, rapid-fire trading, and attempting invalid trades that
+# should be rejected.
 #
 # Players:
-#   Eve     "Achievement Hunter" — buys all 3 teams, fills 6 roster slots,
-#           trades 10+ times to unlock every roster achievement
-#   Frank   "Broke Trader"      — spends all cash, tries to buy with $0,
-#           gets stuck unable to trade
+#   Eve     "Achievement Hunter" — trades stocks aggressively to unlock achievements
+#   Frank   "Broke Trader"      — spends all cash, tries to buy with $0
 #   Grace   "Short Squeeze Victim" — opens a massive short on a driver who
-#           then surges in Elo → margin call & auto-liquidation
-#   Hank    "Invalid Trades"    — attempts every illegal operation: duplicate
-#           buys, selling unheld drivers, buying with no cash, exceeding limits
+#           then surges in Elo -> margin call & auto-liquidation
+#   Hank    "Invalid Trades"    — attempts every illegal operation
 class EdgeCasesSeasonTest < ActiveSupport::TestCase
   RACE_COUNT = 14
   DRIVER_COUNT = 8
@@ -49,178 +46,98 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     @finished = statuses(:finished)
   end
 
-  test "edge cases: achievement hunter maxes out everything" do
+  test "edge cases: achievement hunter trades aggressively for stock achievements" do
     eve = create_user("eve")
-
-    # Create portfolio before first race (early adopter!)
     eve_p = create_portfolio(eve)
-    starting_cash = eve_p.cash
+    eve_sp = eve.fantasy_stock_portfolio_for(@season)
+    assert eve_sp, "Stock portfolio should be auto-created"
 
-    # Driver 0 dominates every race → huge Elo surge
+    # Driver 0 dominates every race -> huge Elo surge
     run_season_with_dominant_driver_0
-
-    # ─── Eve's achievement hunting spree ───
-    # Starting cash ~4400 (avg Elo 2000 * 2.2). Drivers cost ~2000, teams cost ~2000.
-    # Strategy: buy team 2 first, then 1 driver, sell to fund team 3, then fill roster.
 
     open_window(@races[0])
 
-    # Buy team 2 while we have maximum cash (trade window is open)
-    team_result = Fantasy::BuyTeam.new(portfolio: eve_p, race: @races[0]).call
-    assert team_result[:success], "Eve should buy team 2: #{team_result[:error]}"
-    eve_p.reload
-    assert_equal 4, eve_p.roster_slots
-    assert_equal 2, eve_p.teams_owned
-
-    # Buy 1 driver with remaining ~2400 cash
-    buy!(eve_p, @drivers[0], @races[0])  # Trade 1: buy (~2000, leaves ~400)
+    # Buy multiple positions
+    buy_shares!(eve_sp, @drivers[0], 3, @races[0])  # Trade 1
+    buy_shares!(eve_sp, @drivers[1], 2, @races[0])  # Trade 2
+    buy_shares!(eve_sp, @drivers[2], 1, @races[0])  # Trade 3
     close_window(@races[0], 0)
 
-    # After race 1 — sell driver 0 (who gained Elo, so sell price > buy price)
+    # Sell and rebuy to generate more trades
     open_window(@races[1])
-    sell!(eve_p, @drivers[0], @races[1])  # Trade 2: sell (gets back ~2000+ after Elo surge)
-    eve_p.reload
-
-    # Buy team 3 with recovered cash
-    team_result2 = Fantasy::BuyTeam.new(portfolio: eve_p, race: @races[1]).call
-    assert team_result2[:success], "Eve should buy team 3: #{team_result2[:error]}"
-    eve_p.reload
-    assert_equal 6, eve_p.roster_slots
-    assert_equal 3, eve_p.teams_owned
-    refute eve_p.can_buy_team?, "Eve should be at max teams"
+    Fantasy::Stock::SellShares.new(
+      portfolio: eve_sp, driver: @drivers[2], quantity: 1, race: @races[1]
+    ).call
+    buy_shares!(eve_sp, @drivers[3], 1, @races[1])   # Trade 5
+    open_short!(eve_sp, @drivers[7], 1, @races[1])    # Trade 6
     close_window(@races[1], 1)
-
-    # Now fill roster slots with drivers (6 slots, 0 active currently)
-    # Need cash — Eve should still have some from the sell. Top up if needed.
-    eve_p.update_columns(cash: [eve_p.cash, 15000].max) # ensure enough cash to fill roster
-    open_window(@races[2])
-    buy!(eve_p, @drivers[0], @races[2])  # Trade 3: buy
-    buy!(eve_p, @drivers[1], @races[2])  # Trade 4: buy
-    buy!(eve_p, @drivers[2], @races[2])  # Trade 5: buy
-    buy!(eve_p, @drivers[3], @races[2])  # Trade 6: buy
-    buy!(eve_p, @drivers[4], @races[2])  # Trade 7: buy
-    buy!(eve_p, @drivers[5], @races[2])  # Trade 8: buy (roster: 6/6)
-    assert eve_p.reload.roster_full?, "Eve should have full roster at 6/6"
-    close_window(@races[2], 2)
-
-    # More sell/buy cycles to hit 10 trades
-    open_window(@races[4])
-    sell!(eve_p, @drivers[5], @races[4])  # Trade 9: sell
-    buy!(eve_p, @drivers[6], @races[4])   # Trade 10: buy
-    close_window(@races[4], 4)
 
     # Snapshot all races
     @races.each { |race| Fantasy::SnapshotPortfolios.new(race: race).call }
 
-    # Check achievements
-    eve_p.reload
-    earned = Fantasy::CheckAchievements.new(portfolio: eve_p, race: @races.last).call
-    all_keys = eve_p.achievements.pluck(:key)
+    # Check stock achievements
+    eve_sp.reload
+    Fantasy::Stock::CheckAchievements.new(portfolio: eve_sp).call
 
-    # Roster achievements Eve should have
-    assert eve_p.has_achievement?(:first_trade), "Eve should have first_trade"
-    assert eve_p.has_achievement?(:five_trades), "Eve should have five_trades (has #{eve_p.transactions.where(kind: %w[buy sell]).count} trades)"
-    assert eve_p.has_achievement?(:ten_trades), "Eve should have ten_trades"
-    assert eve_p.has_achievement?(:second_team), "Eve should have second_team"
-    assert eve_p.has_achievement?(:third_team), "Eve should have third_team"
-    assert eve_p.has_achievement?(:driver_won), "Eve should have driver_won (holds driver 0)"
-    assert eve_p.has_achievement?(:driver_podium), "Eve should have driver_podium"
-    assert eve_p.has_achievement?(:first_profit), "Eve should have first_profit (driver 0 gained Elo)"
+    assert eve_sp.has_achievement?(:first_stock_trade), "Eve should have first_stock_trade"
+    assert eve_sp.has_achievement?(:first_long), "Eve should have first_long"
+    assert eve_sp.has_achievement?(:first_short), "Eve should have first_short"
 
-    # Early adopter — portfolio created before first race
+    # Check roster achievements
+    Fantasy::CheckAchievements.new(portfolio: eve_p, race: @races.last).call
     assert eve_p.has_achievement?(:early_adopter), "Eve should have early_adopter"
   end
 
   test "edge cases: broke trader runs out of cash" do
     frank = create_user("frank")
+    frank_p = create_portfolio(frank)
+    frank_sp = frank.fantasy_stock_portfolio_for(@season)
+    assert frank_sp, "Stock portfolio should be auto-created"
 
     run_season_with_dominant_driver_0
 
-    frank_p = create_portfolio(frank)
     starting_cash = frank_p.cash
 
-    # Frank spends almost all his cash buying 2 drivers
+    # Frank buys shares until cash runs low
     open_window(@races[0])
-    buy!(frank_p, @drivers[0], @races[0])
-    buy!(frank_p, @drivers[1], @races[0])
+    buy_shares!(frank_sp, @drivers[0], 3, @races[0])
+    buy_shares!(frank_sp, @drivers[1], 2, @races[0])
     close_window(@races[0], 0)
 
     frank_p.reload
     remaining_cash = frank_p.cash
     assert remaining_cash < starting_cash, "Frank should have less cash after buying"
 
-    # Try to buy a third driver — should fail (roster full at 2 slots)
-    open_window(@races[1])
-    result = Fantasy::BuyDriver.new(portfolio: frank_p, driver: @drivers[2], race: @races[1]).call
-    assert result[:error].present?, "Frank should get an error buying 3rd driver"
-    assert_match(/Roster is full/, result[:error])
-
-    # Try to buy a team — may fail if not enough cash
-    team_cost = frank_p.team_cost
-    if frank_p.cash < team_cost
-      team_result = Fantasy::BuyTeam.new(portfolio: frank_p, race: @races[1]).call
-      assert_match(/Not enough cash/, team_result[:error])
-    end
-
-    # Frank sells driver 1 to free up cash, then buys team, then blows remaining cash
-    sell!(frank_p, @drivers[1], @races[1])
-    frank_p.reload
-
-    # Now try buying team with whatever cash he has
-    team_result = Fantasy::BuyTeam.new(portfolio: frank_p, race: @races[1]).call
-    if team_result[:success]
-      frank_p.reload
-      # Buy another driver with remaining cash
-      buy_result = Fantasy::BuyDriver.new(portfolio: frank_p, driver: @drivers[2], race: @races[1]).call
-      if buy_result[:success]
-        frank_p.reload
-      end
-    end
-    close_window(@races[1], 1)
-
-    # Now try to buy with no cash
+    # Try to buy with no cash
     frank_p.update_columns(cash: 0.0)
+    # Reload stock portfolio so wallet cache is cleared
+    frank_sp = FantasyStockPortfolio.find(frank_sp.id)
     open_window(@races[3])
-    broke_result = Fantasy::BuyDriver.new(portfolio: frank_p, driver: @drivers[7], race: @races[3]).call
-    assert broke_result[:error].present?
+    broke_result = Fantasy::Stock::BuyShares.new(
+      portfolio: frank_sp, driver: @drivers[7], quantity: 1, race: @races[3]
+    ).call
     assert_match(/Not enough cash/, broke_result[:error])
 
-    # Also can't buy a team
-    team_broke = Fantasy::BuyTeam.new(portfolio: frank_p, race: @races[3]).call
-    assert team_broke[:error].present?
-    assert_match(/Not enough cash/, team_broke[:error])
+    # Also can't open short with no cash for collateral
+    short_result = Fantasy::Stock::OpenShort.new(
+      portfolio: frank_sp, driver: @drivers[7], quantity: 1, race: @races[3]
+    ).call
+    assert_match(/Not enough cash for collateral/, short_result[:error])
     close_window(@races[3], 3)
 
-    # Snapshot — portfolio value should still be positive (driver Elo has value)
+    # Snapshot — portfolio value should still be positive (stock holdings have value)
     @races.each { |race| Fantasy::SnapshotPortfolios.new(race: race).call }
     frank_p.reload
     assert frank_p.portfolio_value > 0,
-      "Frank's portfolio value should be positive even with 0 cash (drivers have Elo value)"
+      "Frank's portfolio value should be positive even with 0 cash (stock holdings have value)"
     assert_equal 0.0, frank_p.cash, "Frank should have exactly 0 cash"
-
-    # Stock portfolio: try same thing
-    frank_sp = create_stock_portfolio(frank)
-    frank_sp.wallet.update_columns(cash: 0.0)
-    open_window(@races[5])
-    stock_result = Fantasy::Stock::BuyShares.new(
-      portfolio: frank_sp, driver: @drivers[0], quantity: 1, race: @races[5]
-    ).call
-    assert_match(/Not enough cash/, stock_result[:error])
-
-    short_result = Fantasy::Stock::OpenShort.new(
-      portfolio: frank_sp, driver: @drivers[7], quantity: 1, race: @races[5]
-    ).call
-    assert_match(/Not enough cash for collateral/, short_result[:error])
-    close_window(@races[5], 5)
   end
 
   test "edge cases: short squeeze triggers margin call" do
     grace = create_user("grace")
-    create_portfolio(grace)
-
-    # Don't run full season yet — we want to control Elo incrementally
-    grace_sp = create_stock_portfolio(grace)
-    initial_capital = grace_sp.starting_capital
+    grace_p = create_portfolio(grace)
+    grace_sp = grace.fantasy_stock_portfolio_for(@season)
+    assert grace_sp, "Stock portfolio should be auto-created"
 
     # Grace shorts driver 0 (who will surge in Elo)
     open_window(@races[0])
@@ -250,7 +167,6 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
       "Driver 0 should have surged (at #{@drivers[0].elo_v2.round(1)})"
 
     # Check if margin call happened — the short should be liquidated
-    # Margin call triggers when current_price >= entry_price * (1 + 2.0) = 3x entry
     current_share_price = grace_sp.share_price(@drivers[0])
 
     if current_share_price >= short_entry_price * 3.0
@@ -276,53 +192,14 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
   test "edge cases: invalid trades are all rejected" do
     hank = create_user("hank")
     hank_p = create_portfolio(hank)
-    hank_sp = create_stock_portfolio(hank)
+    hank_sp = hank.fantasy_stock_portfolio_for(@season)
+    assert hank_sp, "Stock portfolio should be auto-created"
 
     run_season_with_dominant_driver_0
 
-    open_window(@races[0])
-
-    # ─── Roster: invalid operations ───
-
-    # Buy a driver
-    buy!(hank_p, @drivers[0], @races[0])
-
-    # Try to buy same driver again
-    dup = Fantasy::BuyDriver.new(portfolio: hank_p, driver: @drivers[0], race: @races[0]).call
-    assert_equal "Driver is already on your roster", dup[:error]
-
-    # Fill roster (2 slots), try to buy a 3rd
-    buy!(hank_p, @drivers[1], @races[0])
-    full = Fantasy::BuyDriver.new(portfolio: hank_p, driver: @drivers[2], race: @races[0]).call
-    assert_match(/Roster is full/, full[:error])
-
-    # Sell a driver we don't have
-    not_held = Fantasy::SellDriver.new(portfolio: hank_p, driver: @drivers[5], race: @races[0]).call
-    assert_equal "Driver is not on your roster", not_held[:error]
-
-    # Try to buy with insufficient cash (expand roster first so we don't hit "Roster is full")
-    hank_p.update_columns(cash: 1.0, roster_slots: 4)
-    poor = Fantasy::BuyDriver.new(portfolio: hank_p, driver: @drivers[3], race: @races[0]).call
-    assert_match(/Not enough cash/, poor[:error])
-    hank_p.update_columns(cash: 5000.0, roster_slots: 2) # restore
-
-    # Try to buy a 4th team (max is 3)
-    hank_p.update_columns(roster_slots: FantasyPortfolio::MAX_TEAMS * FantasyPortfolio::SLOTS_PER_TEAM)
-    max_teams = Fantasy::BuyTeam.new(portfolio: hank_p, race: @races[0]).call
-    assert_match(/Already at maximum teams/, max_teams[:error])
-    hank_p.update_columns(roster_slots: 2) # restore
-
-    close_window(@races[0], 0)
-
-    # Closed transfer window — set date to past so can_trade? returns false
-    @races[0].update_columns(date: 1.day.ago.to_date, time: "15:00:00")
-    closed = Fantasy::BuyDriver.new(portfolio: hank_p, driver: @drivers[3], race: @races[0]).call
-    assert_equal "Transfer window is closed", closed[:error]
-    close_window(@races[0], 0) # restore
-
-    # ─── Stock market: invalid operations ───
-
     open_window(@races[1])
+
+    # --- Stock market: invalid operations ---
 
     # Buy 0 shares
     zero_qty = Fantasy::Stock::BuyShares.new(
@@ -406,7 +283,8 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     # Verify cash never goes negative in any scenario
     user = create_user("cashfloor")
     create_portfolio(user)
-    sp = create_stock_portfolio(user)
+    sp = user.fantasy_stock_portfolio_for(@season)
+    assert sp, "Stock portfolio should be auto-created"
 
     # Open a large short at low entry price, then driver surges
     open_window(@races[0])
@@ -451,7 +329,6 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
   test "edge cases: duplicate portfolio creation rejected" do
     user = create_user("duptest")
     create_portfolio(user)
-    create_stock_portfolio(user)
 
     # Try to create again
     dup_roster = Fantasy::CreatePortfolio.new(user: user, season: @season).call
@@ -474,28 +351,12 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     r[:portfolio]
   end
 
-  def create_stock_portfolio(user)
-    r = Fantasy::Stock::CreatePortfolio.new(user: user, season: @season).call
-    assert r[:portfolio], "#{user.username} stock portfolio failed: #{r[:error]}"
-    r[:portfolio]
-  end
-
   def open_window(race)
     race.update_columns(date: 1.week.from_now.to_date)
   end
 
   def close_window(race, idx)
     race.update_columns(date: Date.new(2097, 3, 1) + (idx * 14).days)
-  end
-
-  def buy!(portfolio, driver, race)
-    r = Fantasy::BuyDriver.new(portfolio: portfolio, driver: driver, race: race).call
-    assert r[:success], "#{portfolio.user.username} buy #{driver.surname} failed: #{r[:error]}"
-  end
-
-  def sell!(portfolio, driver, race)
-    r = Fantasy::SellDriver.new(portfolio: portfolio, driver: driver, race: race).call
-    assert r[:success], "#{portfolio.user.username} sell #{driver.surname} failed: #{r[:error]}"
   end
 
   def buy_shares!(portfolio, driver, qty, race)

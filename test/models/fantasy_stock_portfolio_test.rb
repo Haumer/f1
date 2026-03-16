@@ -140,7 +140,7 @@ class FantasyStockPortfolioTest < ActiveSupport::TestCase
     assert_equal 6, FantasyStockPortfolio::MAX_POSITIONS
   end
 
-  test "CAPITAL_MULTIPLIER is 2.2" do
-    assert_in_delta 2.2, FantasyStockPortfolio::CAPITAL_MULTIPLIER, 0.01
+  test "COLLATERAL_RATIO is 0.5" do
+    assert_in_delta 0.5, FantasyStockPortfolio::COLLATERAL_RATIO, 0.01
   end
 end

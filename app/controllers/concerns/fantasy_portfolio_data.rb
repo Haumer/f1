@@ -23,10 +23,8 @@ module FantasyPortfolioData
 
   def load_portfolio_data
     return unless @portfolio
-    @active_entries = @portfolio.active_roster_entries.includes(driver: [:countries])
     @snapshots = @portfolio.snapshots.joins(:race).order("races.date ASC")
     @value_delta = @portfolio.value_change_since_last_race
-    @constructors_by_driver = constructors_for_drivers(@active_entries.map(&:driver))
   end
 
   def load_stock_data
@@ -35,16 +33,6 @@ module FantasyPortfolioData
     @stock_snapshots = @stock_portfolio.snapshots.joins(:race).order("races.date ASC")
     @stock_value_delta = @stock_portfolio.value_change_since_last_race
     @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))
-  end
-
-  def set_portfolio
-    @portfolio = FantasyPortfolio.find(params[:id])
-    authorize @portfolio
-  end
-
-  def set_next_race
-    @next_race = @portfolio.season.next_race ||
-                 Race.where("date >= ?", Date.current).order(:date).first
   end
 
   def compute_starting_capital
@@ -98,15 +86,6 @@ module FantasyPortfolioData
         hash[pid] = 0
       end
     end
-  end
-
-  def stock_leaderboard_entries
-    return [] unless Setting.fantasy_stock_market?
-    FantasyStockPortfolio.where(season: @season)
-      .includes(:user, :snapshots, holdings: :driver)
-      .to_a
-      .map { |p| { portfolio: p, value: p.portfolio_value, net: p.profit_loss } }
-      .sort_by { |e| -e[:net] }
   end
 
   def elo_trends_for(driver_ids)

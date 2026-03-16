@@ -1,0 +1,72 @@
+<% constructor = constructors_by_driver[holding.driver_id] %>
+<% color = constructor_color(constructor) %>
+<% gl = holding.gain_loss %>
+<% gl_pct = holding.gain_loss_percent %>
+<% # Convert hex color to RGB for rgba() usage %>
+<% color_hex = color&.gsub('#', '') || '1e1e32' %>
+<% r = color_hex[0..1].to_i(16) %>
+<% g = color_hex[2..3].to_i(16) %>
+<% b = color_hex[4..5].to_i(16) %>
+<div class="driver-card" style="--card-color: <%= color %>; --card-color-rgb: <%= r %>, <%= g %>, <%= b %>">
+    <div class="driver-card-photo<%= ' driver-card-photo-empty' unless holding.driver.display_image_url.present? %>">
+        <% if holding.driver.display_image_url.present? %>
+            <img src="<%= holding.driver.display_image_url %>" alt="<%= holding.driver.fullname %>" loading="lazy" onerror="this.parentElement.classList.add('driver-card-photo-empty'); this.remove();">
+        <% else %>
+            <i class="fa-solid fa-user-helmet-safety"></i>
+        <% end %>
+        <span class="driver-card-pl-badge <%= gl >= 0 ? 'gain' : 'loss' %>">
+            <%= gl >= 0 ? '+' : '' %><%= gl.round(1) %>
+            <span style="font-size:9px; opacity:0.8">(<%= gl_pct %>%)</span>
+        </span>
+        <span class="driver-card-direction-badge stock-<%= holding.direction %>">
+            <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>"></i>
+            <%= holding.quantity %>x
+        </span>
+    </div>
+    <div class="driver-card-body">
+        <div class="driver-card-identity">
+            <span class="driver-card-name"><%= link_to holding.driver.fullname, driver_path(holding.driver) %></span>
+            <span class="driver-card-team"><%= constructor&.name %></span>
+        </div>
+        <div class="driver-card-stats">
+            <div class="driver-card-stat">
+                <span class="stat-label">Avg Price</span>
+                <span class="stat-value"><%= holding.entry_price.round(1) %></span>
+            </div>
+            <div class="driver-card-stat">
+                <span class="stat-label">Current</span>
+                <span class="stat-value"><%= holding.current_price.round(1) %></span>
+            </div>
+            <div class="driver-card-stat">
+                <span class="stat-label">P&L</span>
+                <span class="stat-value <%= gl >= 0 ? 'text-green' : 'text-red' %>"><%= gl >= 0 ? '+' : '' %><%= gl.round(1) %></span>
+            </div>
+        </div>
+        <% if show_sell && can_trade %>
+            <div class="driver-card-action">
+                <% sell_label = holding.long? ? "Sell" : "Close" %>
+                <% sell_url = holding.long? ? sell_fantasy_stock_portfolio_path(stock_portfolio) : short_close_fantasy_stock_portfolio_path(stock_portfolio) %>
+                <%= form_with url: sell_url, method: :post, local: true, class: "sell-qty-form",
+                    data: (holding.quantity > 1 ? { controller: "sell-qty", sell_qty_price_value: holding.current_price, sell_qty_max_value: holding.quantity } : {}) do %>
+                    <%= hidden_field_tag :driver_id, holding.driver_id %>
+                    <%= hidden_field_tag :quantity, holding.quantity %>
+                    <% if holding.quantity > 1 %>
+                        <div class="sell-qty-row">
+                            <div class="stock-qty-stepper sell-qty-stepper">
+                                <button type="button" class="stock-qty-btn" data-sell-qty-target="minus" data-action="click->sell-qty#decrement">&minus;</button>
+                                <input type="number" min="1" max="<%= holding.quantity %>" value="<%= holding.quantity %>" class="stock-qty-input" data-sell-qty-target="input" readonly>
+                                <button type="button" class="stock-qty-btn" data-sell-qty-target="plus" data-action="click->sell-qty#increment">+</button>
+                            </div>
+                            <%= submit_tag "#{sell_label} All", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm",
+                                data: { sell_qty_target: "submit", label: sell_label, driver_name: holding.driver.fullname,
+                                        turbo_confirm: "#{sell_label} #{holding.quantity}x #{holding.driver.fullname} for #{(holding.current_price * holding.quantity).round(1)}?" } %>
+                        </div>
+                    <% else %>
+                        <%= submit_tag sell_label, class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm",
+                            data: { turbo_confirm: "#{sell_label} 1x #{holding.driver.fullname} for #{holding.current_price.round(1)}?" } %>
+                    <% end %>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+</div>

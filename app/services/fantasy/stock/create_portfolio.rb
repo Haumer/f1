@@ -9,9 +9,6 @@ module Fantasy
       def call
         return { error: "You already have a stock portfolio for this season" } if @user.fantasy_stock_portfolio_for(@season)
 
-        roster = @user.fantasy_portfolio_for(@season)
-        return { error: "You need a roster portfolio first" } unless roster
-
         portfolio = FantasyStockPortfolio.create!(
           user: @user,
           season: @season,

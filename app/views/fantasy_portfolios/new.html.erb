@@ -1,5 +1,5 @@
 <% content_for(:title) { "Create Fantasy Portfolio" } %>
-<% content_for(:description) { "Start your Fantasy F1 portfolio — buy drivers at their Elo rating, track performance, and grow your portfolio." } %>
+<% content_for(:description) { "Start your Fantasy F1 portfolio — trade driver stocks, track performance, and grow your portfolio." } %>
 <div class="homepage-container">
     <div class="page-hero fantasy-hero">
         <div class="page-hero-bg"></div>
@@ -7,7 +7,7 @@
         <div class="page-hero-content">
             <span class="page-hero-label">Fantasy F1</span>
             <h1 class="page-hero-title">Build Your Grid</h1>
-            <p class="page-hero-meta">Buy drivers at their Elo rating. Track performance. Grow your portfolio.</p>
+            <p class="page-hero-meta">Trade driver stocks at their Elo rating. Track performance. Grow your portfolio.</p>
         </div>
     </div>
 
@@ -20,24 +20,24 @@
 
         <div class="fantasy-rules-grid">
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-users"></i></div>
-                <strong><%= FantasyPortfolio::STARTING_SLOTS %> Driver Seats</strong>
-                <span>Buy additional teams to expand up to <%= FantasyPortfolio::MAX_ROSTER_SIZE %> seats</span>
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <strong>Buy & Sell Shares</strong>
+                <span>Go long on drivers you believe in</span>
             </div>
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
-                <strong>1 Swap Per Team</strong>
-                <span>Each team grants 1 swap per race weekend</span>
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                <strong>Short Selling</strong>
+                <span>Bet against drivers you think will fall</span>
             </div>
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-percent"></i></div>
-                <strong><%= (Fantasy::SellDriver::SELL_FEE * 100).round(0) %>% Sell Fee</strong>
-                <span>A small fee applies when selling a driver</span>
+                <div class="fantasy-rule-icon"><i class="fa-solid fa-coins"></i></div>
+                <strong>Dividends</strong>
+                <span>Earn dividends when your drivers finish in the top 10</span>
             </div>
             <div class="fantasy-rule-card">
                 <div class="fantasy-rule-icon"><i class="fa-solid fa-chart-line"></i></div>
                 <strong>Portfolio Value</strong>
-                <span>Cash + current Elo of your drivers</span>
+                <span>Cash + current value of your positions</span>
             </div>
         </div>
 

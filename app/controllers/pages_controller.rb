@@ -204,16 +204,10 @@ class PagesController < ApplicationController
   end
 
   def load_leaderboard_preview
-    # Use combined (roster + stocks) P&L to match the actual leaderboard
-    roster_portfolios = FantasyPortfolio.where(season: @season).includes(:user, roster_entries: :driver).to_a
-    stock_portfolios = FantasyStockPortfolio.where(season: @season).index_by(&:user_id)
+    portfolios = FantasyPortfolio.where(season: @season).includes(:user).to_a
 
-    combined = roster_portfolios.map do |p|
-      sp = stock_portfolios[p.user_id]
-      roster_value = p.portfolio_value
-      stock_value = sp ? sp.portfolio_value : 0
-      total_value = roster_value + stock_value
-      { user: p.user, net: total_value - Fantasy::CreatePortfolio::STARTING_CAPITAL }
+    combined = portfolios.map do |p|
+      { user: p.user, net: p.total_return }
     end.sort_by { |e| -e[:net] }.first(5)
 
     @leaderboard_preview = combined.map.with_index(1) do |entry, rank|

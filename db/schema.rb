@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_14_220233) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_15_174137) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
 
   create_table "admin_alerts", force: :cascade do |t|
@@ -219,6 +220,17 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_14_220233) do
     t.index ["driver_id"], name: "index_driver_countries_on_driver_id"
   end
 
+  create_table "driver_ratings", force: :cascade do |t|
+    t.bigint "driver_id", null: false
+    t.bigint "race_id", null: false
+    t.integer "rating"
+    t.boolean "peak_rating", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["driver_id"], name: "index_driver_ratings_on_driver_id"
+    t.index ["race_id"], name: "index_driver_ratings_on_race_id"
+  end
+
   create_table "driver_standings", force: :cascade do |t|
     t.string "kaggle_id"
     t.bigint "race_id", null: false
@@ -315,7 +327,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_14_220233) do
     t.float "starting_capital", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "roster_slots", default: 2, null: false
     t.index ["season_id"], name: "index_fantasy_portfolios_on_season_id"
     t.index ["user_id", "season_id"], name: "index_fantasy_portfolios_on_user_id_and_season_id", unique: true
     t.index ["user_id"], name: "index_fantasy_portfolios_on_user_id"
