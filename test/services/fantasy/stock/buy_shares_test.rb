@@ -73,7 +73,7 @@ class Fantasy::Stock::BuySharesTest < ActiveSupport::TestCase
 
   test "returns error when positions full and no existing position" do
     # Fill up to max positions
-    4.times do |i|
+    10.times do |i|
       d = Driver.create!(surname: "Fill#{i}", driver_ref: "fill#{i}")
       @portfolio.holdings.create!(driver: d, quantity: 1, direction: "long", entry_price: 100, opened_race: @race, active: true)
     end

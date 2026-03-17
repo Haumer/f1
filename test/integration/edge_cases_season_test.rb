@@ -253,8 +253,8 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     assert_match(/Not enough credits for collateral/, no_collateral[:error])
     hank_sp.wallet.update_columns(cash: 5000.0)
 
-    # Fill max positions (6), then try to open another
-    4.times do |i|
+    # Fill max positions (12), then try to open another
+    10.times do |i|
       d = Driver.create!(surname: "Filler#{i}", driver_ref: "fill_edge_#{i}", active: true,
                           elo_v2: 2000, peak_elo_v2: 2000)
       SeasonDriver.create!(driver: d, season: @season, constructor: constructors(:mclaren))

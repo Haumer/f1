@@ -75,8 +75,8 @@ class FantasyStockPortfolioTest < ActiveSupport::TestCase
   end
 
   test "positions_full? returns true at MAX_POSITIONS" do
-    # Add enough holdings to hit max (already have 2 active, need 4 more)
-    4.times do |i|
+    # Add enough holdings to hit max (already have 2 active, need 10 more)
+    10.times do |i|
       driver = Driver.create!(surname: "Test#{i}", driver_ref: "test#{i}")
       @portfolio.holdings.create!(
         driver: driver, quantity: 1, direction: "long",
@@ -136,8 +136,8 @@ class FantasyStockPortfolioTest < ActiveSupport::TestCase
     assert_equal 10.0, FantasyStockPortfolio::PRICE_DIVISOR
   end
 
-  test "MAX_POSITIONS is 6" do
-    assert_equal 6, FantasyStockPortfolio::MAX_POSITIONS
+  test "MAX_POSITIONS is 12" do
+    assert_equal 12, FantasyStockPortfolio::MAX_POSITIONS
   end
 
   test "COLLATERAL_RATIO is 0.5" do

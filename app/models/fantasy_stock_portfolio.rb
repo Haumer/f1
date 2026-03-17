@@ -11,7 +11,7 @@ class FantasyStockPortfolio < ApplicationRecord
   validates :starting_capital, presence: true
 
   PRICE_DIVISOR = 10.0
-  MAX_POSITIONS = 6
+  MAX_POSITIONS = 12
   COLLATERAL_RATIO = 0.5 # 50% margin requirement for shorts
 
   # Unified cash: stock portfolio uses roster portfolio as its wallet
