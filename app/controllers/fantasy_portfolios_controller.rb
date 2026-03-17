@@ -71,7 +71,7 @@ class FantasyPortfoliosController < ApplicationController
     if result[:error]
       redirect_to new_fantasy_portfolio_path, alert: result[:error]
     else
-      redirect_to fantasy_overview_path(current_user.username), notice: "Portfolio created! You have #{result[:portfolio].cash.round(0)} to spend."
+      redirect_to fantasy_overview_path(current_user.username), notice: "Portfolio created! You have #{result[:portfolio].cash.round(0)} credits to spend."
     end
   end
 

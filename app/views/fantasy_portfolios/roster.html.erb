@@ -37,7 +37,7 @@
             <span class="value"><%= number_with_delimiter(@portfolio.portfolio_value.round(0)) %></span>
         </div>
         <div class="fantasy-sub-stat">
-            <span class="label">Cash</span>
+            <span class="label">Credits</span>
             <span class="value"><%= number_with_delimiter(@portfolio.cash.round(0)) %></span>
         </div>
         <div class="fantasy-sub-stat">
@@ -147,7 +147,7 @@
                         areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
                     },
                     {
-                        name: "Cash",
+                        name: "Credits",
                         type: "line",
                         data: @snapshots.map { |s| s.cash.round(0) },
                         smooth: true,
@@ -252,7 +252,7 @@
                     <%= submit_tag "Buy Team (#{number_with_delimiter(@portfolio.team_cost)})", class: "fantasy-btn fantasy-btn-outline", data: { turbo_confirm: "Purchase a new team for #{number_with_delimiter(@portfolio.team_cost)}? You'll have #{@portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM} seats." } %>
                 <% end %>
             <% else %>
-                <span class="fantasy-badge-cant-afford">Not enough cash</span>
+                <span class="fantasy-badge-cant-afford">Not enough credits</span>
             <% end %>
         </div>
     <% end %>

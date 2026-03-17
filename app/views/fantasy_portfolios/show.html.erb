@@ -66,11 +66,11 @@
     <%# Hero: Available Cash (primary) + Value (secondary) %>
     <div class="fantasy-value-hero">
         <div class="fantasy-value-main">
-            <span class="fantasy-value-label">Available Cash</span>
+            <span class="fantasy-value-label">Available Credits</span>
             <div class="fantasy-cash-display">
                 <span class="fantasy-value-number"><%= number_with_delimiter(total_cash.round(0)) %></span>
                 <% if @stock_portfolio %>
-                    <span class="fantasy-cash-split" data-bs-toggle="tooltip" title="Roster: <%= number_with_delimiter(roster_cash.round(0)) %> &middot; Stocks: <%= number_with_delimiter(stock_cash.round(0)) %> (after collateral). Cash is split across your two portfolios for diversification.">
+                    <span class="fantasy-cash-split" data-bs-toggle="tooltip" title="Roster: <%= number_with_delimiter(roster_cash.round(0)) %> &middot; Stocks: <%= number_with_delimiter(stock_cash.round(0)) %> (after collateral). Credits are split across your two portfolios for diversification.">
                         (<%= number_with_delimiter(roster_cash.round(0)) %>&thinsp;/&thinsp;<%= number_with_delimiter(stock_cash.round(0)) %>)
                         <i class="fa-solid fa-circle-info"></i>
                     </span>
@@ -199,7 +199,7 @@
                     <strong>Two ways to play:</strong>
                     <strong>Roster</strong> &mdash; build a team of drivers; their Elo rating is your asset value.
                     <strong>Stocks</strong> &mdash; trade fractional shares; go long or short on any driver.
-                    Each mode has its own cash pool for diversification &mdash; your combined P&amp;L determines your leaderboard rank.
+                    Each mode has its own credits pool for diversification &mdash; your combined P&amp;L determines your leaderboard rank.
                 </p>
             </div>
             <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
@@ -226,7 +226,7 @@
                 <span class="value"><%= number_with_delimiter(@stock_portfolio.portfolio_value.round(1)) %></span>
             </div>
             <div class="fantasy-sub-stat">
-                <span class="label">Cash</span>
+                <span class="label">Credits</span>
                 <span class="value"><%= number_with_delimiter(@stock_portfolio.cash.round(1)) %></span>
             </div>
             <div class="fantasy-sub-stat">
@@ -342,7 +342,7 @@
         <% if @stock_portfolio.total_collateral > 0 %>
             <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 12px; margin-bottom: 16px;">
                 <i class="fa-solid fa-lock"></i>
-                <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> cash locked as short collateral</span>
+                <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> credits locked as collateral</span>
             </div>
         <% end %>
 
@@ -363,7 +363,7 @@
                 <span class="value"><%= number_with_delimiter(@portfolio.portfolio_value.round(0)) %></span>
             </div>
             <div class="fantasy-sub-stat">
-                <span class="label">Cash</span>
+                <span class="label">Credits</span>
                 <span class="value"><%= number_with_delimiter(@portfolio.cash.round(0)) %></span>
             </div>
             <div class="fantasy-sub-stat">
@@ -421,7 +421,7 @@
                             areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
                         },
                         {
-                            name: "Cash",
+                            name: "Credits",
                             type: "line",
                             data: @snapshots.map { |s| s.cash.round(0) },
                             smooth: true,
@@ -482,7 +482,7 @@
                         <%= submit_tag "Buy Team (#{number_with_delimiter(@portfolio.team_cost)})", class: "fantasy-btn fantasy-btn-outline", data: { turbo_confirm: "Purchase a new team for #{number_with_delimiter(@portfolio.team_cost)}? You'll have #{@portfolio.roster_slots + FantasyPortfolio::SLOTS_PER_TEAM} seats." } %>
                     <% end %>
                 <% else %>
-                    <span class="fantasy-badge-cant-afford">Not enough cash</span>
+                    <span class="fantasy-badge-cant-afford">Not enough credits</span>
                 <% end %>
             </div>
         <% end %>

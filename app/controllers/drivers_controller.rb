@@ -47,6 +47,7 @@ class DriversController < ApplicationController
 
       { constructor: constructor, years: year_str, first_year: years.first, races: races, wins: wins, podiums: podiums, best: best }
     end.sort_by { |h| -h[:first_year] }
+
   end
 
   def grid
@@ -141,4 +142,7 @@ class DriversController < ApplicationController
       render json: []
     end
   end
+
+  private
+
 end

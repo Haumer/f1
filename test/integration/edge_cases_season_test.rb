@@ -116,13 +116,13 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     broke_result = Fantasy::Stock::BuyShares.new(
       portfolio: frank_sp, driver: @drivers[7], quantity: 1, race: @races[3]
     ).call
-    assert_match(/Not enough cash/, broke_result[:error])
+    assert_match(/Not enough credits/, broke_result[:error])
 
     # Also can't open short with no cash for collateral
     short_result = Fantasy::Stock::OpenShort.new(
       portfolio: frank_sp, driver: @drivers[7], quantity: 1, race: @races[3]
     ).call
-    assert_match(/Not enough cash for collateral/, short_result[:error])
+    assert_match(/Not enough credits for collateral/, short_result[:error])
     close_window(@races[3], 3)
 
     # Snapshot — portfolio value should still be positive (stock holdings have value)
@@ -244,13 +244,13 @@ class EdgeCasesSeasonTest < ActiveSupport::TestCase
     no_cash = Fantasy::Stock::BuyShares.new(
       portfolio: hank_sp, driver: @drivers[2], quantity: 1, race: @races[1]
     ).call
-    assert_match(/Not enough cash/, no_cash[:error])
+    assert_match(/Not enough credits/, no_cash[:error])
 
     # Short with no cash for collateral
     no_collateral = Fantasy::Stock::OpenShort.new(
       portfolio: hank_sp, driver: @drivers[3], quantity: 1, race: @races[1]
     ).call
-    assert_match(/Not enough cash for collateral/, no_collateral[:error])
+    assert_match(/Not enough credits for collateral/, no_collateral[:error])
     hank_sp.wallet.update_columns(cash: 5000.0)
 
     # Fill max positions (6), then try to open another

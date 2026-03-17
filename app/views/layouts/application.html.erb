@@ -6,6 +6,12 @@
     <meta name="theme-color" content="#0a0a0f">
     <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." %>">
 
+    <%# PWA %>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="F1 Elo">
+
     <%# Favicon %>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -44,6 +50,9 @@
       document.addEventListener('turbo:before-visit', () => {
         document.querySelector('.navbar .links')?.classList.remove('open');
       });
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+      }
     </script>
   </head>
 

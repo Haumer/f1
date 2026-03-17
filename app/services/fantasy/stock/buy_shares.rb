@@ -8,7 +8,7 @@ module Fantasy
         return error("Too many positions (max #{FantasyStockPortfolio::MAX_POSITIONS})") if !existing && @portfolio.positions_full?
 
         total_cost = share_price * @quantity
-        return error("Not enough cash (need #{total_cost.round(1)}, have #{@portfolio.available_cash.round(1)})") if @portfolio.available_cash < total_cost
+        return error("Not enough credits (need #{total_cost.round(1)}, have #{@portfolio.available_cash.round(1)})") if @portfolio.available_cash < total_cost
 
         if existing
           new_qty = existing.quantity + @quantity

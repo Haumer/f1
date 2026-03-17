@@ -19,7 +19,7 @@
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">1</div>
                     <div class="elo-step-content">
                         <strong>Starting Capital</strong>
-                        <span>You receive <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> fantasy cash. This is your budget.</span>
+                        <span>You receive <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits. This is your budget.</span>
                     </div>
                 </div>
                 <div class="elo-step">
@@ -62,14 +62,14 @@
                     <div class="elo-step-pip" style="background: #e10600">S</div>
                     <div class="elo-step-content">
                         <strong>Short Positions</strong>
-                        <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked cash) and incur a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
+                        <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked credits) and incur a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <%# ═══ EARNING CASH ═══ %>
-        <div class="table-header"><h3>Earning Fantasy Cash</h3></div>
+        <div class="table-header"><h3>Earning Credits</h3></div>
 
         <div class="elo-results-grid elo-results-grid-3">
             <div class="elo-result-card">

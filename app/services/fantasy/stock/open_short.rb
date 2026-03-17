@@ -8,7 +8,7 @@ module Fantasy
         return error("Too many positions (max #{FantasyStockPortfolio::MAX_POSITIONS})") if !existing && @portfolio.positions_full?
 
         collateral_needed = share_price * @quantity * FantasyStockPortfolio::COLLATERAL_RATIO
-        return error("Not enough cash for collateral (need #{collateral_needed.round(1)}, have #{@portfolio.available_cash.round(1)})") if @portfolio.available_cash < collateral_needed
+        return error("Not enough credits for collateral (need #{collateral_needed.round(1)}, have #{@portfolio.available_cash.round(1)})") if @portfolio.available_cash < collateral_needed
 
         if existing
           new_qty = existing.quantity + @quantity

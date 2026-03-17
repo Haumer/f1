@@ -25,7 +25,7 @@
             Market closed
         <% end %>
         <span class="fantasy-swaps-remaining">
-            Cash: <strong><%= number_with_delimiter(@portfolio.available_cash.round(1)) %></strong>
+            Credits: <strong><%= number_with_delimiter(@portfolio.available_cash.round(1)) %></strong>
             &middot; Positions: <strong><%= @portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></strong>
         </span>
     </div>
@@ -219,7 +219,7 @@
                 </div>
 
                 <div class="fantasy-cart-cash-display">
-                    <span>Cash Available</span>
+                    <span>Credits Available</span>
                     <span class="fantasy-cart-cash-value"><%= number_with_delimiter(@portfolio.available_cash.round(0)) %></span>
                 </div>
             </div>

@@ -66,6 +66,6 @@ class Fantasy::Stock::OpenShortTest < ActiveSupport::TestCase
   test "returns error when not enough cash for collateral" do
     @portfolio.wallet.update_columns(cash: 1.0)
     result = Fantasy::Stock::OpenShort.new(portfolio: @portfolio, driver: @driver, quantity: 1, race: @race).call
-    assert_match(/Not enough cash for collateral/, result[:error])
+    assert_match(/Not enough credits for collateral/, result[:error])
   end
 end

@@ -15,7 +15,7 @@ module Fantasy
 
         price = Fantasy::Pricing.price_for(@driver, @portfolio.season)
         available = @portfolio.available_cash
-        return { error: "Not enough cash (need #{price.round(0)}, have #{available.round(0)})" } if available < price
+        return { error: "Not enough credits (need #{price.round(0)}, have #{available.round(0)})" } if available < price
 
         @portfolio.roster_entries.create!(
           driver: @driver,

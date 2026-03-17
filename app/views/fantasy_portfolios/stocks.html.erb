@@ -37,7 +37,7 @@
             <span class="value"><%= number_with_delimiter(@stock_portfolio.portfolio_value.round(1)) %></span>
         </div>
         <div class="fantasy-sub-stat">
-            <span class="label">Cash</span>
+            <span class="label">Credits</span>
             <span class="value"><%= number_with_delimiter(@stock_portfolio.cash.round(1)) %></span>
         </div>
         <div class="fantasy-sub-stat">
@@ -221,7 +221,7 @@
     <% if @stock_portfolio.total_collateral > 0 %>
         <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 12px; margin-bottom: 16px;">
             <i class="fa-solid fa-lock"></i>
-            <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> cash locked as short collateral</span>
+            <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> credits locked as collateral</span>
         </div>
     <% end %>
 

@@ -68,7 +68,7 @@ class Fantasy::Stock::BuySharesTest < ActiveSupport::TestCase
   test "returns error when not enough cash" do
     @portfolio.wallet.update_columns(cash: 1.0)
     result = Fantasy::Stock::BuyShares.new(portfolio: @portfolio, driver: @driver, quantity: 1, race: @race).call
-    assert_match(/Not enough cash/, result[:error])
+    assert_match(/Not enough credits/, result[:error])
   end
 
   test "returns error when positions full and no existing position" do

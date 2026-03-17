@@ -226,7 +226,7 @@
                                 <span class="fantasy-cart-row-value" data-unified-cart-target="totalCost">0</span>
                             </div>
                             <div class="fantasy-cart-row fantasy-cart-row-remaining">
-                                <span>Cash Remaining</span>
+                                <span>Credits Remaining</span>
                                 <span class="fantasy-cart-row-value" data-unified-cart-target="cashRemaining"><%= (@portfolio.cash - (@stock_portfolio&.total_collateral || 0)).round(0) %></span>
                             </div>
                         </div>
@@ -254,7 +254,7 @@
                 <% end %>
 
                 <div class="fantasy-cart-cash-display">
-                    <span>Cash: <%= number_with_delimiter(@portfolio.cash.round(0)) %></span>
+                    <span>Credits: <%= number_with_delimiter(@portfolio.cash.round(0)) %></span>
                     <% if @stock_portfolio && @stock_portfolio.total_collateral > 0 %>
                         <span>Locked: <%= number_with_delimiter(@stock_portfolio.total_collateral.round(0)) %></span>
                     <% end %>

@@ -30,7 +30,7 @@
         </div>
         <div class="fantasy-value-details">
             <div class="fantasy-detail">
-                <span class="detail-label">Cash</span>
+                <span class="detail-label">Credits</span>
                 <span class="detail-value"><%= number_with_delimiter(@portfolio.cash.round(1)) %></span>
             </div>
             <div class="fantasy-detail">
@@ -214,7 +214,7 @@
     <% if @portfolio.total_collateral > 0 %>
         <div class="fantasy-transfer-status closed" style="margin-top: 16px;">
             <i class="fa-solid fa-lock"></i>
-            <%= number_with_delimiter(@portfolio.total_collateral.round(1)) %> cash locked as short collateral
+            <%= number_with_delimiter(@portfolio.total_collateral.round(1)) %> credits locked as collateral
         </div>
     <% end %>
 
