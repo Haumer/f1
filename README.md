@@ -18,7 +18,7 @@ F1 Elo applies the [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_
 - **Driver Comparison** — Side-by-side Elo charts for any two drivers
 - **Badges** — Achievement system for circuit kings, consistency, and career milestones
 - **Dynamic Theming** — Page accent colors match the relevant constructor (Ferrari pages are red, Mercedes pages are teal, etc.)
-- **Fantasy Mode** — Roster-based and stock market-style fantasy game using Elo as currency
+- **Fantasy Mode** — Stock market-style fantasy game where driver prices are based on Elo
 - **Race Predictions** — AI-generated pre-race predictions with methodology breakdown
 - **Calendar** — Current season race calendar with session countdown timers
 
@@ -88,10 +88,9 @@ The system produces meaningful separation between tiers — from developing driv
 
 ## Fantasy Mode
 
-Two game modes built on top of the Elo system:
+A stock market game built on top of the Elo system:
 
-- **Roster Mode** — Draft drivers at their Elo price. Starting capital = avg Elo × 2.2. Sell drivers at current Elo minus a 1% fee. Expand your roster with up to 3 teams (2 driver slots each).
-- **Stock Market** — Trade driver shares at Elo ÷ 10, with prices adjusted by market demand. Go long (profit when Elo rises) or short (profit when Elo drops). Longs earn dividends from top-10 finishes. Shorts require 50% collateral, incur a 0.25% per-race borrow fee, and are auto-liquidated at 2× loss.
+- **Stock Market** — Trade driver shares priced in credits (Elo ÷ 10), adjusted by market demand. Go long (profit when Elo rises) or short (profit when Elo drops). Longs earn dividends from top-10 finishes. Shorts require 50% collateral, incur a 0.25% per-race borrow fee, and are auto-liquidated at 2× loss. Up to 12 positions at a time.
 
 ## License
 
