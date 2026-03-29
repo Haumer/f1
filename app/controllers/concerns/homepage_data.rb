@@ -37,8 +37,10 @@ module HomepageData
       return :post_race
     end
 
-    # Race day
-    return :race_day if @today == race_date
+    # Race day — but if the session has ended, show "race complete" instead
+    if @today == race_date
+      return race.race_session_ended? ? :race_complete : :race_day
+    end
 
     # Race weekend (FP1 day through day before race)
     return :race_weekend if @today >= fp1_date && @today < race_date
@@ -64,6 +66,11 @@ module HomepageData
     @next_session = race.session_schedule.find { |s| s[:starts_at].present? && s[:starts_at] > Time.current }
 
     case @homepage_phase
+    when :race_complete
+      @weekend_race = race
+      @session_schedule = build_session_schedule(race)
+      @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
+
     when :race_weekend, :race_day
       @weekend_race = race
       @session_schedule = build_session_schedule(race)

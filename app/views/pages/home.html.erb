@@ -10,6 +10,8 @@
             <%= render "pages/hero_season_complete" %>
         <% when :post_race %>
             <%= render "pages/hero_post_race" %>
+        <% when :race_complete %>
+            <%= render "pages/hero_race_complete" %>
         <% when :race_day %>
             <%= render "pages/hero_race_day" %>
         <% when :race_weekend %>
@@ -24,7 +26,7 @@
         <% end %>
 
         <%# 3. Next Race strip (always visible when available, skip if hero already covers it) %>
-        <% unless [:race_weekend, :race_day, :pre_race, :season_start].include?(@homepage_phase) %>
+        <% unless [:race_weekend, :race_day, :race_complete, :pre_race, :season_start].include?(@homepage_phase) %>
             <% if @next_race && @next_race.date > @today %>
                 <div class="next-race-strip">
                     <i class="fa-solid fa-calendar"></i>

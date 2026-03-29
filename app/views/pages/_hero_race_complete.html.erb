@@ -1,0 +1,20 @@
+<div class="page-hero race-day-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+        <span class="page-hero-label"><i class="fa-solid fa-flag-checkered"></i> Race Complete</span>
+        <h1 class="page-hero-title"><%= link_to @weekend_race.circuit.name, race_path(@weekend_race) %></h1>
+        <p class="page-hero-meta">Round <%= @weekend_race.round %> · <%= @weekend_race.circuit.location %>, <%= @weekend_race.circuit.country %></p>
+
+        <div class="race-start-time">
+            <span class="race-start-label">Results incoming</span>
+        </div>
+    </div>
+</div>
+
+<%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
+
+<% if @session_schedule.present? %>
+    <div class="card session-schedule-card">
+        <%= render "pages/session_schedule", sessions: @session_schedule, race: @weekend_race %>
+    </div>
+<% end %>

@@ -117,6 +117,12 @@ class Race < ApplicationRecord
     race_results.any?
   end
 
+  def race_session_ended?
+    return false unless starts_at
+
+    Time.current >= starts_at + 2.hours + 30.minutes
+  end
+
   def has_sprint_results?
     sprint_results.any?
   end
