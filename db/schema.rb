@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_03_15_174137) do
+ActiveRecord::Schema[7.0].define(version: 2026_05_24_223000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -569,6 +569,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_03_15_174137) do
     t.string "quali_time"
     t.string "sprint_quali_time"
     t.string "sprint_time"
+    t.boolean "cancelled", default: false, null: false
+    t.index ["cancelled"], name: "index_races_on_cancelled"
     t.index ["circuit_id"], name: "index_races_on_circuit_id"
     t.index ["season_id", "date"], name: "index_races_on_season_id_and_date"
     t.index ["season_id", "round"], name: "index_races_on_season_id_and_round"

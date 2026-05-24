@@ -5,7 +5,11 @@ class QualifyingSyncJob < ApplicationJob
   RETRY_DELAY = 30.minutes
 
   def perform(race_id:, attempt: 1)
-    race = Race.find(race_id)
+    # with_cancelled so a race cancelled after this job was enqueued resolves to
+    # the record (instead of raising under the default scope); we then skip it.
+    race = Race.with_cancelled.find_by(id: race_id)
+    return if race.nil? || race.cancelled?
+
     expected = race.season.season_drivers.count
 
     # Skip if qualifying already looks complete

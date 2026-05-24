@@ -3,8 +3,6 @@ require 'open-uri'
 
 class SeasonSync
     STATUSES_ENDPOINT = "https://api.jolpi.ca/ergast/f1/status.json?limit=200"
-    OPENF1_SESSIONS = "https://api.openf1.org/v1/sessions"
-    RACE_BUFFER = 2.hours
 
     def initialize(year: Date.current.year)
         @year = year
@@ -96,12 +94,9 @@ class SeasonSync
                                       .order(round: :asc)
 
         races_to_update.each do |race|
-            # Confirm the race is actually finished via OpenF1 before syncing
-            unless self.class.race_confirmed_finished?(race)
-                puts "Skipping R#{race.round} — race not confirmed finished by OpenF1"
-                next
-            end
-
+            # No external "is it finished?" gate: UpdateRaceResult only writes
+            # when a source (Jolpica, then Wikipedia) actually has a full result
+            # set, so an unfinished/unpublished race is simply a no-op we retry.
             puts "Updating results for Round #{race.round} (#{race.date})..."
             UpdateRaceResult.new(race: race).update_all
             sleep 1 # Be polite to the API
@@ -132,27 +127,6 @@ class SeasonSync
     def self.race_likely_finished_condition
         ["(races.time IS NOT NULL AND (races.date + races.time::time) + INTERVAL '2 hours' <= ?) OR (races.time IS NULL AND races.date < ?)",
          Time.current, Date.current]
-    end
-
-    # Confirm with OpenF1 that the race session has ended (date_end has passed)
-    def self.race_confirmed_finished?(race)
-        # Old races (> 1 day ago) don't need confirmation
-        return true if race.date < Date.current
-
-        url = "#{OPENF1_SESSIONS}?year=#{race.year}&session_type=Race&circuit_short_name=#{URI.encode_www_form_component(race.circuit.location)}"
-        data = JSON.parse(URI.open(url, read_timeout: 10).read)
-
-        # Find the main race session (not sprint)
-        race_session = data.select { |s| s["session_name"] == "Race" }.last
-        return false unless race_session
-
-        date_end = Time.parse(race_session["date_end"])
-        finished = Time.current > date_end
-        puts "OpenF1 check R#{race.round}: date_end=#{date_end}, now=#{Time.current}, finished=#{finished}"
-        finished
-    rescue OpenURI::HTTPError, Timeout::Error, JSON::ParserError, TypeError => e
-        puts "OpenF1 check failed for R#{race.round}: #{e.message} — skipping sync"
-        false # If we can't confirm, don't sync
     end
 
     def self.recently_synced?

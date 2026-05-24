@@ -16,12 +16,15 @@ class RaceFinishPollJob < ApplicationJob
     # Already synced?
     return if race.race_results.exists?
 
-    # Check OpenF1
-    if SeasonSync.race_confirmed_finished?(race)
-      Rails.logger.info "[RaceFinishPollJob] R#{race.round} confirmed finished — triggering sync"
+    # Try to pull results directly (Jolpica → Wikipedia). It's a no-op if no
+    # source has published yet, so we just retry until they do.
+    UpdateRaceResult.new(race: race).update_all
+
+    if race.race_results.exists?
+      Rails.logger.info "[RaceFinishPollJob] R#{race.round} results landed — running downstream sync"
       PostRaceSyncJob.perform_now
     elsif attempt < MAX_POLLS
-      Rails.logger.info "[RaceFinishPollJob] R#{race.round} not finished yet (attempt #{attempt}), retrying in 1 min"
+      Rails.logger.info "[RaceFinishPollJob] R#{race.round} no results yet (attempt #{attempt}), retrying in 1 min"
       self.class.set(wait: 1.minute).perform_later(attempt: attempt + 1)
     else
       Rails.logger.info "[RaceFinishPollJob] R#{race.round} max polls reached, giving up"

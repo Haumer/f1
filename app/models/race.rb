@@ -12,6 +12,13 @@ class Race < ApplicationRecord
   validates :date, :round, presence: true
   validates :round, uniqueness: { scope: :season_id }
 
+  # Cancelled races (e.g. a GP dropped from the calendar, or a stale round left
+  # behind after a renumbering) are hidden from every normal query — graphs,
+  # standings, schedules, next/last race, syncing. Use `with_cancelled` to
+  # reconcile them (see UpdateSeason).
+  default_scope { where(cancelled: false) }
+  scope :with_cancelled, -> { unscope(where: :cancelled) }
+
   scope :sorted, -> { order(date: :asc) }
   scope :sorted_by_most_recent, -> { order(date: :desc) }
 
