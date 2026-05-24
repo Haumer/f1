@@ -5,12 +5,14 @@ class PostRaceSyncJob < ApplicationJob
 
   def perform(year: Date.current.year)
     season = SeasonSync.new(year: year).sync
-    unless season
-      # If sync returned nil and there's a pending race in the post-race window,
-      # start fast polling to catch it as soon as it's confirmed finished
-      maybe_start_polling
-      return
-    end
+    return unless season
+
+    # If a race that should be finished still has no results, start fast polling
+    # so we catch it within a minute of a source publishing — not on the next
+    # hourly run. (sync always returns the season, so this can't live behind a
+    # `unless season` guard.) maybe_start_polling self-guards and no-ops when
+    # there's nothing pending.
+    maybe_start_polling
 
     # Update career stats for drivers who raced this season
     driver_ids = season.race_results.select(:driver_id).distinct
@@ -72,9 +74,22 @@ class PostRaceSyncJob < ApplicationJob
     return unless race&.starts_at
     return unless Time.current >= race.starts_at + 2.hours
     return if race.race_results.exists?
+    return if poll_in_progress? # don't stack a second chain on the hourly tick
 
     # Race should be done but wasn't synced — start fast polling
     Rails.logger.info "[PostRaceSyncJob] Starting fast poll for R#{race.round}"
     RaceFinishPollJob.perform_later
+  end
+
+  # True if a RaceFinishPollJob is already executing or scheduled, so the hourly
+  # run doesn't spawn a parallel poll chain. Defensive: any failure (e.g. queue
+  # tables absent in some environments) falls back to "not in progress".
+  def poll_in_progress?
+    return false unless defined?(SolidQueue::Job)
+
+    SolidQueue::Job.where(class_name: "RaceFinishPollJob", finished_at: nil).exists?
+  rescue StandardError => e
+    Rails.logger.warn "[PostRaceSyncJob] poll_in_progress? check failed: #{e.message}"
+    false
   end
 end

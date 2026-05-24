@@ -77,7 +77,8 @@ module Admin
     end
 
     def resnap_portfolios
-      race = Race.find(params[:race_id])
+      # Admin can act on any race, including a cancelled one.
+      race = Race.with_cancelled.find(params[:race_id])
       Fantasy::SnapshotPortfolios.new(race: race).call
       Fantasy::Stock::SettleRace.new(race: race).call
       redirect_to admin_operations_path, notice: "Re-snapshotted portfolios for #{race.circuit.name} (R#{race.round})."
