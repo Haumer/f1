@@ -172,7 +172,6 @@
         <% chart_options = {
             tooltip: {
                 trigger: "axis",
-                confine: false,
                 appendToBody: true,
                 backgroundColor: "rgba(20, 20, 30, 0.95)",
                 borderColor: "rgba(255, 255, 255, 0.12)",
@@ -387,8 +386,10 @@
           all_txns.sort_by! { |t| -t[:txn].created_at.to_i }
         %>
         <% if all_txns.any? %>
+            <% shown_txns = all_txns.first(30) %>
             <div class="table-header"><h3>Recent Transactions</h3></div>
-            <div class="card card-flush">
+            <div class="card card-flush" data-controller="expandable-table"
+                 data-expandable-table-limit-value="10" data-expandable-table-label-value="transactions">
                 <div class="table-scroll-wrapper">
                     <table class="fantasy-transactions-table">
                         <thead>
@@ -400,7 +401,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <% all_txns.first(30).each do |entry| %>
+                            <% shown_txns.each do |entry| %>
                                 <% txn = entry[:txn] %>
                                 <tr>
                                     <td><%= txn.created_at.strftime("%b %d, %H:%M") %></td>
@@ -416,6 +417,11 @@
                         </tbody>
                     </table>
                 </div>
+                <% if shown_txns.size > 10 %>
+                    <button class="expand-table-btn" data-action="expandable-table#toggle" data-expandable-table-target="button">
+                        Show all <%= shown_txns.size %> transactions
+                    </button>
+                <% end %>
             </div>
         <% end %>
     <% end %>

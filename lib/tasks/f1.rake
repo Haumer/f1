@@ -220,4 +220,22 @@ namespace :f1 do
     settled = FantasyStockSnapshot.where(race: race).count
     puts "Done. #{settled} portfolios settled."
   end
+
+  desc "Score race-position picks for a race and pay credit rewards (idempotent)"
+  task :score_race_picks, [:race_id] => :environment do |_t, args|
+    race = Race.with_cancelled.find(args.fetch(:race_id))
+    unless race.race_results.exists?
+      puts "Race #{race.name} has no results yet — nothing to score."
+      next
+    end
+
+    puts "Scoring race picks for #{race.name}..."
+    Fantasy::ScoreRacePicks.new(race: race).call
+
+    picks   = RacePick.where(race: race)
+    scored  = picks.where.not(score: nil).count
+    rewarded = FantasyStockTransaction.where(race: race, kind: "pick_reward")
+    puts "Done. #{scored}/#{picks.count} picks scored, #{rewarded.count} rewards paid " \
+         "(#{rewarded.sum(:amount).round(0)} credits total)."
+  end
 end

@@ -2,7 +2,10 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["button"]
-  static values = { limit: { type: Number, default: 10 } }
+  static values = {
+    limit: { type: Number, default: 10 },
+    label: { type: String, default: "drivers" }
+  }
 
   connect() {
     this.expanded = false
@@ -20,7 +23,7 @@ export default class extends Controller {
       row.style.display = i < this.limitValue ? "" : "none"
     })
     if (this.hasButtonTarget) {
-      this.buttonTarget.textContent = `Show all ${this.rows.length} drivers`
+      this.buttonTarget.textContent = `Show all ${this.rows.length} ${this.labelValue}`
     }
   }
 
