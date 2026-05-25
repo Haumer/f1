@@ -652,6 +652,14 @@
     i { font-size: 10px; }
 }
 
+// Locked state — not a link, muted, no hover affordance
+.picks-compact-locked {
+    color: $text-tertiary;
+    opacity: 0.7;
+    cursor: default;
+    &:hover { color: $text-tertiary; }
+}
+
 .picks-compact-grid {
     display: flex;
     flex-wrap: wrap;

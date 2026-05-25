@@ -121,19 +121,29 @@
         <%# 5b. Race Picks CTA %>
         <% if @next_race && current_user %>
             <% user_pick = RacePick.find_by(user: current_user, race: @next_race) %>
-            <div class="picks-cta">
-                <div class="picks-cta-text">
-                    <i class="fa-solid fa-hand-pointer"></i>
-                    <% if user_pick&.picks&.any? %>
-                        <span>You've placed <strong><%= user_pick.manual_picks.size %> picks</strong> for <%= @next_race.circuit.name %></span>
+            <% has_picks = user_pick&.picks&.any? %>
+            <%# Once picks lock at race start, only show a read-only entry point (and only if picks exist) %>
+            <% if @next_race.picks_open? || has_picks %>
+                <div class="picks-cta">
+                    <div class="picks-cta-text">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        <% if !@next_race.picks_open? %>
+                            <span>Picks locked &mdash; your <strong><%= user_pick.manual_picks.size %> picks</strong> for <%= @next_race.circuit.name %></span>
+                        <% elsif has_picks %>
+                            <span>You've placed <strong><%= user_pick.manual_picks.size %> picks</strong> for <%= @next_race.circuit.name %></span>
+                        <% else %>
+                            <span>Make your <strong>race picks</strong> for <%= @next_race.circuit.name %></span>
+                        <% end %>
+                    </div>
+                    <% if !@next_race.picks_open? %>
+                        <%= link_to "View Picks", fantasy_overview_path(current_user.username), class: "picks-cta-link" %>
                     <% else %>
-                        <span>Make your <strong>race picks</strong> for <%= @next_race.circuit.name %></span>
+                        <%= link_to edit_race_picks_path, class: "picks-cta-link" do %>
+                            <%= has_picks ? "Edit Picks" : "Make Picks" %> <i class="fa-solid fa-arrow-right"></i>
+                        <% end %>
                     <% end %>
                 </div>
-                <%= link_to edit_race_picks_path, class: "picks-cta-link" do %>
-                    <%= user_pick&.picks&.any? ? "Edit Picks" : "Make Picks" %> <i class="fa-solid fa-arrow-right"></i>
-                <% end %>
-            </div>
+            <% end %>
         <% end %>
 
         <%# 6. Fantasy section %>

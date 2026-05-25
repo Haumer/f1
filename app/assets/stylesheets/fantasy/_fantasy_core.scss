@@ -81,6 +81,14 @@
         background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
     }
     i { font-size: 11px; }
+
+    // Tighter on phones so two or three tabs fit without overflow
+    @media (max-width: 480px) {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 8px;
+        letter-spacing: 0.3px;
+    }
 }
 
 .fantasy-tab-hint {

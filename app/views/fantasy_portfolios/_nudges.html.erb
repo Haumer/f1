@@ -1,0 +1,55 @@
+<%#
+  Owner-only action nudges. State-driven — each disappears once resolved, so
+  no dismissal needed. Locals: portfolio, stock_portfolio, next_race,
+  race_picks, current_support.
+%>
+<%
+  nudges = []
+  starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
+  has_holdings = stock_portfolio&.active_holdings&.exists?
+
+  # 1. Race picks not made for the upcoming (still-open) race
+  if next_race&.picks_open?
+    has_pick = race_picks.any? { |rp| rp.race_id == next_race.id && rp.picks.present? }
+    unless has_pick
+      nudges << {
+        icon: "hand-pointer",
+        text: "You haven't set your race picks for #{next_race.circuit.name} yet.",
+        cta: "Make Picks", path: edit_race_picks_path
+      }
+    end
+  end
+
+  # 2. Large idle credits — only once trading has started (empty portfolios get the welcome banner)
+  if has_holdings && portfolio
+    idle = portfolio.available_cash
+    if idle >= starting * 0.25 && stock_portfolio
+      nudges << {
+        icon: "coins",
+        text: "#{number_with_delimiter(idle.round)} credits are sitting idle — put them to work in the market.",
+        cta: "Open Market", path: market_fantasy_stock_portfolio_path(stock_portfolio)
+      }
+    end
+  end
+
+  # 3. No team allegiance chosen
+  if current_support.nil?
+    nudges << {
+      icon: "shield-halved",
+      text: "Pick a team to support and earn its colours on the leaderboard.",
+      cta: "Pick Team", path: "#team-picker"
+    }
+  end
+%>
+
+<% if nudges.any? %>
+    <div class="fantasy-nudges">
+        <% nudges.each do |nudge| %>
+            <div class="fantasy-nudge">
+                <span class="fantasy-nudge-icon"><i class="fa-solid fa-<%= nudge[:icon] %>"></i></span>
+                <span class="fantasy-nudge-text"><%= nudge[:text] %></span>
+                <%= link_to nudge[:cta], nudge[:path], class: "fantasy-nudge-cta" %>
+            </div>
+        <% end %>
+    </div>
+<% end %>

@@ -4,6 +4,13 @@ class RacePicksController < ApplicationController
   before_action :set_race_pick, only: [:update]
 
   def edit
+    # Picks lock at race start — don't render an editable form that can't be saved.
+    if current_user && !@race.picks_open?
+      redirect_to fantasy_overview_path(current_user.username),
+                  notice: "Picks are locked for #{@race.circuit.name} — the race has started."
+      return
+    end
+
     @race_pick = current_user ? RacePick.find_or_initialize_by(user: current_user, race: @race) : RacePick.new(race: @race)
     load_drivers
   end

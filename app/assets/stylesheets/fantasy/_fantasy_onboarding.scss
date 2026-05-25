@@ -370,6 +370,67 @@
 }
 
 // ═══════════════════════════════════════
+// ACTION NUDGES (state-driven prompts)
+// ═══════════════════════════════════════
+
+.fantasy-nudges {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: $space-md;
+}
+
+.fantasy-nudge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.05);
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.14);
+    border-left: 3px solid var(--page-accent, $accent-red);
+    border-radius: $radius-sm;
+}
+
+.fantasy-nudge-icon {
+    color: var(--page-accent, $accent-red);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.fantasy-nudge-text {
+    flex: 1;
+    font-size: 12px;
+    line-height: 1.4;
+    color: $text-secondary;
+    min-width: 0;
+}
+
+.fantasy-nudge-cta {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 6px 12px;
+    border-radius: $radius-sm;
+    color: #fff;
+    background: var(--page-accent, $accent-red);
+    white-space: nowrap;
+
+    &:hover { opacity: 0.88; text-decoration: none; color: #fff; }
+}
+
+@media (max-width: 480px) {
+    .fantasy-nudge {
+        flex-wrap: wrap;
+        gap: 6px 10px;
+    }
+    .fantasy-nudge-cta {
+        margin-left: auto; // sit the button on its own line, right-aligned
+    }
+}
+
+// ═══════════════════════════════════════
 // SUB-STATS BAR (per-tab metrics)
 // ═══════════════════════════════════════
 
@@ -405,6 +466,20 @@
     }
 }
 
+// On phones, tighten the gap and let stats share rows evenly instead of
+// overflowing horizontally.
+@media (max-width: 480px) {
+    .fantasy-sub-stats {
+        gap: 10px 14px;
+        padding: 12px 14px;
+    }
+    .fantasy-sub-stat {
+        min-width: 0;
+        flex: 1 0 28%; // ~3 per row, wrapping cleanly
+        .value { font-size: 13px; }
+    }
+}
+
 // ═══════════════════════════════════════
 // TRANSFER WINDOW
 // ═══════════════════════════════════════
@@ -436,4 +511,17 @@
     margin-left: auto;
     font-size: 12px;
     opacity: 0.8;
+}
+
+// Let the transfer-status bar wrap on phones so the swaps text drops to its
+// own line instead of being squeezed onto one row.
+@media (max-width: 480px) {
+    .fantasy-transfer-status {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+    }
+    .fantasy-swaps-remaining {
+        margin-left: 0;
+        flex-basis: 100%;
+    }
 }

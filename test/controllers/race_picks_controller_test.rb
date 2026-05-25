@@ -6,6 +6,10 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:codex)
     @race = races(:melbourne_2026) # next race after bahrain_2026 which has results
+    # Treat it as a genuinely upcoming race so picks are open (the edit form is
+    # only shown while picks_open?). Lock-specific tests set locked_at on the
+    # pick itself, independent of this.
+    @race.update!(date: Date.current + 5.days, time: "14:00:00")
   end
 
   # ═══════ Authentication ═══════
@@ -36,6 +40,14 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
     sign_in @user
     get edit_race_picks_path
     assert_response :success
+  end
+
+  test "edit redirects signed-in user once picks are locked" do
+    sign_in @user
+    @race.update!(date: Date.current - 1.day, time: "14:00:00") # race already started
+    get edit_race_picks_path
+    assert_redirected_to fantasy_overview_path(@user.username)
+    assert_match(/locked/i, flash[:notice])
   end
 
   test "edit shows driver cards" do

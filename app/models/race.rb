@@ -130,6 +130,12 @@ class Race < ApplicationRecord
     Time.current >= starts_at + 2.hours + 30.minutes
   end
 
+  # Race picks lock at race start (RacePick#locked_at == starts_at). Open while
+  # there's no start time yet or the start hasn't passed.
+  def picks_open?
+    starts_at.nil? || Time.current < starts_at
+  end
+
   def has_sprint_results?
     sprint_results.any?
   end
