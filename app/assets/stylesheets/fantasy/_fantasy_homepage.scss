@@ -75,8 +75,10 @@
     overflow: hidden;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
-    margin-bottom: 0;
+    // !important to beat the base .card margin so the links footer sits flush
+    margin-bottom: 0 !important;
     border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: none; // the links footer provides the bottom edge
     transition: border-color $t-normal, box-shadow $t-normal;
 
     // Subtle top accent line

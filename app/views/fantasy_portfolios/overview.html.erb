@@ -102,6 +102,12 @@
         </div>
     <% end %>
 
+    <%# ═══════════════════ Action Nudges ═══════════════════ %>
+    <% if @is_owner && @portfolio %>
+        <%= render "nudges", portfolio: @portfolio, stock_portfolio: @stock_portfolio,
+                             next_race: @next_race, race_picks: @race_picks, current_support: support %>
+    <% end %>
+
     <%# ═══════════════════ Chart ═══════════════════ %>
     <%
         season_rounds = @season.races.order(:round).pluck(:round)
@@ -265,11 +271,15 @@
             <h3><i class="fa-solid fa-hand-pointer" style="opacity:0.5; font-size:14px"></i> Race Picks</h3>
             <% if @is_owner && next_race %>
                 <span class="table-header-sub">
-                    <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
-                        <% if upcoming_pick&.picks&.any? %>
-                            <i class="fa-solid fa-pen"></i> Edit
-                        <% else %>
-                            Make Picks <i class="fa-solid fa-arrow-right"></i>
+                    <% if !next_race.picks_open? %>
+                        <span class="picks-compact-edit picks-compact-locked"><i class="fa-solid fa-lock"></i> Locked</span>
+                    <% else %>
+                        <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
+                            <% if upcoming_pick&.picks&.any? %>
+                                <i class="fa-solid fa-pen"></i> Edit
+                            <% else %>
+                                Make Picks <i class="fa-solid fa-arrow-right"></i>
+                            <% end %>
                         <% end %>
                     <% end %>
                 </span>
@@ -308,8 +318,12 @@
                     <i class="fa-solid fa-circle" style="font-size:6px; color: #4ade80"></i>
                     <%= next_race.circuit.name %> · R<%= next_race.round %>
                 </span>
-                <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
-                    Make Picks <i class="fa-solid fa-arrow-right"></i>
+                <% if next_race.picks_open? %>
+                    <%= link_to edit_race_picks_path, class: "picks-compact-edit" do %>
+                        Make Picks <i class="fa-solid fa-arrow-right"></i>
+                    <% end %>
+                <% else %>
+                    <span class="picks-compact-edit picks-compact-locked"><i class="fa-solid fa-lock"></i> Picks closed</span>
                 <% end %>
             </div>
         <% end %>
@@ -443,7 +457,7 @@
 
     <%# Team picker (only when no team chosen, owner only) %>
     <% if !support && @is_owner %>
-        <div class="fantasy-pick-team-row">
+        <div class="fantasy-pick-team-row" id="team-picker">
             <span class="fantasy-pick-team-label"><i class="fa-solid fa-shield-halved"></i> Pick a team</span>
             <div class="fantasy-allegiance-options-inline">
                 <% Constructor.where(active: true).order(:name).each do |c| %>

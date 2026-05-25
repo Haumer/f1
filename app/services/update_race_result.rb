@@ -8,7 +8,6 @@ class UpdateRaceResult
     def initialize(race:)
         @race = race
         @results_data = fetch_results_data
-        @standings_data = has_jolpica_results? ? fetch_standings_data : nil
         @new_drivers = []
     end
 
@@ -21,24 +20,18 @@ class UpdateRaceResult
         nil
     end
 
-    def fetch_standings_data
-        puts "fetching standings"
-        @url = "#{ENDPOINT}/#{@race.year}/#{@race.round}/driverStandings.json"
-        JSON.parse(URI.open(url, read_timeout: 30).read)
-    rescue OpenURI::HTTPError, Timeout::Error, JSON::ParserError => e
-        puts "Error fetching standings for #{@race.year}/#{@race.round}: #{e.message}"
-        nil
-    end
-
     def update_all
         if has_jolpica_results?
             puts "Using Jolpica API for #{@race.year}/#{@race.round}"
             self.results
-            # Sync sprint results (Jolpica standings already include sprint points)
             if @race.sprint?
                 UpdateSprintResult.new(race: @race).update_all
             end
-            self.standings
+            # Compute standings from the race results we just stored rather than
+            # Jolpica's separate driverStandings endpoint — that endpoint can lag
+            # behind results (storing stale totals we'd never refresh) and the old
+            # writer wasn't idempotent.
+            create_standings_from_results
         elsif @race.url.present?
             puts "Jolpica has no results, trying Wikipedia for #{@race.year}/#{@race.round}..."
             wiki_results = WikipediaRaceResultFetcher.new(race: @race).call
@@ -137,28 +130,6 @@ class UpdateRaceResult
                 number: race_result['number'],
             )
             result
-        end
-    end
-
-    def standings
-        standings_lists = @standings_data.dig('MRData', 'StandingsTable', 'StandingsLists')
-        return unless standings_lists&.first
-
-        all_drivers = Driver.all.index_by(&:driver_ref)
-
-        @driver_standings = standings_lists.first['DriverStandings'].map do |driver_standing|
-            driver = all_drivers[driver_standing['Driver']['driverId']]
-            next unless driver
-
-            DriverStanding.find_or_create_by(
-                race: @race,
-                driver: driver,
-                position: driver_standing['position'],
-                points: driver_standing['points'],
-                wins: driver_standing['wins'],
-            )
-            driver.update(last_race_date: @race.date)
-            UpdateDriverStanding.new(driver: driver, season: @race.season).update
         end
     end
 
