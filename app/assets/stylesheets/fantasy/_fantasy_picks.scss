@@ -59,12 +59,21 @@
     color: $text-tertiary;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: $space-sm;
     i { font-size: 12px; }
 
     @media (max-width: 480px) {
         font-size: 11px;
     }
+}
+
+.picks-reward-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: $green;
+    i { color: $green; }
 }
 
 .picks-toolbar-right {

@@ -53,6 +53,12 @@ class PostRaceSyncJob < ApplicationJob
         Rails.logger.info "[PostRaceSyncJob] Stock achievements checked"
       end
 
+      # Score race-position predictions and pay out credit rewards (before the
+      # snapshot so the reward is reflected in portfolio value). Self-guards via
+      # an idempotent per-portfolio/per-race pick_reward transaction.
+      Fantasy::ScoreRacePicks.new(race: latest_race).call
+      Rails.logger.info "[PostRaceSyncJob] Race picks scored for race #{latest_race.id}"
+
       # Snapshot after settlement so cash reflects dividends/fees
       Fantasy::SnapshotPortfolios.new(race: latest_race).call
       Rails.logger.info "[PostRaceSyncJob] Fantasy snapshots created for race #{latest_race.id}"
