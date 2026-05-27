@@ -5,7 +5,7 @@ module Fantasy
   # Picks are a full-grid prediction: [{ "driver_id" => N, "position" => P }, ...].
   # Each correctly-ish placed driver earns points by how close the prediction was
   # to the real finishing position (RaceResult#position_order), with a bonus for a
-  # perfectly-called podium. Points convert to credits at CREDITS_PER_POINT.
+  # perfectly-called podium. Points ARE credits — the score is paid out 1:1.
   #
   # The reward credits the wallet (FantasyPortfolio#cash) and is recorded as a
   # FantasyStockTransaction (kind: "pick_reward") so it appears in the unified
@@ -16,9 +16,47 @@ module Fantasy
   # reward once per portfolio per race.
   class ScoreRacePicks
     # Points per driver by absolute distance between predicted and actual position.
-    POINTS_BY_DISTANCE = { 0 => 25, 1 => 15, 2 => 10, 3 => 5 }.freeze
-    PERFECT_PODIUM_BONUS = 25
-    CREDITS_PER_POINT = 2.0
+    # Points are paid out as credits 1:1 (no separate conversion rate).
+    POINTS_BY_DISTANCE = { 0 => 50, 1 => 30, 2 => 20, 3 => 10 }.freeze
+    PERFECT_PODIUM_BONUS = 50
+
+    # One scored prediction: the driver, where you placed them, where they
+    # actually finished (nil if no classified result), and the points earned.
+    Row = Struct.new(:driver_id, :predicted, :actual, :points, keyword_init: true) do
+      def hit?   = actual && predicted == actual
+      def scored? = points.positive?
+    end
+
+    # Pure scoring of a set of placements against a finishing order. Shared by the
+    # settler (which only needs the total) and the scorecard view (which renders
+    # every row), so the displayed breakdown can never drift from the paid score.
+    #
+    #   placed           -> [{ "driver_id" => N, "position" => P }, ...]
+    #   finish_by_driver -> { driver_id => position_order }
+    #
+    # Returns { rows:, podium_bonus:, total:, exact: }.
+    def self.breakdown(placed, finish_by_driver)
+      rows = placed.map do |p|
+        actual = finish_by_driver[p["driver_id"]]
+        points = actual ? POINTS_BY_DISTANCE.fetch((actual - p["position"]).abs, 0) : 0
+        Row.new(driver_id: p["driver_id"], predicted: p["position"], actual: actual, points: points)
+      end
+      podium_bonus = perfect_podium?(placed, finish_by_driver) ? PERFECT_PODIUM_BONUS : 0
+
+      {
+        rows: rows,
+        podium_bonus: podium_bonus,
+        total: rows.sum(&:points) + podium_bonus,
+        exact: rows.count(&:hit?),
+      }
+    end
+
+    def self.perfect_podium?(placed, finish_by_driver)
+      podium = placed.select { |p| p["position"] <= 3 }
+      return false if podium.size < 3
+
+      podium.all? { |p| finish_by_driver[p["driver_id"]] == p["position"] }
+    end
 
     def initialize(race:)
       @race = race
@@ -33,7 +71,7 @@ module Fantasy
                                    .to_h
 
       RacePick.where(race: @race).find_each do |pick|
-        score = score_pick(pick, finish_by_driver)
+        score = self.class.breakdown(pick.placed_drivers, finish_by_driver)[:total]
         pick.update_column(:score, score) unless pick.score == score
 
         next if score <= 0
@@ -44,41 +82,21 @@ module Fantasy
 
     private
 
-    def score_pick(pick, finish_by_driver)
-      placed = pick.placed_drivers
-      total = placed.sum do |p|
-        actual = finish_by_driver[p["driver_id"]]
-        next 0 unless actual
-
-        POINTS_BY_DISTANCE.fetch((actual - p["position"]).abs, 0)
-      end
-      total + (perfect_podium?(placed, finish_by_driver) ? PERFECT_PODIUM_BONUS : 0)
-    end
-
-    def perfect_podium?(placed, finish_by_driver)
-      podium = placed.select { |p| p["position"] <= 3 }
-      return false if podium.size < 3
-
-      podium.all? { |p| finish_by_driver[p["driver_id"]] == p["position"] }
-    end
-
     def award_credits(pick, score)
       wallet = FantasyPortfolio.find_by(user_id: pick.user_id, season_id: @race.season_id)
       stock  = FantasyStockPortfolio.find_by(user_id: pick.user_id, season_id: @race.season_id)
       return unless wallet && stock
 
-      # Pay once per portfolio per race.
+      # Pay once per portfolio per race. Points are credited 1:1.
       return if stock.transactions.where(race: @race, kind: "pick_reward").exists?
-
-      credits = (score * CREDITS_PER_POINT).round(2)
 
       ActiveRecord::Base.transaction do
         wallet.lock!
-        wallet.update!(cash: wallet.cash + credits)
+        wallet.update!(cash: wallet.cash + score)
         stock.transactions.create!(
           kind: "pick_reward",
           race: @race,
-          amount: credits,
+          amount: score,
           note: "Race picks: #{score} pts (#{@race.circuit.name})"
         )
       end

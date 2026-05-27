@@ -274,4 +274,57 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
     patch race_picks_path, params: { picks: picks_data }
     assert_match @race.circuit.name, flash[:notice]
   end
+
+  # ═══════ Results (scorecard) ═══════
+
+  # bahrain_2026 fixtures: VER P1, NOR P2, LEC P3, PIA P4.
+  def scored_pick_for(user)
+    RacePick.create!(user: user, race: races(:bahrain_2026), picks: [
+      { "driver_id" => drivers(:verstappen).id, "position" => 1, "source" => "manual" }, # exact
+      { "driver_id" => drivers(:norris).id,     "position" => 3, "source" => "manual" }, # off by 1
+      { "driver_id" => drivers(:leclerc).id,    "position" => 3, "source" => "manual" }, # exact
+    ])
+  end
+
+  test "results renders the scorecard for the owner" do
+    sign_in @user
+    scored_pick_for(@user)
+
+    get race_pick_results_path(@user.username, races(:bahrain_2026).id)
+    assert_response :success
+    # 50 (VER exact) + 30 (NOR off-by-1) + 50 (LEC exact) = 130
+    assert_select ".scorecard-summary-value", text: "130"
+    assert_select ".scorecard-row", count: 3
+  end
+
+  test "results is visible to visitors when the profile is public" do
+    @user.update_columns(public_profile: true)
+    scored_pick_for(@user)
+
+    get race_pick_results_path(@user.username, races(:bahrain_2026).id)
+    assert_response :success
+  end
+
+  test "results is hidden from visitors when the profile is private" do
+    @user.update_columns(public_profile: false)
+    scored_pick_for(@user)
+
+    get race_pick_results_path(@user.username, races(:bahrain_2026).id)
+    assert_redirected_to combined_leaderboard_path
+  end
+
+  test "results redirects when the user has no pick for that race" do
+    sign_in @user
+    get race_pick_results_path(@user.username, races(:bahrain_2026).id)
+    assert_redirected_to fantasy_overview_path(@user.username)
+  end
+
+  test "results redirects when the race has no results yet" do
+    sign_in @user
+    RacePick.create!(user: @user, race: @race, picks: [
+      { "driver_id" => drivers(:verstappen).id, "position" => 1, "source" => "manual" }
+    ])
+    get race_pick_results_path(@user.username, @race.id) # melbourne_2026 has no results
+    assert_redirected_to fantasy_overview_path(@user.username)
+  end
 end
