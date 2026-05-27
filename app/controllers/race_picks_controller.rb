@@ -1,6 +1,6 @@
 class RacePicksController < ApplicationController
   before_action :authenticate_user!, only: [:update]
-  before_action :set_race
+  before_action :set_race, only: [:edit, :update, :stash]
   before_action :set_race_pick, only: [:update]
 
   def edit
@@ -38,6 +38,39 @@ class RacePicksController < ApplicationController
       load_drivers
       render :edit
     end
+  end
+
+  # Scorecard: how a user's ranking for a completed race actually scored.
+  # Viewable by the owner, or by anyone if the profile is public (mirrors the
+  # fantasy overview's visibility rule).
+  def results
+    @user = User.find_by!(username: params[:username])
+    @is_owner = current_user&.id == @user.id
+    unless @is_owner || @user.public_profile?
+      redirect_to combined_leaderboard_path, alert: "This profile is private."
+      return
+    end
+
+    @race = Race.find_by(id: params[:race_id])
+    @race_pick = @race && RacePick.find_by(user: @user, race: @race)
+
+    if @race.nil? || @race_pick&.picks.blank? || !@race.race_results.exists?
+      redirect_to fantasy_overview_path(@user.username),
+                  alert: "No scored picks found for that race."
+      return
+    end
+
+    placed = @race_pick.placed_drivers
+    finish = RaceResult.where(race: @race).where.not(position_order: nil)
+                       .pluck(:driver_id, :position_order).to_h
+    @breakdown = Fantasy::ScoreRacePicks.breakdown(placed, finish)
+
+    driver_ids = placed.map { |p| p["driver_id"] }
+    @drivers_by_id = Driver.where(id: driver_ids).index_by(&:id)
+    @constructors_by_driver = SeasonDriver.where(season_id: @race.season_id, driver_id: driver_ids)
+                                          .includes(:constructor)
+                                          .index_by(&:driver_id)
+                                          .transform_values(&:constructor)
   end
 
   private

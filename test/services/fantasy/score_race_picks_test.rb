@@ -25,23 +25,23 @@ module Fantasy
       before = @wallet.cash
       Fantasy::ScoreRacePicks.new(race: @race).call
 
-      # 4 exact (25 each) + perfect podium bonus (25) = 125 pts
-      assert_equal 125, RacePick.find_by(user: @user, race: @race).score
+      # 4 exact (50 each) + perfect podium bonus (50) = 250 pts, paid 1:1
+      assert_equal 250, RacePick.find_by(user: @user, race: @race).score
       reward = @stock.transactions.find_by(race: @race, kind: "pick_reward")
       assert reward, "a pick_reward transaction is created"
-      assert_equal 250.0, reward.amount # 125 * CREDITS_PER_POINT (2.0)
-      assert_equal before + 250.0, @wallet.reload.cash
+      assert_equal 250, reward.amount # points == credits
+      assert_equal before + 250, @wallet.reload.cash
     end
 
     test "distance-based scoring without a perfect podium" do
-      # VER P2 (off by 1 -> 15), NOR P1 (off by 1 -> 15), LEC P3 (exact -> 25), PIA P10 (off by 6 -> 0)
+      # VER P2 (off by 1 -> 30), NOR P1 (off by 1 -> 30), LEC P3 (exact -> 50), PIA P10 (off by 6 -> 0)
       make_pick(drivers(:verstappen) => 2, drivers(:norris) => 1,
                 drivers(:leclerc) => 3, drivers(:piastri) => 10)
 
       Fantasy::ScoreRacePicks.new(race: @race).call
 
-      assert_equal 55, RacePick.find_by(user: @user, race: @race).score
-      assert_equal 110.0, @stock.transactions.find_by(race: @race, kind: "pick_reward").amount
+      assert_equal 110, RacePick.find_by(user: @user, race: @race).score
+      assert_equal 110, @stock.transactions.find_by(race: @race, kind: "pick_reward").amount
     end
 
     test "is idempotent — re-running does not double-pay" do
@@ -71,6 +71,47 @@ module Fantasy
 
       assert_nothing_raised { Fantasy::ScoreRacePicks.new(race: @race).call }
       assert_nil RacePick.find_by(user: @user, race: @race).score
+    end
+
+    # ── breakdown (shared by the settler and the scorecard view) ──
+
+    test "breakdown returns per-driver rows, exact count, podium bonus and total" do
+      placed = [
+        { "driver_id" => drivers(:verstappen).id, "position" => 1 }, # exact
+        { "driver_id" => drivers(:norris).id,     "position" => 3 }, # actual P2 -> off by 1
+        { "driver_id" => drivers(:leclerc).id,    "position" => 3 }, # exact
+      ]
+      finish = { drivers(:verstappen).id => 1, drivers(:norris).id => 2, drivers(:leclerc).id => 3 }
+
+      b = Fantasy::ScoreRacePicks.breakdown(placed, finish)
+
+      assert_equal [50, 30, 50], b[:rows].map(&:points)
+      assert_equal [true, false, true], b[:rows].map(&:hit?)
+      assert_equal 2, b[:exact]
+      assert_equal 0, b[:podium_bonus] # NOR wrong -> podium not perfect
+      assert_equal 130, b[:total]
+    end
+
+    test "breakdown awards the podium bonus only for an exact P1-P2-P3" do
+      placed = [
+        { "driver_id" => drivers(:verstappen).id, "position" => 1 },
+        { "driver_id" => drivers(:norris).id,     "position" => 2 },
+        { "driver_id" => drivers(:leclerc).id,    "position" => 3 },
+      ]
+      finish = { drivers(:verstappen).id => 1, drivers(:norris).id => 2, drivers(:leclerc).id => 3 }
+
+      b = Fantasy::ScoreRacePicks.breakdown(placed, finish)
+      assert_equal 50, b[:podium_bonus]
+      assert_equal 200, b[:total] # 50*3 + 50 bonus
+    end
+
+    test "breakdown marks an unraced pick as a miss with nil actual" do
+      placed = [{ "driver_id" => drivers(:verstappen).id, "position" => 1 }]
+      b = Fantasy::ScoreRacePicks.breakdown(placed, {})
+
+      assert_nil b[:rows].first.actual
+      assert_equal 0, b[:rows].first.points
+      assert_equal 0, b[:total]
     end
   end
 end

@@ -41,6 +41,22 @@ class FantasyPortfoliosController < ApplicationController
                           .includes(race: [:circuit, :season])
                           .order("races.round DESC")
 
+    # Per-pick scorecard summary (total + exact hits) for picks whose race has
+    # results. Computed from results via the same breakdown the settler uses, so
+    # the profile summary always matches the scorecard page.
+    scored_race_ids = @race_picks.select { |rp| rp.race.has_results? }.map(&:race_id)
+    @pick_summaries = {}
+    if scored_race_ids.any?
+      finishes = RaceResult.where(race_id: scored_race_ids).where.not(position_order: nil)
+                           .pluck(:race_id, :driver_id, :position_order)
+                           .group_by(&:first)
+                           .transform_values { |rows| rows.to_h { |r| [r[1], r[2]] } }
+      @race_picks.each do |rp|
+        next unless finishes.key?(rp.race_id)
+        @pick_summaries[rp.id] = Fantasy::ScoreRacePicks.breakdown(rp.placed_drivers, finishes[rp.race_id])
+      end
+    end
+
     @predictions = Prediction.where(user: @user)
                              .joins(race: :season)
                              .where(seasons: { year: @season.year })

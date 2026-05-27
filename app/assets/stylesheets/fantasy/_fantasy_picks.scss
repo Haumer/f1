@@ -494,6 +494,193 @@
     }
 }
 
+// ═══════════════════════════════════════
+// PICKS SCORECARD (how a past pick scored)
+// ═══════════════════════════════════════
+
+.scorecard-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-md;
+    padding: 20px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    margin-bottom: $space-md;
+}
+
+.scorecard-summary-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.scorecard-summary-value {
+    font-family: $mono-font;
+    font-size: 40px;
+    font-weight: $weight-bold;
+    line-height: 1;
+    color: $green;
+}
+
+.scorecard-summary-label {
+    font-size: 14px;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.scorecard-summary-stats {
+    display: flex;
+    gap: $space-lg;
+}
+
+.scorecard-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.scorecard-stat-num {
+    font-family: $mono-font;
+    font-size: 22px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+
+    &.scorecard-stat-bonus { color: $gold; }
+}
+
+.scorecard-stat-lbl {
+    font-size: 11px;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.scorecard-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: $space-md;
+}
+
+.scorecard-legend-item {
+    font-size: 11px;
+    font-weight: $weight-semi;
+    padding: 3px 10px;
+    border-radius: 12px;
+
+    &.scorecard-exact { background: rgba($green, 0.15); color: $green; }
+    &.scorecard-close { background: rgba($green, 0.08); color: lighten($green, 8%); }
+    &.scorecard-near  { background: rgba($gold, 0.12);  color: $gold; }
+    &.scorecard-miss  { background: rgba(255, 255, 255, 0.04); color: $text-tertiary; }
+}
+
+.scorecard-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.scorecard-row {
+    cursor: default;
+
+    &:active { cursor: default; }
+
+    // Accuracy tint layered over the constructor-coloured left border.
+    &.scorecard-exact { background: rgba($green, 0.06); }
+    &.scorecard-close { background: rgba($green, 0.03); }
+    &.scorecard-near  { background: rgba($gold, 0.04); }
+}
+
+.scorecard-photo {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    background: $bg-surface;
+    flex-shrink: 0;
+}
+
+.scorecard-finish {
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-semi;
+    color: $text-secondary;
+    white-space: nowrap;
+
+    i { font-size: 11px; opacity: 0.5; margin-right: 3px; }
+}
+
+.scorecard-points {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    font-size: 14px;
+    min-width: 42px;
+    text-align: right;
+    flex-shrink: 0;
+
+    &.scorecard-points-exact { color: $green; }
+    &.scorecard-points-close { color: lighten($green, 8%); }
+    &.scorecard-points-near  { color: $gold; }
+    &.scorecard-points-miss  { color: $text-tertiary; }
+}
+
+// Past-pick summary row on the profile (links into the scorecard)
+.picks-result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-sm;
+    text-decoration: none;
+    color: $text-primary;
+    transition: border-color $t-fast, background $t-fast;
+
+    &:not(.picks-result-row-static):hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: $bg-card-elevated;
+        text-decoration: none;
+        color: $text-primary;
+    }
+}
+
+.picks-result-race {
+    font-weight: $weight-semi;
+    font-size: 14px;
+}
+
+.picks-result-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+
+    i { font-size: 11px; color: $text-tertiary; }
+}
+
+.picks-result-pts {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    color: $green;
+}
+
+.picks-result-exact {
+    color: $text-secondary;
+}
+
+.picks-result-pending {
+    color: $text-tertiary;
+    font-style: italic;
+}
+
 .pick-slot-remove {
     background: none;
     border: none;

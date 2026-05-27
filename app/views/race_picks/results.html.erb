@@ -1,0 +1,81 @@
+<% content_for(:title) { "#{@user.display_name}'s Picks — #{@race.circuit.name}" } %>
+<% content_for(:description) { "How #{@user.display_name}'s race-position picks scored at the #{@race.circuit.name}." } %>
+<div class="page-container">
+    <div class="picks-header">
+        <div>
+            <h2><i class="fa-solid fa-hand-pointer" style="opacity:0.5; font-size:18px"></i> <%= @user.display_name %>'s Picks</h2>
+            <p class="picks-subtitle">
+                <%= @race.circuit.name %> · Round <%= @race.round %>
+                <% if @race.date %> · <%= @race.date.strftime("%b %d, %Y") %><% end %>
+            </p>
+        </div>
+        <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+            <i class="fa-solid fa-arrow-left"></i> Profile
+        <% end %>
+    </div>
+
+    <%# ═══════ Score summary ═══════ %>
+    <div class="scorecard-summary">
+        <div class="scorecard-summary-main">
+            <span class="scorecard-summary-value"><%= @breakdown[:total] %></span>
+            <span class="scorecard-summary-label">points</span>
+        </div>
+        <div class="scorecard-summary-stats">
+            <div class="scorecard-stat">
+                <span class="scorecard-stat-num"><%= @breakdown[:exact] %></span>
+                <span class="scorecard-stat-lbl">exact hits</span>
+            </div>
+            <% if @breakdown[:podium_bonus] > 0 %>
+                <div class="scorecard-stat">
+                    <span class="scorecard-stat-num scorecard-stat-bonus">+<%= @breakdown[:podium_bonus] %></span>
+                    <span class="scorecard-stat-lbl">podium bonus</span>
+                </div>
+            <% end %>
+        </div>
+    </div>
+
+    <%# ═══════ Scoring legend ═══════ %>
+    <div class="scorecard-legend">
+        <span class="scorecard-legend-item scorecard-exact">Exact +50</span>
+        <span class="scorecard-legend-item scorecard-close">±1 +30</span>
+        <span class="scorecard-legend-item scorecard-near">±2 +20 · ±3 +10</span>
+        <span class="scorecard-legend-item scorecard-miss">Miss 0</span>
+    </div>
+
+    <%# ═══════ Ranked picks, annotated ═══════ %>
+    <div class="scorecard-rows">
+        <% @breakdown[:rows].each do |row| %>
+            <% driver = @drivers_by_id[row.driver_id] %>
+            <% next unless driver %>
+            <% constructor = @constructors_by_driver[row.driver_id] %>
+            <% color = constructor_color(constructor) %>
+            <%
+                accuracy = if row.actual.nil?
+                    "miss"
+                else
+                    case (row.actual - row.predicted).abs
+                    when 0 then "exact"
+                    when 1 then "close"
+                    when 2, 3 then "near"
+                    else "miss"
+                    end
+                end
+            %>
+            <div class="pick-slot-filled scorecard-row scorecard-<%= accuracy %>" style="--constructor-color: <%= color %>">
+                <span class="pick-slot-pos">P<%= row.predicted %></span>
+                <% if driver.display_image_url.present? %>
+                    <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" class="scorecard-photo" onerror="this.style.display='none'">
+                <% end %>
+                <span class="pick-slot-name"><%= driver.surname %></span>
+                <span class="pick-slot-team"><%= constructor&.name %></span>
+                <span class="scorecard-finish">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <%= row.actual ? "P#{row.actual}" : "—" %>
+                </span>
+                <span class="scorecard-points scorecard-points-<%= accuracy %>">
+                    <%= row.points.positive? ? "+#{row.points}" : "0" %>
+                </span>
+            </div>
+        <% end %>
+    </div>
+</div>
