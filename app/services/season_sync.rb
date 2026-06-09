@@ -22,16 +22,29 @@ class SeasonSync
     def self.stale?
         season = Season.find_by(year: Date.current.year.to_s)
         return true unless season
-
-        # Race results missing for finished races
-        races_needing_update = season.races
-                                          .where(race_likely_finished_condition)
-                                          .left_joins(:race_results)
-                                          .where(race_results: { id: nil })
-        return true if races_needing_update.exists?
-
-        # Session data (qualifying/sprint) missing for current weekend
+        return true if races_needing_update(season).any?
         session_data_stale?(season)
+    end
+
+    # Races that should be synced: zero results, OR partial results within the
+    # retry window. The retry window is what prevents a partial publish (sync
+    # ran while a source was mid-publish) from being permanently frozen as the
+    # truth — the bug we hit at R6 Monaco 2026.
+    PARTIAL_RETRY_WINDOW = 14.days
+
+    def self.races_needing_update(season)
+        expected = expected_driver_count(season)
+        season.races.where(race_likely_finished_condition).select do |race|
+            stored = race.race_results.count
+            stored.zero? || (stored < expected && race.date >= PARTIAL_RETRY_WINDOW.ago.to_date)
+        end
+    end
+
+    # Source of truth for "how many drivers should the result set have."
+    # The 14-day retry window is what bounds repeated fetches if this number
+    # is ever wrong (e.g. SeasonDriver out of sync) — we don't need a floor.
+    def self.expected_driver_count(season)
+        SeasonDriver.where(season: season, active: true).count
     end
 
     # Light check — only sync if stale, with cooldown to avoid hammering the API
@@ -87,17 +100,13 @@ class SeasonSync
     end
 
     def update_race_results(season)
-        races_to_update = season.races
-                                      .where(self.class.race_likely_finished_condition)
-                                      .left_joins(:race_results)
-                                      .where(race_results: { id: nil })
-                                      .order(round: :asc)
+        expected = self.class.expected_driver_count(season)
+        races = self.class.races_needing_update(season).sort_by(&:round)
 
-        races_to_update.each do |race|
-            # No external "is it finished?" gate: UpdateRaceResult only writes
-            # when a source (Jolpica, then Wikipedia) actually has a full result
-            # set, so an unfinished/unpublished race is simply a no-op we retry.
-            puts "Updating results for Round #{race.round} (#{race.date})..."
+        races.each do |race|
+            stored = race.race_results.count
+            action = stored.zero? ? "Fetching" : "Re-fetching partial (#{stored}/#{expected})"
+            puts "#{action} results for Round #{race.round} (#{race.date})..."
             UpdateRaceResult.new(race: race).update_all
             sleep 1 # Be polite to the API
         end

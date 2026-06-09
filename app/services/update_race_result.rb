@@ -23,6 +23,7 @@ class UpdateRaceResult
     def update_all
         if has_jolpica_results?
             puts "Using Jolpica API for #{@race.year}/#{@race.round}"
+            maybe_reset_for_resync
             self.results
             if @race.sprint?
                 UpdateSprintResult.new(race: @race).update_all
@@ -134,6 +135,24 @@ class UpdateRaceResult
     end
 
     private
+
+    # When the incoming Jolpica result set differs from what we already stored,
+    # tear down every piece of derived state for this race before re-writing.
+    # Without this the Elo / dividend / pick_reward idempotency guards would
+    # skip recomputation and leave the wrong values in place.
+    def maybe_reset_for_resync
+        races = @results_data.dig('MRData', 'RaceTable', 'Races')
+        incoming = races&.first&.dig('Results')&.size || 0
+        existing = RaceResult.unscoped.where(race: @race).count
+        return if existing.zero?
+        return if existing == incoming
+
+        Rails.logger.warn(
+            "[UpdateRaceResult] R#{@race.round} #{@race.year}: stored=#{existing} -> incoming=#{incoming}; resetting derived state"
+        )
+        puts "  re-sync detected (#{existing} -> #{incoming}); resetting derived state"
+        ResetRaceState.new(race: @race).call
+    end
 
     def has_jolpica_results?
         return false unless @results_data
