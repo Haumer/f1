@@ -3,6 +3,13 @@ class StatsController < ApplicationController
     set_current_champion_accent
   end
 
+  def title_chase
+    @seasons = Season.order(year: :desc).select { |s| s.races.joins(:driver_standings).exists? }
+    requested = params[:season_year].presence
+    @season = (@seasons.find { |s| s.year.to_s == requested.to_s }) || @seasons.first
+    @chase = Stats::TitleChase.new(season: @season).call
+  end
+
   def elo_milestones
     new_elo_col = Setting.elo_column(:new_elo)
     old_elo_col = Setting.elo_column(:old_elo)

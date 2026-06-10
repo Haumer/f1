@@ -66,6 +66,7 @@ Rails.application.routes.draw do
   get 'stats/fan_standings', to: 'stats#fan_standings', as: :fan_standings
   get 'stats/race_wins', to: 'stats#race_wins', as: :race_wins
   get 'stats/champion_timeline', to: 'stats#champion_timeline', as: :champion_timeline
+  get 'stats/title_chase(/:season_year)', to: 'stats#title_chase', as: :title_chase
 
   # Fantasy user pages (must be before resources to avoid :id conflicts)
   get  'fantasy/u/:username',         to: 'fantasy_portfolios#overview',  as: :fantasy_overview

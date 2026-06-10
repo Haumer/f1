@@ -1,0 +1,165 @@
+<% content_for(:title) { "Title Chase — #{@season&.year}" } %>
+<% content_for(:description) { "Magic numbers, alive vs eliminated drivers, and what each challenger needs to overtake the leader in the F1 #{@season&.year} World Drivers' Championship." } %>
+
+<div class="homepage-container">
+    <div class="page-back-link">
+        <%= link_to stats_path do %>
+            <i class="fa-solid fa-arrow-left"></i> Stats
+        <% end %>
+    </div>
+
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><i class="fa-solid fa-trophy" style="color: #f0c850;"></i> <%= @season&.year %> Drivers' Championship</span>
+            <h1 class="page-hero-title">Title Chase</h1>
+            <p class="page-hero-meta">
+                <% if @chase[:remaining_races] %>
+                    <%= @chase[:remaining_races] %> race<%= 's' unless @chase[:remaining_races] == 1 %> remaining
+                    <% if @chase[:remaining_sprints]&.positive? %>· <%= @chase[:remaining_sprints] %> sprint<%= 's' unless @chase[:remaining_sprints] == 1 %><% end %>
+                <% end %>
+            </p>
+        </div>
+    </div>
+
+    <%# Season picker %>
+    <% if @seasons.size > 1 %>
+        <div class="title-chase-season-row">
+            <%= form_with url: title_chase_path, method: :get, local: true, class: "title-chase-season-form" do %>
+                <label for="season_year">Season</label>
+                <%= select_tag :season_year,
+                        options_for_select(@seasons.map { |s| [s.year, s.year] }, @season.year),
+                        onchange: "this.form.submit()" %>
+            <% end %>
+        </div>
+    <% end %>
+
+    <% if @chase[:message] %>
+        <div class="card" style="padding: 24px; text-align: center;">
+            <%= @chase[:message] %>
+        </div>
+    <% else %>
+        <%# Hero card: leader + magic / clinched %>
+        <div class="card title-chase-hero">
+            <% if @chase[:clinched] %>
+                <div class="title-chase-hero-row">
+                    <div>
+                        <div class="title-chase-hero-label">Champion</div>
+                        <div class="title-chase-hero-name"><%= link_to "#{@chase[:leader].forename.first}. #{@chase[:leader].surname}", driver_path(@chase[:leader]) %></div>
+                        <div class="title-chase-hero-sub"><%= @chase[:leader_points].to_i %> pts</div>
+                    </div>
+                    <% if @chase[:clinch] %>
+                        <div>
+                            <div class="title-chase-hero-label">Clinched</div>
+                            <div class="title-chase-hero-name">Round <%= @chase[:clinch][:round] %></div>
+                            <div class="title-chase-hero-sub">
+                                <%= @chase[:clinch][:race].circuit.name %>
+                                · <%= @chase[:clinch][:races_left] %> race<%= 's' unless @chase[:clinch][:races_left] == 1 %> left
+                            </div>
+                        </div>
+                        <div>
+                            <div class="title-chase-hero-label">Margin</div>
+                            <div class="title-chase-hero-name">+<%= @chase[:clinch][:margin].to_i %></div>
+                            <div class="title-chase-hero-sub">ahead of <%= @chase[:clinch][:runner_up].surname %></div>
+                        </div>
+                    <% end %>
+                </div>
+            <% else %>
+                <div class="title-chase-hero-row">
+                    <div>
+                        <div class="title-chase-hero-label">Leader</div>
+                        <div class="title-chase-hero-name"><%= link_to "#{@chase[:leader].forename.first}. #{@chase[:leader].surname}", driver_path(@chase[:leader]) %></div>
+                        <div class="title-chase-hero-sub"><%= @chase[:leader_points].to_i %> pts</div>
+                    </div>
+                    <div>
+                        <div class="title-chase-hero-label">Magic Number</div>
+                        <div class="title-chase-hero-name"><%= @chase[:magic_number] %></div>
+                        <div class="title-chase-hero-sub">net pts to clinch</div>
+                    </div>
+                    <div>
+                        <div class="title-chase-hero-label">Max per round</div>
+                        <div class="title-chase-hero-name"><%= @chase[:race_win] + @chase[:sprint_win] %></div>
+                        <div class="title-chase-hero-sub">
+                            <%= @chase[:race_win] %> race
+                            <% if @chase[:sprint_win].positive? %>+ <%= @chase[:sprint_win] %> sprint<% end %>
+                        </div>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+
+        <%# Standings: alive vs eliminated %>
+        <div class="table-header" style="margin-top: 16px;">
+            <h4><i class="fa-solid fa-list-ol" style="margin-right: 6px;"></i> Standings — alive vs eliminated</h4>
+        </div>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+            <table class="current-driver-standings compact">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>Driver</th>
+                        <th class="text-right">Pts</th>
+                        <th class="text-right d-none d-sm-table-cell">Max</th>
+                        <th class="text-right d-none d-sm-table-cell">Behind</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @chase[:rows].each do |r| %>
+                        <tr class="title-chase-row title-chase-<%= r.status %>">
+                            <td class="text-center"><%= r.position %></td>
+                            <td><%= link_to "#{r.driver.forename.first}. #{r.driver.surname}", driver_path(r.driver) %></td>
+                            <td class="text-right"><%= r.current.to_i %></td>
+                            <td class="text-right d-none d-sm-table-cell"><%= r.max_possible.to_i %></td>
+                            <td class="text-right d-none d-sm-table-cell"><%= r.behind.zero? ? '—' : r.behind.to_i %></td>
+                            <td class="text-center">
+                                <% case r.status
+                                   when :leader %>
+                                    <span class="title-chase-badge title-chase-badge-leader"><%= @chase[:clinched] ? 'Champion' : 'Leader' %></span>
+                                <% when :alive %>
+                                    <span class="title-chase-badge title-chase-badge-alive">Alive</span>
+                                <% when :eliminated %>
+                                    <span class="title-chase-badge title-chase-badge-eliminated">Eliminated</span>
+                                <% end %>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <%# Elimination matrix — alive challengers' required pace %>
+        <% if @chase[:matrix].any? %>
+            <div class="table-header" style="margin-top: 16px;">
+                <h4><i class="fa-solid fa-route" style="margin-right: 6px;"></i> What each challenger needs</h4>
+            </div>
+            <div class="card card-flush">
+                <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th>Driver</th>
+                            <th class="text-right" title="Pts/race needed if leader maxes every remaining race">If <%= @chase[:leader].surname %> maxes</th>
+                            <th class="text-right d-none d-sm-table-cell" title="Pts/race needed if leader keeps current pace">If leader holds pace</th>
+                            <th class="text-right d-none d-sm-table-cell" title="Pts/race needed if leader scores zero rest of season">If leader scores 0</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @chase[:matrix].each do |m| %>
+                            <tr>
+                                <td><%= link_to "#{m.driver.forename.first}. #{m.driver.surname}", driver_path(m.driver) %></td>
+                                <td class="text-right"><%= number_with_precision(m.need_if_leader_max, precision: 1) %></td>
+                                <td class="text-right d-none d-sm-table-cell"><%= number_with_precision(m.need_if_leader_avg, precision: 1) %></td>
+                                <td class="text-right d-none d-sm-table-cell"><%= number_with_precision(m.need_if_leader_zero, precision: 1) %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            <span class="data-source">Avg points per remaining race the challenger needs to overtake. Max per race = <%= @chase[:race_win] + @chase[:sprint_win] %>.</span>
+        <% end %>
+    <% end %>
+</div>
