@@ -161,52 +161,8 @@ class UpdateRaceResult
     end
 
     def create_standings_from_results
-        # Build cumulative standings from all race results in the season so far
-        season = @race.season
-        # Include races with either race results or sprint results
-        completed_races = season.races
-            .left_joins(:race_results)
-            .joins("LEFT JOIN race_results sprint_rr ON sprint_rr.race_id = races.id AND sprint_rr.result_type = 'sprint'")
-            .where("races.round <= ?", @race.round)
-            .where("race_results.id IS NOT NULL OR sprint_rr.id IS NOT NULL")
-            .distinct
-            .order(:round)
-
-        cumulative_points = Hash.new(0.0)
-        cumulative_wins = Hash.new(0)
-        # Countback: track race finish positions for tiebreaking (P1, P2, ..., P20)
-        position_counts = Hash.new { |h, k| h[k] = Hash.new(0) }
-
-        completed_races.each do |r|
-            # Main race results (points + wins + position countback)
-            RaceResult.where(race: r).each do |rr|
-                cumulative_points[rr.driver_id] += rr.points.to_f
-                cumulative_wins[rr.driver_id] += 1 if rr.position_order == 1
-                position_counts[rr.driver_id][rr.position_order] += 1 if rr.position_order.present?
-            end
-            # Sprint results (points only, no wins or countback)
-            RaceResult.sprint.where(race: r).each do |rr|
-                cumulative_points[rr.driver_id] += rr.points.to_f
-            end
-        end
-
-        # Sort by points desc, then countback: most P1s, most P2s, most P3s, etc.
-        sorted = cumulative_points.sort_by do |did, pts|
-            countback = (1..20).map { |pos| -position_counts[did][pos] }
-            [-pts, *countback]
-        end
-
-        sorted.each_with_index do |(driver_id, points), idx|
-            ds = DriverStanding.find_or_initialize_by(race: @race, driver_id: driver_id)
-            ds.update!(
-                position: idx + 1,
-                points: points,
-                wins: cumulative_wins[driver_id]
-            )
-            UpdateDriverStanding.new(driver: Driver.find(driver_id), season: season).update
-        end
-
-        puts "Created #{sorted.size} driver standings"
+        size = ComputeSeasonStandings.new(race: @race).call
+        puts "Created #{size} driver standings"
     end
 
     def create_results_from_wikipedia(wiki_results)

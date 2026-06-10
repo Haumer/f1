@@ -11,6 +11,7 @@ class DriversController < ApplicationController
     @season_2nd_place_finishes = @driver.driver_standings.select { |ds| ds.position == 2 && ds.season_end }.sort_by { |ds| ds.race.date }
     @season_3rd_place_finishes = @driver.driver_standings.select { |ds| ds.position == 3 && ds.season_end }.sort_by { |ds| ds.race.date }
     @race_result_counts = @driver.race_results.group(:position_order).count
+    @race_results_desc = @driver.race_results.sort_by { |r| r.race.date }.reverse
 
     # Elo ranking context (version-aware, using safe column names)
     peak = @driver.display_peak_elo

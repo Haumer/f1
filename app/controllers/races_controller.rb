@@ -145,12 +145,7 @@ class RacesController < ApplicationController
     @drivers = Driver.where("podiums > 0").includes(:countries).order(podiums: :desc).limit(50)
   end
 
-  CHAMPION_ERAS = {
-    "Pioneers"      => 1950..1969,
-    "Ground Effect"  => 1970..1989,
-    "Modern"        => 1990..2009,
-    "Hybrid"        => 2010..2099
-  }.freeze
+  CHAMPION_ERAS = Championship::ERAS
 
   def winners
     standings = Driver.champion_standings.to_a

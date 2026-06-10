@@ -36,12 +36,7 @@ class StatsController < ApplicationController
     @fastest_risers = compute_fastest_risers(new_elo_col, old_elo_col)
   end
 
-  ERAS = {
-    "Pioneers"     => 1950..1969,
-    "Ground Effect" => 1970..1989,
-    "Modern"       => 1990..2009,
-    "Hybrid"       => 2010..2099
-  }.freeze
+  ERAS = Championship::ERAS
 
   def champion_timeline
     standings = Driver.champion_standings.to_a
