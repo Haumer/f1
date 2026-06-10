@@ -49,4 +49,38 @@ class ResetRaceStateTest < ActiveSupport::TestCase
     assert_equal 0, DriverStanding.where(race: @race).count
     assert_nil pick.reload.score
   end
+
+  test "prunes orphan SeasonDriver rows minted by a bad sync but keeps backed ones" do
+    # Simulate the R6 Monaco bug: a partial Jolpica response stamped a wrong
+    # (driver, constructor) tuple on bahrain_2026, creating a stray SeasonDriver
+    # row that has no race_result backing it. Add a second race in the same
+    # season (melbourne_2026) where Verstappen still races for Red Bull, so the
+    # legit Red Bull SeasonDriver row stays backed after bahrain is wiped.
+    melbourne = races(:melbourne_2026)
+    RaceResult.create!(race: melbourne, driver: @verstappen, constructor: @red_bull,
+                       status: statuses(:finished), position: 1, position_order: 1,
+                       points: 25, laps: 58)
+
+    ferrari = constructors(:ferrari)
+    orphan = SeasonDriver.create!(season: @race.season, driver: @verstappen,
+                                  constructor: ferrari, active: true)
+    legit = season_drivers(:verstappen_2026)  # driver: verstappen, constructor: red_bull
+
+    ResetRaceState.new(race: @race).call
+
+    assert_nil SeasonDriver.find_by(id: orphan.id), "orphan (verstappen/Ferrari) is removed"
+    assert SeasonDriver.find_by(id: legit.id), "legit (verstappen/Red Bull) survives — still backed by Melbourne"
+  end
+
+  test "removes all SeasonDriver rows for an affected driver when nothing remains backed" do
+    # Verstappen's only 2026 race is bahrain. After wiping bahrain, no
+    # constructor pairing is backed for him this season — prune everything.
+    # Re-sync would recreate the legit row from the next Jolpica fetch.
+    legit_id = season_drivers(:verstappen_2026).id
+
+    ResetRaceState.new(race: @race).call
+
+    assert_nil SeasonDriver.find_by(id: legit_id)
+    assert_equal 0, SeasonDriver.where(season: @race.season, driver: @verstappen).count
+  end
 end
