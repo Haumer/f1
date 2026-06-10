@@ -222,7 +222,7 @@
                 </thead>
                 <tbody>
                     <% previous_year = nil %>
-                    <% @driver.race_results.sort_by { |r| r.race.date }.reverse.each do |race_result| %>
+                    <% @race_results_desc.each do |race_result| %>
                         <% current_year = race_result.race.date.year %>
                         <% if current_year != previous_year %>
                             <tr class="season-divider">

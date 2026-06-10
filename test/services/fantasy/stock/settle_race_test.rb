@@ -10,31 +10,37 @@ class Fantasy::Stock::SettleRaceTest < ActiveSupport::TestCase
     @portfolio.holdings.update_all(created_at: @race.date - 1.day)
   end
 
-  test "creates snapshot for each portfolio" do
+  test "creates snapshot with cash=0 and positive positions value" do
     Fantasy::Stock::SettleRace.new(race: @race).call
 
     snap = FantasyStockSnapshot.find_by(fantasy_stock_portfolio: @portfolio, race: @race)
-    assert snap
-    assert snap.value.present?
-    assert snap.cash.present?
+    assert snap, "snapshot row written"
+    assert_equal 0, snap.cash, "stock snapshots always store cash=0; cash lives on the wallet"
+    assert snap.value.positive?, "codex portfolio holds longs in finishing positions; value must be > 0"
   end
 
-  test "pays dividends to long holders based on race result position" do
+  test "dividend tx amount equals price * quantity for the long holder" do
     Fantasy::Stock::SettleRace.new(race: @race).call
-
-    @portfolio.reload
 
     tx = @portfolio.transactions.find_by(kind: "dividend", driver: drivers(:verstappen))
     assert tx, "Expected dividend transaction for verstappen"
-    assert tx.amount > 0, "Dividend should be positive"
+    assert tx.amount.positive?, "Dividend should be positive"
+    assert_in_delta tx.price * tx.quantity, tx.amount, 0.01,
+                    "amount should equal price * quantity (rounded)"
+    assert_equal @race.id, tx.race_id
   end
 
-  test "charges borrow fees for short holders" do
+  test "borrow fee charged does not exceed the formula bound" do
+    holding = fantasy_stock_holdings(:codex_nor_short)
+    expected_fee = holding.entry_price * Fantasy::Stock::SettleRace::BORROW_FEE_RATE * holding.quantity
+
     Fantasy::Stock::SettleRace.new(race: @race).call
 
     tx = @portfolio.transactions.find_by(kind: "borrow_fee", driver: drivers(:norris))
     assert tx, "Expected borrow fee transaction for norris short"
     assert tx.amount.negative?
+    # Fee can be clamped if wallet would go negative; otherwise it matches the formula.
+    assert tx.amount.abs <= expected_fee + 0.001, "fee shouldn't exceed formula upper bound"
   end
 
   test "is idempotent - skips already-settled portfolios" do
