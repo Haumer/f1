@@ -275,28 +275,28 @@ class ConstructorsController < ApplicationController
       return
     end
 
-    # Deactivate any current support
-    current_support = ConstructorSupport.current_for(current_user, season)
-    current_support&.update!(active: false, ended_at: Time.current)
+    ActiveRecord::Base.transaction do
+      current_user.lock!
 
-    # Create new support
-    support = ConstructorSupport.create!(
-      user: current_user,
-      constructor: constructor,
-      season: season
-    )
+      ConstructorSupport.current_for(current_user, season)&.update!(active: false, ended_at: Time.current)
 
-    # Grant cash bonus on first-ever pick this season (only if portfolio exists)
-    if !support.bonus_granted && current_user.constructor_supports.where(season: season, bonus_granted: true).none?
-      portfolio = current_user.fantasy_portfolio_for(season)
-      if portfolio
-        portfolio.update!(cash: portfolio.cash + ConstructorSupport::BONUS_CASH)
-        portfolio.transactions.create!(
-          kind: "bonus",
-          amount: ConstructorSupport::BONUS_CASH,
-          note: "Team allegiance bonus for supporting #{constructor.name}"
-        )
-        support.update!(bonus_granted: true)
+      support = ConstructorSupport.create!(
+        user: current_user,
+        constructor: constructor,
+        season: season
+      )
+
+      if current_user.constructor_supports.where(season: season, bonus_granted: true).none?
+        portfolio = current_user.fantasy_portfolio_for(season)
+        if portfolio
+          portfolio.update!(cash: portfolio.cash + ConstructorSupport::BONUS_CASH)
+          portfolio.transactions.create!(
+            kind: "bonus",
+            amount: ConstructorSupport::BONUS_CASH,
+            note: "Team allegiance bonus for supporting #{constructor.name}"
+          )
+          support.update!(bonus_granted: true)
+        end
       end
     end
 

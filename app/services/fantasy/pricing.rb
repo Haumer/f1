@@ -37,5 +37,17 @@ module Fantasy
       sd = SeasonDriver.find_by(driver_id: driver.id, season_id: season.id)
       base * demand_multiplier(sd&.net_demand || 0)
     end
+
+    # Bulk lookup for leaderboards: one query per season instead of one per holding.
+    def self.prices_for_season(driver_ids, season)
+      drivers = Driver.where(id: driver_ids).index_by(&:id)
+      demand = SeasonDriver.where(driver_id: driver_ids, season_id: season.id)
+                            .pluck(:driver_id, :net_demand).to_h
+      driver_ids.each_with_object({}) do |did, h|
+        d = drivers[did]
+        base = ((d&.elo_v2) || ROOKIE_PRICE) / FantasyStockPortfolio::PRICE_DIVISOR
+        h[did] = base * demand_multiplier(demand[did] || 0)
+      end
+    end
   end
 end

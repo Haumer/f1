@@ -44,14 +44,13 @@ class FantasyStockPortfolio < ApplicationRecord
   end
 
   # Positions-only value (no cash — cash lives in the wallet/roster portfolio)
-  def positions_value
+  # Pass `prices_by_driver_id` to skip per-holding price lookups (used by
+  # the leaderboard, which precomputes one bulk price map per season).
+  def positions_value(prices_by_driver_id = nil)
     active = holdings.loaded? ? holdings.select(&:active) : active_holdings.includes(:driver).to_a
-    longs_value = active.select { |h| h.direction == "long" }.sum do |h|
-      share_price(h.driver) * h.quantity
-    end
-    shorts_pnl = active.select { |h| h.direction == "short" }.sum do |h|
-      (h.entry_price - share_price(h.driver)) * h.quantity
-    end
+    price = ->(h) { prices_by_driver_id ? prices_by_driver_id[h.driver_id] : share_price(h.driver) }
+    longs_value = active.select { |h| h.direction == "long" }.sum { |h| price.call(h) * h.quantity }
+    shorts_pnl = active.select { |h| h.direction == "short" }.sum { |h| (h.entry_price - price.call(h)) * h.quantity }
     longs_value + shorts_pnl
   end
 
@@ -62,13 +61,13 @@ class FantasyStockPortfolio < ApplicationRecord
   end
 
   # Stock P&L = current positions value - total invested
-  def profit_loss
-    (positions_value - total_invested).round(2)
+  def profit_loss(prices_by_driver_id = nil)
+    (positions_value(prices_by_driver_id) - total_invested).round(2)
   end
 
   # For backward compat — portfolio_value now means positions only
-  def portfolio_value
-    positions_value
+  def portfolio_value(prices_by_driver_id = nil)
+    positions_value(prices_by_driver_id)
   end
 
   def can_trade?(race)

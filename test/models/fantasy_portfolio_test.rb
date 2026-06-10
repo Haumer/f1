@@ -63,7 +63,7 @@ class FantasyPortfolioTest < ActiveSupport::TestCase
 
   test "can_trade? returns true for future race" do
     race = races(:melbourne_2026)
-    if race.starts_at && race.starts_at > Time.current + 1.minute
+    travel_to((race.starts_at || race.date.beginning_of_day) - 2.minutes) do
       assert @portfolio.can_trade?(race)
     end
   end

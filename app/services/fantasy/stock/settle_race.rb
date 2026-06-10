@@ -33,6 +33,8 @@ module Fantasy
                        .each_with_index
                        .to_h { |id, idx| [id, idx + 1] }
 
+        preload_constructor_multipliers!
+
         portfolios.each do |portfolio|
           ActiveRecord::Base.transaction do
             # Lock both the stock portfolio and its wallet (roster portfolio)
@@ -205,29 +207,27 @@ module Fantasy
       end
 
       def constructor_multiplier(driver)
-        @constructor_mults ||= {}
-        return @constructor_mults[driver.id] if @constructor_mults.key?(driver.id)
+        @constructor_mults[driver.id] || multiplier_for_position(5)
+      end
 
-        standing_pos = nil
+      def preload_constructor_multipliers!
+        @constructor_mults = {}
         prev_season = @race.season.previous_season
-        if prev_season
-          # Find which constructor this driver races for this season
-          sd = SeasonDriver.find_by(driver_id: driver.id, season_id: @race.season_id)
-          if sd&.constructor_id
-            # Standings are per-race — get the last race of previous season
-            last_race = Race.where(season: prev_season).order(:round).last
-            if last_race
-              cs = ConstructorStanding.find_by(constructor_id: sd.constructor_id, race_id: last_race.id)
-              standing_pos = cs&.position
-            end
-          end
+        last_race = prev_season && Race.where(season: prev_season).order(:round).last
+        return unless last_race
+
+        sd_pairs = SeasonDriver.where(season_id: @race.season_id).pluck(:driver_id, :constructor_id)
+        cs_pos = ConstructorStanding.where(race_id: last_race.id)
+                                     .pluck(:constructor_id, :position).to_h
+        sd_pairs.each do |driver_id, constructor_id|
+          pos = cs_pos[constructor_id] || 5
+          @constructor_mults[driver_id] = multiplier_for_position(pos)
         end
+      end
 
-        # Default to midfield (position 5) if no data
-        standing_pos ||= 5
-        standing_pos = standing_pos.clamp(1, 10)
-
-        @constructor_mults[driver.id] = CONSTRUCTOR_MULT_MIN + (standing_pos - 1) * ((CONSTRUCTOR_MULT_MAX - CONSTRUCTOR_MULT_MIN) / 9.0)
+      def multiplier_for_position(pos)
+        clamped = pos.clamp(1, 10)
+        CONSTRUCTOR_MULT_MIN + (clamped - 1) * ((CONSTRUCTOR_MULT_MAX - CONSTRUCTOR_MULT_MIN) / 9.0)
       end
     end
   end

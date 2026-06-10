@@ -10,7 +10,6 @@ class ComputeBadgesJobTest < ActiveSupport::TestCase
   end
 
   test "perform executes without error" do
-    ComputeBadgesJob.new.perform
-    # If it runs without raising, it called DriverBadges.compute_all_drivers! successfully
+    assert_nothing_raised { ComputeBadgesJob.new.perform }
   end
 end
