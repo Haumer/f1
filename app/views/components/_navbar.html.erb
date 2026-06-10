@@ -69,6 +69,7 @@
                 <%= link_to "Race Wins & Podiums", race_wins_path, class: ("active" if current_page?(race_wins_path)), role: "menuitem" %>
                 <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
                 <%= link_to "Champion Timeline", champion_timeline_path, class: ("active" if current_page?(champion_timeline_path)), role: "menuitem" %>
+                <%= link_to "Title Chase", title_chase_path, class: ("active" if request.path.start_with?('/stats/title_chase')), role: "menuitem" %>
                 <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
                 <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>

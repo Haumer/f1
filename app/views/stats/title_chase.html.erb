@@ -88,6 +88,32 @@
             <% end %>
         </div>
 
+        <%# Cumulative-points chart — clinched seasons show gold marker at clinch round %>
+        <div class="table-header" style="margin-top: 16px;">
+            <h4><i class="fa-solid fa-chart-line" style="margin-right: 6px;"></i>
+                <%= @chase[:clinched] ? 'When the title was won' : 'Title race so far' %>
+            </h4>
+        </div>
+        <div class="card">
+            <%= custom_chart Graphs::ChampionshipRace.new(season: @season, clinch_round: @chase.dig(:clinch, :round)).data %>
+        </div>
+        <span class="data-source">
+            Top 5 by <%= @chase[:clinched] ? 'final' : 'current' %> standings
+            <% if @chase[:clinched] %>· gold marker = mathematical clinch<% end %>
+        </span>
+
+        <%# Gap-to-leader chart — only meaningful with ≥2 top drivers having ≥1 race %>
+        <% gap_data = Graphs::GapToLeader.new(season: @season).data %>
+        <% if gap_data.any? %>
+            <div class="table-header" style="margin-top: 16px;">
+                <h4><i class="fa-solid fa-arrows-left-right-to-line" style="margin-right: 6px;"></i> Gap to leader, race by race</h4>
+            </div>
+            <div class="card">
+                <%= custom_chart gap_data %>
+            </div>
+            <span class="data-source">Each line = points behind <%= @chase[:leader].surname %> after that round. Closer to top = closer in the title race.</span>
+        <% end %>
+
         <%# Standings: alive vs eliminated %>
         <div class="table-header" style="margin-top: 16px;">
             <h4><i class="fa-solid fa-list-ol" style="margin-right: 6px;"></i> Standings — alive vs eliminated</h4>
