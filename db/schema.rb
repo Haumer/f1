@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_05_24_223000) do
+ActiveRecord::Schema[7.0].define(version: 2026_06_10_234000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -431,6 +431,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_05_24_223000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["driver_id"], name: "index_fantasy_stock_transactions_on_driver_id"
+    t.index ["fantasy_stock_portfolio_id", "kind"], name: "idx_stock_txns_portfolio_kind"
     t.index ["fantasy_stock_portfolio_id", "race_id", "kind"], name: "idx_stock_txns_portfolio_race_kind"
     t.index ["fantasy_stock_portfolio_id"], name: "index_fantasy_stock_transactions_on_fantasy_stock_portfolio_id"
     t.index ["race_id"], name: "index_fantasy_stock_transactions_on_race_id"
@@ -588,6 +589,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_05_24_223000) do
     t.integer "net_demand", default: 0, null: false
     t.index ["constructor_id"], name: "index_season_drivers_on_constructor_id"
     t.index ["driver_id"], name: "index_season_drivers_on_driver_id"
+    t.index ["season_id", "constructor_id"], name: "idx_season_drivers_season_constructor"
     t.index ["season_id", "driver_id"], name: "index_season_drivers_on_season_id_and_driver_id"
     t.index ["season_id"], name: "index_season_drivers_on_season_id"
   end

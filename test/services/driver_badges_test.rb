@@ -45,9 +45,7 @@ class DriverBadgesTest < ActiveSupport::TestCase
     DriverBadges.assign_tiers!
 
     tiers = DriverBadge.where.not(tier: nil).pluck(:tier).uniq
-    tiers.each do |tier|
-      assert_includes %w[gold silver bronze], tier
-    end
+    assert(tiers.all? { |t| %w[gold silver bronze].include?(t) }, "tier values must be gold/silver/bronze")
   end
 
   # ── Race Badges ──
