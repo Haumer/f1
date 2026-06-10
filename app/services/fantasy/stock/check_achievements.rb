@@ -69,7 +69,13 @@ module Fantasy
       end
 
       def check_leaderboard_rank(max_rank)
-        latest_snapshot = @portfolio.snapshots.order(created_at: :desc).first
+        # Order by race progression (round) rather than created_at — fixtures
+        # and bulk-snapshot jobs can give multiple rows the same created_at,
+        # which makes the "latest" snapshot non-deterministic across queries.
+        latest_snapshot = @portfolio.snapshots
+                                    .joins(:race)
+                                    .order("races.round DESC, fantasy_stock_snapshots.id DESC")
+                                    .first
         return false unless latest_snapshot&.rank
         latest_snapshot.rank <= max_rank
       end
