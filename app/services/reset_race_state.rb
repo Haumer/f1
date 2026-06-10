@@ -10,6 +10,10 @@
 #       (dividend/borrow_fee/liquidation/pick_reward), stock_price_snapshots,
 #       fantasy_snapshots for the race
 #   * Nulls RacePick.score for the race
+#   * Prunes orphan SeasonDriver rows whose (driver, constructor) tuple is no
+#     longer backed by any race_result this season. A partial sync can mint
+#     wrong tuples (R6 2026 stamped piastri/Ferrari for the duration of one
+#     bad fetch) and the rows survive re-sync without this step.
 #
 # Wallet cash is rebuilt on next ReplayTransactions run (which is what
 # PostRaceSyncJob does after re-sync).
@@ -55,11 +59,30 @@ class ResetRaceState
     end
 
     def wipe_derived_state
+        affected_driver_ids = RaceResult.unscoped.where(race: @race).pluck(:driver_id).uniq
+
         RaceResult.unscoped.where(race: @race).delete_all
         DriverStanding.where(race: @race).delete_all
         FantasyStockTransaction.where(race: @race, kind: DELETABLE_STOCK_TXN_KINDS).delete_all
         StockPriceSnapshot.where(race: @race).delete_all if defined?(StockPriceSnapshot)
         FantasySnapshot.where(race: @race).delete_all if defined?(FantasySnapshot)
         RacePick.where(race: @race).update_all(score: nil)
+
+        prune_orphan_season_drivers(affected_driver_ids)
+    end
+
+    # After race_results are gone, any SeasonDriver(season, driver, constructor)
+    # tuple without a matching remaining race_result is an artifact of a bad
+    # sync. Keep the rows still backed by other races this season.
+    def prune_orphan_season_drivers(driver_ids)
+        return if driver_ids.empty?
+        driver_ids.each do |did|
+            backed = RaceResult.unscoped.joins(:race)
+                .where(driver_id: did, races: { season_id: @race.season_id })
+                .pluck(:constructor_id).uniq.compact
+            scope = SeasonDriver.where(season_id: @race.season_id, driver_id: did)
+            scope = scope.where.not(constructor_id: backed) if backed.any?
+            scope.delete_all
+        end
     end
 end
