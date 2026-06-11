@@ -4,7 +4,7 @@
 <div class="admin-ops-section">
   <h3 class="admin-ops-section-title"><i class="fa-solid fa-cloud-arrow-down"></i> Data Sync</h3>
   <div class="admin-ops-grid">
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-rotate"></i> Sync Season</h3>
       <p>Fetch schedule and race results from the Jolpica API for a given year.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -16,7 +16,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-database"></i> Full Data Sync</h3>
       <p>Sync all seasons, re-simulate Elo, backfill careers, compute badges. Takes several minutes.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -29,7 +29,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-image"></i> Fetch Wikipedia Images</h3>
       <p>Download Wikipedia thumbnails for drivers that don't have one yet.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -44,7 +44,7 @@
 <div class="admin-ops-section">
   <h3 class="admin-ops-section-title"><i class="fa-solid fa-calculator"></i> Elo & Stats</h3>
   <div class="admin-ops-grid">
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-calculator"></i> Re-simulate Elo V2</h3>
       <p>Run full V2 historical simulation from scratch. Updates all driver, constructor, and race result Elo fields.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -53,7 +53,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-chart-bar"></i> Backfill Career Stats</h3>
       <p>Recalculate career stats (wins, podiums, DNFs) for all drivers from race results.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -62,7 +62,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-users"></i> Update Active Drivers</h3>
       <p>Mark drivers as active/inactive based on current season participation.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -71,7 +71,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-award"></i> Compute Badges</h3>
       <p>Recalculate all driver badges from race results and career data.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -86,7 +86,7 @@
 <div class="admin-ops-section">
   <h3 class="admin-ops-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Fantasy Fixes</h3>
   <div class="admin-ops-grid">
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-camera"></i> Re-snapshot Race</h3>
       <p>Re-run portfolio snapshots and stock settlement for a specific race.</p>
       <% latest_races = Race.joins(:season).where(seasons: { year: Date.current.year.to_s }).order(:round).select(:id, :round, :circuit_id).includes(:circuit) %>
@@ -103,7 +103,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-hand-holding-dollar"></i> Recalculate Dividends</h3>
       <p>Delete and re-calculate all dividends for the current season using the current formula.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -112,7 +112,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-chart-line"></i> Recalculate Net Demand</h3>
       <p>Fix stock net_demand counters from active holdings if they've drifted.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -121,7 +121,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-scale-balanced"></i> Fix Short Collateral</h3>
       <p>Recalculate collateral for active shorts to match current ratio (<%= (FantasyStockPortfolio::COLLATERAL_RATIO * 100).round(0) %>%).</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>
@@ -130,7 +130,7 @@
       <% end %>
     </div>
 
-    <div class="admin-card admin-op-card">
+    <div class="card card-admin admin-op-card">
       <h3><i class="fa-solid fa-magnifying-glass-dollar"></i> Verify Cash Consistency</h3>
       <p>Check all portfolios for cash discrepancies. Reports issues with > 50 difference.</p>
       <%= form_with url: admin_operations_path, method: :post, class: "admin-op-form" do %>

@@ -4,15 +4,15 @@
 </h2>
 
 <div class="admin-stats-grid">
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= @total_visits %></div>
     <div class="admin-stat-label">Total Visits</div>
   </div>
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= @total_pageviews %></div>
     <div class="admin-stat-label">Page Views</div>
   </div>
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= @first_visit ? time_ago_in_words(@first_visit) + " ago" : "—" %></div>
     <div class="admin-stat-label">First Visit</div>
   </div>

@@ -131,6 +131,44 @@ input:focus-visible {
     box-shadow: $shadow-md, 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.06);
 }
 
+// Stat card — small box for KPIs. Used standalone, in .season-stats-bar,
+// .quick-stats-bar (prominent variant), and the admin stats grid.
+.stat-card {
+    background: $bg-card;
+    border-radius: $radius-md;
+    padding: 16px 12px;
+    text-align: center;
+    box-shadow: $shadow-md;
+    border: 1px solid $border-color;
+    overflow: hidden;
+
+    .stat-label {
+        display: block;
+        font-size: $type-label;
+        font-weight: $weight-semi;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-secondary;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 16px;
+        font-weight: $weight-bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .stat-detail {
+        display: block;
+        font-size: $type-small;
+        color: $text-secondary;
+        margin-top: 2px;
+    }
+}
+
 // Table styles
 table {
     width: 100%;

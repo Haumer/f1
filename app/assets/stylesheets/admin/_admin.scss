@@ -130,14 +130,9 @@ $admin-sidebar-width: 240px;
   margin-bottom: 32px;
 }
 
-.admin-stat-card {
-  background: $bg-card;
-  border-radius: $radius-md;
-  padding: 16px;
-  text-align: center;
-  box-shadow: $shadow-md;
-  border: 1px solid $border-subtle;
-}
+// .admin-stat-card removed — use .stat-card (defined in application.scss).
+// Border is slightly stronger than the base (.stat-card uses $border-color;
+// admin previously used $border-subtle) — close enough, dropped intentionally.
 
 .admin-stat-value {
   font-family: $mono-font;
@@ -161,12 +156,11 @@ $admin-sidebar-width: 240px;
   margin-bottom: 24px;
 }
 
-.admin-card {
-  background: $bg-card;
-  border-radius: $radius-md;
+// .admin-card removed — use .card (defined in application.scss).
+// The base .card has padding 28px; admin pages use .card.card-admin for the
+// slightly tighter 20px treatment and the admin h3/p typography.
+.card.card-admin {
   padding: 20px;
-  box-shadow: $shadow-md;
-  border: 1px solid $border-subtle;
   margin-bottom: 16px;
 
   h3 {
@@ -406,7 +400,7 @@ $admin-sidebar-width: 240px;
     gap: 8px;
   }
 
-  .admin-stat-card {
+  .admin-stats-grid .stat-card {
     padding: 12px;
   }
 
@@ -422,7 +416,7 @@ $admin-sidebar-width: 240px;
     grid-template-columns: 1fr;
   }
 
-  .admin-card {
+  .card.card-admin {
     padding: 16px;
   }
 
