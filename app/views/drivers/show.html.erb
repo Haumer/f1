@@ -203,6 +203,29 @@
             <%= custom_chart Graphs::Line.new(driver: @driver).driver_data %>
         </div>
         <span class="data-source">Data: Elo ratings computed from race finishing positions &middot; <%= @driver.race_results.size %> races</span>
+
+        <% if @stock_price_history.size >= 2 %>
+            <% first_price = @stock_price_history.first.last.to_f %>
+            <% last_price  = @stock_price_history.last.last.to_f %>
+            <% change_pct  = first_price.zero? ? 0 : ((last_price - first_price) / first_price * 100).round(1) %>
+            <% accent = change_pct >= 0 ? "#00d26a" : "#e10600" %>
+            <div class="stock-price-history-card">
+                <div class="stock-price-history-head">
+                    <div>
+                        <span class="section-label">Stock Price</span>
+                        <span class="stock-price-history-now"><%= last_price.round(1) %></span>
+                        <span class="stock-price-history-change <%= change_pct >= 0 ? 'up' : 'down' %>">
+                            <%= change_pct >= 0 ? '+' : '' %><%= change_pct %>%
+                        </span>
+                    </div>
+                    <div class="stock-price-history-meta">
+                        <%= @stock_price_history.size %> races &middot; range <%= @stock_price_history.map { |_d, p| p.to_f }.min.round(1) %>&ndash;<%= @stock_price_history.map { |_d, p| p.to_f }.max.round(1) %>
+                    </div>
+                </div>
+                <%= stock_price_sparkline(@stock_price_history, width: 480, height: 96, accent: accent) %>
+            </div>
+        <% end %>
+
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
             <table class="driver-race-results current-driver-standings compact">

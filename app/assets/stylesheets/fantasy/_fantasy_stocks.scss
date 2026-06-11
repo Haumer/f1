@@ -31,7 +31,11 @@
 .stock-trade-actions {
     display: flex;
     gap: 4px;
-    justify-content: center;
+    // Right-anchor the cluster: all four slots (stepper, cost preview, Buy,
+    // Short) are always present in the DOM, so the rightmost buttons sit at
+    // the same X position across every row. .slot-hidden makes a slot
+    // invisible while keeping its width (see below).
+    justify-content: flex-end;
     align-items: center;
 
     @media (max-width: 768px) {
@@ -39,6 +43,14 @@
         gap: 2px;
 
         .stock-cost-preview { display: none; }
+    }
+
+    // Used on stepper / cost-preview / Buy / Short to reserve their space
+    // even when not actionable for the current row. Prevents horizontal
+    // shifting of visible controls between rows.
+    .slot-hidden {
+        visibility: hidden;
+        pointer-events: none;
     }
 }
 
@@ -402,4 +414,24 @@
     font-weight: $weight-semi;
     white-space: nowrap;
     i { font-size: 11px; margin-right: 3px; }
+}
+
+// Crowd pill — short interest indicator on /market.
+// Reads SeasonDriver.net_demand (positive = more longs than shorts).
+.crowd-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+
+    &.crowd-long       { background: rgba($green, 0.12);      color: $green;       box-shadow: 0 0 0 1px rgba($green, 0.3); }
+    &.crowd-lean-long  { background: rgba($green, 0.06);      color: rgba($green, 0.85); }
+    &.crowd-balanced   { background: rgba(255, 255, 255, 0.04); color: $text-tertiary; }
+    &.crowd-lean-short { background: rgba($accent-red, 0.06); color: rgba($accent-red, 0.85); }
+    &.crowd-short      { background: rgba($accent-red, 0.12); color: $accent-red;  box-shadow: 0 0 0 1px rgba($accent-red, 0.3); }
 }

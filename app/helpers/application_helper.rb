@@ -52,4 +52,51 @@ module ApplicationHelper
                 onerror: "this.style.display='none'")
     end
 
+    # Inline SVG line chart for stock price history. `points` is an array of
+    # [date, price]. Returns an html_safe SVG string, or nil if fewer than 2
+    # points (a 1-point chart is just noise).
+    def stock_price_sparkline(points, width: 480, height: 96, accent: "#00d26a")
+        return nil if points.size < 2
+
+        prices = points.map { |_d, p| p.to_f }
+        lo, hi = prices.minmax
+        range = (hi - lo).zero? ? 1.0 : (hi - lo)
+        step_x = points.size > 1 ? (width.to_f / (points.size - 1)) : 0
+
+        path = points.each_with_index.map do |(_, p), i|
+            x = (i * step_x).round(1)
+            # Invert Y so higher prices render higher in the chart
+            y = (height - ((p.to_f - lo) / range) * height).round(1)
+            "#{i.zero? ? 'M' : 'L'}#{x} #{y}"
+        end.join(" ")
+
+        # Closed area fill for under-the-line shading
+        area = "#{path} L#{width} #{height} L0 #{height} Z"
+
+        last_x = ((points.size - 1) * step_x).round(1)
+        last_y = (height - ((prices.last - lo) / range) * height).round(1)
+
+        svg = <<~SVG.html_safe
+            <svg viewBox="0 0 #{width} #{height}" xmlns="http://www.w3.org/2000/svg" class="stock-sparkline" preserveAspectRatio="none">
+              <path d="#{area}" fill="#{accent}" fill-opacity="0.08"/>
+              <path d="#{path}" fill="none" stroke="#{accent}" stroke-width="1.5"/>
+              <circle cx="#{last_x}" cy="#{last_y}" r="3" fill="#{accent}"/>
+            </svg>
+        SVG
+        svg.html_safe
+    end
+
+    # Classify the crowd on a driver based on SeasonDriver.net_demand.
+    # Positive net = more longs than shorts; negative = crowded short.
+    # Thresholds picked for the early-season scale where positions count in tens.
+    def short_interest_tag(net_demand)
+        n = net_demand.to_i
+        if n >= 20 then { label: "Crowded long",  css: "crowd-long",  arrow: "up" }
+        elsif n >= 5 then { label: "Leaning long",  css: "crowd-lean-long",  arrow: "up" }
+        elsif n <= -20 then { label: "Crowded short", css: "crowd-short", arrow: "down" }
+        elsif n <= -5 then { label: "Leaning short", css: "crowd-lean-short", arrow: "down" }
+        else { label: "Balanced", css: "crowd-balanced", arrow: nil }
+        end
+    end
+
 end

@@ -13,6 +13,8 @@ class FantasyStockPortfoliosController < ApplicationController
     @constructors_by_driver = constructors_for_drivers(@drivers)
     @holdings_by_driver = @portfolio.active_holdings.group_by(&:driver_id)
     @elo_trends = elo_trends_for(@drivers.map(&:id))
+    @demand_by_driver = SeasonDriver.where(season_id: @portfolio.season_id)
+                                     .pluck(:driver_id, :net_demand).to_h
   end
 
   def buy

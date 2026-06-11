@@ -31,10 +31,14 @@ export default class extends Controller {
     const total = qty * this.priceValue
     const affordable = qty <= this.maxValue
 
-    // Cost preview
+    // Cost preview — only show when qty > 1 (at qty 1, the cost equals the
+    // Price column right next to it, so the duplicate is pure noise).
+    // Use visibility:hidden so the slot keeps width and the trade buttons
+    // stay column-aligned with other rows.
     if (this.hasCostTarget) {
       this.costTarget.textContent = `= ${total.toFixed(1)}`
       this.costTarget.classList.toggle("text-red", !affordable)
+      this.costTarget.classList.toggle("slot-hidden", qty <= 1)
     }
 
     // Stepper buttons

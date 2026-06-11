@@ -578,3 +578,51 @@
         .career-stat-value { font-weight: $weight-regular; }
     }
 }
+
+// Stock price history sparkline — shown on driver show under the Elo chart.
+// Hidden when there are fewer than 2 StockPriceSnapshot rows for this driver.
+.stock-price-history-card {
+    background: $bg-card;
+    border-radius: $radius-md;
+    border: 1px solid $border-color;
+    padding: 16px 20px;
+    margin: 16px 0 24px;
+}
+
+.stock-price-history-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.stock-price-history-now {
+    font-family: $mono-font;
+    font-size: 20px;
+    font-weight: $weight-bold;
+    margin-left: 8px;
+}
+
+.stock-price-history-change {
+    margin-left: 6px;
+    font-family: $mono-font;
+    font-size: 13px;
+    font-weight: $weight-bold;
+
+    &.up   { color: $green; }
+    &.down { color: $accent-red; }
+}
+
+.stock-price-history-meta {
+    font-size: $type-small;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+}
+
+.stock-sparkline {
+    display: block;
+    width: 100%;
+    height: 96px;
+}

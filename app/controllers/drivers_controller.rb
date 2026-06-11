@@ -24,6 +24,11 @@ class DriversController < ApplicationController
 
     @badges = @driver.badges.ordered_by_tier.order(:id)
 
+    # Stock price history — last ~24 race snapshots so the chart fits a single season.
+    @stock_price_history = StockPriceSnapshot.where(driver: @driver)
+                            .joins(:race).order("races.date ASC").limit(24)
+                            .pluck("races.date", "stock_price_snapshots.price")
+
     # Constructor history: group race results by constructor, ordered chronologically
     constructor_stints = @driver.race_results.includes(:constructor, race: :season)
                            .group_by(&:constructor_id)
