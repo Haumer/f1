@@ -553,3 +553,13 @@
     .fantasy-market-driver-name-short { display: none; }
     .fantasy-market-driver-name-full  { display: inline; }
 }
+
+// Responsive table header labels — same pattern as the driver name swap.
+// Short variant on mobile reclaims horizontal space; full variant on md+.
+.fantasy-market-table th .th-label-short { display: inline; }
+.fantasy-market-table th .th-label-full  { display: none; }
+
+@media (min-width: 768px) {
+    .fantasy-market-table th .th-label-short { display: none; }
+    .fantasy-market-table th .th-label-full  { display: inline; }
+}
