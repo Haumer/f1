@@ -67,6 +67,22 @@ class Fantasy::Stock::SettleRaceTest < ActiveSupport::TestCase
     assert_equal 0.0025, Fantasy::Stock::SettleRace::BORROW_FEE_RATE
   end
 
+  test "snapshot.rank is populated after settlement" do
+    Fantasy::Stock::SettleRace.new(race: @race).call
+    snap = FantasyStockSnapshot.find_by(fantasy_stock_portfolio: @portfolio, race: @race)
+    assert snap.rank, "rank should be set"
+    assert snap.rank >= 1
+  end
+
+  test "dividend note includes overperformance when applicable" do
+    Fantasy::Stock::SettleRace.new(race: @race).call
+
+    tx = @portfolio.transactions.where(kind: "dividend").find_by(driver: drivers(:verstappen))
+    assert tx, "expected dividend tx"
+    # verstappen is the top-Elo driver in fixtures and finishes P1, so no overperformance — note is plain.
+    refute_match(/beat Elo rank/, tx.note)
+  end
+
   test "auto-liquidates short when price exceeds 2x max loss" do
     holding = fantasy_stock_holdings(:codex_nor_short)
     # Set entry_price very low so current price exceeds 3x entry (1 + MAX_LOSS_MULTIPLIER)

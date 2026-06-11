@@ -52,6 +52,7 @@ module Fantasy
         end
 
         snapshot_prices(portfolios)
+        assign_snapshot_ranks
       end
 
       private
@@ -66,10 +67,10 @@ module Fantasy
           next unless rr
           next unless rr.position_order && rr.position_order <= 10
 
-          dividend_per_share = calculate_dividend(holding.driver, rr.position_order, portfolio)
-          next if dividend_per_share <= 0
+          calc = dividend_breakdown(holding.driver, rr.position_order)
+          next if calc[:per_share] <= 0
 
-          total = (dividend_per_share * holding.quantity).round(2)
+          total = (calc[:per_share] * holding.quantity).round(2)
           wallet.update!(cash: wallet.cash + total)
 
           portfolio.transactions.create!(
@@ -77,11 +78,18 @@ module Fantasy
             driver: holding.driver,
             race: @race,
             quantity: holding.quantity,
-            price: dividend_per_share.round(2),
+            price: calc[:per_share].round(2),
             amount: total,
-            note: "Dividend: P#{rr.position_order} #{holding.driver.fullname} (#{holding.quantity}x #{dividend_per_share.round(2)})"
+            note: dividend_note(rr.position_order, holding, calc)
           )
         end
+      end
+
+      def dividend_note(finish, holding, calc)
+        base = "Dividend: P#{finish} #{holding.driver.fullname} (#{holding.quantity}x #{calc[:per_share].round(2)})"
+        return base if calc[:overperformance] <= 0
+
+        "#{base} — beat Elo rank P#{calc[:elo_rank]} by #{calc[:overperformance]}"
       end
 
       def charge_borrow_fees(portfolio)
@@ -196,14 +204,23 @@ module Fantasy
       # Dividend per top-10 finish = BASE × constructor_mult + SURPRISE_BONUS × overperformance
       # constructor_mult: 0.5 (WCC P1 last year) → 5.0 (WCC P10)
       # overperformance: max(elo_rank - finish_position, 0)
-      def calculate_dividend(driver, position, _portfolio)
-        return 0 unless position && position <= 10
+      def dividend_breakdown(driver, position)
+        return { per_share: 0, elo_rank: 0, overperformance: 0 } unless position && position <= 10
 
         constructor_mult = constructor_multiplier(driver)
         elo_rank = @elo_ranks[driver.id] || 1
         overperformance = [elo_rank - position, 0].max
+        per_share = DIVIDEND_BASE * constructor_mult + DIVIDEND_SURPRISE_BONUS * overperformance
 
-        DIVIDEND_BASE * constructor_mult + DIVIDEND_SURPRISE_BONUS * overperformance
+        { per_share: per_share, elo_rank: elo_rank, overperformance: overperformance }
+      end
+
+      # Rank portfolios by snapshot value for this race. Cheap pluck + bulk update.
+      def assign_snapshot_ranks
+        snaps = FantasyStockSnapshot.where(race: @race).order(value: :desc).pluck(:id, :value)
+        snaps.each_with_index do |(id, _v), idx|
+          FantasyStockSnapshot.where(id: id).update_all(rank: idx + 1)
+        end
       end
 
       def constructor_multiplier(driver)
