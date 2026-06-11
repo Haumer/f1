@@ -449,15 +449,15 @@
     align-items: center;
     padding: 4px 12px;
     border-radius: $radius-sm;
-    background: rgba(201, 176, 55, 0.12);
-    border: 1px solid rgba(201, 176, 55, 0.3);
-    color: #C9B037;
+    background: rgba($gold, 0.12);
+    border: 1px solid rgba($gold, 0.3);
+    color: $gold;
     font-weight: 700;
     font-size: 13px;
     font-family: $mono-font;
     text-decoration: none;
     transition: background 0.15s;
-    &:hover { background: rgba(201, 176, 55, 0.22); color: #C9B037; }
+    &:hover { background: rgba($gold, 0.22); color: $gold; }
 }
 
 // Current lineup
@@ -515,9 +515,9 @@
 }
 
 .form-dot-gold {
-    background: rgba(201, 176, 55, 0.2);
-    color: #C9B037;
-    border: 1px solid rgba(201, 176, 55, 0.4);
+    background: rgba($gold, 0.2);
+    color: $gold;
+    border: 1px solid rgba($gold, 0.4);
 }
 
 .form-dot-podium {

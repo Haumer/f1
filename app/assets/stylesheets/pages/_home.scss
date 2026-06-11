@@ -472,11 +472,12 @@
 
   .stat-card {
     flex: 1;
-    text-align: center;
     padding: 24px 16px 20px;
-    overflow: hidden;
     position: relative;
-    border: 1px solid $border-color;
+    // Override base .stat-card — homepage hero uses transparent square cards
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
     transition: transform $t-normal $ease-out, box-shadow $t-normal $ease-out;
 
     // Gradient top accent
@@ -531,7 +532,8 @@
   }
 }
 
-// Season Stats Bar (shared with season show)
+// Season Stats Bar (shared with season show) — layout only;
+// .stat-card box styling lives in application.scss
 .season-stats-bar {
   display: flex;
   gap: 12px;
@@ -539,39 +541,6 @@
 
   .stat-card {
     flex: 1;
-    text-align: center;
-    padding: 16px 12px;
-    background: $bg-card;
-    border-radius: $radius-md;
-    box-shadow: $shadow-md;
-    border: 1px solid $border-color;
-    overflow: hidden;
-
-    .stat-label {
-      display: block;
-      font-size: $type-label;
-      font-weight: $weight-semi;
-      text-transform: uppercase;
-      letter-spacing: $ls-label;
-      color: $text-secondary;
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      display: block;
-      font-size: 16px;
-      font-weight: $weight-bold;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .stat-detail {
-      display: block;
-      font-size: $type-small;
-      color: $text-secondary;
-      margin-top: 2px;
-    }
   }
 }
 

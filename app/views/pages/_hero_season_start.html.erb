@@ -70,7 +70,7 @@
         </div>
         <% if @prev_champion %>
             <div class="stat-item">
-                <span class="stat-number"><i class="fa-solid fa-trophy" style="color: #C9B037; font-size: 24px;"></i></span>
+                <span class="stat-number"><i class="fa-solid fa-trophy place-1" style="font-size: 24px;"></i></span>
                 <span class="stat-caption"><%= @prev_season.year %> Champion</span>
                 <span class="stat-sub"><%= link_to "#{@prev_champion.forename[0]}.#{@prev_champion.surname}", driver_path(@prev_champion) %></span>
             </div>

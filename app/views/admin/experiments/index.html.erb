@@ -34,7 +34,7 @@
 
 <%# ═══ 1. Qualifying vs Race Delta (Tabbed) ═══ %>
 <% min_races = @multi_year ? 5 : 1 %>
-<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px;">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
         <h3 style="margin: 0;">Qualifying vs Race Delta</h3>
         <div style="display: flex; gap: 2px; background: rgba(255,255,255,0.04); border-radius: 6px; padding: 2px;">
@@ -150,7 +150,7 @@
 </div>
 
 <%# ═══ 2. Cumulative Points Progression ═══ %>
-<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px;">
     <h3 style="margin-bottom: 4px;">Cumulative Points Progression</h3>
     <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
         Points accumulated over <%= @multi_year ? "#{@from_year}–#{@to_year}" : "the season" %>.
@@ -222,7 +222,7 @@
 <%# ═══ 3. Grid-to-Finish Scatter ═══ %>
 <% top_for_scatter = @drivers_data.first(10) %>
 <% top_for_scatter.each do |d| %>
-    <div class="admin-stat-card" style="margin-bottom: 16px; padding: 20px;">
+    <div class="stat-card" style="margin-bottom: 16px; padding: 20px;">
         <h3 style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
             <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: <%= d[:color] %>;"></span>
             <%= d[:driver].fullname %>
@@ -296,7 +296,7 @@
 <% end %>
 
 <%# ═══ 4. Season Momentum (Rolling 5-Race Avg Position) ═══ %>
-<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px;">
     <h3 style="margin-bottom: 4px;">Season Momentum</h3>
     <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
         Rolling 5-race average finishing position. Lower = better form. Dips = purple patches, spikes = rough stretches.
@@ -357,7 +357,7 @@
 </div>
 
 <%# ═══ 5. Points Conversion by Grid Slot ═══ %>
-<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px;">
     <h3 style="margin-bottom: 4px;">Points Conversion by Grid Slot</h3>
     <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
         Average points scored from each starting position vs the field average for that slot.
@@ -403,7 +403,7 @@
 </div>
 
 <%# ═══ 6. Consistency Bands ═══ %>
-<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px;">
     <h3 style="margin-bottom: 4px;">Consistency Bands</h3>
     <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
         What % of races a driver finishes within 2 positions of their average.
@@ -458,7 +458,7 @@
 </div>
 
 <%# ═══ 7. Constructor-Adjusted Performance ═══ %>
-<div class="admin-stat-card" style="margin-bottom: 24px; padding: 20px;">
+<div class="stat-card" style="margin-bottom: 24px; padding: 20px;">
     <h3 style="margin-bottom: 4px;">Constructor-Adjusted Performance</h3>
     <p style="color: #888; font-size: 13px; margin-bottom: 16px;">
         How much each driver outperforms (green) or underperforms (red) their team's average finishing position.

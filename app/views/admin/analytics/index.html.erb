@@ -11,26 +11,26 @@
 </div>
 
 <div class="admin-stats-grid">
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= number_with_delimiter(@unique_visitors) %></div>
     <div class="admin-stat-label">Unique Visitors</div>
   </div>
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= number_with_delimiter(@visits) %></div>
     <div class="admin-stat-label">Visits</div>
   </div>
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= number_with_delimiter(@pageviews) %></div>
     <div class="admin-stat-label">Page Views</div>
   </div>
-  <div class="admin-stat-card">
+  <div class="stat-card">
     <div class="admin-stat-value"><%= @visits > 0 ? (@pageviews.to_f / @visits).round(1) : 0 %></div>
     <div class="admin-stat-label">Pages / Visit</div>
   </div>
 </div>
 
 <%# ═══ Excluded Users Panel ═══ %>
-<div class="admin-card" style="margin-top: 32px;">
+<div class="card card-admin" style="margin-top: 32px;">
   <h3><i class="fa-solid fa-user-slash"></i> Filter Users from Analytics</h3>
   <p style="color: #888; font-size: 13px; margin-bottom: 16px;">Excluded users' visits and pageviews are stripped from all analytics counts and charts.</p>
 
