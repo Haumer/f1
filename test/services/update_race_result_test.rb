@@ -124,14 +124,21 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
     assert_equal 1, reset_calls, "ResetRaceState should run when stored count != incoming"
   end
 
-  test "re-sync with matching result count does NOT call ResetRaceState" do
+  test "re-sync with matching content does NOT call ResetRaceState" do
     bahrain = races(:bahrain_2026) # 4 stored
-    payload = jolpica_payload([
-      result_entry(driver: @verstappen, constructor_ref: "red_bull", position: 1, points: 25),
-      result_entry(driver: @norris,     constructor_ref: "mclaren",  position: 2, points: 18),
-      result_entry(driver: drivers(:leclerc), constructor_ref: "ferrari", position: 3, points: 15),
-      result_entry(driver: drivers(:piastri), constructor_ref: "mclaren", position: 4, points: 12)
-    ])
+    # Build payload that exactly matches what's stored in fixtures so the
+    # content signature is identical. Use the same driver/constructor/
+    # position/points/status the fixtures wrote.
+    stored = RaceResult.where(race: bahrain).includes(:driver, :constructor, :status).to_a
+    payload = jolpica_payload(stored.map { |r|
+      result_entry(
+        driver: r.driver,
+        constructor_ref: r.constructor.constructor_ref,
+        position: r.position.to_i,
+        points: r.points.to_f,
+        status: r.status&.status_type || "Finished"
+      )
+    })
 
     reset_calls = 0
     ResetRaceState.stub_any_instance(:call, -> { reset_calls += 1 }) do
@@ -141,6 +148,37 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
     end
 
     assert_equal 0, reset_calls
+  end
+
+  test "re-sync with position swap (same row count) DOES call ResetRaceState" do
+    bahrain = races(:bahrain_2026)
+    # Mirror what's stored but swap positions of two drivers — the bug we hit
+    # at Monaco 2026 (Gasly promoted past Hadjar with row count unchanged).
+    stored = RaceResult.where(race: bahrain).includes(:driver, :constructor, :status).order(:position).to_a
+    swap_a, swap_b = stored.first(2)
+    payload = jolpica_payload(stored.map { |r|
+      new_pos = case r
+                when swap_a then swap_b.position.to_i
+                when swap_b then swap_a.position.to_i
+                else r.position.to_i
+                end
+      result_entry(
+        driver: r.driver,
+        constructor_ref: r.constructor.constructor_ref,
+        position: new_pos,
+        points: r.points.to_f,
+        status: r.status&.status_type || "Finished"
+      )
+    })
+
+    reset_calls = 0
+    ResetRaceState.stub_any_instance(:call, -> { reset_calls += 1 }) do
+      with_jolpica(payload) do
+        UpdateRaceResult.new(race: bahrain).update_all
+      end
+    end
+
+    assert_equal 1, reset_calls, "ResetRaceState should run on position swaps even when row count matches"
   end
 end
 

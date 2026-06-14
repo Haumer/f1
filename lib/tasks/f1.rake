@@ -57,6 +57,139 @@ namespace :f1 do
     puts "PostRaceSyncJob enqueued."
   end
 
+  desc "Enqueue race results sweep — re-validates last N completed races against Jolpica (for Heroku Scheduler, daily)"
+  task results_sweep: :environment do
+    lookback = ENV.fetch("LOOKBACK", "6").to_i
+    RaceResultsSweepJob.perform_later(lookback: lookback)
+    puts "RaceResultsSweepJob enqueued (lookback=#{lookback})."
+  end
+
+  desc "Audit stored race results vs Jolpica for a season (read-only). YEAR=2026 [VERBOSE=1]"
+  task results_audit: :environment do
+    require "open-uri"
+    require "json"
+
+    year = ENV.fetch("YEAR", Date.current.year.to_s).to_s
+    verbose = ENV["VERBOSE"] == "1"
+    season = Season.find_by(year: year)
+    abort "no season for year=#{year}" unless season
+
+    drift_races = []
+    puts "=== Results audit: season #{year} ==="
+
+    season.races.where("date <= ?", Date.current).order(:round).each do |race|
+      # Race-only scope — Jolpica's /results.json returns race classifications,
+      # sprint comparisons live in UpdateSprintResult.
+      stored = RaceResult.where(race: race).includes(:driver, :status).to_a
+      next if stored.empty?
+
+      url = "https://api.jolpi.ca/ergast/f1/#{race.year}/#{race.round}/results.json"
+      data = begin
+        JSON.parse(URI.open(url, read_timeout: 30).read)
+      rescue StandardError => e
+        puts "R#{race.round.to_s.rjust(2)}: Jolpica fetch failed (#{e.class}); skip"
+        next
+      end
+      incoming = data.dig("MRData", "RaceTable", "Races")&.first&.dig("Results") || []
+      next if incoming.empty?
+
+      sig_s = stored.map { |r| [r.driver.driver_ref, r.position.to_i, r.points.to_f, r.status&.status_type.to_s] }.sort
+      sig_i = incoming.map { |r| [r.dig("Driver", "driverId"), r["position"].to_i, r["points"].to_f, r["status"].to_s] }.sort
+
+      label = race.circuit&.name || "R#{race.round}"
+      if sig_s == sig_i
+        puts "R#{race.round.to_s.rjust(2)} #{label}: CLEAN (#{stored.size} rows)"
+      else
+        puts "R#{race.round.to_s.rjust(2)} #{label}: DRIFT (stored=#{stored.size} / incoming=#{incoming.size})"
+        drift_races << race
+        if verbose
+          by_s = stored.index_by { |r| r.driver.driver_ref }
+          by_i = incoming.index_by { |r| r.dig("Driver", "driverId") }
+          (by_s.keys | by_i.keys).sort.each do |ref|
+            s = by_s[ref]
+            i = by_i[ref]
+            st = s ? [s.position.to_i, s.points.to_f, s.status&.status_type.to_s] : nil
+            it = i ? [i["position"].to_i, i["points"].to_f, i["status"].to_s] : nil
+            next if st == it
+            puts "    #{ref.ljust(22)} stored=#{st.inspect}  incoming=#{it.inspect}"
+          end
+        end
+      end
+      sleep 0.5
+    end
+
+    puts "\n=== Drift summary: #{drift_races.size} race(s) ==="
+    drift_races.each { |r| puts "  R#{r.round} #{r.circuit&.name} (#{r.date})" }
+    puts "\nRun with VERBOSE=1 for per-driver deltas. Backfill with: rake f1:results_backfill ROUNDS=#{drift_races.map(&:round).join(',')} YEAR=#{year}"
+  end
+
+  desc "Backfill race results for specific rounds + cascade derived state. YEAR=2026 ROUNDS=4,6 [DRY=1]"
+  task results_backfill: :environment do
+    year = ENV.fetch("YEAR", Date.current.year.to_s).to_s
+    rounds = ENV.fetch("ROUNDS", "").split(",").map(&:strip).reject(&:empty?).map(&:to_i)
+    dry = ENV["DRY"] == "1"
+    abort "ROUNDS required (e.g. ROUNDS=4,6)" if rounds.empty?
+
+    season = Season.find_by(year: year)
+    abort "no season for year=#{year}" unless season
+
+    affected = season.races.where(round: rounds).order(:date).to_a
+    abort "no races match" if affected.empty?
+    earliest = affected.first
+
+    # Cascade only over races that actually have stored results. A race
+    # dated today but not yet run (results not posted) would no-op
+    # process_race but pollute the plan output.
+    cascade = season.races.where("date >= ?", earliest.date)
+                          .joins(:race_results).distinct.order(:date).to_a
+
+    puts "=== Backfill plan ==="
+    puts "season:    #{year}"
+    puts "affected:  #{affected.map { |r| "R#{r.round}" }.join(', ')}"
+    puts "cascade:   #{cascade.map { |r| "R#{r.round}" }.join(', ')} (Elo / stocks / picks / snapshots)"
+    puts "mode:      #{dry ? 'DRY-RUN (no writes)' : 'LIVE'}"
+    if dry
+      puts "\nDRY=1 — exiting without writes."
+      next
+    end
+
+    puts "\n=== Step 1: Re-sync affected races ==="
+    affected.each do |race|
+      puts "  UpdateRaceResult R#{race.round}..."
+      UpdateRaceResult.new(race: race).update_all
+      sleep 1
+    end
+
+    puts "\n=== Step 2: Elo cascade (#{cascade.size} race(s)) ==="
+    cascade.each do |race|
+      EloRatingV2.process_race(race)
+      ConstructorEloV2.process_race(race)
+      puts "  Elo R#{race.round} ✓"
+    end
+
+    if Setting.fantasy_stock_market?
+      puts "\n=== Step 3: Stock market re-settle (#{cascade.size} race(s)) ==="
+      cascade.each do |race|
+        Fantasy::Stock::SettleRace.new(race: race).call
+        puts "  Stock settle R#{race.round} ✓"
+      end
+    end
+
+    puts "\n=== Step 4: Replay fantasy transactions (season) ==="
+    Fantasy::ReplayTransactions.new(season: season).call
+    puts "  Replay ✓"
+
+    puts "\n=== Step 5: Re-score picks + snapshot (#{cascade.size} race(s)) ==="
+    cascade.each do |race|
+      Fantasy::ScoreRacePicks.new(race: race).call
+      Fantasy::SnapshotPortfolios.new(race: race).call
+      puts "  Picks + snapshot R#{race.round} ✓"
+    end
+
+    puts "\n=== Done. ==="
+    puts "Verify with: rake f1:results_audit YEAR=#{year}"
+  end
+
   desc "Fetch driver headshots from OpenF1 API"
   task headshots: :environment do
     puts "Fetching headshots from OpenF1..."
