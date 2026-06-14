@@ -140,18 +140,34 @@ class UpdateRaceResult
     # tear down every piece of derived state for this race before re-writing.
     # Without this the Elo / dividend / pick_reward idempotency guards would
     # skip recomputation and leave the wrong values in place.
+    #
+    # Compares content (driver_ref + position + points + status) rather than
+    # just row count — official sources sometimes correct position-only after
+    # initial publication (FIA reclassifications, post-race penalties), and
+    # row-count-only diffing silently misses those.
     def maybe_reset_for_resync
         races = @results_data.dig('MRData', 'RaceTable', 'Races')
-        incoming = races&.first&.dig('Results')&.size || 0
-        existing = RaceResult.unscoped.where(race: @race).count
-        return if existing.zero?
-        return if existing == incoming
+        incoming = races&.first&.dig('Results') || []
+        # Compare against race-only rows — Jolpica's /results.json returns race
+        # classifications only. Sprint rows live under result_type=sprint and
+        # are re-synced separately by UpdateSprintResult.
+        existing = RaceResult.where(race: @race).includes(:driver, :status).to_a
+        return if existing.empty?
+        return if result_signature(existing) == incoming_signature(incoming)
 
         Rails.logger.warn(
-            "[UpdateRaceResult] R#{@race.round} #{@race.year}: stored=#{existing} -> incoming=#{incoming}; resetting derived state"
+            "[UpdateRaceResult] R#{@race.round} #{@race.year}: result content drift (stored=#{existing.size}, incoming=#{incoming.size}); resetting derived state"
         )
-        puts "  re-sync detected (#{existing} -> #{incoming}); resetting derived state"
+        puts "  re-sync detected (content drift, stored=#{existing.size} -> incoming=#{incoming.size}); resetting derived state"
         ResetRaceState.new(race: @race).call
+    end
+
+    def result_signature(rows)
+        rows.map { |r| [r.driver.driver_ref, r.position.to_i, r.points.to_f, r.status&.status_type.to_s] }.sort
+    end
+
+    def incoming_signature(rows)
+        rows.map { |r| [r.dig('Driver', 'driverId'), r['position'].to_i, r['points'].to_f, r['status'].to_s] }.sort
     end
 
     def has_jolpica_results?
