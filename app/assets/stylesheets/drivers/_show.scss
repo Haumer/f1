@@ -132,15 +132,21 @@
 }
 
 // Note: `.driver-card` is reused by fantasy/_fantasy_roster.scss for trading
-// cards, which adds a translateY(-4px) + glow on hover. That treatment makes
-// sense for clickable cards but reads as "click me" on this sidebar panel,
-// which is informational only. Compound `.card.driver-card` is unique to the
-// show page (fantasy roster doesn't combine with `.card`), so this override
-// neutralises the lift/glow without renaming either class.
-.card.driver-card:hover {
-    transform: none;
-    box-shadow: $shadow-md;
-    border-color: $border-color;
+// cards, which adds a translateY(-4px) + glow on hover and `overflow: hidden`
+// on the card itself. Those make sense for clickable trading cards but the
+// hover reads as "click me" on this informational sidebar, and the overflow
+// clips the achievement-badge tooltips (they extend ~130px each side of the
+// badge centre, past the ~240px-wide card). Compound `.card.driver-card` is
+// unique to the show page (fantasy roster doesn't combine with `.card`), so
+// the compound selector wins on specificity without renaming either class.
+.card.driver-card {
+    overflow: visible;
+
+    &:hover {
+        transform: none;
+        box-shadow: $shadow-md;
+        border-color: $border-color;
+    }
 }
 
 .driver-card {
