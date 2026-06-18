@@ -889,6 +889,37 @@ table.race-results {
     text-align: center;
     font-size: $type-label;
     color: $text-tertiary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+// Build chip — links to the deployed commit on GitHub. Lives in the footer
+// next to the copy line. Signals "this is a living project" and gives a
+// one-click trail from prod into the actual code that's running.
+.footer-build {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    color: $text-tertiary;
+    font-family: $mono-font;
+    font-size: $type-label;
+    text-decoration: none;
+    transition: color $t-fast, border-color $t-fast, background $t-fast;
+
+    i { font-size: 10px; opacity: 0.7; }
+
+    &:hover {
+        color: $text-secondary;
+        border-color: $border-accent;
+        background: rgba(255, 255, 255, 0.02);
+        text-decoration: none;
+    }
 }
 
 // Flash messages — glass-morphism
