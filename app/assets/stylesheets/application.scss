@@ -48,6 +48,15 @@ body {
     padding: 0;
     overflow-x: hidden;
 
+    // Sticky footer: body grows to the viewport, .container flexes to fill
+    // remaining space, the footer never collapses. Keeps the footer at the
+    // viewport bottom on short pages (drivers index after a narrow search,
+    // 404s, impressum). No effect on tall pages — content overflows
+    // normally past 100vh.
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
     // Subtle noise texture for depth
     &::before {
         content: '';
@@ -80,6 +89,7 @@ body {
 .container {
     position: relative;
     z-index: 1;
+    flex: 1 0 auto; // sticky footer: grow to fill, never shrink
 }
 
 div, td, th, span, p, a {
@@ -827,6 +837,7 @@ table.race-results {
     margin-top: 80px;
     position: relative;
     z-index: 1;
+    flex-shrink: 0; // sticky footer: never collapse, partners with body+container above
     background: $bg-surface;
 }
 .site-footer-inner {
