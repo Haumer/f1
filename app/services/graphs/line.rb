@@ -79,6 +79,9 @@ class Graphs::Line
             toolbox: { show: true },
             tooltip: single_line_tooltip,
             height: "700px",
+            # Reserve right padding so the "Antonelli (2437)" endLabel doesn't
+            # clip against the chart edge.
+            grid: { right: '140px', containLabel: false },
             dataZoom: data_zoom_slider(start: zoom_start),
             smoothMonotone: 'y'
         }

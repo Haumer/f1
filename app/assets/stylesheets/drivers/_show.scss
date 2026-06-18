@@ -131,6 +131,18 @@
     }
 }
 
+// Note: `.driver-card` is reused by fantasy/_fantasy_roster.scss for trading
+// cards, which adds a translateY(-4px) + glow on hover. That treatment makes
+// sense for clickable cards but reads as "click me" on this sidebar panel,
+// which is informational only. Compound `.card.driver-card` is unique to the
+// show page (fantasy roster doesn't combine with `.card`), so this override
+// neutralises the lift/glow without renaming either class.
+.card.driver-card:hover {
+    transform: none;
+    box-shadow: $shadow-md;
+    border-color: $border-color;
+}
+
 .driver-card {
     text-align: center;
     overflow: visible;
@@ -415,7 +427,8 @@
         box-shadow: $shadow-md;
     }
 
-    // Tooltip — glass style
+    // Tooltip — glass style. Wraps to multiple lines so long achievement
+    // descriptions don't extend past the viewport edge on right-side badges.
     &[data-tooltip]::after {
         content: attr(data-tooltip);
         position: absolute;
@@ -427,10 +440,16 @@
         color: $text-primary;
         font-size: $type-label;
         font-weight: $weight-regular;
-        padding: 5px 10px;
+        padding: 6px 10px;
         border-radius: $radius-sm;
         border: 1px solid $border-accent;
-        white-space: nowrap;
+        white-space: normal;
+        width: max-content;
+        // Pass CSS min() through SassC verbatim — it tries to evaluate the
+        // function natively and fails on calc() arguments.
+        max-width: #{"min(260px, calc(100vw - 32px))"};
+        text-align: center;
+        line-height: 1.35;
         pointer-events: none;
         opacity: 0;
         transition: opacity $t-fast, transform $t-fast;
