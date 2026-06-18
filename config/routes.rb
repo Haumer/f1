@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get 'elo', to: 'pages#elo', as: :elo
   get 'about', to: 'pages#about', as: :about
   get 'terms', to: 'pages#terms', as: :terms
+  get 'impressum', to: 'pages#impressum', as: :impressum
   get 'fantasy_guide', to: 'pages#fantasy_guide', as: :fantasy_guide
 
   authenticate :user, ->(u) { u.admin? } do
