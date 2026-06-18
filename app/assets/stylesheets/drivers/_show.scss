@@ -445,9 +445,7 @@
         border: 1px solid $border-accent;
         white-space: normal;
         width: max-content;
-        // Pass CSS min() through SassC verbatim — it tries to evaluate the
-        // function natively and fails on calc() arguments.
-        max-width: #{"min(260px, calc(100vw - 32px))"};
+        max-width: 260px;
         text-align: center;
         line-height: 1.35;
         pointer-events: none;
