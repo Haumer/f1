@@ -11,9 +11,14 @@
   Combine pill appears under the deck when an owned tier has ≥3 cards.
 
   Locals:
-    cards — array of DriverCards for the same driver
+    cards    — array of DriverCards for the same driver
+    is_owner — bool (default false). Controls whether the combine pill renders.
+               Defaulted because this partial is rendered from contexts that
+               don't expose the `is_owner?` controller method (e.g. the
+               fantasy portfolio overview).
 %>
 <%
+  is_owner     = local_assigns.fetch(:is_owner, false)
   by_tier_desc = cards.group_by(&:tier)
                       .sort_by { |t, _| -(DriverCardsHelper::TIER_ORDER[t] || 0) }
                       .to_h
@@ -65,7 +70,7 @@
             <% end %>
         </div>
 
-        <% if is_owner? %>
+        <% if is_owner %>
             <div class="dc-combine-row">
                 <% by_tier_desc.each do |tier, group| %>
                     <% next_tier = DriverCard.next_tier(tier) %>
