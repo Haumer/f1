@@ -52,7 +52,7 @@
 
         <div class="dc-grid">
             <% @stacks.values.sort_by { |cards| [-cards.size, -cards.map(&:earned_at).max.to_i] }.each do |cards| %>
-                <%= render "driver_cards/deck", cards: cards %>
+                <%= render "driver_cards/deck", cards: cards, is_owner: is_owner? %>
             <% end %>
         </div>
     <% end %>

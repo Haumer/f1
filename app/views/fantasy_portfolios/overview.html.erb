@@ -374,7 +374,7 @@
             </div>
             <div class="dc-grid dc-portfolio-strip-grid">
                 <% @driver_cards_decks.each do |deck_cards| %>
-                    <%= render "driver_cards/deck", cards: deck_cards %>
+                    <%= render "driver_cards/deck", cards: deck_cards, is_owner: @is_owner %>
                 <% end %>
             </div>
         </div>
