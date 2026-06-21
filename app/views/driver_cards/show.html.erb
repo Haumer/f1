@@ -1,0 +1,10 @@
+<% content_for(:title) { "#{@card.driver.fullname} — #{@card.tier.titleize} card" } %>
+
+<div class="homepage-container dc-collection">
+    <p class="dc-page-sub" style="margin-bottom: 16px;">
+        <%= link_to "← Back to #{is_owner? ? 'your' : @user.display_name + "'s"} cards", driver_cards_path(username: @user.username) %>
+    </p>
+    <div class="dc-grid" style="grid-template-columns: minmax(280px, 360px); justify-content: center;">
+        <%= render "driver_cards/card_flip", card: @card %>
+    </div>
+</div>

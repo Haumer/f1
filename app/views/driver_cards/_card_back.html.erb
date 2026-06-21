@@ -1,0 +1,50 @@
+<%#
+  Back face of a DriverCard. Shows the prediction receipt: which race, the
+  predicted vs actual finish, and the date earned. Uses the same metallic frame
+  + team colour as the front so the flip feels like the same card.
+
+  Locals:
+    card          — a DriverCard
+    sibling_count — optional: how many cards (incl. this one) of the same tier
+%>
+<%
+  driver      = card.driver
+  constructor = (defined?(card_constructor) && card_constructor) || driver.constructor_for(card.race.season)
+  hit         = card.predicted_position == card.actual_position
+  sibling_count ||= 1
+%>
+<div class="dc-card dc-card-back tier-<%= card.tier %> <%= card_team_class(constructor) %>"
+     style="<%= card_team_style(constructor) %>">
+    <div class="receipt">
+        <div class="r-tier"><%= card.tier %></div>
+        <div class="r-event"><%= card.race.circuit.name %></div>
+        <div class="r-round">Round <%= card.race.round %> · <%= card.race.year %></div>
+        <div class="r-row">
+            <span class="lbl">Your call</span>
+            <span class="val">P<%= card.predicted_position %></span>
+        </div>
+        <div class="r-row">
+            <span class="lbl">Finished</span>
+            <span class="val <%= hit ? 'hit' : 'miss' %>">
+                P<%= card.actual_position %><%= " ✓" if hit %>
+            </span>
+        </div>
+        <div class="r-row">
+            <span class="lbl">Earned</span>
+            <span class="val"><%= card.earned_at.to_date.strftime("%-d %b %Y") %></span>
+        </div>
+        <% if card.combined? %>
+            <div class="r-row r-combined">
+                <span class="lbl">Combined from</span>
+                <span class="val r-combined-races">×<%= card.combined_from_race_ids.size %></span>
+            </div>
+        <% elsif sibling_count > 1 %>
+            <div class="r-row r-multi">
+                <span class="lbl">You hold</span>
+                <span class="val">×<%= sibling_count %> at this tier</span>
+            </div>
+        <% end %>
+        <div class="r-driver"><%= driver.forename %> <%= driver.surname %></div>
+        <div class="r-hint">click to flip back</div>
+    </div>
+</div>

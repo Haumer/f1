@@ -101,6 +101,17 @@ Rails.application.routes.draw do
     post :stash, on: :collection
   end
 
+  # Driver Cards (collectible cards earned from correct race picks). Lives
+  # under /fantasy/u/:username so the URL says whose collection it is.
+  # `/cards` redirects to the signed-in user's own collection.
+  get  'fantasy/u/:username/cards',           to: 'driver_cards#index',   as: :driver_cards
+  post 'fantasy/u/:username/cards/combine',   to: 'driver_cards#combine', as: :combine_driver_cards
+  get  'fantasy/u/:username/cards/:id',       to: 'driver_cards#show',    as: :driver_card
+  get  'cards', to: redirect { |_p, req|
+    user = req.env['warden']&.user
+    user ? "/fantasy/u/#{user.username}/cards" : "/users/sign_in"
+  }
+
   # User account settings
   get   'u/:username', to: 'users#show',   as: :user_settings
   patch 'u/:username', to: 'users#update'

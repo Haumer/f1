@@ -62,6 +62,25 @@ class FantasyPortfoliosController < ApplicationController
                              .where(seasons: { year: @season.year })
                              .includes(race: [:circuit, :season])
                              .order("races.round DESC")
+
+    # Driver cards earned this season — surfaced on the portfolio so users see
+    # them next to the picks that earned them. Full collection lives at /cards.
+    # We group by driver so each card "deck" shows the full per-driver picture
+    # (combine pill needs the whole tier count, not just the recent slice).
+    season_cards = DriverCard.where(user: @user)
+                             .joins(:race)
+                             .where(races: { season_id: @season.id })
+                             .includes(:driver, race: [:circuit, :season])
+                             .to_a
+    @driver_cards_total       = season_cards.size
+    @driver_cards_tier_counts = season_cards.group_by(&:tier).transform_values(&:count)
+    # Group by driver, sort each driver's group by most-recent card desc, then
+    # take the 4 drivers whose most recent card is newest.
+    @driver_cards_decks = season_cards
+      .group_by(&:driver_id)
+      .values
+      .sort_by { |grp| -grp.map(&:earned_at).max.to_i }
+      .first(4)
   end
 
   # ═══════════════════════════════════════

@@ -78,6 +78,12 @@ module Fantasy
 
         award_credits(pick, score)
       end
+
+      # Layer 1 of the driver-card system: manually-placed picks whose predicted
+      # position matches the actual finish earn a DriverCard. AwardForRace is
+      # idempotent (unique index on user+driver+race), so re-running
+      # ScoreRacePicks doesn't re-award.
+      DriverCards::AwardForRace.new(race: @race).call
     end
 
     private
