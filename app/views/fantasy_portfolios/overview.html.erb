@@ -349,6 +349,37 @@
         <% end %>
     <% end %>
 
+    <%# ═══════════════════ Driver Cards ═══════════════════ %>
+    <% if @driver_cards_total.to_i > 0 %>
+        <div class="table-header">
+            <h3>
+                <i class="fa-solid fa-id-card" style="opacity:0.5; font-size:14px"></i> Driver Cards
+                <span class="table-header-sub" style="margin-left:10px; opacity:0.7">
+                    <%= @driver_cards_total %> earned this season
+                </span>
+            </h3>
+            <%= link_to driver_cards_path(username: @user.username), class: "picks-compact-edit" do %>
+                View collection <i class="fa-solid fa-arrow-right"></i>
+            <% end %>
+        </div>
+        <div class="dc-collection dc-portfolio-strip">
+            <div class="dc-portfolio-strip-tiers">
+                <% %w[bronze silver gold platinum legendary].each do |t| %>
+                    <% n = @driver_cards_tier_counts[t].to_i %>
+                    <% next if n.zero? %>
+                    <span class="dc-portfolio-strip-tier dc-portfolio-strip-tier-<%= t %>">
+                        <%= n %> <%= t.first(2).upcase %>
+                    </span>
+                <% end %>
+            </div>
+            <div class="dc-grid dc-portfolio-strip-grid">
+                <% @driver_cards_decks.each do |deck_cards| %>
+                    <%= render "driver_cards/deck", cards: deck_cards %>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+
     <%# ═══════════════════ Predictions ═══════════════════ %>
     <% if @predictions.any? %>
         <div class="table-header"><h3>Race Previews</h3></div>

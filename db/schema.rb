@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_06_10_234000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_20_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -209,6 +209,28 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_10_234000) do
     t.string "tier"
     t.index ["driver_id", "key"], name: "index_driver_badges_on_driver_id_and_key", unique: true
     t.index ["driver_id"], name: "index_driver_badges_on_driver_id"
+  end
+
+  create_table "driver_cards", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "driver_id", null: false
+    t.bigint "race_id", null: false
+    t.integer "predicted_position", null: false
+    t.integer "actual_position", null: false
+    t.string "tier", null: false
+    t.integer "snapshot_wins", default: 0, null: false
+    t.integer "snapshot_podiums", default: 0, null: false
+    t.integer "snapshot_wdc", default: 0, null: false
+    t.float "snapshot_elo"
+    t.datetime "earned_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "combined_from_race_ids", default: [], null: false, array: true
+    t.index ["driver_id"], name: "index_driver_cards_on_driver_id"
+    t.index ["race_id"], name: "index_driver_cards_on_race_id"
+    t.index ["user_id", "driver_id", "race_id"], name: "idx_driver_cards_unique_per_user_driver_race", unique: true
+    t.index ["user_id", "tier"], name: "index_driver_cards_on_user_id_and_tier"
+    t.index ["user_id"], name: "index_driver_cards_on_user_id"
   end
 
   create_table "driver_countries", force: :cascade do |t|
@@ -760,6 +782,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_10_234000) do
   add_foreign_key "constructor_supports", "seasons"
   add_foreign_key "constructor_supports", "users"
   add_foreign_key "driver_badges", "drivers"
+  add_foreign_key "driver_cards", "drivers"
+  add_foreign_key "driver_cards", "races"
+  add_foreign_key "driver_cards", "users"
   add_foreign_key "driver_countries", "countries"
   add_foreign_key "driver_countries", "drivers"
   add_foreign_key "driver_standings", "drivers"
