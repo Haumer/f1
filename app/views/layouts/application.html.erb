@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for?(:title) ? "#{yield(:title)} — F1 Elo" : "F1 Elo — Rating Every F1 Driver Since 1950" %></title>
+    <title><%= content_for?(:title) ? safe_join([yield(:title), " — F1 Elo"]) : "F1 Elo — Rating Every F1 Driver Since 1950" %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#0a0a0f">
     <meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." %>">
