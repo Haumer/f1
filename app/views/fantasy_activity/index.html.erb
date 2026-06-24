@@ -1,0 +1,23 @@
+<% content_for :title, "#{@user.username}'s Activity" %>
+
+<div class="fantasy-portfolio-container">
+    <div class="fantasy-portfolio-header" style="margin-bottom: 16px">
+        <%= link_to fantasy_overview_path(@user.username), class: "picks-compact-edit" do %>
+            <i class="fa-solid fa-arrow-left"></i> Back to portfolio
+        <% end %>
+        <h1 style="margin-top: 8px"><i class="fa-solid fa-clock-rotate-left" style="opacity:0.5; font-size:18px"></i> Activity</h1>
+        <p class="fantasy-portfolio-subtitle">
+            Every credit movement, card earned, and achievement unlocked this season.
+        </p>
+    </div>
+
+    <% if @entries.any? %>
+        <%= render "fantasy_portfolios/activity_feed", entries: @entries, round_amount: true, show_header: false %>
+    <% else %>
+        <div class="card empty-state">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <h3>No activity yet</h3>
+            <p>Trade a stock, place a race pick, or unlock an achievement to see it here.</p>
+        </div>
+    <% end %>
+</div>

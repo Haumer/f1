@@ -9,8 +9,10 @@ module Fantasy
       earned = []
       earned << award(:early_adopter) if check_early_adopter
       earned << award(:first_profit) if check_profit(0)
-      earned << award(:profit_500) if check_profit(500)
-      earned << award(:profit_1000) if check_profit(1000)
+      earned << award(:profit_1x)  if check_profit(10_000)
+      earned << award(:profit_2x)  if check_profit(20_000)
+      earned << award(:profit_4x)  if check_profit(40_000)
+      earned << award(:profit_10x) if check_profit(100_000)
       earned << award(:all_time_high) if check_all_time_high
       earned << award(:streak_3) if check_streak(3)
 

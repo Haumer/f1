@@ -34,6 +34,13 @@ class FantasyPortfoliosController < ApplicationController
       end
     end
 
+    # Unified activity feed (credits + cards + achievements). Owner-only — public
+    # profiles don't expose individual events. Profile shows a teaser; full feed
+    # lives at fantasy_activity_path so the portfolio page stays scannable.
+    if @is_owner
+      @activity_entries = Fantasy::ActivityFeed.for_user(@user, season: @season, limit: 8)
+    end
+
     # Race picks — upcoming + past
     @race_picks = RacePick.where(user: @user)
                           .joins(race: :season)

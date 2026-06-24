@@ -112,6 +112,9 @@ Rails.application.routes.draw do
     user ? "/fantasy/u/#{user.username}/cards" : "/users/sign_in"
   }
 
+  # Activity feed (credits + cards + achievements). Owner-only.
+  get 'fantasy/u/:username/activity', to: 'fantasy_activity#index', as: :fantasy_activity
+
   # User account settings
   get   'u/:username', to: 'users#show',   as: :user_settings
   patch 'u/:username', to: 'users#update'
