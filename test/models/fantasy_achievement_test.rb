@@ -85,7 +85,7 @@ class FantasyAchievementTest < ActiveSupport::TestCase
   end
 
   test "DEFINITIONS covers all expected achievement types" do
-    expected_keys = %i[first_profit profit_500 profit_1000
+    expected_keys = %i[first_profit profit_1x profit_2x profit_4x profit_10x
                        all_time_high streak_3
                        top_3 top_1 early_adopter]
     expected_keys.each do |key|
