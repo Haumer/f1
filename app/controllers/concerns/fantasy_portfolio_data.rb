@@ -29,7 +29,8 @@ module FantasyPortfolioData
 
   def load_stock_data
     return unless @stock_portfolio
-    @stock_holdings = @stock_portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price)
+    @stock_holdings = @stock_portfolio.active_holdings.includes(driver: :countries).order(:direction, :entry_price).to_a
+    @stock_portfolio.prime_active_holdings(@stock_holdings)
     @stock_snapshots = @stock_portfolio.snapshots.joins(:race).order("races.date ASC")
     @stock_value_delta = @stock_portfolio.value_change_since_last_race
     @stock_constructors = constructors_for_drivers(@stock_holdings.map(&:driver))

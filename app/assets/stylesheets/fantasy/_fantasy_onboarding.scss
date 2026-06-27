@@ -162,25 +162,188 @@
     flex-wrap: wrap;
 }
 
-.fantasy-value-pl {
+.fantasy-value-row-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.fantasy-rank-chip,
+.fantasy-lock-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    color: $text-secondary;
+    line-height: 1.4;
+
+    i { font-size: 10px; opacity: 0.7; }
+}
+
+.fantasy-rank-chip {
+    .fantasy-rank-num {
+        color: $text-primary;
+        font-weight: $weight-bold;
+    }
+    .fantasy-rank-of {
+        font-size: 10px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+    }
+    .fantasy-rank-delta {
+        display: inline-flex;
+        align-items: center;
+        gap: 1px;
+        font-weight: $weight-bold;
+        margin-left: 2px;
+        &.gain { color: $green; }
+        &.loss { color: $accent-red; }
+        i { font-size: 11px; opacity: 1; }
+    }
+}
+
+.fantasy-lock-chip {
+    .fantasy-lock-label {
+        font-size: 10px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+    }
+    .fantasy-lock-time {
+        color: $text-primary;
+        font-weight: $weight-bold;
+    }
+    &.locked {
+        background: rgba($accent-red, 0.12);
+        border-color: rgba($accent-red, 0.3);
+        color: $accent-red;
+        i, .fantasy-lock-label { color: $accent-red; opacity: 1; }
+    }
+}
+
+.fantasy-value-pl-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+// ── Stats strip (Robinhood-style account summary chips) ──
+.fantasy-stats-strip {
+    display: flex;
+    gap: 8px;
+    margin-top: -8px;
+    margin-bottom: $space-lg;
+    flex-wrap: wrap;
+}
+
+.fantasy-stat-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    border-radius: $radius-sm;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    min-width: 130px;
+    flex: 1;
+    max-width: 280px;
+
+    &.warn {
+        border-color: rgba($accent-red, 0.35);
+        .fantasy-stat-value { color: $accent-red; }
+    }
+}
+
+.fantasy-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    font-weight: $weight-semi;
+}
+
+.fantasy-stat-value {
     font-family: $mono-font;
     font-size: 14px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+
+    .gain { color: $green; }
+    .loss { color: $accent-red; }
+    i { font-size: 11px; }
+}
+
+.fantasy-allocation-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: $bg-surface;
+    overflow: hidden;
+    cursor: help;
+}
+
+.fantasy-allocation-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $accent-red, lighten($accent-red, 8%));
+    border-radius: 3px;
+    transition: width $t-fast;
+}
+
+.fantasy-value-pl {
+    font-family: $mono-font;
+    font-size: 22px;
+    font-weight: $weight-bold;
+    letter-spacing: -0.5px;
+    line-height: 1;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+}
+
+.fantasy-value-pl-pct {
+    font-size: 14px;
+    font-weight: $weight-semi;
+    opacity: 0.85;
+    margin-left: 2px;
+}
+
+.fantasy-value-pl-sep {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+}
+
+.fantasy-value-race-delta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: $mono-font;
+    font-size: 13px;
     font-weight: $weight-bold;
 
     &.gain { color: $green; }
     &.loss { color: $accent-red; }
 }
 
-.fantasy-value-delta {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 600;
-
-    &.gain { color: $green; }
-    &.loss { color: $accent-red; }
-    i { font-size: 10px; }
+.fantasy-value-race-delta-label {
+    font-family: inherit;
+    font-weight: $weight-regular;
+    font-size: 10px;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
 }
 
 .fantasy-value-details {

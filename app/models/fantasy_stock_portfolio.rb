@@ -43,11 +43,19 @@ class FantasyStockPortfolio < ApplicationRecord
     Fantasy::Pricing.stock_price_for(driver, season)
   end
 
+  # Seed the per-instance holdings cache so a controller's already-preloaded
+  # holdings array is reused by positions_value / total_invested /
+  # total_collateral. Without seeding, those methods stay stateless and re-query
+  # so settlement/trade flows that mutate holdings mid-request stay correct.
+  def prime_active_holdings(holdings)
+    @primed_active_holdings = holdings.to_a
+  end
+
   # Positions-only value (no cash — cash lives in the wallet/roster portfolio)
   # Pass `prices_by_driver_id` to skip per-holding price lookups (used by
   # the leaderboard, which precomputes one bulk price map per season).
   def positions_value(prices_by_driver_id = nil)
-    active = holdings.loaded? ? holdings.select(&:active) : active_holdings.includes(:driver).to_a
+    active = resolved_active_holdings
     price = ->(h) { prices_by_driver_id ? prices_by_driver_id[h.driver_id] : share_price(h.driver) }
     longs_value = active.select { |h| h.direction == "long" }.sum { |h| price.call(h) * h.quantity }
     shorts_pnl = active.select { |h| h.direction == "short" }.sum { |h| (h.entry_price - price.call(h)) * h.quantity }
@@ -56,8 +64,7 @@ class FantasyStockPortfolio < ApplicationRecord
 
   # Total invested = sum of what was spent opening positions
   def total_invested
-    active = holdings.loaded? ? holdings.select(&:active) : active_holdings.to_a
-    active.select { |h| h.direction == "long" }.sum { |h| h.entry_price * h.quantity }
+    resolved_active_holdings.select { |h| h.direction == "long" }.sum { |h| h.entry_price * h.quantity }
   end
 
   # Stock P&L = current positions value - total invested
@@ -78,7 +85,11 @@ class FantasyStockPortfolio < ApplicationRecord
   end
 
   def total_collateral
-    active_shorts.sum(:collateral)
+    if @primed_active_holdings
+      @primed_active_holdings.select { |h| h.direction == "short" }.sum { |h| h.collateral || 0 }
+    else
+      active_shorts.sum(:collateral)
+    end
   end
 
   def available_cash
@@ -93,5 +104,12 @@ class FantasyStockPortfolio < ApplicationRecord
     last_two = snapshots.order(created_at: :desc).limit(2).to_a
     return nil unless last_two.size >= 2
     last_two[0].value - last_two[1].value
+  end
+
+  private
+
+  def resolved_active_holdings
+    return @primed_active_holdings if @primed_active_holdings
+    holdings.loaded? ? holdings.select(&:active) : active_holdings.includes(:driver).to_a
   end
 end

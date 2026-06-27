@@ -28,19 +28,10 @@
             <span class="driver-card-name"><%= link_to holding.driver.fullname, driver_path(holding.driver) %></span>
             <span class="driver-card-team"><%= constructor&.name %></span>
         </div>
-        <div class="driver-card-stats">
-            <div class="driver-card-stat">
-                <span class="stat-label">Avg Price</span>
-                <span class="stat-value"><%= holding.entry_price.round(1) %></span>
-            </div>
-            <div class="driver-card-stat">
-                <span class="stat-label">Current</span>
-                <span class="stat-value"><%= holding.current_price.round(1) %></span>
-            </div>
-            <div class="driver-card-stat">
-                <span class="stat-label">P&L</span>
-                <span class="stat-value <%= gl >= 0 ? 'text-green' : 'text-red' %>"><%= gl >= 0 ? '+' : '' %><%= gl.round(1) %></span>
-            </div>
+        <div class="driver-card-price">
+            <span class="driver-card-price-entry"><%= holding.entry_price.round(1) %></span>
+            <i class="fa-solid fa-arrow-right driver-card-price-arrow"></i>
+            <span class="driver-card-price-current <%= gl >= 0 ? 'gain' : 'loss' %>"><%= holding.current_price.round(1) %></span>
         </div>
         <% if show_sell && can_trade %>
             <div class="driver-card-action">
