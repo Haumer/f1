@@ -238,13 +238,62 @@
     flex-wrap: wrap;
 }
 
+// ── Best-pick callout (inline beside Race Picks header) ──
+.fantasy-best-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 8px;
+    margin-left: auto;
+    border-radius: 999px;
+    background: rgba($gold, 0.08);
+    border: 1px solid rgba($gold, 0.35);
+    font-size: 11px;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+
+    i { color: $gold; font-size: 11px; }
+
+    .fantasy-best-pick-label {
+        color: $gold;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        font-weight: $weight-bold;
+        font-size: 10px;
+        font-family: inherit;
+    }
+
+    .fantasy-best-pick-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        color: $text-primary;
+
+        &:hover { text-decoration: none; }
+    }
+
+    .fantasy-best-pick-race {
+        color: $text-secondary;
+    }
+
+    .fantasy-best-pick-stat {
+        font-weight: $weight-bold;
+    }
+}
+
 // ── Stats strip (Robinhood-style account summary chips) ──
 .fantasy-stats-strip {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 8px;
     margin-top: -8px;
     margin-bottom: $space-lg;
-    flex-wrap: wrap;
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .fantasy-stat-chip {
@@ -255,9 +304,7 @@
     border-radius: $radius-sm;
     background: $bg-card;
     border: 1px solid $border-color;
-    min-width: 130px;
-    flex: 1;
-    max-width: 280px;
+    min-width: 0;
 
     &.warn {
         border-color: rgba($accent-red, 0.35);
@@ -374,10 +421,12 @@
 
 .detail-value {
     font-family: $mono-font;
-    font-size: 36px;
+    font-size: 20px;
     font-weight: $weight-bold;
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
     line-height: 1.1;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
 }
 
 // ═══════════════════════════════════════

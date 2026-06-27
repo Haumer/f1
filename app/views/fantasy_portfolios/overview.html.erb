@@ -7,33 +7,36 @@
         <% sc = support.constructor %>
         <% team_color = constructor_color(sc) %>
     <% end %>
+    <% initials = @user.display_name.to_s.scan(/[\p{L}\d]/).first(2).join.upcase %>
     <div class="fantasy-dashboard-header">
-        <div class="fantasy-dashboard-title">
-            <h2>
-                <% if support && sc.logo_url.present? %>
-                    <%= link_to constructor_path(sc), class: "fantasy-team-badge-inline" do %>
-                        <img src="<%= sc.logo_url %>" alt="<%= sc.name %>" class="fantasy-team-badge-logo" onerror="this.style.display='none'">
-                    <% end %>
-                <% end %>
-                <% if support %>
-                    <span style="color: <%= team_color %>"><%= @user.display_name %></span>
-                <% else %>
+        <div class="fantasy-dashboard-identity">
+            <div class="fantasy-avatar"<%= support ? " style=\"--avatar-ring: #{team_color}\"".html_safe : '' %>>
+                <span class="fantasy-avatar-initials"><%= initials.presence || '?' %></span>
+            </div>
+            <div class="fantasy-dashboard-title">
+                <h2 class="fantasy-dashboard-name<%= ' is-supported' if support %>"<%= support ? " style=\"color: #{team_color}\"".html_safe : '' %>>
                     <%= @user.display_name %>
-                <% end %>
-            </h2>
-            <span class="fantasy-season">
-                <%= @season.year %> Fantasy
-                <% if @is_owner %>
-                    <span class="fantasy-visibility-inline">
-                        <%= form_with url: toggle_public_profile_path, method: :post, local: true, style: "display:inline" do %>
-                            <label class="fantasy-visibility-inline-label">
+                </h2>
+                <div class="fantasy-dashboard-meta">
+                    <span class="fantasy-season"><%= @season.year %> Fantasy</span>
+                    <% if support %>
+                        <%= link_to constructor_path(sc), class: "fantasy-team-chip", style: "--team-color: #{team_color}", title: sc.name do %>
+                            <% if sc.logo_url.present? %>
+                                <img src="<%= sc.logo_url %>" alt="" class="fantasy-team-chip-logo" onerror="this.style.display='none'">
+                            <% end %>
+                            <span class="fantasy-team-chip-name"><%= sc.name %></span>
+                        <% end %>
+                    <% end %>
+                    <% if @is_owner %>
+                        <%= form_with url: toggle_public_profile_path, method: :post, local: true, class: "fantasy-visibility-inline-form" do %>
+                            <label class="fantasy-visibility-inline-label" title="<%= current_user.public_profile? ? 'Profile is public' : 'Profile is private' %>">
                                 <input type="checkbox" <%= "checked" if current_user.public_profile? %> onchange="this.form.requestSubmit()">
                                 <span><i class="fa-solid fa-<%= current_user.public_profile? ? 'globe' : 'lock' %>"></i></span>
                             </label>
                         <% end %>
-                    </span>
-                <% end %>
-            </span>
+                    <% end %>
+                </div>
+            </div>
         </div>
         <div class="fantasy-header-actions">
             <% if @is_owner && @stock_portfolio %>
@@ -355,8 +358,25 @@
             picks_sd_index = SeasonDriver.where(season: @season, driver_id: all_pick_driver_ids).includes(:constructor).index_by(&:driver_id) if all_pick_driver_ids.any?
             picks_sd_index ||= {}
         %>
+        <%
+            best_pick_entry = @pick_summaries.max_by { |_, s| s[:total].to_i }
+            best_pick = best_pick_entry && best_pick_entry[1][:total].to_i > 0 ? @race_picks.find { |rp| rp.id == best_pick_entry[0] } : nil
+            best_pick_summary = best_pick && best_pick_entry[1]
+        %>
         <div class="table-header">
             <h3><i class="fa-solid fa-hand-pointer" style="opacity:0.5; font-size:14px"></i> Race Picks</h3>
+            <% if best_pick %>
+                <span class="fantasy-best-pick" title="Your best-scoring pick this season">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span class="fantasy-best-pick-label">Best</span>
+                    <%= link_to race_pick_results_path(@user.username, best_pick.race_id), class: "fantasy-best-pick-link" do %>
+                        <span class="fantasy-best-pick-race">R<%= best_pick.race.round %></span>
+                        <span class="fantasy-best-pick-stat"><%= best_pick_summary[:total] %> pts</span>
+                        <span class="fantasy-best-pick-stat">·</span>
+                        <span class="fantasy-best-pick-stat"><%= best_pick_summary[:exact] %> exact</span>
+                    <% end %>
+                </span>
+            <% end %>
             <% if @is_owner && next_race %>
                 <span class="table-header-sub">
                     <% if !next_race.picks_open? %>

@@ -8,6 +8,7 @@
 <% g = color_hex[2..3].to_i(16) %>
 <% b = color_hex[4..5].to_i(16) %>
 <div class="driver-card" style="--card-color: <%= color %>; --card-color-rgb: <%= r %>, <%= g %>, <%= b %>">
+    <%= link_to "", driver_path(holding.driver), class: "driver-card-link", "aria-label": "View #{holding.driver.fullname}" %>
     <div class="driver-card-photo<%= ' driver-card-photo-empty' unless holding.driver.display_image_url.present? %>">
         <% if holding.driver.display_image_url.present? %>
             <img src="<%= holding.driver.display_image_url %>" alt="<%= holding.driver.fullname %>" loading="lazy" onerror="this.parentElement.classList.add('driver-card-photo-empty'); this.remove();">
