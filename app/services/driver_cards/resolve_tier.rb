@@ -12,6 +12,7 @@ module DriverCards
   class ResolveTier
     BUMP_PROBABILITY = 0.10
     UPSET_GRID_THRESHOLD = 5 # grid worse than this + P1 finish counts as an upset
+    CARD_ELIGIBLE_MAX = 10  # predictions outside top 10 never earn a card
 
     BASE_TIER_BY_PREDICTED = {
       1  => :p1,
