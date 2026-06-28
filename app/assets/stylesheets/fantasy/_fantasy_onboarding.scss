@@ -252,6 +252,7 @@
     font-family: $mono-font;
     font-variant-numeric: tabular-nums;
     line-height: 1.4;
+    flex-shrink: 0;
 
     i { color: $gold; font-size: 11px; }
 
@@ -262,6 +263,8 @@
         font-weight: $weight-bold;
         font-size: 10px;
         font-family: inherit;
+
+        @media (max-width: 600px) { display: none; }
     }
 
     .fantasy-best-pick-link {
@@ -292,7 +295,8 @@
     margin-bottom: $space-lg;
 
     @media (max-width: 600px) {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 6px;
     }
 }
 
@@ -309,6 +313,16 @@
     &.warn {
         border-color: rgba($accent-red, 0.35);
         .fantasy-stat-value { color: $accent-red; }
+    }
+
+    @media (max-width: 600px) {
+        padding: 8px 12px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        .fantasy-allocation-bar { flex: 1; max-width: 120px; }
     }
 }
 
@@ -401,6 +415,11 @@
 
     @media (max-width: 768px) {
         margin-left: 0;
+        gap: $space-md;
+        width: 100%;
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid $border-subtle;
     }
 }
 
@@ -409,6 +428,14 @@
     flex-direction: column;
     text-align: center;
     min-width: 64px;
+
+    @media (max-width: 768px) {
+        text-align: left;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 6px;
+        min-width: 0;
+    }
 }
 
 .detail-label {
@@ -417,6 +444,10 @@
     letter-spacing: $ls-label;
     color: $text-tertiary;
     margin-bottom: 2px;
+
+    @media (max-width: 768px) {
+        margin-bottom: 0;
+    }
 }
 
 .detail-value {
@@ -427,6 +458,11 @@
     line-height: 1.1;
     color: $text-primary;
     font-variant-numeric: tabular-nums;
+
+    @media (max-width: 768px) {
+        font-size: 14px;
+        letter-spacing: 0;
+    }
 }
 
 // ═══════════════════════════════════════

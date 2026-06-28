@@ -655,6 +655,15 @@
 .picks-result-race {
     font-weight: $weight-semi;
     font-size: 14px;
+    flex: 1 1 auto;
+    min-width: 0;
+
+    @media (max-width: 600px) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+    }
 }
 
 .picks-result-meta {
@@ -662,8 +671,14 @@
     align-items: center;
     gap: 12px;
     font-size: 13px;
+    flex-shrink: 0;
 
     i { font-size: 11px; color: $text-tertiary; }
+
+    @media (max-width: 600px) {
+        gap: 8px;
+        font-size: 12px;
+    }
 }
 
 .picks-result-pts {
