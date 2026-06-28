@@ -404,6 +404,41 @@
     min-height: 42px;
 }
 
+// Inserted between P10 and P11 in the picks editor — signals the boundary
+// below which finishes still score points but don't earn a driver card.
+.picks-card-cutoff {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 4px 6px;
+
+    .picks-card-cutoff-line {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, $border-color, transparent);
+    }
+
+    .picks-card-cutoff-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
+        white-space: nowrap;
+
+        i { color: $gold; opacity: 0.55; font-size: 10px; }
+    }
+
+    @media (max-width: 480px) {
+        .picks-card-cutoff-label {
+            font-size: 9px;
+            letter-spacing: 0.4px;
+        }
+    }
+}
+
 .pick-slot-filled {
     display: flex;
     align-items: center;
@@ -414,6 +449,13 @@
     background: $bg-card;
     cursor: grab;
     transition: background $t-fast;
+
+    // Slots P11+ won't earn driver cards — dim them slightly so the visual
+    // weight matches their reduced reward.
+    &.pick-slot-no-card {
+        opacity: 0.72;
+        .pick-slot-pos { color: $text-tertiary; }
+    }
 
     &:active { cursor: grabbing; }
 
@@ -627,6 +669,27 @@
     &.scorecard-points-close { color: lighten($green, 8%); }
     &.scorecard-points-near  { color: $gold; }
     &.scorecard-points-miss  { color: $text-tertiary; }
+}
+
+// Inline tag shown when a perfect prediction lands outside the top 10 —
+// acknowledges the perfect call while explaining why no card was awarded.
+.scorecard-no-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba($text-tertiary, 0.08);
+    border: 1px dashed rgba($text-tertiary, 0.4);
+    color: $text-tertiary;
+    font-size: 10px;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    cursor: help;
+
+    i { font-size: 9px; opacity: 0.7; }
 }
 
 // Past-pick summary row on the profile (links into the scorecard)

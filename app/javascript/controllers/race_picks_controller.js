@@ -152,16 +152,38 @@ export default class extends Controller {
 
     container.innerHTML = ""
 
+    const CARD_CUTOFF = 10
+    let cutoffInserted = false
+
     sorted.forEach(pick => {
+      // Drop in a card-eligibility divider just before the first P11+ slot.
+      // Tells users that finishes from this point down score points but won't
+      // earn a driver card (rule lives in DriverCards::ResolveTier).
+      if (!cutoffInserted && pick.position > CARD_CUTOFF) {
+        const divider = document.createElement("div")
+        divider.className = "picks-card-cutoff"
+        divider.innerHTML = `
+          <span class="picks-card-cutoff-line"></span>
+          <span class="picks-card-cutoff-label">
+            <i class="fa-solid fa-trophy"></i>
+            Picks below earn points, not driver cards
+          </span>
+          <span class="picks-card-cutoff-line"></span>
+        `
+        container.appendChild(divider)
+        cutoffInserted = true
+      }
+
       const card = this.cardTargets.find(c => c.dataset.driverId === pick.driverId)
       const name = card?.dataset.driverName || "Unknown"
       const team = card?.dataset.driverTeam || ""
       const teamColor = card?.dataset.driverTeamColor || "#555"
       const elo = card?.dataset.driverElo || ""
       const isRandom = pick.source === "random"
+      const eligible = pick.position <= CARD_CUTOFF
 
       const row = document.createElement("div")
-      row.className = "pick-slot-filled"
+      row.className = "pick-slot-filled" + (eligible ? "" : " pick-slot-no-card")
       row.dataset.driverId = pick.driverId
       row.style.setProperty("--constructor-color", teamColor)
       row.innerHTML = `
