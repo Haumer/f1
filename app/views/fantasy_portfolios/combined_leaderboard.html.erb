@@ -34,7 +34,7 @@
                             <th class="text-center">#</th>
                             <th>Player</th>
                             <th class="text-end">Net Value</th>
-                            <th class="text-end">Last Race</th>
+                            <th class="text-end d-none d-sm-table-cell">Last Race</th>
                             <th class="text-end d-none d-md-table-cell">Total Value</th>
                         </tr>
                     </thead>
@@ -66,8 +66,13 @@
                                     <span class="<%= net >= 0 ? 'text-green' : 'text-red' %>">
                                         <%= net >= 0 ? '+' : '' %><%= number_with_delimiter(net.round(0)) %>
                                     </span>
+                                    <% if last_race != 0 %>
+                                        <span class="leaderboard-last-race-inline d-sm-none <%= last_race >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %> last race
+                                        </span>
+                                    <% end %>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end d-none d-sm-table-cell">
                                     <% if last_race != 0 %>
                                         <span class="<%= last_race >= 0 ? 'text-green' : 'text-red' %>">
                                             <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %>

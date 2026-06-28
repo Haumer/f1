@@ -317,6 +317,17 @@
     font-weight: $weight-bold;
 }
 
+// Inline last-race delta shown only on phones where the Last Race column
+// is collapsed (avoids horizontal table overflow on narrow screens).
+.leaderboard-last-race-inline {
+    display: block;
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-semi;
+    opacity: 0.75;
+    margin-top: 2px;
+}
+
 // ═══════════════════════════════════════
 // ACHIEVEMENTS
 // ═══════════════════════════════════════
