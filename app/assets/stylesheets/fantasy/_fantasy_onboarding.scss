@@ -162,25 +162,249 @@
     flex-wrap: wrap;
 }
 
-.fantasy-value-pl {
+.fantasy-value-row-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.fantasy-rank-chip,
+.fantasy-lock-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    color: $text-secondary;
+    line-height: 1.4;
+
+    i { font-size: 10px; opacity: 0.7; }
+}
+
+.fantasy-rank-chip {
+    .fantasy-rank-num {
+        color: $text-primary;
+        font-weight: $weight-bold;
+    }
+    .fantasy-rank-of {
+        font-size: 10px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+    }
+    .fantasy-rank-delta {
+        display: inline-flex;
+        align-items: center;
+        gap: 1px;
+        font-weight: $weight-bold;
+        margin-left: 2px;
+        &.gain { color: $green; }
+        &.loss { color: $accent-red; }
+        i { font-size: 11px; opacity: 1; }
+    }
+}
+
+.fantasy-lock-chip {
+    .fantasy-lock-label {
+        font-size: 10px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+    }
+    .fantasy-lock-time {
+        color: $text-primary;
+        font-weight: $weight-bold;
+    }
+    &.locked {
+        background: rgba($accent-red, 0.12);
+        border-color: rgba($accent-red, 0.3);
+        color: $accent-red;
+        i, .fantasy-lock-label { color: $accent-red; opacity: 1; }
+    }
+}
+
+.fantasy-value-pl-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+// ── Best-pick callout (inline beside Race Picks header) ──
+.fantasy-best-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 8px;
+    margin-left: auto;
+    border-radius: 999px;
+    background: rgba($gold, 0.08);
+    border: 1px solid rgba($gold, 0.35);
+    font-size: 11px;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+    flex-shrink: 0;
+
+    i { color: $gold; font-size: 11px; }
+
+    .fantasy-best-pick-label {
+        color: $gold;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        font-weight: $weight-bold;
+        font-size: 10px;
+        font-family: inherit;
+
+        @media (max-width: 600px) { display: none; }
+    }
+
+    .fantasy-best-pick-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        color: $text-primary;
+
+        &:hover { text-decoration: none; }
+    }
+
+    .fantasy-best-pick-race {
+        color: $text-secondary;
+    }
+
+    .fantasy-best-pick-stat {
+        font-weight: $weight-bold;
+    }
+}
+
+// ── Stats strip (Robinhood-style account summary chips) ──
+.fantasy-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    margin-top: -8px;
+    margin-bottom: $space-lg;
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}
+
+.fantasy-stat-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    border-radius: $radius-sm;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    min-width: 0;
+
+    &.warn {
+        border-color: rgba($accent-red, 0.35);
+        .fantasy-stat-value { color: $accent-red; }
+    }
+
+    @media (max-width: 600px) {
+        padding: 8px 12px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        .fantasy-allocation-bar { flex: 1; max-width: 120px; }
+    }
+}
+
+.fantasy-stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    font-weight: $weight-semi;
+}
+
+.fantasy-stat-value {
     font-family: $mono-font;
     font-size: 14px;
+    font-weight: $weight-bold;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+
+    .gain { color: $green; }
+    .loss { color: $accent-red; }
+    i { font-size: 11px; }
+}
+
+.fantasy-allocation-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: $bg-surface;
+    overflow: hidden;
+    cursor: help;
+}
+
+.fantasy-allocation-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $accent-red, lighten($accent-red, 8%));
+    border-radius: 3px;
+    transition: width $t-fast;
+}
+
+.fantasy-value-pl {
+    font-family: $mono-font;
+    font-size: 22px;
+    font-weight: $weight-bold;
+    letter-spacing: -0.5px;
+    line-height: 1;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+}
+
+.fantasy-value-pl-pct {
+    font-size: 14px;
+    font-weight: $weight-semi;
+    opacity: 0.85;
+    margin-left: 2px;
+}
+
+.fantasy-value-pl-sep {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+}
+
+.fantasy-value-race-delta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: $mono-font;
+    font-size: 13px;
     font-weight: $weight-bold;
 
     &.gain { color: $green; }
     &.loss { color: $accent-red; }
 }
 
-.fantasy-value-delta {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 600;
-
-    &.gain { color: $green; }
-    &.loss { color: $accent-red; }
-    i { font-size: 10px; }
+.fantasy-value-race-delta-label {
+    font-family: inherit;
+    font-weight: $weight-regular;
+    font-size: 10px;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
 }
 
 .fantasy-value-details {
@@ -191,6 +415,11 @@
 
     @media (max-width: 768px) {
         margin-left: 0;
+        gap: $space-md;
+        width: 100%;
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid $border-subtle;
     }
 }
 
@@ -199,6 +428,14 @@
     flex-direction: column;
     text-align: center;
     min-width: 64px;
+
+    @media (max-width: 768px) {
+        text-align: left;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 6px;
+        min-width: 0;
+    }
 }
 
 .detail-label {
@@ -207,14 +444,25 @@
     letter-spacing: $ls-label;
     color: $text-tertiary;
     margin-bottom: 2px;
+
+    @media (max-width: 768px) {
+        margin-bottom: 0;
+    }
 }
 
 .detail-value {
     font-family: $mono-font;
-    font-size: 36px;
+    font-size: 20px;
     font-weight: $weight-bold;
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
     line-height: 1.1;
+    color: $text-primary;
+    font-variant-numeric: tabular-nums;
+
+    @media (max-width: 768px) {
+        font-size: 14px;
+        letter-spacing: 0;
+    }
 }
 
 // ═══════════════════════════════════════

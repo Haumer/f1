@@ -477,6 +477,8 @@ th[data-sort] {
     margin-bottom: 16px;
     padding-bottom: 8px;
     border-bottom: 1px solid $border-color;
+    gap: 8px;
+    flex-wrap: wrap;
     h3 {
         margin: 0;
         font-family: $headers-font;
@@ -486,6 +488,12 @@ th[data-sort] {
         display: flex;
         align-items: center;
         gap: 8px;
+    }
+
+    @media (max-width: 600px) {
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        h3 { font-size: 18px; line-height: 1.2; }
     }
 }
 

@@ -38,6 +38,12 @@
         border-color: rgba(var(--card-color-rgb, 255, 255, 255), 0.15);
     }
 
+    // Full-card click-through via the driver-name link; focus ring matches.
+    &:focus-within {
+        border-color: rgba(var(--card-color-rgb, 255, 255, 255), 0.35);
+        box-shadow: 0 0 0 2px rgba(var(--card-color-rgb, 255, 255, 255), 0.25);
+    }
+
     // Top accent bar — constructor color
     &::before {
         content: '';
@@ -57,6 +63,9 @@
     width: 100%;
     aspect-ratio: 4 / 3;
     overflow: hidden;
+    // Photo + its overlaid badges are purely visual — let the card's
+    // driver-name link capture clicks through to the driver page.
+    pointer-events: none;
     background: linear-gradient(
         135deg,
         rgba(var(--card-color-rgb, 30, 30, 50), 0.15) 0%,
@@ -200,6 +209,18 @@
     }
 }
 
+// Whole-card click-through: a sibling anchor placed directly inside .driver-card
+// so it can size itself to the full card area. Visual hover/focus styling lives
+// on .driver-card (:hover / :focus-within).
+.driver-card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    text-indent: -9999px;
+    overflow: hidden;
+    &:focus-visible { outline: none; }
+}
+
 .driver-card-team {
     font-size: 10px;
     text-transform: uppercase;
@@ -244,10 +265,43 @@
     }
 }
 
+// ── Inline price progression (replaces 3-stat row) ──
+.driver-card-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 0;
+    border-top: 1px solid $border-subtle;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+}
+
+.driver-card-price-entry {
+    font-size: 12px;
+    color: $text-tertiary;
+}
+
+.driver-card-price-arrow {
+    font-size: 9px;
+    color: $text-tertiary;
+    opacity: 0.6;
+}
+
+.driver-card-price-current {
+    font-size: 14px;
+    font-weight: $weight-bold;
+
+    &.gain { color: $green; }
+    &.loss { color: $accent-red; }
+}
+
 // ── Sell Action ──
 .driver-card-action {
     padding-top: 6px;
     border-top: 1px solid $border-subtle;
+    position: relative;
+    z-index: 2; // sit above the full-card click-through link
 
     .fantasy-btn-danger {
         width: 100%;

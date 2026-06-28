@@ -34,7 +34,7 @@
                             <th class="text-center">#</th>
                             <th>Player</th>
                             <th class="text-end">Net Value</th>
-                            <th class="text-end">Last Race</th>
+                            <th class="text-end d-none d-sm-table-cell">Last Race</th>
                             <th class="text-end d-none d-md-table-cell">Total Value</th>
                         </tr>
                     </thead>
@@ -50,22 +50,30 @@
                             <tr class="<%= 'fantasy-leaderboard-me' if is_me %> <%= "podium-p#{idx + 1}" if idx < 3 %>">
                                 <td class="text-center position-cell"><%= idx + 1 %></td>
                                 <td>
-                                    <% if support&.constructor&.logo_url.present? %>
-                                        <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.style.display='none'">
-                                    <% end %>
-                                    <% if user.public_profile? %>
-                                        <%= link_to fantasy_overview_path(user.username), style: color ? "color: #{color}" : nil do %><strong><%= user.display_name %></strong><% end %>
-                                    <% else %>
-                                        <strong <% if color %>style="color: <%= color %>"<% end %>><%= user.display_name %></strong>
-                                    <% end %>
-                                    <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                    <span class="leaderboard-player">
+                                        <% if support&.constructor&.logo_url.present? %>
+                                            <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.parentElement.querySelector('.leaderboard-team-placeholder').style.display='inline-flex'; this.remove();">
+                                        <% end %>
+                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if support&.constructor&.logo_url.present? %>><i class="fa-solid fa-question"></i></span>
+                                        <% if user.public_profile? %>
+                                            <%= link_to fantasy_overview_path(user.username), class: "leaderboard-player-name", style: color ? "color: #{color}" : nil do %><strong><%= user.display_name %></strong><% end %>
+                                        <% else %>
+                                            <strong class="leaderboard-player-name" <% if color %>style="color: <%= color %>"<% end %>><%= user.display_name %></strong>
+                                        <% end %>
+                                        <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                    </span>
                                 </td>
                                 <td class="text-end fantasy-leaderboard-value">
                                     <span class="<%= net >= 0 ? 'text-green' : 'text-red' %>">
                                         <%= net >= 0 ? '+' : '' %><%= number_with_delimiter(net.round(0)) %>
                                     </span>
+                                    <% if last_race != 0 %>
+                                        <span class="leaderboard-last-race-inline d-sm-none <%= last_race >= 0 ? 'text-green' : 'text-red' %>">
+                                            <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %> last race
+                                        </span>
+                                    <% end %>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end d-none d-sm-table-cell">
                                     <% if last_race != 0 %>
                                         <span class="<%= last_race >= 0 ? 'text-green' : 'text-red' %>">
                                             <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %>

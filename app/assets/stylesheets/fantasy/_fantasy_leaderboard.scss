@@ -291,15 +291,61 @@
     &:hover { color: var(--page-accent, $accent-red); }
 }
 
+.leaderboard-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.leaderboard-player-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .leaderboard-team-logo {
-    vertical-align: middle;
-    margin-right: 4px;
+    flex-shrink: 0;
     opacity: 0.85;
+    vertical-align: middle;
+}
+
+// Placeholder slot for users without a chosen team — keeps the name column
+// vertically aligned across all rows even when no logo exists.
+.leaderboard-team-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    color: $text-tertiary;
+    cursor: help;
+
+    i {
+        font-size: 9px;
+        line-height: 1;
+    }
 }
 
 .fantasy-leaderboard-value {
     font-family: $mono-font;
     font-weight: $weight-bold;
+}
+
+// Inline last-race delta shown only on phones where the Last Race column
+// is collapsed (avoids horizontal table overflow on narrow screens).
+.leaderboard-last-race-inline {
+    display: block;
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-semi;
+    opacity: 0.75;
+    margin-top: 2px;
 }
 
 // ═══════════════════════════════════════
@@ -314,6 +360,49 @@
 
     @media (max-width: 380px) {
         grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-achievements-empty {
+    color: $text-tertiary;
+    font-size: 13px;
+    padding: 12px 4px;
+    margin-bottom: $space-md;
+}
+
+.fantasy-achievements-locked {
+    margin-bottom: $space-lg;
+
+    > summary {
+        list-style: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: $text-tertiary;
+        padding: 6px 10px;
+        border-radius: $radius-sm;
+        user-select: none;
+        transition: color $t-fast, background $t-fast;
+
+        &::-webkit-details-marker { display: none; }
+
+        i {
+            font-size: 10px;
+            transition: transform $t-fast;
+        }
+
+        &:hover {
+            color: $text-primary;
+            background: $bg-surface;
+        }
+    }
+
+    &[open] > summary {
+        margin-bottom: 8px;
+        color: $text-primary;
+        i { transform: rotate(180deg); }
     }
 }
 

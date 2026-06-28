@@ -17,20 +17,48 @@ class FantasyPortfoliosController < ApplicationController
       @achievements = @portfolio.achievements.order(created_at: :desc)
       if @is_owner
         @next_race = @portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
-        @can_trade = @next_race && @portfolio.can_trade?(@next_race)
-        @current_support = ConstructorSupport.current_for(current_user, @portfolio.season)
-        @can_change_support = ConstructorSupport.can_change?(current_user, @portfolio.season)
       end
     end
 
     # Stock detail data (inline on overview)
     if @stock_portfolio
       @stock_achievements = @stock_portfolio.achievements.to_a
-      @stock_total_dividends = @stock_portfolio.transactions.where(kind: "dividend").sum(:amount)
       if @is_owner
         @next_race ||= @stock_portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
         @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
-        @stock_transactions = @stock_portfolio.transactions.order(created_at: :desc).limit(20)
+      end
+    end
+
+    # Always resolve next_race for the hero countdown (public profiles too).
+    @next_race ||= @season.next_race || Race.where("date >= ?", Date.current).order(:date).first
+
+    # Leaderboard rank + delta from the user's two most recent snapshots. Snapshot
+    # rank is precomputed by Fantasy::SnapshotPortfolios so this is just a lookup.
+    if @portfolio
+      last_two = @portfolio.snapshots.joins(:race).order("races.date DESC").limit(2).to_a
+      latest = last_two.first
+      previous = last_two.second
+      if latest&.rank
+        @leaderboard_rank = latest.rank
+        @leaderboard_rank_delta = previous&.rank ? previous.rank - latest.rank : nil
+        @leaderboard_size = FantasySnapshot.where(race_id: latest.race_id).count
+      end
+    end
+
+    # Portfolio composition: long/short counts and team concentration. All derived
+    # from already-loaded holdings (no extra queries via prime_active_holdings).
+    if @stock_portfolio && @stock_holdings
+      @long_count = @stock_holdings.count(&:long?)
+      @short_count = @stock_holdings.size - @long_count
+      if @stock_holdings.any? && @stock_constructors.is_a?(Hash)
+        gross = @stock_holdings.sum { |h| h.entry_price.to_f * h.quantity.to_i }
+        if gross > 0
+          team_totals = @stock_holdings.group_by { |h| @stock_constructors[h.driver_id]&.name || "—" }
+                                        .transform_values { |hs| hs.sum { |h| h.entry_price.to_f * h.quantity.to_i } }
+          top_team, top_value = team_totals.max_by { |_, v| v }
+          @top_team_name = top_team
+          @top_team_pct  = (top_value / gross * 100).round
+        end
       end
     end
 
