@@ -291,10 +291,25 @@
     &:hover { color: var(--page-accent, $accent-red); }
 }
 
+.leaderboard-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.leaderboard-player-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .leaderboard-team-logo {
-    vertical-align: middle;
-    margin-right: 4px;
+    flex-shrink: 0;
     opacity: 0.85;
+    vertical-align: middle;
 }
 
 .fantasy-leaderboard-value {

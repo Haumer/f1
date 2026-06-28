@@ -76,15 +76,17 @@
                                 <td>
                                     <% lb_support = @supports_by_user[portfolio.user_id] %>
                                     <% lb_color = lb_support ? constructor_color(lb_support.constructor) : nil %>
-                                    <% if lb_support&.constructor&.logo_url.present? %>
-                                        <img src="<%= lb_support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.style.display='none'">
-                                    <% end %>
-                                    <% if portfolio.user.public_profile? %>
-                                        <%= link_to fantasy_overview_path(portfolio.user.username), style: lb_color ? "color: #{lb_color}" : nil do %><strong><%= portfolio.user.display_name %></strong><% end %>
-                                    <% else %>
-                                        <strong <% if lb_color %>style="color: <%= lb_color %>"<% end %>><%= portfolio.user.display_name %></strong>
-                                    <% end %>
-                                    <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                    <span class="leaderboard-player">
+                                        <% if lb_support&.constructor&.logo_url.present? %>
+                                            <img src="<%= lb_support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.style.display='none'">
+                                        <% end %>
+                                        <% if portfolio.user.public_profile? %>
+                                            <%= link_to fantasy_overview_path(portfolio.user.username), class: "leaderboard-player-name", style: lb_color ? "color: #{lb_color}" : nil do %><strong><%= portfolio.user.display_name %></strong><% end %>
+                                        <% else %>
+                                            <strong class="leaderboard-player-name" <% if lb_color %>style="color: <%= lb_color %>"<% end %>><%= portfolio.user.display_name %></strong>
+                                        <% end %>
+                                        <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
+                                    </span>
                                 </td>
                                 <td class="d-none d-md-table-cell">
                                     <% sp = portfolio.stock_portfolio %>
