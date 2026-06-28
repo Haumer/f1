@@ -7,12 +7,8 @@
         <% sc = support.constructor %>
         <% team_color = constructor_color(sc) %>
     <% end %>
-    <% initials = @user.display_name.to_s.scan(/[\p{L}\d]/).first(2).join.upcase %>
     <div class="fantasy-dashboard-header">
         <div class="fantasy-dashboard-identity">
-            <div class="fantasy-avatar"<%= support ? " style=\"--avatar-ring: #{team_color}\"".html_safe : '' %>>
-                <span class="fantasy-avatar-initials"><%= initials.presence || '?' %></span>
-            </div>
             <div class="fantasy-dashboard-title">
                 <h2 class="fantasy-dashboard-name<%= ' is-supported' if support %>"<%= support ? " style=\"color: #{team_color}\"".html_safe : '' %>>
                     <%= @user.display_name %>
