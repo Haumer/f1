@@ -251,9 +251,22 @@
           }
         JS
 
-        # Auto min: 80% of smallest non-nil value, rounded down
+        # Tight dynamic bounds — include the start reference so it always shows,
+        # add a small margin (at least 50 units) so flat or near-flat lines still
+        # have breathing room, then round to a clean step for legible axis labels.
         all_vals = chart_total.compact
-        chart_min = all_vals.any? ? (all_vals.min * 0.8 / 100).floor * 100 : 0
+        if all_vals.any?
+            effective_min = [all_vals.min, chart_start].min
+            effective_max = [all_vals.max, chart_start].max
+            range         = effective_max - effective_min
+            margin        = [range * 0.15, 50].max
+            step          = range > 2000 ? 500 : (range > 500 ? 100 : 50)
+            chart_min     = ((effective_min - margin) / step).floor * step
+            chart_max     = ((effective_max + margin) / step).ceil * step
+        else
+            chart_min = 0
+            chart_max = nil
+        end
     %>
     <div class="table-header"><h3>Portfolio Value</h3></div>
     <div class="card card-flush fantasy-chart-card">
@@ -279,6 +292,7 @@
             yAxis: {
                 type: "value",
                 min: chart_min,
+                max: chart_max,
                 axisLabel: { color: "#666" },
                 splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
             },
