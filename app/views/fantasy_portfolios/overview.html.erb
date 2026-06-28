@@ -298,9 +298,7 @@
             },
             series: chart_series
         } %>
-        <div style="width:100%; height:220px;">
-            <%= custom_chart(chart_options) %>
-        </div>
+        <%= custom_chart(chart_options.merge(width: "100%", height: "260px")) %>
     </div>
 
     <%# ═══════════════════ HOLDINGS ═══════════════════ %>
