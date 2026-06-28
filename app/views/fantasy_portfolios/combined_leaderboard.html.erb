@@ -54,7 +54,7 @@
                                         <% if support&.constructor&.logo_url.present? %>
                                             <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.parentElement.querySelector('.leaderboard-team-placeholder').style.display='inline-flex'; this.remove();">
                                         <% end %>
-                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if support&.constructor&.logo_url.present? %>>?</span>
+                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if support&.constructor&.logo_url.present? %>><i class="fa-solid fa-question"></i></span>
                                         <% if user.public_profile? %>
                                             <%= link_to fantasy_overview_path(user.username), class: "leaderboard-player-name", style: color ? "color: #{color}" : nil do %><strong><%= user.display_name %></strong><% end %>
                                         <% else %>

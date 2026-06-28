@@ -80,7 +80,7 @@
                                         <% if lb_support&.constructor&.logo_url.present? %>
                                             <img src="<%= lb_support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.parentElement.querySelector('.leaderboard-team-placeholder').style.display='inline-flex'; this.remove();">
                                         <% end %>
-                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if lb_support&.constructor&.logo_url.present? %>>?</span>
+                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if lb_support&.constructor&.logo_url.present? %>><i class="fa-solid fa-question"></i></span>
                                         <% if portfolio.user.public_profile? %>
                                             <%= link_to fantasy_overview_path(portfolio.user.username), class: "leaderboard-player-name", style: lb_color ? "color: #{lb_color}" : nil do %><strong><%= portfolio.user.display_name %></strong><% end %>
                                         <% else %>
