@@ -92,6 +92,14 @@
                 <span class="scorecard-points scorecard-points-<%= accuracy %>">
                     <%= row.points.positive? ? "+#{row.points}" : (row.out_of_zone ? "—" : "0") %>
                 </span>
+                <%# Legacy signal: on pre-cutoff races the old rule still applies,
+                    so a perfect P11+ pick earns points but no card. Without this
+                    pill the row looks identical to any other exact hit. %>
+                <% if @scoring_limit.nil? && accuracy == "exact" && row.predicted > DriverCards::ResolveTier::CARD_ELIGIBLE_MAX %>
+                    <span class="scorecard-no-card" title="Predictions outside the top 10 score points but don't earn a driver card">
+                        <i class="fa-solid fa-trophy"></i> no card
+                    </span>
+                <% end %>
             </div>
         <% end %>
     </div>
