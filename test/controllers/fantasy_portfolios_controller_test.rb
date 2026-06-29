@@ -61,6 +61,24 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to fantasy_overview_path(user.username)
   end
 
+  test "Devise signup auto-provisions a fantasy portfolio and redirects to overview" do
+    season = Season.sorted_by_year.first
+    assert_difference -> { User.count } => 1, -> { FantasyPortfolio.count } => 1 do
+      post user_registration_path, params: {
+        user: {
+          email: "autosignup@example.com",
+          password: "password123",
+          password_confirmation: "password123",
+          username: "autosignup",
+          terms_accepted: "1"
+        }
+      }
+    end
+    user = User.find_by(username: "autosignup")
+    assert user.fantasy_portfolio_for(season), "signup should auto-provision a portfolio"
+    assert_redirected_to fantasy_overview_path(user.username)
+  end
+
   # -- Toggle public --
 
   test "toggle_public requires authentication" do
