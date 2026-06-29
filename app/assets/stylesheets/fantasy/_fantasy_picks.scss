@@ -681,6 +681,26 @@
     &.scorecard-points-out   { color: $text-tertiary; font-weight: $weight-regular; }
 }
 
+// Legacy "no card" pill — only shown on pre-cutoff scorecards where the old
+// rule (P11+ exact match scored points but earned no card) still applies.
+.scorecard-no-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba($text-tertiary, 0.08);
+    border: 1px dashed rgba($text-tertiary, 0.4);
+    color: $text-tertiary;
+    font-size: 10px;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    cursor: help;
+
+    i { font-size: 9px; opacity: 0.7; }
+}
 
 // Past-pick summary row on the profile (links into the scorecard)
 .picks-result-row {
