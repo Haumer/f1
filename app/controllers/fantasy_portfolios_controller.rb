@@ -88,7 +88,11 @@ class FantasyPortfoliosController < ApplicationController
                            .transform_values { |rows| rows.to_h { |r| [r[1], r[2]] } }
       @race_picks.each do |rp|
         next unless finishes.key?(rp.race_id)
-        @pick_summaries[rp.id] = Fantasy::ScoreRacePicks.breakdown(rp.placed_drivers, finishes[rp.race_id])
+        @pick_summaries[rp.id] = Fantasy::ScoreRacePicks.breakdown(
+          rp.placed_drivers,
+          finishes[rp.race_id],
+          scoring_limit: Fantasy::ScoreRacePicks.scoring_limit_for(rp.race)
+        )
       end
     end
 

@@ -614,10 +614,16 @@
     padding: 3px 10px;
     border-radius: 12px;
 
-    &.scorecard-exact { background: rgba($green, 0.15); color: $green; }
-    &.scorecard-close { background: rgba($green, 0.08); color: lighten($green, 8%); }
-    &.scorecard-near  { background: rgba($gold, 0.12);  color: $gold; }
-    &.scorecard-miss  { background: rgba(255, 255, 255, 0.04); color: $text-tertiary; }
+    &.scorecard-exact  { background: rgba($green, 0.15); color: $green; }
+    &.scorecard-close  { background: rgba($green, 0.08); color: lighten($green, 8%); }
+    &.scorecard-near   { background: rgba($gold, 0.12);  color: $gold; }
+    &.scorecard-miss   { background: rgba(255, 255, 255, 0.04); color: $text-tertiary; }
+    &.scorecard-cutoff {
+        background: rgba($text-tertiary, 0.06);
+        color: $text-tertiary;
+        border: 1px dashed rgba($text-tertiary, 0.3);
+        padding: 2px 9px;
+    }
 }
 
 .scorecard-rows {
@@ -635,6 +641,9 @@
     &.scorecard-exact { background: rgba($green, 0.06); }
     &.scorecard-close { background: rgba($green, 0.03); }
     &.scorecard-near  { background: rgba($gold, 0.04); }
+    // P11+ when the scoring cutoff is active: still listed so the user can see
+    // their full prediction, but visually dimmed because the row doesn't count.
+    &.scorecard-out   { opacity: 0.55; }
 }
 
 .scorecard-photo {
@@ -669,28 +678,9 @@
     &.scorecard-points-close { color: lighten($green, 8%); }
     &.scorecard-points-near  { color: $gold; }
     &.scorecard-points-miss  { color: $text-tertiary; }
+    &.scorecard-points-out   { color: $text-tertiary; font-weight: $weight-regular; }
 }
 
-// Inline tag shown when a perfect prediction lands outside the top 10 —
-// acknowledges the perfect call while explaining why no card was awarded.
-.scorecard-no-card {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: 8px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: rgba($text-tertiary, 0.08);
-    border: 1px dashed rgba($text-tertiary, 0.4);
-    color: $text-tertiary;
-    font-size: 10px;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
-    cursor: help;
-
-    i { font-size: 9px; opacity: 0.7; }
-}
 
 // Past-pick summary row on the profile (links into the scorecard)
 .picks-result-row {

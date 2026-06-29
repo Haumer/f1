@@ -20,9 +20,26 @@ module Fantasy
     POINTS_BY_DISTANCE = { 0 => 50, 1 => 30, 2 => 20, 3 => 10 }.freeze
     PERFECT_PODIUM_BONUS = 50
 
+    # Scoring cutoff: predictions outside the top SCORING_TOP_N positions score
+    # zero. Matches DriverCards::ResolveTier::CARD_ELIGIBLE_MAX so the "no card"
+    # zone is also a "no points" zone — one rule, one signal.
+    SCORING_TOP_N = 10
+    # The cutoff is forward-only: races before RULE_EFFECTIVE_DATE keep the
+    # original "every distance scores" behavior so historical leaderboard ranks
+    # and wallet credits don't shift retroactively.
+    RULE_EFFECTIVE_DATE = Date.new(2026, 6, 29)
+
+    # Returns the scoring_limit to apply for this race (nil = no limit).
+    def self.scoring_limit_for(race)
+      return nil unless race&.date && race.date >= RULE_EFFECTIVE_DATE
+      SCORING_TOP_N
+    end
+
     # One scored prediction: the driver, where you placed them, where they
     # actually finished (nil if no classified result), and the points earned.
-    Row = Struct.new(:driver_id, :predicted, :actual, :points, keyword_init: true) do
+    # out_of_zone is true when the predicted position was beyond scoring_limit
+    # for this race — the row counted as a hit but earned zero points.
+    Row = Struct.new(:driver_id, :predicted, :actual, :points, :out_of_zone, keyword_init: true) do
       def hit?   = actual && predicted == actual
       def scored? = points.positive?
     end
@@ -33,13 +50,20 @@ module Fantasy
     #
     #   placed           -> [{ "driver_id" => N, "position" => P }, ...]
     #   finish_by_driver -> { driver_id => position_order }
+    #   scoring_limit:   -> max predicted position eligible for points (nil = all)
     #
     # Returns { rows:, podium_bonus:, total:, exact: }.
-    def self.breakdown(placed, finish_by_driver)
+    def self.breakdown(placed, finish_by_driver, scoring_limit: nil)
       rows = placed.map do |p|
         actual = finish_by_driver[p["driver_id"]]
-        points = actual ? POINTS_BY_DISTANCE.fetch((actual - p["position"]).abs, 0) : 0
-        Row.new(driver_id: p["driver_id"], predicted: p["position"], actual: actual, points: points)
+        out_of_zone = scoring_limit && p["position"] > scoring_limit
+        points = if out_of_zone || actual.nil?
+          0
+        else
+          POINTS_BY_DISTANCE.fetch((actual - p["position"]).abs, 0)
+        end
+        Row.new(driver_id: p["driver_id"], predicted: p["position"], actual: actual,
+                points: points, out_of_zone: !!out_of_zone)
       end
       podium_bonus = perfect_podium?(placed, finish_by_driver) ? PERFECT_PODIUM_BONUS : 0
 
@@ -70,8 +94,9 @@ module Fantasy
                                    .pluck(:driver_id, :position_order)
                                    .to_h
 
+      limit = self.class.scoring_limit_for(@race)
       RacePick.where(race: @race).find_each do |pick|
-        score = self.class.breakdown(pick.placed_drivers, finish_by_driver)[:total]
+        score = self.class.breakdown(pick.placed_drivers, finish_by_driver, scoring_limit: limit)[:total]
         pick.update_column(:score, score) unless pick.score == score
 
         next if score <= 0
