@@ -156,17 +156,18 @@ export default class extends Controller {
     let cutoffInserted = false
 
     sorted.forEach(pick => {
-      // Drop in a card-eligibility divider just before the first P11+ slot.
-      // Tells users that finishes from this point down score points but won't
-      // earn a driver card (rule lives in DriverCards::ResolveTier).
+      // Drop in a scoring-cutoff divider just before the first P11+ slot.
+      // Picks below the cutoff score zero points and earn no driver card —
+      // they're still placed (so users can mentally rank the full grid) but
+      // don't count. Rules live in Fantasy::ScoreRacePicks + DriverCards::ResolveTier.
       if (!cutoffInserted && pick.position > CARD_CUTOFF) {
         const divider = document.createElement("div")
         divider.className = "picks-card-cutoff"
         divider.innerHTML = `
           <span class="picks-card-cutoff-line"></span>
           <span class="picks-card-cutoff-label">
-            <i class="fa-solid fa-trophy"></i>
-            Picks below earn points, not driver cards
+            <i class="fa-solid fa-ban"></i>
+            Picks below don't score or earn cards
           </span>
           <span class="picks-card-cutoff-line"></span>
         `

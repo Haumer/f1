@@ -113,5 +113,60 @@ module Fantasy
       assert_equal 0, b[:rows].first.points
       assert_equal 0, b[:total]
     end
+
+    # ── scoring cutoff (P11+ zeros when scoring_limit is set) ──
+
+    test "breakdown with scoring_limit zeros points for picks outside the top N" do
+      placed = [
+        { "driver_id" => drivers(:verstappen).id, "position" => 1 },  # exact, in zone
+        { "driver_id" => drivers(:norris).id,     "position" => 11 }, # would be off-by-9 anyway
+        { "driver_id" => drivers(:leclerc).id,    "position" => 18 }, # exact-but-out-of-zone
+      ]
+      finish = {
+        drivers(:verstappen).id => 1,
+        drivers(:norris).id     => 2,
+        drivers(:leclerc).id    => 18,
+      }
+
+      b = Fantasy::ScoreRacePicks.breakdown(placed, finish, scoring_limit: 10)
+
+      assert_equal [50, 0, 0], b[:rows].map(&:points)
+      assert_equal [false, true, true], b[:rows].map(&:out_of_zone)
+      # Leclerc still counts as an "exact hit" for the hit counter — it just earns nothing.
+      assert_equal 2, b[:exact]
+      assert_equal 50, b[:total]
+    end
+
+    test "breakdown without scoring_limit preserves old all-positions scoring" do
+      placed = [{ "driver_id" => drivers(:verstappen).id, "position" => 18 }]
+      finish = { drivers(:verstappen).id => 18 }
+
+      b = Fantasy::ScoreRacePicks.breakdown(placed, finish)
+      assert_equal 50, b[:rows].first.points
+      assert_equal false, b[:rows].first.out_of_zone
+    end
+
+    test "scoring_limit_for returns nil for pre-cutoff races and SCORING_TOP_N after" do
+      pre  = Race.new(date: Fantasy::ScoreRacePicks::RULE_EFFECTIVE_DATE - 1)
+      post = Race.new(date: Fantasy::ScoreRacePicks::RULE_EFFECTIVE_DATE)
+
+      assert_nil Fantasy::ScoreRacePicks.scoring_limit_for(pre)
+      assert_equal Fantasy::ScoreRacePicks::SCORING_TOP_N,
+                   Fantasy::ScoreRacePicks.scoring_limit_for(post)
+    end
+
+    test "settler zeros P11+ picks on a post-cutoff race" do
+      @race.update_column(:date, Fantasy::ScoreRacePicks::RULE_EFFECTIVE_DATE + 1)
+      # VER P1 (exact, in zone, 50 pts) + LEC P11 (off by 8, but cutoff anyway → 0)
+      RacePick.create!(user: @user, race: @race, picks: [
+        { "driver_id" => drivers(:verstappen).id, "position" => 1, "source" => "manual" },
+        { "driver_id" => drivers(:leclerc).id,    "position" => 11, "source" => "manual" },
+      ])
+
+      Fantasy::ScoreRacePicks.new(race: @race).call
+
+      assert_equal 50, RacePick.find_by(user: @user, race: @race).score
+      assert_equal 50, @stock.transactions.find_by(race: @race, kind: "pick_reward").amount
+    end
   end
 end
