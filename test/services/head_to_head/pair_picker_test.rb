@@ -51,4 +51,23 @@ class HeadToHead::PairPickerTest < ActiveSupport::TestCase
     assert_equal driver.id, pair.champion.id
     refute_equal driver.id, pair.challenger.id
   end
+
+  test "pick_diverse_challenger avoids drivers whose team is already seen" do
+    picker = HeadToHead::PairPicker.new(@session)
+    # Norris is McLaren; Piastri is McLaren too; Leclerc is Ferrari; Verstappen is Red Bull.
+    candidates = [drivers(:piastri).id, drivers(:leclerc).id, drivers(:verstappen).id]
+    seen = [drivers(:norris).id]  # McLaren is now "seen"
+    10.times do
+      picked = picker.send(:pick_diverse_challenger, candidates, seen)
+      refute_equal drivers(:piastri).id, picked, "should skip the McLaren teammate"
+    end
+  end
+
+  test "pick_diverse_challenger falls back to any candidate when every team is seen" do
+    picker = HeadToHead::PairPicker.new(@session)
+    candidates = [drivers(:piastri).id]  # only McLaren left
+    seen = [drivers(:norris).id]         # McLaren already seen
+    picked = picker.send(:pick_diverse_challenger, candidates, seen)
+    assert_equal drivers(:piastri).id, picked
+  end
 end

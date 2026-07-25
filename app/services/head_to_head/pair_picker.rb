@@ -65,7 +65,8 @@ module HeadToHead
         seed_ids = tier_pool(tier) - used_ids
         seed_ids = @pool.map(&:id) - used_ids if seed_ids.size < 2
         return nil if seed_ids.size < 2
-        champion_id, challenger_id = seed_ids.sample(2)
+        champion_id = seed_ids.sample
+        challenger_id = pick_diverse_challenger(seed_ids - [champion_id], [champion_id])
         Pair.new(
           champion: driver_by_id(champion_id),
           challenger: driver_by_id(challenger_id),
@@ -78,7 +79,8 @@ module HeadToHead
         # Fall back to any remaining fresh driver if the tier is exhausted.
         candidates = @pool.map(&:id) - used_ids - [champion.id] if candidates.empty?
         return nil if candidates.empty?
-        Pair.new(champion: champion, challenger: driver_by_id(candidates.sample), tier: tier, round_index: round)
+        challenger_id = pick_diverse_challenger(candidates, used_ids + [champion.id])
+        Pair.new(champion: champion, challenger: driver_by_id(challenger_id), tier: tier, round_index: round)
       end
     end
 
@@ -110,6 +112,29 @@ module HeadToHead
       # Prefer the pool's cached driver (spares a DB roundtrip); fall back to
       # a lookup for the champion carried over from a prior session state.
       @pool_by_id[id] || Driver.find(id)
+    end
+
+    # From a list of candidate driver ids, prefer one whose constructor hasn't
+    # appeared yet among the "seen" driver ids. Falls back to any candidate if
+    # every candidate's team is already represented. Keeps a session tending
+    # toward covering every team on the grid.
+    def pick_diverse_challenger(candidates, seen_driver_ids)
+      return nil if candidates.empty?
+      seen_teams = seen_driver_ids.map { |id| constructor_id_by_driver[id] }.compact.to_set
+      fresh = candidates.reject { |id| seen_teams.include?(constructor_id_by_driver[id]) }
+      (fresh.any? ? fresh : candidates).sample
+    end
+
+    def constructor_id_by_driver
+      @constructor_id_by_driver ||= begin
+        season = Season.find_by(year: @year.to_s)
+        return {} unless season
+        lineup = season.lineup_season || season
+        SeasonDriver
+          .where(season: lineup, standin: [false, nil])
+          .uniq(&:driver_id)
+          .to_h { |sd| [sd.driver_id, sd.constructor_id] }
+      end
     end
 
     def tier_pool(tier)
