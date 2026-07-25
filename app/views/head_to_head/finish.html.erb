@@ -1,0 +1,139 @@
+<%
+  champion_name = @champion&.fullname || "Nobody yet"
+  share_title = "My #{@year} F1 top pick: #{champion_name}"
+  share_url = head_to_head_url(year: (@year == current_season.year.to_i ? nil : @year))
+  tweet_text = "#{share_title} — pick yours at "
+  champion_color = @champion ? constructor_color(@champion.current_constructor) : nil
+%>
+<% content_for(:title) { "Your #{@year} F1 Top Pick — #{champion_name}" } %>
+<% content_for(:description) { "#{champion_name} came out on top after #{@session_record.rounds_played} head-to-head picks from the #{@year} F1 grid." } %>
+
+<div class="homepage-container">
+    <%= turbo_frame_tag "h2h-arena", data: { turbo_action: "advance" } do %>
+        <div class="page-hero page-hero-compact">
+            <div class="page-hero-bg"></div>
+            <div class="page-hero-content">
+                <span class="page-hero-label"><%= @year %> Head to Head</span>
+                <h1 class="page-hero-title">Your ranking</h1>
+                <p class="page-hero-meta">
+                    <%= @session_record.rounds_played %> matchups played
+                    &middot; <%= number_with_delimiter(@total_sessions) %> fans have played
+                </p>
+            </div>
+        </div>
+
+        <% if @session_record.bonus_awarded_at.present? %>
+            <div class="h2h-bonus-banner">
+                <i class="fa-solid fa-sack-dollar"></i>
+                <span><strong>+$<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %></strong> added to your <%= @year %> fantasy portfolio for completing the game.</span>
+            </div>
+        <% end %>
+
+        <div class="h2h-finish-grid">
+            <% if @champion %>
+                <div class="h2h-finish-photo-card" style="--team-color: <%= champion_color %>;">
+                    <div class="h2h-finish-crown"><i class="fa-solid fa-crown"></i> #1</div>
+                    <div class="h2h-finish-photo">
+                        <% if @champion.display_image_url.present? %>
+                            <img src="<%= @champion.display_image_url %>" alt="<%= @champion.fullname %>" loading="lazy" onerror="this.style.display='none'">
+                        <% end %>
+                    </div>
+                    <div class="h2h-finish-champ-name">
+                        <%= flag_image(@champion, size: 24) %>
+                        <%= link_to @champion.fullname, driver_path(@champion), data: { turbo_frame: "_top" } %>
+                    </div>
+                    <% if @champion.current_constructor %>
+                        <p class="h2h-finish-champ-team"><%= @champion.current_constructor.name %></p>
+                    <% end %>
+                </div>
+            <% end %>
+
+            <div class="h2h-finish-podium">
+                <div class="h2h-finish-podium-header">
+                    <h3>Your top <%= @top_ranked.size %></h3>
+                    <span class="h2h-finish-podium-hint" title="Ranked by champion-stays elimination order. Drivers not shown were never picked against.">
+                        <i class="fa-solid fa-circle-info"></i> How this ranks
+                    </span>
+                </div>
+                <% if @top_ranked.present? %>
+                    <ol class="h2h-finish-ranking">
+                        <% @top_ranked.each_with_index do |d, idx| %>
+                            <% team_color = constructor_color(d.current_constructor) %>
+                            <li class="h2h-finish-row <%= 'is-champion' if idx == 0 %>" style="--team-color: <%= team_color %>;">
+                                <span class="h2h-finish-rank">#<%= idx + 1 %></span>
+                                <span class="h2h-finish-driver">
+                                    <%= flag_image(d, size: 18) %>
+                                    <%= link_to d.fullname, driver_path(d), class: "h2h-finish-name-link", data: { turbo_frame: "_top" } %>
+                                </span>
+                                <% if d.current_constructor %>
+                                    <span class="h2h-finish-team">
+                                        <span class="h2h-team-bar"></span>
+                                        <span class="h2h-finish-team-name"><%= d.current_constructor.name %></span>
+                                    </span>
+                                <% end %>
+                            </li>
+                        <% end %>
+                    </ol>
+                <% else %>
+                    <p class="empty-state">No matchups yet.</p>
+                <% end %>
+            </div>
+        </div>
+
+        <div class="card h2h-share-card">
+            <div class="h2h-share-heading">
+                <h3>Share your <%= champion_name %> pick</h3>
+                <p>Send it to your group chat and see who lands on the same driver.</p>
+            </div>
+            <div class="h2h-share-actions">
+                <a class="fantasy-btn fantasy-btn-primary" target="_blank" rel="noopener"
+                   href="https://twitter.com/intent/tweet?text=<%= CGI.escape(tweet_text) %>&url=<%= CGI.escape(share_url) %>">
+                    <i class="fa-brands fa-x-twitter"></i> Share on X
+                </a>
+                <a class="fantasy-btn fantasy-btn-outline" target="_blank" rel="noopener"
+                   href="https://www.reddit.com/submit?title=<%= CGI.escape(share_title) %>&url=<%= CGI.escape(share_url) %>">
+                    <i class="fa-brands fa-reddit"></i> Reddit
+                </a>
+                <a class="fantasy-btn fantasy-btn-outline" target="_blank" rel="noopener"
+                   href="https://api.whatsapp.com/send?text=<%= CGI.escape("#{share_title} — #{share_url}") %>">
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </a>
+                <button type="button" class="fantasy-btn fantasy-btn-outline" data-controller="h2h-share"
+                        data-h2h-share-url-value="<%= share_url %>"
+                        data-action="click->h2h-share#copy">
+                    <i class="fa-solid fa-link"></i> <span class="h2h-share-label">Copy link</span>
+                </button>
+            </div>
+        </div>
+
+        <% unless current_user %>
+            <div class="card h2h-signup-card">
+                <div class="h2h-signup-content">
+                    <h3>Claim your $<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> and save your ranking</h3>
+                    <p>Sign up to lock in your picks and unlock a $<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credit on your <%= @year %> fantasy portfolio — free to play the market and stocks.</p>
+                    <div class="h2h-signup-actions">
+                        <%= link_to "Create account", new_user_registration_path, class: "fantasy-btn fantasy-btn-primary", data: { turbo_frame: "_top" } %>
+                        <%= link_to "Sign in", new_user_session_path, class: "fantasy-btn fantasy-btn-outline", data: { turbo_frame: "_top" } %>
+                    </div>
+                </div>
+            </div>
+        <% end %>
+
+        <div class="h2h-actions">
+            <% if @can_play_again %>
+                <%= link_to start_head_to_head_path, method: :post, data: { turbo_method: :post }, class: "fantasy-btn fantasy-btn-outline" do %>
+                    <i class="fa-solid fa-rotate"></i> Play again
+                <% end %>
+            <% elsif @next_unlock_race %>
+                <div class="h2h-play-locked">
+                    <i class="fa-solid fa-lock"></i>
+                    Next game unlocks after <strong><%= @next_unlock_race.circuit.name %></strong>
+                    <% if @next_unlock_race.date %>on <%= @next_unlock_race.date.strftime("%b %-d") %><% end %>
+                </div>
+            <% end %>
+            <%= link_to head_to_head_results_path(year: (@year == current_season.year.to_i ? nil : @year)), class: "fantasy-btn fantasy-btn-outline", data: { turbo_frame: "_top" } do %>
+                <i class="fa-solid fa-chart-column"></i> See the crowd's picks
+            <% end %>
+        </div>
+    <% end %>
+</div>

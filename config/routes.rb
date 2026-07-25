@@ -21,6 +21,15 @@ Rails.application.routes.draw do
   get 'impressum', to: 'pages#impressum', as: :impressum
   get 'fantasy_guide', to: 'pages#fantasy_guide', as: :fantasy_guide
 
+  # Head-to-Head: pairwise driver-preference game, playable without an account.
+  get  'head-to-head',                to: 'head_to_head#show',    as: :head_to_head
+  post 'head-to-head/start',          to: 'head_to_head#start',   as: :start_head_to_head
+  post 'head-to-head/pick',           to: 'head_to_head#pick',    as: :pick_head_to_head
+  get  'head-to-head/finish',         to: 'head_to_head#finish',  as: :finish_head_to_head
+  get  'head-to-head/results',        to: 'head_to_head#results', as: :head_to_head_results
+  get  'head-to-head/:year',          to: 'head_to_head#show',    constraints: { year: /\d{4}/ }, as: :head_to_head_year
+  get  'head-to-head/:year/results',  to: 'head_to_head#results', constraints: { year: /\d{4}/ }, as: :head_to_head_results_year
+
   authenticate :user, ->(u) { u.admin? } do
     mount Blazer::Engine, at: "blazer"
   end

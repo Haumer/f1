@@ -1,0 +1,29 @@
+<%
+  constructor = driver.current_constructor
+  color = constructor_color(constructor)
+%>
+<%= form_with url: pick_head_to_head_path, method: :post, class: "h2h-card-form" do |f| %>
+    <%= hidden_field_tag :winner_driver_id, driver.id %>
+    <%= hidden_field_tag :loser_driver_id,  other.id %>
+    <%= hidden_field_tag :picked_side,      side %>
+    <button type="submit" class="h2h-card <%= 'is-champion' if is_champion %>" style="--team-color: <%= color %>;">
+        <% if is_champion %>
+            <span class="h2h-champion-flag"><i class="fa-solid fa-crown"></i> Your pick</span>
+        <% end %>
+        <div class="h2h-card-photo">
+            <% if driver.display_image_url.present? %>
+                <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" loading="lazy" onerror="this.style.display='none'">
+            <% end %>
+        </div>
+        <div class="h2h-card-name">
+            <%= flag_image(driver, size: 20) %>
+            <span><%= driver.fullname %></span>
+        </div>
+        <% if constructor %>
+            <div class="h2h-card-team">
+                <span class="h2h-team-bar"></span>
+                <%= constructor.name %>
+            </div>
+        <% end %>
+    </button>
+<% end %>

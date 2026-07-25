@@ -1,0 +1,49 @@
+<% content_for(:title) { "Head to Head — #{@year} F1 Grid" } %>
+<% content_for(:description) { "Pick your favorite F1 driver of #{@year} — one head-to-head matchup at a time." } %>
+<div class="homepage-container">
+    <%= turbo_frame_tag "h2h-arena", data: { turbo_action: "advance" } do %>
+        <div class="page-hero page-hero-compact">
+            <div class="page-hero-bg"></div>
+            <div class="page-hero-content">
+                <span class="page-hero-label"><%= @year %> Grid · Head to Head</span>
+                <h1 class="page-hero-title">Which driver do you rate higher?</h1>
+                <p class="page-hero-meta">
+                    Round <%= @session_record.rounds_played + 1 %> of <%= @session_record.rounds_target %>
+                    &middot; <%= @pair.tier.humanize %> tier
+                </p>
+            </div>
+        </div>
+
+        <div class="h2h-progress">
+            <% @session_record.rounds_target.times do |i| %>
+                <span class="h2h-progress-pip <%= 'done' if i < @session_record.rounds_played %> <%= 'current' if i == @session_record.rounds_played %>"></span>
+            <% end %>
+        </div>
+
+        <div class="h2h-matchup">
+            <%
+                champion_present = @session_record.champion_driver_id.present?
+                champion_on_left = (@champion_side != "right")
+                left_driver, right_driver =
+                    champion_on_left ? [@pair.champion, @pair.challenger] : [@pair.challenger, @pair.champion]
+            %>
+            <div class="h2h-cards" data-controller="h2h-pick" data-action="click->h2h-pick#choose">
+                <%= render "head_to_head/card_form",
+                           driver: left_driver, other: right_driver, side: "left",
+                           is_champion: (champion_present && champion_on_left) %>
+                <div class="h2h-versus">vs</div>
+                <%= render "head_to_head/card_form",
+                           driver: right_driver, other: left_driver, side: "right",
+                           is_champion: (champion_present && !champion_on_left) %>
+            </div>
+        </div>
+
+        <p class="h2h-hint">
+            <% if @session_record.champion_driver_id.present? %>
+                Your pick stays and faces the next driver.
+            <% else %>
+                First round — pick whoever you rate higher to start your streak.
+            <% end %>
+        </p>
+    <% end %>
+</div>
