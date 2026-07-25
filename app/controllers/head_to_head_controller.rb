@@ -84,7 +84,7 @@ class HeadToHeadController < ApplicationController
     end
     @year = @session_record.year
     @champion = @session_record.champion_driver
-    @top_five = @session_record.top_five
+    @top_ranked = @session_record.top_ranked(12)
     @total_sessions = DriverPreferenceSession.where(year: @year).where.not(finished_at: nil).count
   end
 
@@ -158,7 +158,7 @@ class HeadToHeadController < ApplicationController
       session_token: session_token,
       year: year,
       started_at: Time.current,
-      rounds_target: 10,
+      rounds_target: 12,
     )
   end
 

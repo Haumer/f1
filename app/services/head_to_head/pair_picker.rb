@@ -1,13 +1,18 @@
 module HeadToHead
   # Selects the next opponent for the champion in a preference session, ramping
-  # through Elo-based tiers of the year's grid: bottom-25% → middle-50% → top-25%.
+  # through Elo-based bands of the year's grid from worst to best.
   #
-  # For a fixed 10-round session we split rounds 3 / 4 / 3 across tiers so the
-  # last picks always face the top of the grid.
+  # Bands are fixed-size (5 drivers each) rather than percentiles, so the tiers
+  # stay tight even on a 22-driver grid where "bottom quartile" is already 5–6
+  # drivers. Middle drivers (between upper- and lower-middle bands) are skipped
+  # intentionally — they'd otherwise dominate a middle tier that turned soft.
   class PairPicker
-    TIER_SPLITS = {
-      # rounds_target => [bottom_rounds, middle_rounds, top_rounds]
-      10 => [3, 4, 3],
+    BAND_SIZE = 5
+
+    TIER_LAYOUTS = {
+      # rounds_target => [[tier_name, round_count], ...] in play order
+      10 => [["bottom", 3], ["middle", 4], ["top", 3]],
+      12 => [["bottom", 3], ["lower_middle", 3], ["upper_middle", 3], ["top", 3]],
     }.freeze
 
     Pair = Struct.new(:champion, :challenger, :tier, :round_index, keyword_init: true)
@@ -67,24 +72,23 @@ module HeadToHead
     end
 
     def tier_for_round(round_index)
-      splits = TIER_SPLITS[@session.rounds_target] || default_splits(@session.rounds_target)
-      bottom, middle, _top = splits
-      if round_index < bottom
-        "bottom"
-      elsif round_index < bottom + middle
-        "middle"
-      else
-        "top"
+      layout = TIER_LAYOUTS[@session.rounds_target] || default_layout(@session.rounds_target)
+      consumed = 0
+      layout.each do |name, count|
+        consumed += count
+        return name if round_index < consumed
       end
+      layout.last.first
     end
 
     private
 
-    def default_splits(total)
+    def default_layout(total)
+      # Fall back to a 3-tier 30/40/30 split for unknown targets.
       bottom = (total * 0.3).round
       middle = (total * 0.4).round
       top = total - bottom - middle
-      [bottom, middle, top]
+      [["bottom", bottom], ["middle", middle], ["top", top]]
     end
 
     def matched_driver_ids
@@ -98,15 +102,18 @@ module HeadToHead
 
     def tier_pool(tier)
       return [] if @pool.empty?
-      size = @pool.size
-      # Quartile split: bottom = worst 25%, top = best 25%, middle = the rest.
-      # @pool is sorted best → worst by Elo.
-      top_cut = (size * 0.25).ceil
-      bottom_cut = (size * 0.25).ceil
+      # @pool is sorted best → worst by Elo. Slice fixed 5-driver bands from
+      # each end so tier size doesn't balloon on larger grids.
       case tier
-      when "top"    then @pool.first(top_cut).map(&:id)
-      when "bottom" then @pool.last(bottom_cut).map(&:id)
-      else               @pool[top_cut...(size - bottom_cut)].to_a.map(&:id)
+      when "top"          then @pool.first(BAND_SIZE).map(&:id)
+      when "upper_middle" then (@pool[BAND_SIZE, BAND_SIZE] || []).map(&:id)
+      when "lower_middle" then (@pool[[-2 * BAND_SIZE, -@pool.size].max, BAND_SIZE] || []).map(&:id)
+      when "middle"
+        # Legacy 3-tier layout: everything between the top and bottom bands.
+        inner = @pool.size - 2 * BAND_SIZE
+        inner > 0 ? @pool[BAND_SIZE, inner].map(&:id) : []
+      when "bottom"       then @pool.last(BAND_SIZE).map(&:id)
+      else                     []
       end
     end
 

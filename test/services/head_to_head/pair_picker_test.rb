@@ -24,6 +24,13 @@ class HeadToHead::PairPickerTest < ActiveSupport::TestCase
     assert_equal %w[bottom bottom bottom middle middle middle middle top top top], tiers
   end
 
+  test "12-round layout progresses through 4 tiers in 3-round segments" do
+    @session.update!(rounds_target: 12)
+    picker = HeadToHead::PairPicker.new(@session)
+    tiers = (0...12).map { |i| picker.tier_for_round(i) }
+    assert_equal %w[bottom bottom bottom lower_middle lower_middle lower_middle upper_middle upper_middle upper_middle top top top], tiers
+  end
+
   test "first pair with no champion draws both drivers from the pool" do
     pair = HeadToHead::PairPicker.new(@session).next_pair
     assert_not_nil pair

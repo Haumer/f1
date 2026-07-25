@@ -12,7 +12,7 @@ class DriverPreferenceSession < ApplicationRecord
     finished_at.present? || rounds_played >= rounds_target
   end
 
-  def top_five
+  def top_ranked(limit = 5)
     # Champion-stays elimination order: the final champion is #1, then losers
     # ranked by how late they were eliminated (a driver who beat you and later
     # lost still ranks above you, because the last person to face them wins
@@ -23,7 +23,7 @@ class DriverPreferenceSession < ApplicationRecord
 
     champion_id = ordered.last.winner_driver_id
     losers_latest_first = ordered.reverse.map(&:loser_driver_id)
-    ids = ([champion_id] + losers_latest_first).uniq.first(5)
+    ids = ([champion_id] + losers_latest_first).uniq.first(limit)
     Driver.where(id: ids).index_by(&:id).values_at(*ids).compact
   end
 end

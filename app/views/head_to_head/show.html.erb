@@ -9,7 +9,7 @@
                 <h1 class="page-hero-title">Which driver do you rate higher?</h1>
                 <p class="page-hero-meta">
                     Round <%= @session_record.rounds_played + 1 %> of <%= @session_record.rounds_target %>
-                    &middot; <%= @pair.tier.capitalize %> tier
+                    &middot; <%= @pair.tier.humanize %> tier
                 </p>
             </div>
         </div>

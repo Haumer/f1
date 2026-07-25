@@ -165,62 +165,137 @@
     .h2h-card.h2h-eliminated { animation: none; }
 }
 
-// Finish screen
-.h2h-champion-card {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-    padding: 24px;
-    margin-bottom: 20px;
-    border-left: 4px solid var(--team-color, var(--page-accent, $accent-red));
+// Finish screen — champion image left, ranking right, sharing prominent.
+.h2h-finish-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 1.4fr;
+    gap: 20px;
+    margin-bottom: 24px;
 }
-.h2h-champion-photo {
-    flex: 0 0 160px;
-    height: 200px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    img { max-height: 200px; max-width: 100%; object-fit: contain; }
+.h2h-finish-photo-card {
+    position: relative;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-lg;
+    padding: 32px 20px 20px;
+    text-align: center;
+    box-shadow: $shadow-md;
+    border-top: 4px solid var(--team-color, var(--page-accent, $accent-red));
 }
-.h2h-champion-info { flex: 1; }
-.h2h-champion-crown {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+.h2h-finish-crown {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
     background: var(--team-color, var(--page-accent, $accent-red));
     color: #fff;
-    padding: 4px 10px;
-    border-radius: 12px;
+    padding: 5px 14px;
+    border-radius: 14px;
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.05em;
-    margin-bottom: 8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    i { margin-right: 4px; }
 }
-.h2h-champion-info h2 {
-    margin: 0 0 4px;
-    font-size: 28px;
+.h2h-finish-photo {
+    height: 260px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    margin-bottom: 12px;
+    img { max-height: 260px; max-width: 100%; object-fit: contain; }
+}
+.h2h-finish-champ-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 800;
     a { color: inherit; text-decoration: none; }
 }
-.h2h-champion-team { color: $text-secondary; margin: 0; }
+.h2h-finish-champ-team {
+    color: $text-secondary;
+    margin: 4px 0 0;
+    font-size: 13px;
+}
 
-.h2h-top-list {
+.h2h-finish-podium {
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-md;
+    padding: 16px 4px 8px;
+}
+.h2h-finish-podium-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 16px 8px;
+    h3 { margin: 0; font-size: 16px; }
+}
+.h2h-finish-podium-hint {
+    font-size: 12px;
+    color: $text-secondary;
+    cursor: help;
+    i { margin-right: 2px; }
+}
+.h2h-finish-ranking {
     list-style: none;
-    padding: 12px 20px 20px;
+    padding: 0;
     margin: 0;
-    li {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 0;
-        border-bottom: 1px solid $border-color;
-        &:last-child { border-bottom: none; }
+    counter-reset: h2h-rank;
+}
+.h2h-finish-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid $border-color;
+    &:last-child { border-bottom: none; }
+    &.is-champion {
+        background: color-mix(in srgb, var(--team-color, var(--page-accent, $accent-red)) 8%, transparent);
+        border-left: 3px solid var(--team-color, var(--page-accent, $accent-red));
+        padding-left: 13px;
+        .h2h-finish-rank { color: var(--team-color, var(--page-accent, $accent-red)); }
     }
 }
-.h2h-top-rank {
+.h2h-finish-rank {
     font-family: $mono-font;
     font-weight: 800;
+    font-size: 15px;
     color: $text-secondary;
-    min-width: 32px;
+}
+.h2h-finish-driver {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-weight: 600;
+    .h2h-finish-name-link {
+        color: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        &:hover { color: var(--team-color, var(--page-accent, $accent-red)); }
+    }
+}
+.h2h-finish-team {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: $text-secondary;
+    .h2h-finish-team-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+    }
 }
 
 .h2h-actions,
@@ -228,16 +303,25 @@
     display: flex;
     gap: 12px;
     justify-content: center;
-    margin: 20px 0;
+    margin: 24px 0;
     flex-wrap: wrap;
 }
 
-.h2h-share-card { padding: 16px; margin-bottom: 20px; }
+.h2h-share-card {
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--page-accent, $accent-red);
+    background: color-mix(in srgb, var(--page-accent, $accent-red) 5%, $bg-card);
+}
+.h2h-share-heading {
+    margin-bottom: 12px;
+    h3 { margin: 0 0 4px; font-size: 18px; }
+    p { margin: 0; color: $text-secondary; font-size: 14px; }
+}
 .h2h-share-actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    padding: 8px 4px 4px;
     .fantasy-btn.copied { border-color: $success; color: $success; }
 }
 
@@ -256,6 +340,10 @@
     flex-wrap: wrap;
 }
 
+@media (max-width: 800px) {
+    .h2h-finish-grid { grid-template-columns: 1fr; }
+    .h2h-finish-photo { height: 220px; img { max-height: 220px; } }
+}
 @media (max-width: 640px) {
     .h2h-cards {
         grid-template-columns: 1fr;
@@ -263,6 +351,9 @@
     }
     .h2h-versus { padding: 4px 0; }
     .h2h-card-photo { height: 140px; img { max-height: 140px; } }
-    .h2h-champion-card { flex-direction: column; text-align: center; padding: 20px; }
-    .h2h-champion-photo { flex-basis: auto; height: 160px; img { max-height: 160px; } }
+    .h2h-finish-photo { height: 180px; img { max-height: 180px; } }
+    .h2h-finish-champ-name { font-size: 20px; }
+    .h2h-finish-row { grid-template-columns: 36px 1fr auto; padding: 9px 12px; gap: 8px; }
+    .h2h-finish-team-name { max-width: 90px; }
+    .h2h-share-actions .fantasy-btn { flex: 1 1 calc(50% - 5px); justify-content: center; }
 }
