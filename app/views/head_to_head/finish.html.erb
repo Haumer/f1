@@ -120,8 +120,16 @@
         <% end %>
 
         <div class="h2h-actions">
-            <%= link_to start_head_to_head_path, method: :post, data: { turbo_method: :post }, class: "fantasy-btn fantasy-btn-outline" do %>
-                <i class="fa-solid fa-rotate"></i> Play again
+            <% if @can_play_again %>
+                <%= link_to start_head_to_head_path, method: :post, data: { turbo_method: :post }, class: "fantasy-btn fantasy-btn-outline" do %>
+                    <i class="fa-solid fa-rotate"></i> Play again
+                <% end %>
+            <% elsif @next_unlock_race %>
+                <div class="h2h-play-locked">
+                    <i class="fa-solid fa-lock"></i>
+                    Next game unlocks after <strong><%= @next_unlock_race.circuit.name %></strong>
+                    <% if @next_unlock_race.date %>on <%= @next_unlock_race.date.strftime("%b %-d") %><% end %>
+                </div>
             <% end %>
             <%= link_to head_to_head_results_path(year: (@year == current_season.year.to_i ? nil : @year)), class: "fantasy-btn fantasy-btn-outline", data: { turbo_frame: "_top" } do %>
                 <i class="fa-solid fa-chart-column"></i> See the crowd's picks

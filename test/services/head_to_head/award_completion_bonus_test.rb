@@ -4,6 +4,7 @@ class HeadToHead::AwardCompletionBonusTest < ActiveSupport::TestCase
   setup do
     @user = users(:codex)
     @season = seasons(:season_2026)
+    @race = races(:bahrain_2026)
     @portfolio = FantasyPortfolio.find_or_create_by!(user: @user, season: @season) do |p|
       p.cash = 1000
       p.starting_capital = 1000
@@ -12,6 +13,7 @@ class HeadToHead::AwardCompletionBonusTest < ActiveSupport::TestCase
       user: @user,
       session_token: "t-#{SecureRandom.hex(4)}",
       year: @season.year.to_i,
+      race: @race,
       started_at: 1.minute.ago,
       finished_at: Time.current,
       rounds_target: 12,
@@ -33,6 +35,7 @@ class HeadToHead::AwardCompletionBonusTest < ActiveSupport::TestCase
     guest_session = DriverPreferenceSession.create!(
       session_token: "g-#{SecureRandom.hex(4)}",
       year: @season.year.to_i,
+      race: @race,
       started_at: 1.minute.ago,
       finished_at: Time.current,
       rounds_target: 12,
@@ -50,12 +53,13 @@ class HeadToHead::AwardCompletionBonusTest < ActiveSupport::TestCase
     assert_equal :already_awarded, result.reason
   end
 
-  test "no-op if user already got a bonus for this year on another session" do
+  test "no-op if user already got a bonus for this race on another session" do
     HeadToHead::AwardCompletionBonus.new(@session).call
     later = DriverPreferenceSession.create!(
       user: @user,
       session_token: "t2-#{SecureRandom.hex(4)}",
       year: @season.year.to_i,
+      race: @race,
       started_at: 1.minute.ago,
       finished_at: Time.current,
       rounds_target: 12,
@@ -63,7 +67,25 @@ class HeadToHead::AwardCompletionBonusTest < ActiveSupport::TestCase
     )
     result = HeadToHead::AwardCompletionBonus.new(later).call
     refute result.granted?
-    assert_equal :already_awarded_this_year, result.reason
+    assert_equal :already_awarded_this_race, result.reason
     assert_nil later.reload.bonus_awarded_at
+  end
+
+  test "grants the bonus again for a different race" do
+    HeadToHead::AwardCompletionBonus.new(@session).call
+    other_race = races(:melbourne_2026)
+    next_session = DriverPreferenceSession.create!(
+      user: @user,
+      session_token: "t3-#{SecureRandom.hex(4)}",
+      year: @season.year.to_i,
+      race: other_race,
+      started_at: 1.minute.ago,
+      finished_at: Time.current,
+      rounds_target: 12,
+      rounds_played: 12,
+    )
+    result = HeadToHead::AwardCompletionBonus.new(next_session).call
+    assert result.granted?
+    assert_not_nil next_session.reload.bonus_awarded_at
   end
 end

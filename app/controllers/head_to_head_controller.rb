@@ -4,8 +4,9 @@ class HeadToHeadController < ApplicationController
   def show
     year = requested_year
     @year = year
+    anchor_race = current_anchor_race(year)
 
-    session_record = current_unfinished_session_for(year) || start_new(year)
+    session_record = session_for_race(year, anchor_race) || start_new(year, anchor_race)
     @session_record = session_record
 
     if session_record.finished?
@@ -23,19 +24,28 @@ class HeadToHeadController < ApplicationController
 
   def start
     year = requested_year
-    old = current_unfinished_session_for(year)
-    old&.update!(finished_at: Time.current) if old && !old.finished?
-    session_record = start_new(year)
+    anchor_race = current_anchor_race(year)
+    existing = session_for_race(year, anchor_race)
+
+    # Per-race gate: one session per cookie per race. If a session already
+    # exists for the current anchor race, jump into it (or its finish page)
+    # rather than creating a duplicate.
+    if existing
+      redirect_to(existing.finished? ? finish_head_to_head_path : head_to_head_path(year: url_year_param(year)))
+      return
+    end
+
     session.delete(:h2h_champion_side)
-    redirect_to head_to_head_path(year: (year == current_season.year.to_i ? nil : year))
+    start_new(year, anchor_race)
+    redirect_to head_to_head_path(year: url_year_param(year))
   end
 
   def pick
-    # Cookie tokens are per-user, not per-game — always take the most recent
-    # unfinished session for this cookie so a stale finished game doesn't
-    # capture picks from a fresh round.
-    session_record = current_unfinished_session_for(requested_year) or
+    # Race-anchored session: picks land on the session for the current race.
+    year = requested_year
+    session_record = session_for_race(year, current_anchor_race(year)) or
       return redirect_to(head_to_head_path)
+    return redirect_to(finish_head_to_head_path) if session_record.finished?
 
     winner_id = params[:winner_driver_id].to_i
     loser_id  = params[:loser_driver_id].to_i
@@ -74,9 +84,6 @@ class HeadToHeadController < ApplicationController
   end
 
   def finish
-    # Pull the most recent session for this cookie — the one we just finished.
-    # Not the URL param, which used to carry the cookie token (not unique per
-    # game) and would resolve to the oldest matching session.
     @session_record = latest_session_for(requested_year)
     unless @session_record
       redirect_to head_to_head_path and return
@@ -85,6 +92,13 @@ class HeadToHeadController < ApplicationController
     @champion = @session_record.champion_driver
     @top_ranked = @session_record.top_ranked(12)
     @total_sessions = DriverPreferenceSession.finished.where(year: @year).count
+
+    # Play-again gate: unlocked once the current anchor race is different from
+    # the race this session was anchored to (i.e., the race has completed and
+    # a new round is up).
+    anchor = current_anchor_race(@year)
+    @can_play_again = @session_record.race_id.nil? || (anchor && anchor.id != @session_record.race_id)
+    @next_unlock_race = @can_play_again ? nil : @session_record.race
   end
 
   def results
@@ -135,12 +149,16 @@ class HeadToHeadController < ApplicationController
     new_token
   end
 
-  def current_unfinished_session_for(year)
-    session = DriverPreferenceSession
-      .where(session_token: session_token, year: year, finished_at: nil)
-      .order(started_at: :desc)
-      .first
-    link_to_current_user(session)
+  def current_anchor_race(year)
+    season = Season.find_by(year: year.to_s)
+    return nil unless season
+    season.next_race || season.last_race
+  end
+
+  def session_for_race(year, race)
+    scope = DriverPreferenceSession.where(session_token: session_token, year: year)
+    scope = scope.where(race_id: race.id) if race
+    link_to_current_user(scope.order(started_at: :desc).first)
   end
 
   def latest_session_for(year)
@@ -159,11 +177,12 @@ class HeadToHeadController < ApplicationController
     session
   end
 
-  def start_new(year)
+  def start_new(year, race = nil)
     DriverPreferenceSession.create!(
       user: current_user,
       session_token: session_token,
       year: year,
+      race: race,
       started_at: Time.current,
       rounds_target: 12,
     )

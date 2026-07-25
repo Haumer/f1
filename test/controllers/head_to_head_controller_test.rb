@@ -32,4 +32,12 @@ class HeadToHeadControllerTest < ActionDispatch::IntegrationTest
     get finish_head_to_head_path
     assert_redirected_to head_to_head_path
   end
+
+  test "start is idempotent per race — no duplicate sessions once one exists" do
+    get head_to_head_path
+    initial = DriverPreferenceSession.count
+    post start_head_to_head_path
+    assert_equal initial, DriverPreferenceSession.count, "start should not spawn a second session for the same race"
+    assert_redirected_to head_to_head_path
+  end
 end

@@ -1,8 +1,8 @@
 module HeadToHead
   # Grants a fixed cash bonus to a signed-in user for finishing an H2H session.
-  # Once-per-year: if the user has already been awarded a bonus for any session
-  # in the same season, this is a no-op. Guests and users without a fantasy
-  # portfolio for the year are skipped.
+  # Once-per-race: if the user has already been awarded a bonus for another
+  # finished session anchored to the same race, this is a no-op. Guests and
+  # users without a fantasy portfolio for the year are skipped.
   class AwardCompletionBonus
     BONUS_AMOUNT = 50
 
@@ -28,8 +28,12 @@ module HeadToHead
       portfolio = user.fantasy_portfolio_for(season)
       return skip(:no_portfolio)    unless portfolio
 
-      if DriverPreferenceSession.where(user_id: user.id, year: @session.year).where.not(bonus_awarded_at: nil).exists?
-        return skip(:already_awarded_this_year)
+      if @session.race_id.present? &&
+         DriverPreferenceSession.where(user_id: user.id, race_id: @session.race_id)
+                                .where.not(id: @session.id)
+                                .where.not(bonus_awarded_at: nil)
+                                .exists?
+        return skip(:already_awarded_this_race)
       end
 
       ActiveRecord::Base.transaction do

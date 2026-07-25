@@ -312,6 +312,19 @@
     }
 }
 
+.h2h-play-locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: $radius-md;
+    background: $bg-surface;
+    border: 1px dashed $border-color;
+    color: $text-secondary;
+    font-size: 14px;
+    i { color: var(--page-accent, $accent-red); }
+    strong { color: $text-primary; }
+}
 .h2h-actions,
 .h2h-results-actions {
     display: flex;
