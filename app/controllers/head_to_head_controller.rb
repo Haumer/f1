@@ -1,6 +1,5 @@
 class HeadToHeadController < ApplicationController
   SESSION_COOKIE = :h2h_session_token
-  TOKEN_ATTR = "h2h_session_token"
 
   def show
     year = requested_year
@@ -85,7 +84,7 @@ class HeadToHeadController < ApplicationController
     @year = @session_record.year
     @champion = @session_record.champion_driver
     @top_ranked = @session_record.top_ranked(12)
-    @total_sessions = DriverPreferenceSession.where(year: @year).where.not(finished_at: nil).count
+    @total_sessions = DriverPreferenceSession.finished.where(year: @year).count
   end
 
   def results
@@ -111,7 +110,7 @@ class HeadToHeadController < ApplicationController
       }
     end.select { |r| r[:driver] }.sort_by { |r| [-r[:pct], -r[:total]] }
 
-    @total_sessions = DriverPreferenceSession.where(year: @year).where.not(finished_at: nil).count
+    @total_sessions = DriverPreferenceSession.finished.where(year: @year).count
     @total_matches  = matches.count
   end
 
@@ -137,19 +136,27 @@ class HeadToHeadController < ApplicationController
   end
 
   def current_unfinished_session_for(year)
-    DriverPreferenceSession
+    session = DriverPreferenceSession
       .where(session_token: session_token, year: year, finished_at: nil)
       .order(started_at: :desc)
       .first
-      .tap { |s| s.update!(user_id: current_user.id) if s && current_user && s.user_id.nil? }
+    link_to_current_user(session)
   end
 
   def latest_session_for(year)
-    DriverPreferenceSession
+    session = DriverPreferenceSession
       .where(session_token: session_token, year: year)
       .order(started_at: :desc)
       .first
-      .tap { |s| s.update!(user_id: current_user.id) if s && current_user && s.user_id.nil? }
+    link_to_current_user(session)
+  end
+
+  # Once a guest signs in, retro-link their in-flight/finished sessions so the
+  # bonus flow and future analytics see the same user.
+  def link_to_current_user(session)
+    return nil unless session
+    session.update!(user_id: current_user.id) if current_user && session.user_id.nil?
+    session
   end
 
   def start_new(year)
@@ -164,5 +171,6 @@ class HeadToHeadController < ApplicationController
 
   def finalize(session_record)
     session_record.update!(finished_at: Time.current) if session_record.finished_at.nil?
+    HeadToHead::AwardCompletionBonus.new(session_record).call
   end
 end

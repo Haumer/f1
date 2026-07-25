@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_24_234037) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_25_081812) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -269,6 +269,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_24_234037) do
     t.datetime "finished_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "bonus_awarded_at"
     t.index ["champion_driver_id"], name: "index_driver_preference_sessions_on_champion_driver_id"
     t.index ["session_token"], name: "index_driver_preference_sessions_on_session_token"
     t.index ["user_id"], name: "index_driver_preference_sessions_on_user_id"

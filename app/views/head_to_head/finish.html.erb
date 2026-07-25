@@ -22,6 +22,13 @@
             </div>
         </div>
 
+        <% if @session_record.bonus_awarded_at.present? %>
+            <div class="h2h-bonus-banner">
+                <i class="fa-solid fa-sack-dollar"></i>
+                <span><strong>+$<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %></strong> added to your <%= @year %> fantasy portfolio for completing the game.</span>
+            </div>
+        <% end %>
+
         <div class="h2h-finish-grid">
             <% if @champion %>
                 <div class="h2h-finish-photo-card" style="--team-color: <%= champion_color %>;">
@@ -102,8 +109,8 @@
         <% unless current_user %>
             <div class="card h2h-signup-card">
                 <div class="h2h-signup-content">
-                    <h3>Save your ranking</h3>
-                    <p>Create a free account to keep your picks and play head-to-head across every season.</p>
+                    <h3>Claim your $<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> and save your ranking</h3>
+                    <p>Sign up to lock in your picks and unlock a $<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credit on your <%= @year %> fantasy portfolio — free to play the market and stocks.</p>
                     <div class="h2h-signup-actions">
                         <%= link_to "Create account", new_user_registration_path, class: "fantasy-btn fantasy-btn-primary", data: { turbo_frame: "_top" } %>
                         <%= link_to "Sign in", new_user_session_path, class: "fantasy-btn fantasy-btn-outline", data: { turbo_frame: "_top" } %>

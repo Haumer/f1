@@ -8,6 +8,8 @@ class DriverPreferenceSession < ApplicationRecord
 
   validates :session_token, :year, :started_at, presence: true
 
+  scope :finished, -> { where.not(finished_at: nil) }
+
   def finished?
     finished_at.present? || rounds_played >= rounds_target
   end

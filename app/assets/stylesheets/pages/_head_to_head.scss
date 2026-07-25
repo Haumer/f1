@@ -166,6 +166,20 @@
 }
 
 // Finish screen — champion image left, ranking right, sharing prominent.
+.h2h-bonus-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    border-radius: $radius-lg;
+    background: color-mix(in srgb, $success 15%, $bg-card);
+    border: 1px solid color-mix(in srgb, $success 45%, transparent);
+    color: $text-primary;
+    font-size: 15px;
+    i { color: $success; font-size: 20px; }
+    strong { color: $success; }
+}
 .h2h-finish-grid {
     display: grid;
     grid-template-columns: minmax(260px, 1fr) 1.4fr;

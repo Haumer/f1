@@ -8,6 +8,11 @@ module HeadToHead
   # intentionally — they'd otherwise dominate a middle tier that turned soft.
   class PairPicker
     BAND_SIZE = 5
+    # Weight applied to a driver's current-season race points when sorting the
+    # pool. Ranking = elo_v2 + SEASON_FORM_WEIGHT * season_race_points. Elo
+    # stays the base (career signal), form nudges the order so a hot 2026 run
+    # moves a driver up a tier without a couple of good races dominating.
+    SEASON_FORM_WEIGHT = 4
 
     TIER_LAYOUTS = {
       # rounds_target => [[tier_name, round_count], ...] in play order
@@ -22,6 +27,12 @@ module HeadToHead
       return [] unless season
 
       lineup = season.lineup_season || season
+      points_by_driver = RaceResult
+        .joins(:race)
+        .where(races: { season_id: season.id })
+        .group(:driver_id)
+        .sum(:points)
+
       SeasonDriver
         .where(season: lineup, standin: [false, nil])
         .includes(:driver, :constructor)
@@ -29,13 +40,14 @@ module HeadToHead
         .map(&:driver)
         .compact
         .reject { |d| d.elo_v2.blank? }
-        .sort_by { |d| -d.elo_v2.to_f }
+        .sort_by { |d| -(d.elo_v2.to_f + SEASON_FORM_WEIGHT * points_by_driver[d.id].to_f) }
     end
 
     def initialize(session)
       @session = session
       @year = session.year
       @pool = self.class.pool_for(@year)
+      @pool_by_id = @pool.index_by(&:id)
     end
 
     def next_pair
@@ -50,24 +62,23 @@ module HeadToHead
       # When the tier is too small (small grids in fixtures/tests), widen the pick
       # to the full pool so we can still produce a valid pair.
       if @session.champion_driver_id.nil?
-        seed_ids = tier_pool(tier) - used_ids.to_a
-        seed_ids = @pool.map(&:id) - used_ids.to_a if seed_ids.size < 2
+        seed_ids = tier_pool(tier) - used_ids
+        seed_ids = @pool.map(&:id) - used_ids if seed_ids.size < 2
         return nil if seed_ids.size < 2
         champion_id, challenger_id = seed_ids.sample(2)
         Pair.new(
-          champion: Driver.find(champion_id),
-          challenger: Driver.find(challenger_id),
+          champion: driver_by_id(champion_id),
+          challenger: driver_by_id(challenger_id),
           tier: tier, round_index: round,
         )
       else
-        champion = Driver.find(@session.champion_driver_id)
+        champion = driver_by_id(@session.champion_driver_id)
         # Never re-fight anyone already seen this session.
-        candidates = tier_pool(tier) - used_ids.to_a - [champion.id]
+        candidates = tier_pool(tier) - used_ids - [champion.id]
         # Fall back to any remaining fresh driver if the tier is exhausted.
-        candidates = @pool.map(&:id) - used_ids.to_a - [champion.id] if candidates.empty?
+        candidates = @pool.map(&:id) - used_ids - [champion.id] if candidates.empty?
         return nil if candidates.empty?
-        challenger = Driver.find(candidates.sample)
-        Pair.new(champion: champion, challenger: challenger, tier: tier, round_index: round)
+        Pair.new(champion: champion, challenger: driver_by_id(candidates.sample), tier: tier, round_index: round)
       end
     end
 
@@ -92,12 +103,13 @@ module HeadToHead
     end
 
     def matched_driver_ids
-      ids = Set.new
-      @session.matches.pluck(:winner_driver_id, :loser_driver_id).each do |w, l|
-        ids << w
-        ids << l
-      end
-      ids
+      @session.matches.pluck(:winner_driver_id, :loser_driver_id).flatten.uniq
+    end
+
+    def driver_by_id(id)
+      # Prefer the pool's cached driver (spares a DB roundtrip); fall back to
+      # a lookup for the champion carried over from a prior session state.
+      @pool_by_id[id] || Driver.find(id)
     end
 
     def tier_pool(tier)
@@ -117,8 +129,5 @@ module HeadToHead
       end
     end
 
-    def pick_two_from(ids)
-      ids.sample(2)
-    end
   end
 end
