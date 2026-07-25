@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_20_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_24_234037) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -240,6 +240,39 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_20_120000) do
     t.datetime "updated_at", null: false
     t.index ["country_id"], name: "index_driver_countries_on_country_id"
     t.index ["driver_id"], name: "index_driver_countries_on_driver_id"
+  end
+
+  create_table "driver_preference_matches", force: :cascade do |t|
+    t.bigint "driver_preference_session_id", null: false
+    t.bigint "winner_driver_id", null: false
+    t.bigint "loser_driver_id", null: false
+    t.integer "year", null: false
+    t.integer "round_index", null: false
+    t.string "tier", null: false
+    t.datetime "created_at", null: false
+    t.index ["driver_preference_session_id", "round_index"], name: "idx_dpm_on_session_and_round", unique: true
+    t.index ["driver_preference_session_id"], name: "idx_dpm_on_session_id"
+    t.index ["loser_driver_id"], name: "index_driver_preference_matches_on_loser_driver_id"
+    t.index ["winner_driver_id"], name: "index_driver_preference_matches_on_winner_driver_id"
+    t.index ["year", "loser_driver_id"], name: "idx_dpm_on_year_and_loser"
+    t.index ["year", "winner_driver_id"], name: "idx_dpm_on_year_and_winner"
+  end
+
+  create_table "driver_preference_sessions", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "session_token", null: false
+    t.integer "year", null: false
+    t.integer "rounds_target", default: 10, null: false
+    t.integer "rounds_played", default: 0, null: false
+    t.bigint "champion_driver_id"
+    t.datetime "started_at", null: false
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["champion_driver_id"], name: "index_driver_preference_sessions_on_champion_driver_id"
+    t.index ["session_token"], name: "index_driver_preference_sessions_on_session_token"
+    t.index ["user_id"], name: "index_driver_preference_sessions_on_user_id"
+    t.index ["year", "finished_at"], name: "index_driver_preference_sessions_on_year_and_finished_at"
   end
 
   create_table "driver_ratings", force: :cascade do |t|
@@ -787,6 +820,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_20_120000) do
   add_foreign_key "driver_cards", "users"
   add_foreign_key "driver_countries", "countries"
   add_foreign_key "driver_countries", "drivers"
+  add_foreign_key "driver_preference_matches", "driver_preference_sessions"
+  add_foreign_key "driver_preference_matches", "drivers", column: "loser_driver_id"
+  add_foreign_key "driver_preference_matches", "drivers", column: "winner_driver_id"
+  add_foreign_key "driver_preference_sessions", "drivers", column: "champion_driver_id"
+  add_foreign_key "driver_preference_sessions", "users"
   add_foreign_key "driver_standings", "drivers"
   add_foreign_key "driver_standings", "races"
   add_foreign_key "fantasy_achievements", "fantasy_portfolios"

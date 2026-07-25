@@ -1,0 +1,69 @@
+<% content_for(:title) { "#{@year} F1 Head-to-Head — Crowd Ranking" } %>
+<% content_for(:description) { "Crowd-sourced ranking of the #{@year} F1 grid from head-to-head matchups. #{number_with_delimiter(@total_sessions)} sessions, #{number_with_delimiter(@total_matches)} picks." } %>
+
+<div class="homepage-container">
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><%= @year %> Grid · Crowd Ranking</span>
+            <h1 class="page-hero-title">Who fans rate the highest</h1>
+            <p class="page-hero-meta">
+                <%= number_with_delimiter(@total_sessions) %> sessions
+                &middot; <%= number_with_delimiter(@total_matches) %> head-to-head picks
+            </p>
+        </div>
+    </div>
+
+    <div class="h2h-results-actions">
+        <%= link_to head_to_head_path(year: (@year == current_season.year.to_i ? nil : @year)), class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" do %>
+            <i class="fa-solid fa-play"></i> Play your own
+        <% end %>
+    </div>
+
+    <% if @rows.empty? %>
+        <div class="card">
+            <p class="empty-state">No head-to-head picks yet for <%= @year %>. Be the first!</p>
+        </div>
+    <% else %>
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>Driver</th>
+                            <th class="d-none d-md-table-cell">Team</th>
+                            <th class="text-center">Win rate</th>
+                            <th class="text-center">Wins</th>
+                            <th class="text-center d-none d-sm-table-cell">Losses</th>
+                            <th class="text-center d-none d-md-table-cell">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @rows.each_with_index do |row, idx| %>
+                            <% driver = row[:driver] %>
+                            <% constructor = driver.current_constructor %>
+                            <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                                <td class="text-center position-cell"><%= idx + 1 %></td>
+                                <td class="name-cell">
+                                    <%= flag_image(driver, size: 16) %>
+                                    <%= link_to driver.fullname, driver_path(driver) %>
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    <% if constructor %>
+                                        <span style="display: inline-block; width: 3px; height: 12px; background: <%= constructor_color(constructor) %>; border-radius: 1px; vertical-align: middle; margin-right: 6px;"></span>
+                                        <%= link_to constructor.name, constructor_path(constructor), class: "text-secondary" %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><%= number_to_percentage(row[:pct] * 100, precision: 0) %></td>
+                                <td class="text-center"><%= row[:wins] %></td>
+                                <td class="text-center d-none d-sm-table-cell"><%= row[:losses] %></td>
+                                <td class="text-center d-none d-md-table-cell"><%= row[:total] %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+</div>
