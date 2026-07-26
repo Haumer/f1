@@ -95,7 +95,13 @@
                                         <%= link_to constructor.name, constructor_path(constructor), class: "text-secondary" %>
                                     <% end %>
                                 </td>
-                                <td class="text-center"><strong><%= row.crowd_score %></strong></td>
+                                <td class="text-center">
+                                    <% if row.podium_eligible? %>
+                                        <strong><%= row.crowd_score %></strong>
+                                    <% else %>
+                                        <span class="text-secondary">&mdash;</span>
+                                    <% end %>
+                                </td>
                                 <td class="text-center"><span class="text-secondary"><%= row.wins %>&ndash;<%= row.losses %></span></td>
                                 <td class="text-center d-none d-md-table-cell text-secondary"><%= row.total %></td>
                             </tr>
