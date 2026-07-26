@@ -250,23 +250,18 @@
     font-weight: 600;
 }
 
-// Table
+// Table — inherits podium highlight + position-cell from the shared
+// %standings-podium-rows and %standings-position-cell placeholders in
+// application.scss, so the top-3 look identical across standings, leaderboard,
+// and crowd rankings.
 .fantasy-leaderboard-table {
+    @extend %standings-podium-rows;
+    @extend %standings-position-cell;
+
     width: 100%;
 
-    tbody tr {
-        border-left: 3px solid transparent;
-    }
-
-    .podium-p1 { border-left-color: $gold; }
-    .podium-p2 { border-left-color: $silver; }
-    .podium-p3 { border-left-color: $bronze; }
-
-    .position-cell {
-        font-weight: 700;
-        font-size: 14px;
-        width: 40px;
-    }
+    // Constrain the rank column so long player names get the horizontal space.
+    .position-cell { width: 40px; }
 }
 
 .fantasy-leaderboard-me {

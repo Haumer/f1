@@ -49,17 +49,9 @@
     }
 }
 
-// Market table
+// Market table — thead typography inherited from the base `table` selector.
 .fantasy-market-table {
     width: 100%;
-
-    th {
-        font-size: $type-label;
-        text-transform: uppercase;
-        letter-spacing: $ls-label;
-        color: $text-tertiary;
-        font-weight: $weight-semi;
-    }
 }
 
 .fantasy-market-row {
