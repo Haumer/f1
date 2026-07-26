@@ -103,29 +103,11 @@ class HeadToHeadController < ApplicationController
 
   def results
     @year = requested_year
-    matches = DriverPreferenceMatch.where(year: @year)
-    grouped = matches.group(:winner_driver_id).count
-    losses  = matches.group(:loser_driver_id).count
-
-    driver_ids = (grouped.keys + losses.keys).uniq
-    drivers = Driver.where(id: driver_ids).index_by(&:id)
-
-    @rows = driver_ids.map do |id|
-      wins = grouped[id] || 0
-      loss = losses[id]  || 0
-      total = wins + loss
-      pct = total.zero? ? 0.0 : (wins.to_f / total)
-      {
-        driver: drivers[id],
-        wins: wins,
-        losses: loss,
-        total: total,
-        pct: pct,
-      }
-    end.select { |r| r[:driver] }.sort_by { |r| [-r[:pct], -r[:total]] }
-
+    @rows = HeadToHead::CrowdRanker.call(@year).map do |r|
+      { driver: r.driver, wins: r.wins, losses: r.losses, total: r.total, pct: r.pct, score: r.score }
+    end
     @total_sessions = DriverPreferenceSession.finished.where(year: @year).count
-    @total_matches  = matches.count
+    @total_matches  = DriverPreferenceMatch.where(year: @year).count
   end
 
   private
