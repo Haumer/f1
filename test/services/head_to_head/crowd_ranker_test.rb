@@ -73,6 +73,42 @@ class HeadToHead::CrowdRankerTest < ActiveSupport::TestCase
     assert_equal [], HeadToHead::CrowdRanker.call(@year)
   end
 
+  test "crowd_score is a 0-100 integer derived from raw score" do
+    a, b, _, _ = @drivers
+    record_match(0, a, b) # a beats b (both 100% and 0% pct respectively)
+
+    rows = HeadToHead::CrowdRanker.call(@year)
+    a_row = rows.find { |r| r.driver == a }
+    b_row = rows.find { |r| r.driver == b }
+
+    assert_kind_of Integer, a_row.crowd_score
+    assert_operator a_row.crowd_score, :>=, 0
+    assert_operator a_row.crowd_score, :<=, 100
+    # a beat b (pct 0) => raw +0.0 => score 50
+    assert_equal 50, a_row.crowd_score
+    # b lost to a (pct 1.0) => raw -(1-1.0) = 0 => score 50
+    assert_equal 50, b_row.crowd_score
+  end
+
+  test "podium_eligible? requires PODIUM_MIN_TOTAL picks" do
+    a, b, c, _ = @drivers
+    record_match(0, a, b)
+    record_match(1, a, c)
+    record_match(2, a, b)
+
+    rows = HeadToHead::CrowdRanker.call(@year)
+    a_row = rows.find { |r| r.driver == a }  # total 3
+    b_row = rows.find { |r| r.driver == b }  # total 2
+    c_row = rows.find { |r| r.driver == c }  # total 1
+
+    assert_equal 3, a_row.total
+    assert_equal 2, b_row.total
+    assert_equal 1, c_row.total
+    assert a_row.podium_eligible?, "a meets the 3-pick floor"
+    refute b_row.podium_eligible?, "b under the 3-pick floor"
+    refute c_row.podium_eligible?, "c under the 3-pick floor"
+  end
+
   test "ignores matches from other years" do
     a, b, _, _ = @drivers
     record_match(0, a, b)
