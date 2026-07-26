@@ -9,7 +9,16 @@ module HeadToHead
   #   1. raw pct per driver
   #   2. score per match = +opp.pct (win) or -(1 - opp.pct) (loss); mean per driver
   class CrowdRanker
-    Row = Struct.new(:driver, :wins, :losses, :total, :pct, :score, keyword_init: true)
+    # Minimum picks a driver needs before they can appear on the podium.
+    # Below this, they still show in the table (with a "New" tag in the view)
+    # but a lucky single-pick doesn't dominate the top-3.
+    PODIUM_MIN_TOTAL = 3
+
+    Row = Struct.new(:driver, :wins, :losses, :total, :pct, :score, :crowd_score, keyword_init: true) do
+      def podium_eligible?
+        total >= PODIUM_MIN_TOTAL
+      end
+    end
 
     def self.call(year)
       new(year).rows
@@ -49,12 +58,13 @@ module HeadToHead
         score = c.empty? ? 0.0 : c.sum / c.size
         total = wins[id] + loses[id]
         Row.new(
-          driver:  drivers[id],
-          wins:    wins[id],
-          losses:  loses[id],
-          total:   total,
-          pct:     pct[id],
-          score:   score,
+          driver:      drivers[id],
+          wins:        wins[id],
+          losses:      loses[id],
+          total:       total,
+          pct:         pct[id],
+          score:       score,
+          crowd_score: ((score + 1.0) * 50.0).round,
         )
       end.sort_by { |r| [-r.score, -r.total] }
     end

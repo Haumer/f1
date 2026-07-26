@@ -103,9 +103,8 @@ class HeadToHeadController < ApplicationController
 
   def results
     @year = requested_year
-    @rows = HeadToHead::CrowdRanker.call(@year).map do |r|
-      { driver: r.driver, wins: r.wins, losses: r.losses, total: r.total, pct: r.pct, score: r.score }
-    end
+    @rows = HeadToHead::CrowdRanker.call(@year)
+    @podium_min = HeadToHead::CrowdRanker::PODIUM_MIN_TOTAL
     @total_sessions = DriverPreferenceSession.finished.where(year: @year).count
     @total_matches  = DriverPreferenceMatch.where(year: @year).count
   end

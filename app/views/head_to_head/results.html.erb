@@ -25,36 +25,42 @@
             <p class="empty-state">No head-to-head picks yet for <%= @year %>. Be the first!</p>
         </div>
     <% else %>
-        <% top3 = @rows.first(3) %>
-        <% podium_order = top3.size >= 3 ? [top3[1], top3[0], top3[2]] : top3 %>
-        <div class="h2h-crowd-podium">
-            <% podium_order.each do |row| %>
-                <% driver = row[:driver] %>
-                <% rank = @rows.index(row) + 1 %>
-                <% team_color = constructor_color(driver.current_constructor) %>
-                <div class="h2h-crowd-podium-card h2h-crowd-podium-p<%= rank %>" style="--team-color: <%= team_color %>;">
-                    <div class="h2h-crowd-podium-medal">#<%= rank %></div>
-                    <div class="h2h-crowd-podium-photo">
-                        <% if driver.display_image_url.present? %>
-                            <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" loading="lazy" onerror="this.style.display='none'">
-                        <% end %>
-                    </div>
-                    <div class="h2h-crowd-podium-info">
-                        <div class="h2h-crowd-podium-name">
-                            <%= flag_image(driver, size: 18) %>
-                            <%= link_to driver.fullname, driver_path(driver) %>
+        <% podium_rows = @rows.select(&:podium_eligible?).first(3) %>
+        <% podium_order = podium_rows.size >= 3 ? [podium_rows[1], podium_rows[0], podium_rows[2]] : podium_rows %>
+        <% if podium_order.any? %>
+            <div class="h2h-crowd-podium">
+                <% podium_order.each do |row| %>
+                    <% driver = row.driver %>
+                    <% rank = @rows.index(row) + 1 %>
+                    <% team_color = constructor_color(driver.current_constructor) %>
+                    <div class="h2h-crowd-podium-card h2h-crowd-podium-p<%= rank %>" style="--team-color: <%= team_color %>;">
+                        <div class="h2h-crowd-podium-medal">#<%= rank %></div>
+                        <div class="h2h-crowd-podium-photo">
+                            <% if driver.display_image_url.present? %>
+                                <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" loading="lazy" onerror="this.style.display='none'">
+                            <% end %>
                         </div>
-                        <% if driver.current_constructor %>
-                            <p class="h2h-crowd-podium-team"><%= driver.current_constructor.name %></p>
-                        <% end %>
-                        <div class="h2h-crowd-podium-stat">
-                            <span class="h2h-crowd-podium-pct"><%= number_to_percentage(row[:pct] * 100, precision: 0) %></span>
-                            <span class="h2h-crowd-podium-record"><%= row[:wins] %>–<%= row[:losses] %></span>
+                        <div class="h2h-crowd-podium-info">
+                            <div class="h2h-crowd-podium-name">
+                                <%= flag_image(driver, size: 18) %>
+                                <%= link_to driver.fullname, driver_path(driver) %>
+                            </div>
+                            <% if driver.current_constructor %>
+                                <p class="h2h-crowd-podium-team"><%= driver.current_constructor.name %></p>
+                            <% end %>
+                            <div class="h2h-crowd-podium-stat">
+                                <span class="h2h-crowd-podium-pct"><%= row.crowd_score %></span>
+                                <span class="h2h-crowd-podium-record"><%= row.wins %>W&ndash;<%= row.losses %>L</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            <% end %>
-        </div>
+                <% end %>
+            </div>
+            <p class="h2h-crowd-helper">
+                <i class="fa-solid fa-circle-info"></i>
+                Score is 0&ndash;100 and weights each pick by opponent strength &mdash; beating a top driver counts for more than beating a bottom one.
+            </p>
+        <% end %>
 
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
@@ -64,21 +70,24 @@
                             <th class="text-center">#</th>
                             <th>Driver</th>
                             <th class="d-none d-md-table-cell">Team</th>
-                            <th class="text-center">Win rate</th>
-                            <th class="text-center">Wins</th>
-                            <th class="text-center d-none d-sm-table-cell">Losses</th>
-                            <th class="text-center d-none d-md-table-cell">Total</th>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Record</th>
+                            <th class="text-center d-none d-md-table-cell">Picks</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% @rows.each_with_index do |row, idx| %>
-                            <% driver = row[:driver] %>
+                            <% driver = row.driver %>
                             <% constructor = driver.current_constructor %>
-                            <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
+                            <% podium_class = (row.podium_eligible? && idx < 3) ? "podium-row podium-p#{idx + 1}" : nil %>
+                            <tr class="<%= podium_class %>">
                                 <td class="text-center position-cell"><%= idx + 1 %></td>
                                 <td class="name-cell">
                                     <%= flag_image(driver, size: 16) %>
                                     <%= link_to driver.fullname, driver_path(driver) %>
+                                    <% unless row.podium_eligible? %>
+                                        <span class="h2h-new-tag" title="Fewer than <%= @podium_min %> picks — not ranked on the podium yet">New</span>
+                                    <% end %>
                                 </td>
                                 <td class="d-none d-md-table-cell">
                                     <% if constructor %>
@@ -86,10 +95,9 @@
                                         <%= link_to constructor.name, constructor_path(constructor), class: "text-secondary" %>
                                     <% end %>
                                 </td>
-                                <td class="text-center"><%= number_to_percentage(row[:pct] * 100, precision: 0) %></td>
-                                <td class="text-center"><%= row[:wins] %></td>
-                                <td class="text-center d-none d-sm-table-cell"><%= row[:losses] %></td>
-                                <td class="text-center d-none d-md-table-cell"><%= row[:total] %></td>
+                                <td class="text-center"><strong><%= row.crowd_score %></strong></td>
+                                <td class="text-center"><span class="text-secondary"><%= row.wins %>&ndash;<%= row.losses %></span></td>
+                                <td class="text-center d-none d-md-table-cell text-secondary"><%= row.total %></td>
                             </tr>
                         <% end %>
                     </tbody>
