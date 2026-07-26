@@ -109,6 +109,35 @@ class HeadToHead::CrowdRankerTest < ActiveSupport::TestCase
     refute c_row.podium_eligible?, "c under the 3-pick floor"
   end
 
+  test "display_rank is assigned 1..N to eligible drivers only; ineligible get nil and sort to the end" do
+    a, b, c, d = @drivers
+    # a: 3 wins (eligible). b: 2 losses (ineligible). c: 1 loss (ineligible).
+    # d: 1 win over a (ineligible, but would have highest score of any driver)
+    record_match(0, a, b)
+    record_match(1, a, c)
+    record_match(2, a, b)
+    record_match(3, d, a)
+
+    rows = HeadToHead::CrowdRanker.call(@year)
+    a_row = rows.find { |r| r.driver == a }
+    b_row = rows.find { |r| r.driver == b }
+    c_row = rows.find { |r| r.driver == c }
+    d_row = rows.find { |r| r.driver == d }
+
+    # Only a is eligible (4 picks); everyone else < 3.
+    assert_equal 1, a_row.display_rank
+    assert_nil b_row.display_rank
+    assert_nil c_row.display_rank
+    assert_nil d_row.display_rank
+
+    # Eligible rows must precede ineligible rows in the returned order,
+    # regardless of raw score. Otherwise the table numbering desyncs from the podium.
+    eligible_indices = rows.each_with_index.filter_map { |r, i| i if r.podium_eligible? }
+    ineligible_indices = rows.each_with_index.filter_map { |r, i| i unless r.podium_eligible? }
+    assert eligible_indices.max < ineligible_indices.min,
+      "all eligible rows must appear before any ineligible row"
+  end
+
   test "ignores matches from other years" do
     a, b, _, _ = @drivers
     record_match(0, a, b)

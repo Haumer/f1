@@ -14,7 +14,7 @@ module HeadToHead
     # but a lucky single-pick doesn't dominate the top-3.
     PODIUM_MIN_TOTAL = 3
 
-    Row = Struct.new(:driver, :wins, :losses, :total, :pct, :score, :crowd_score, keyword_init: true) do
+    Row = Struct.new(:driver, :wins, :losses, :total, :pct, :score, :crowd_score, :display_rank, keyword_init: true) do
       def podium_eligible?
         total >= PODIUM_MIN_TOTAL
       end
@@ -52,7 +52,7 @@ module HeadToHead
       end
 
       drivers = Driver.where(id: driver_ids).index_by(&:id)
-      driver_ids.filter_map do |id|
+      all_rows = driver_ids.filter_map do |id|
         next unless drivers[id]
         c = contribs[id]
         score = c.empty? ? 0.0 : c.sum / c.size
@@ -67,6 +67,13 @@ module HeadToHead
           crowd_score: ((score + 1.0) * 50.0).round,
         )
       end.sort_by { |r| [-r.score, -r.total] }
+
+      # Eligible drivers first (get 1..N ranks), ineligible drivers appended at
+      # the end (no rank — the view renders "—" for them). Keeps the podium
+      # numbering (1/2/3) in sync with the table numbering.
+      eligible, ineligible = all_rows.partition(&:podium_eligible?)
+      eligible.each_with_index { |r, i| r.display_rank = i + 1 }
+      eligible + ineligible
     end
   end
 end

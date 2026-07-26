@@ -31,7 +31,7 @@
             <div class="h2h-crowd-podium">
                 <% podium_order.each do |row| %>
                     <% driver = row.driver %>
-                    <% rank = @rows.index(row) + 1 %>
+                    <% rank = row.display_rank %>
                     <% team_color = constructor_color(driver.current_constructor) %>
                     <div class="h2h-crowd-podium-card h2h-crowd-podium-p<%= rank %>" style="--team-color: <%= team_color %>;">
                         <div class="h2h-crowd-podium-medal">#<%= rank %></div>
@@ -76,17 +76,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% @rows.each_with_index do |row, idx| %>
+                        <% @rows.each do |row| %>
                             <% driver = row.driver %>
                             <% constructor = driver.current_constructor %>
-                            <% podium_class = (row.podium_eligible? && idx < 3) ? "podium-row podium-p#{idx + 1}" : nil %>
+                            <% podium_class = (row.display_rank && row.display_rank <= 3) ? "podium-row podium-p#{row.display_rank}" : nil %>
                             <tr class="<%= podium_class %>">
-                                <td class="text-center position-cell"><%= idx + 1 %></td>
+                                <td class="text-center position-cell"><%= row.display_rank || "—" %></td>
                                 <td class="name-cell">
                                     <%= flag_image(driver, size: 16) %>
                                     <%= link_to driver.fullname, driver_path(driver) %>
                                     <% unless row.podium_eligible? %>
-                                        <span class="h2h-new-tag" title="Fewer than <%= @podium_min %> picks — not ranked on the podium yet">New</span>
+                                        <span class="h2h-new-tag" title="Fewer than <%= @podium_min %> picks — not ranked yet">New</span>
                                     <% end %>
                                 </td>
                                 <td class="d-none d-md-table-cell">
