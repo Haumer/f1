@@ -25,6 +25,37 @@
             <p class="empty-state">No head-to-head picks yet for <%= @year %>. Be the first!</p>
         </div>
     <% else %>
+        <% top3 = @rows.first(3) %>
+        <% podium_order = top3.size >= 3 ? [top3[1], top3[0], top3[2]] : top3 %>
+        <div class="h2h-crowd-podium">
+            <% podium_order.each do |row| %>
+                <% driver = row[:driver] %>
+                <% rank = @rows.index(row) + 1 %>
+                <% team_color = constructor_color(driver.current_constructor) %>
+                <div class="h2h-crowd-podium-card h2h-crowd-podium-p<%= rank %>" style="--team-color: <%= team_color %>;">
+                    <div class="h2h-crowd-podium-medal">#<%= rank %></div>
+                    <div class="h2h-crowd-podium-photo">
+                        <% if driver.display_image_url.present? %>
+                            <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" loading="lazy" onerror="this.style.display='none'">
+                        <% end %>
+                    </div>
+                    <div class="h2h-crowd-podium-info">
+                        <div class="h2h-crowd-podium-name">
+                            <%= flag_image(driver, size: 18) %>
+                            <%= link_to driver.fullname, driver_path(driver) %>
+                        </div>
+                        <% if driver.current_constructor %>
+                            <p class="h2h-crowd-podium-team"><%= driver.current_constructor.name %></p>
+                        <% end %>
+                        <div class="h2h-crowd-podium-stat">
+                            <span class="h2h-crowd-podium-pct"><%= number_to_percentage(row[:pct] * 100, precision: 0) %></span>
+                            <span class="h2h-crowd-podium-record"><%= row[:wins] %>–<%= row[:losses] %></span>
+                        </div>
+                    </div>
+                </div>
+            <% end %>
+        </div>
+
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact">

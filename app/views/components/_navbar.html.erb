@@ -105,7 +105,8 @@
                     <%= link_to "Driver Cards", driver_cards_path(username: current_user.username), class: ("active" if request.path.include?("/cards")), role: "menuitem" %>
                     <div class="nav-dropdown-divider"></div>
                 <% end %>
-                <%= link_to "Head to Head", head_to_head_path, class: ("active" if request.path.start_with?('/head-to-head')), role: "menuitem" %>
+                <%= link_to "Head to Head", head_to_head_path, class: ("active" if request.path.start_with?('/head-to-head') && !request.path.include?('/results')), role: "menuitem" %>
+                <%= link_to "Crowd Rankings", head_to_head_results_path, class: ("active" if request.path.start_with?('/head-to-head') && request.path.include?('/results')), role: "menuitem" %>
                 <%= link_to "How it Works", fantasy_guide_path, class: ("active" if current_page?(fantasy_guide_path)), role: "menuitem" %>
             </div>
         </div>

@@ -11,6 +11,11 @@
                     Round <%= @session_record.rounds_played + 1 %> of <%= @session_record.rounds_target %>
                     &middot; <%= @pair.tier.humanize %> tier
                 </p>
+                <%= link_to head_to_head_results_path(year: (@year == current_season.year.to_i ? nil : @year)),
+                            class: "h2h-hero-link",
+                            data: { turbo_frame: "_top" } do %>
+                    <i class="fa-solid fa-chart-column"></i> See how everyone ranks
+                <% end %>
             </div>
         </div>
 
