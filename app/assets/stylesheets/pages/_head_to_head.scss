@@ -502,15 +502,39 @@
     .h2h-finish-photo { height: 220px; img { max-height: 220px; } }
 }
 @media (max-width: 640px) {
+    // Keep side-by-side on phones so both drivers are visible above the fold
+    // without scrolling. Tighter gap, smaller card padding, shrunk photo.
     .h2h-cards {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 8px;
     }
-    .h2h-versus { padding: 4px 0; }
-    .h2h-card-photo { height: 140px; img { max-height: 140px; } }
+    .h2h-versus {
+        font-size: 14px;
+        padding: 0;
+    }
+    .h2h-card {
+        padding: 12px 8px 10px;
+        border-width: 1.5px;
+    }
+    .h2h-card-photo { height: 120px; margin-bottom: 8px; img { max-height: 120px; } }
+    .h2h-card-name { font-size: 13px; gap: 5px; }
+    .h2h-card-name img { width: 14px; height: auto; }
+    .h2h-card-team { font-size: 10px; margin-top: 4px; }
+    .h2h-champion-flag { font-size: 9px; padding: 3px 7px; top: -10px; }
+
     .h2h-finish-photo { height: 180px; img { max-height: 180px; } }
     .h2h-finish-champ-name { font-size: 20px; }
     .h2h-finish-row { grid-template-columns: 36px 1fr auto; padding: 9px 12px; gap: 8px; }
     .h2h-finish-team-name { max-width: 90px; }
     .h2h-share-actions .fantasy-btn { flex: 1 1 calc(50% - 5px); justify-content: center; }
+}
+
+// Ultra-narrow (older iPhone SE) — fall back to vertical stack because the
+// two-column layout can't fit both photos legibly below ~340px.
+@media (max-width: 359px) {
+    .h2h-cards {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .h2h-card-photo { height: 130px; img { max-height: 130px; } }
 }
