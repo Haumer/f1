@@ -10,6 +10,15 @@
         <span class="hamburger-line"></span>
     </button>
     <div class="links" data-navbar-target="links" role="menubar">
+        <% if current_user %>
+            <% portfolio_nav = current_user.fantasy_portfolio_for(current_season) %>
+            <% if portfolio_nav %>
+                <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: "mobile-nav-item #{"active" if request.path.include?("/fantasy/u/#{current_user.username}")}", role: "menuitem" %>
+            <% else %>
+                <%= link_to "Start Trading", new_fantasy_portfolio_path, class: "mobile-nav-item nav-cta #{"active" if current_page?(new_fantasy_portfolio_path)}", role: "menuitem" %>
+            <% end %>
+        <% end %>
+        <%= link_to "Leaderboard", combined_leaderboard_path, class: "mobile-nav-item #{"active" if request.path.start_with?('/leaderboard')}", role: "menuitem" %>
         <%= link_to "Standings", root_path, class: "mobile-nav-item #{"active" if current_page?(root_path)}", role: "menuitem" %>
 
         <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
@@ -83,27 +92,21 @@
             </div>
         </div>
 
-        <%= link_to "Elo", elo_path, class: "mobile-nav-item #{"active" if current_page?(elo_path)}", role: "menuitem" %>
         <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') || request.path.start_with?('/leaderboard') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Fantasy <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <% if current_user %>
-                    <% portfolio = current_user.fantasy_portfolio_for(current_season) %>
                     <% stock_portfolio = current_user.fantasy_stock_portfolio_for(current_season) %>
-                    <% if portfolio %>
-                        <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: ("active" if request.path.include?("/fantasy/u/")), role: "menuitem" %>
-                        <% if stock_portfolio %>
-                            <%= link_to "Market", market_fantasy_stock_portfolio_path(stock_portfolio), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
-                        <% end %>
-                    <% else %>
-                        <%= link_to "Create Portfolio", new_fantasy_portfolio_path, role: "menuitem" %>
+                    <% if stock_portfolio %>
+                        <%= link_to "Market", market_fantasy_stock_portfolio_path(stock_portfolio), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
                     <% end %>
+                    <%= link_to "Driver Cards", driver_cards_path(username: current_user.username), class: ("active" if request.path.include?("/cards")), role: "menuitem" %>
                     <div class="nav-dropdown-divider"></div>
                 <% end %>
-                <%= link_to "Leaderboard", combined_leaderboard_path, class: ("active" if request.path.start_with?('/leaderboard')), role: "menuitem" %>
-                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Head to Head", head_to_head_path, class: ("active" if request.path.start_with?('/head-to-head') && !request.path.include?('/results')), role: "menuitem" %>
+                <%= link_to "Crowd Rankings", head_to_head_results_path, class: ("active" if request.path.start_with?('/head-to-head') && request.path.include?('/results')), role: "menuitem" %>
                 <%= link_to "How it Works", fantasy_guide_path, class: ("active" if current_page?(fantasy_guide_path)), role: "menuitem" %>
             </div>
         </div>

@@ -131,6 +131,24 @@
     }
 }
 
+// Note: `.driver-card` is reused by fantasy/_fantasy_roster.scss for trading
+// cards, which adds a translateY(-4px) + glow on hover and `overflow: hidden`
+// on the card itself. Those make sense for clickable trading cards but the
+// hover reads as "click me" on this informational sidebar, and the overflow
+// clips the achievement-badge tooltips (they extend ~130px each side of the
+// badge centre, past the ~240px-wide card). Compound `.card.driver-card` is
+// unique to the show page (fantasy roster doesn't combine with `.card`), so
+// the compound selector wins on specificity without renaming either class.
+.card.driver-card {
+    overflow: visible;
+
+    &:hover {
+        transform: none;
+        box-shadow: $shadow-md;
+        border-color: $border-color;
+    }
+}
+
 .driver-card {
     text-align: center;
     overflow: visible;
@@ -499,7 +517,8 @@
         box-shadow: $shadow-md;
     }
 
-    // Tooltip — glass style
+    // Tooltip — glass style. Wraps to multiple lines so long achievement
+    // descriptions don't extend past the viewport edge on right-side badges.
     &[data-tooltip]::after {
         content: attr(data-tooltip);
         position: absolute;
@@ -511,12 +530,14 @@
         color: $text-primary;
         font-size: $type-label;
         font-weight: $weight-regular;
-        padding: 5px 10px;
+        padding: 6px 10px;
         border-radius: $radius-sm;
         border: 1px solid $border-accent;
         white-space: normal;
-        max-width: 200px;
         width: max-content;
+        max-width: 200px;
+        text-align: center;
+        line-height: 1.35;
         pointer-events: none;
         opacity: 0;
         transition: opacity $t-fast, transform $t-fast;

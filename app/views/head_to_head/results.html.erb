@@ -1,0 +1,114 @@
+<% content_for(:title) { "#{@year} F1 Head-to-Head — Crowd Ranking" } %>
+<% content_for(:description) { "Crowd-sourced ranking of the #{@year} F1 grid from head-to-head matchups. #{number_with_delimiter(@total_sessions)} sessions, #{number_with_delimiter(@total_matches)} picks." } %>
+
+<div class="homepage-container">
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label"><%= @year %> Grid · Crowd Ranking</span>
+            <h1 class="page-hero-title">Who fans rate the highest</h1>
+            <p class="page-hero-meta">
+                <%= number_with_delimiter(@total_sessions) %> sessions
+                &middot; <%= number_with_delimiter(@total_matches) %> head-to-head picks
+            </p>
+        </div>
+    </div>
+
+    <div class="h2h-results-actions">
+        <%= link_to head_to_head_path(year: (@year == current_season.year.to_i ? nil : @year)), class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" do %>
+            <i class="fa-solid fa-play"></i> Play your own
+        <% end %>
+    </div>
+
+    <% if @rows.empty? %>
+        <div class="card">
+            <p class="empty-state">No head-to-head picks yet for <%= @year %>. Be the first!</p>
+        </div>
+    <% else %>
+        <% podium_rows = @rows.select(&:podium_eligible?).first(3) %>
+        <% podium_order = podium_rows.size >= 3 ? [podium_rows[1], podium_rows[0], podium_rows[2]] : podium_rows %>
+        <% if podium_order.any? %>
+            <div class="h2h-crowd-podium">
+                <% podium_order.each do |row| %>
+                    <% driver = row.driver %>
+                    <% rank = row.display_rank %>
+                    <% team_color = constructor_color(driver.current_constructor) %>
+                    <div class="h2h-crowd-podium-card h2h-crowd-podium-p<%= rank %>" style="--team-color: <%= team_color %>;">
+                        <div class="h2h-crowd-podium-medal">#<%= rank %></div>
+                        <div class="h2h-crowd-podium-photo">
+                            <% if driver.display_image_url.present? %>
+                                <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" loading="lazy" onerror="this.style.display='none'">
+                            <% end %>
+                        </div>
+                        <div class="h2h-crowd-podium-info">
+                            <div class="h2h-crowd-podium-name">
+                                <%= flag_image(driver, size: 18) %>
+                                <%= link_to driver.fullname, driver_path(driver) %>
+                            </div>
+                            <% if driver.current_constructor %>
+                                <p class="h2h-crowd-podium-team"><%= driver.current_constructor.name %></p>
+                            <% end %>
+                            <div class="h2h-crowd-podium-stat">
+                                <span class="h2h-crowd-podium-pct"><%= row.crowd_score %></span>
+                                <span class="h2h-crowd-podium-record"><%= row.wins %>W&ndash;<%= row.losses %>L</span>
+                            </div>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+            <p class="h2h-crowd-helper">
+                <i class="fa-solid fa-circle-info"></i>
+                Score is 0&ndash;100 and weights each pick by opponent strength &mdash; beating a top driver counts for more than beating a bottom one.
+            </p>
+        <% end %>
+
+        <div class="card card-flush">
+            <div class="table-scroll-wrapper">
+                <table class="current-driver-standings compact">
+                    <thead>
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th>Driver</th>
+                            <th class="d-none d-md-table-cell">Team</th>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Record</th>
+                            <th class="text-center d-none d-md-table-cell">Picks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% @rows.each do |row| %>
+                            <% driver = row.driver %>
+                            <% constructor = driver.current_constructor %>
+                            <% podium_class = (row.display_rank && row.display_rank <= 3) ? "podium-row podium-p#{row.display_rank}" : nil %>
+                            <tr class="<%= podium_class %>">
+                                <td class="text-center position-cell"><%= row.display_rank || "—" %></td>
+                                <td class="name-cell">
+                                    <%= flag_image(driver, size: 16) %>
+                                    <%= link_to driver.fullname, driver_path(driver) %>
+                                    <% unless row.podium_eligible? %>
+                                        <span class="h2h-new-tag" title="Fewer than <%= @podium_min %> picks — not ranked yet">New</span>
+                                    <% end %>
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    <% if constructor %>
+                                        <span style="display: inline-block; width: 3px; height: 12px; background: <%= constructor_color(constructor) %>; border-radius: 1px; vertical-align: middle; margin-right: 6px;"></span>
+                                        <%= link_to constructor.name, constructor_path(constructor), class: "text-secondary" %>
+                                    <% end %>
+                                </td>
+                                <td class="text-center">
+                                    <% if row.podium_eligible? %>
+                                        <strong><%= row.crowd_score %></strong>
+                                    <% else %>
+                                        <span class="text-secondary">&mdash;</span>
+                                    <% end %>
+                                </td>
+                                <td class="text-center"><span class="text-secondary"><%= row.wins %>&ndash;<%= row.losses %></span></td>
+                                <td class="text-center d-none d-md-table-cell text-secondary"><%= row.total %></td>
+                            </tr>
+                        <% end %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% end %>
+</div>

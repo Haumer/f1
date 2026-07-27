@@ -404,6 +404,41 @@
     min-height: 42px;
 }
 
+// Inserted between P10 and P11 in the picks editor — signals the boundary
+// below which finishes still score points but don't earn a driver card.
+.picks-card-cutoff {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 4px 6px;
+
+    .picks-card-cutoff-line {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, $border-color, transparent);
+    }
+
+    .picks-card-cutoff-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
+        white-space: nowrap;
+
+        i { color: $gold; opacity: 0.55; font-size: 10px; }
+    }
+
+    @media (max-width: 480px) {
+        .picks-card-cutoff-label {
+            font-size: 9px;
+            letter-spacing: 0.4px;
+        }
+    }
+}
+
 .pick-slot-filled {
     display: flex;
     align-items: center;
@@ -414,6 +449,13 @@
     background: $bg-card;
     cursor: grab;
     transition: background $t-fast;
+
+    // Slots P11+ won't earn driver cards — dim them slightly so the visual
+    // weight matches their reduced reward.
+    &.pick-slot-no-card {
+        opacity: 0.72;
+        .pick-slot-pos { color: $text-tertiary; }
+    }
 
     &:active { cursor: grabbing; }
 
@@ -572,10 +614,16 @@
     padding: 3px 10px;
     border-radius: 12px;
 
-    &.scorecard-exact { background: rgba($green, 0.15); color: $green; }
-    &.scorecard-close { background: rgba($green, 0.08); color: lighten($green, 8%); }
-    &.scorecard-near  { background: rgba($gold, 0.12);  color: $gold; }
-    &.scorecard-miss  { background: rgba(255, 255, 255, 0.04); color: $text-tertiary; }
+    &.scorecard-exact  { background: rgba($green, 0.15); color: $green; }
+    &.scorecard-close  { background: rgba($green, 0.08); color: lighten($green, 8%); }
+    &.scorecard-near   { background: rgba($gold, 0.12);  color: $gold; }
+    &.scorecard-miss   { background: rgba(255, 255, 255, 0.04); color: $text-tertiary; }
+    &.scorecard-cutoff {
+        background: rgba($text-tertiary, 0.06);
+        color: $text-tertiary;
+        border: 1px dashed rgba($text-tertiary, 0.3);
+        padding: 2px 9px;
+    }
 }
 
 .scorecard-rows {
@@ -593,6 +641,9 @@
     &.scorecard-exact { background: rgba($green, 0.06); }
     &.scorecard-close { background: rgba($green, 0.03); }
     &.scorecard-near  { background: rgba($gold, 0.04); }
+    // P11+ when the scoring cutoff is active: still listed so the user can see
+    // their full prediction, but visually dimmed because the row doesn't count.
+    &.scorecard-out   { opacity: 0.55; }
 }
 
 .scorecard-photo {
@@ -627,6 +678,28 @@
     &.scorecard-points-close { color: lighten($green, 8%); }
     &.scorecard-points-near  { color: $gold; }
     &.scorecard-points-miss  { color: $text-tertiary; }
+    &.scorecard-points-out   { color: $text-tertiary; font-weight: $weight-regular; }
+}
+
+// Legacy "no card" pill — only shown on pre-cutoff scorecards where the old
+// rule (P11+ exact match scored points but earned no card) still applies.
+.scorecard-no-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba($text-tertiary, 0.08);
+    border: 1px dashed rgba($text-tertiary, 0.4);
+    color: $text-tertiary;
+    font-size: 10px;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    cursor: help;
+
+    i { font-size: 9px; opacity: 0.7; }
 }
 
 // Past-pick summary row on the profile (links into the scorecard)
@@ -655,6 +728,15 @@
 .picks-result-race {
     font-weight: $weight-semi;
     font-size: 14px;
+    flex: 1 1 auto;
+    min-width: 0;
+
+    @media (max-width: 600px) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+    }
 }
 
 .picks-result-meta {
@@ -662,8 +744,14 @@
     align-items: center;
     gap: 12px;
     font-size: 13px;
+    flex-shrink: 0;
 
     i { font-size: 11px; color: $text-tertiary; }
+
+    @media (max-width: 600px) {
+        gap: 8px;
+        font-size: 12px;
+    }
 }
 
 .picks-result-pts {

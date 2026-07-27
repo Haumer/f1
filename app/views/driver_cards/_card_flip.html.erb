@@ -1,0 +1,22 @@
+<%#
+  3D flip wrapper around one DriverCard. The wrapper carries:
+    - perspective + the JS-set rotateY transform (preserve-3d on .dc-flip-inner)
+    - the card-tilt controller (mouse follow + sheen sweep)
+    - the card-flip controller (click → toggle .flipped, or promote-in-stack)
+    - any stack positioning class passed in via the `position` local
+
+  Locals:
+    card     — a DriverCard
+    position — optional: "stack-top" / "stack-back-1" / "stack-back-2"
+%>
+<%
+  position ||= nil
+%>
+<div class="dc-flip <%= position %>"
+     data-controller="card-tilt card-flip"
+     data-action="click->card-flip#toggle">
+    <div class="dc-flip-inner" data-card-tilt-target="inner">
+        <%= render "driver_cards/card", card: card %>
+        <%= render "driver_cards/card_back", card: card %>
+    </div>
+</div>

@@ -24,9 +24,33 @@
             background: rgba($gold, 0.1);
             color: $gold;
         }
-        &.fantasy-txn-bonus {
+        &.fantasy-txn-bonus,
+        &.fantasy-txn-pick_reward,
+        &.fantasy-txn-dividend,
+        &.fantasy-txn-short_close {
             background: rgba($green, 0.1);
             color: $green;
+        }
+        &.fantasy-txn-short_open,
+        &.fantasy-txn-borrow_fee,
+        &.fantasy-txn-liquidation {
+            background: rgba($accent-red, 0.1);
+            color: $accent-red;
+        }
+        &.fantasy-txn-starting_capital {
+            background: rgba(255, 255, 255, 0.06);
+            color: $text-tertiary;
+        }
+        &.fantasy-txn-card_earned,
+        &.fantasy-txn-card_combined {
+            background: rgba($gold, 0.12);
+            color: $gold;
+        }
+
+        i {
+            font-size: 9px;
+            margin-right: 3px;
+            opacity: 0.85;
         }
     }
 
@@ -34,6 +58,52 @@
         color: $text-secondary;
         font-size: 12px;
     }
+}
+
+// ═══════════════════════════════════════
+// ACTIVITY FEED (unified credits + cards)
+// ═══════════════════════════════════════
+
+.fantasy-activity-table {
+    .fantasy-activity-when {
+        white-space: nowrap;
+        color: $text-secondary;
+        font-size: 12px;
+    }
+
+    .fantasy-activity-subject {
+        color: $text-secondary;
+        font-size: 13px;
+    }
+
+    .fantasy-activity-change {
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .fantasy-activity-credits {
+        font-weight: 600;
+        margin-right: 6px;
+    }
+
+    .fantasy-activity-tier {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid currentColor;
+        vertical-align: middle;
+    }
+}
+
+// Achievement badge variant — slightly different to avoid feeling identical to cards
+.fantasy-txn-kind.fantasy-txn-achievement_earned {
+    background: rgba($gold, 0.08);
+    color: $gold;
 }
 
 // Source badge (stocks indicator on combined views)
@@ -180,23 +250,18 @@
     font-weight: 600;
 }
 
-// Table
+// Table — inherits podium highlight + position-cell from the shared
+// %standings-podium-rows and %standings-position-cell placeholders in
+// application.scss, so the top-3 look identical across standings, leaderboard,
+// and crowd rankings.
 .fantasy-leaderboard-table {
+    @extend %standings-podium-rows;
+    @extend %standings-position-cell;
+
     width: 100%;
 
-    tbody tr {
-        border-left: 3px solid transparent;
-    }
-
-    .podium-p1 { border-left-color: $gold; }
-    .podium-p2 { border-left-color: $silver; }
-    .podium-p3 { border-left-color: $bronze; }
-
-    .position-cell {
-        font-weight: 700;
-        font-size: 14px;
-        width: 40px;
-    }
+    // Constrain the rank column so long player names get the horizontal space.
+    .position-cell { width: 40px; }
 }
 
 .fantasy-leaderboard-me {
@@ -221,15 +286,61 @@
     &:hover { color: var(--page-accent, $accent-red); }
 }
 
+.leaderboard-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.leaderboard-player-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .leaderboard-team-logo {
-    vertical-align: middle;
-    margin-right: 4px;
+    flex-shrink: 0;
     opacity: 0.85;
+    vertical-align: middle;
+}
+
+// Placeholder slot for users without a chosen team — keeps the name column
+// vertically aligned across all rows even when no logo exists.
+.leaderboard-team-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    color: $text-tertiary;
+    cursor: help;
+
+    i {
+        font-size: 9px;
+        line-height: 1;
+    }
 }
 
 .fantasy-leaderboard-value {
     font-family: $mono-font;
     font-weight: $weight-bold;
+}
+
+// Inline last-race delta shown only on phones where the Last Race column
+// is collapsed (avoids horizontal table overflow on narrow screens).
+.leaderboard-last-race-inline {
+    display: block;
+    font-family: $mono-font;
+    font-size: 11px;
+    font-weight: $weight-semi;
+    opacity: 0.75;
+    margin-top: 2px;
 }
 
 // ═══════════════════════════════════════
@@ -244,6 +355,49 @@
 
     @media (max-width: 380px) {
         grid-template-columns: 1fr;
+    }
+}
+
+.fantasy-achievements-empty {
+    color: $text-tertiary;
+    font-size: 13px;
+    padding: 12px 4px;
+    margin-bottom: $space-md;
+}
+
+.fantasy-achievements-locked {
+    margin-bottom: $space-lg;
+
+    > summary {
+        list-style: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: $text-tertiary;
+        padding: 6px 10px;
+        border-radius: $radius-sm;
+        user-select: none;
+        transition: color $t-fast, background $t-fast;
+
+        &::-webkit-details-marker { display: none; }
+
+        i {
+            font-size: 10px;
+            transition: transform $t-fast;
+        }
+
+        &:hover {
+            color: $text-primary;
+            background: $bg-surface;
+        }
+    }
+
+    &[open] > summary {
+        margin-bottom: 8px;
+        color: $text-primary;
+        i { transform: rotate(180deg); }
     }
 }
 
@@ -263,9 +417,10 @@
 
     &.earned {
         opacity: 1;
-        &.tier-bronze { border-color: rgba($bronze, 0.4); }
-        &.tier-silver { border-color: rgba($silver, 0.4); }
-        &.tier-gold   { border-color: rgba($gold, 0.4); }
+        &.tier-bronze    { border-color: rgba($bronze, 0.4); }
+        &.tier-silver    { border-color: rgba($silver, 0.4); }
+        &.tier-gold      { border-color: rgba($gold, 0.4); }
+        &.tier-legendary { border-color: rgba(255, 200, 240, 0.5); }
     }
 }
 
@@ -280,9 +435,13 @@
     font-size: 15px;
     flex-shrink: 0;
 
-    .earned.tier-bronze & { background: rgba($bronze, 0.12); color: $bronze; }
-    .earned.tier-silver & { background: rgba($silver, 0.12); color: $silver; }
-    .earned.tier-gold &   { background: rgba($gold, 0.12); color: $gold; }
+    .earned.tier-bronze &    { background: rgba($bronze, 0.12); color: $bronze; }
+    .earned.tier-silver &    { background: rgba($silver, 0.12); color: $silver; }
+    .earned.tier-gold &      { background: rgba($gold, 0.12);   color: $gold; }
+    .earned.tier-legendary & {
+        background: linear-gradient(120deg, rgba(255, 143, 214, 0.25), rgba(139, 226, 255, 0.25));
+        color: white;
+    }
 }
 
 .fantasy-achievement-info {
@@ -310,7 +469,11 @@
     border-radius: 3px;
     flex-shrink: 0;
 
-    &.tier-bronze { background: rgba($bronze, 0.12); color: $bronze; }
-    &.tier-silver { background: rgba($silver, 0.12); color: $silver; }
-    &.tier-gold   { background: rgba($gold, 0.12); color: $gold; }
+    &.tier-bronze    { background: rgba($bronze, 0.12); color: $bronze; }
+    &.tier-silver    { background: rgba($silver, 0.12); color: $silver; }
+    &.tier-gold      { background: rgba($gold, 0.12);   color: $gold; }
+    &.tier-legendary {
+        background: linear-gradient(120deg, rgba(255, 143, 214, 0.25), rgba(139, 226, 255, 0.25));
+        color: white;
+    }
 }

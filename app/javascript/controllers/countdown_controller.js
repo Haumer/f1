@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static values = { target: String, label: String, format: { type: String, default: "inline" } }
+  static targets = ["display"]
 
   connect() {
     this.update()
@@ -18,7 +19,9 @@ export default class extends Controller {
     const diff = target - now
 
     if (diff <= 0) {
-      if (this.formatValue === "blocks") {
+      if (this.hasDisplayTarget) {
+        this.displayTarget.textContent = "Locked"
+      } else if (this.formatValue === "blocks") {
         this.element.innerHTML = this.buildBlocks(0, 0, 0, 0)
       } else {
         this.element.innerHTML = this.buildDisplay(this.labelValue || "Now", "0:00:00")
@@ -32,7 +35,13 @@ export default class extends Controller {
     const minutes = Math.floor((diff % 3600000) / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
 
-    if (this.formatValue === "blocks") {
+    if (this.hasDisplayTarget) {
+      let compact
+      if (days > 0)        compact = `${days}d ${hours}h`
+      else if (hours > 0)  compact = `${hours}h ${minutes}m`
+      else                 compact = `${minutes}:${String(seconds).padStart(2, "0")}`
+      this.displayTarget.textContent = compact
+    } else if (this.formatValue === "blocks") {
       this.element.innerHTML = this.buildBlocks(days, hours, minutes, seconds)
     } else {
       let timeStr

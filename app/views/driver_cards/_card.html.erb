@@ -1,0 +1,37 @@
+<%#
+  Render the FRONT of one DriverCard. The 3D-flip wrapper, back face and the
+  card-tilt Stimulus controller live in _card_flip.html.erb — keep this partial
+  pure so it can also be embedded on its own (e.g. /cards/:id show page).
+
+  Locals:
+    card        — a DriverCard
+    portrait    — optional image URL override (defaults to driver.display_image_url)
+%>
+<%
+  driver      = card.driver
+  constructor = (defined?(card_constructor) && card_constructor) || driver.constructor_for(card.race.season)
+  portrait  ||= driver.display_image_url
+%>
+<div class="dc-card tier-<%= card.tier %> <%= card_team_class(constructor) %>"
+     style="<%= card_team_style(constructor) %>"
+     data-controller="card-sheen">
+    <div class="hex-pattern"></div>
+    <div class="crest"><%= constructor_crest(constructor) %></div>
+    <% if driver.number.present? %>
+        <div class="number"><%= driver.number %></div>
+    <% end %>
+    <div class="team-rail"><span><%= driver_code(driver) %></span></div>
+    <% if portrait.present? %>
+        <div class="portrait" style="background-image: url('<%= portrait %>');"></div>
+    <% end %>
+    <div class="name">
+        <span class="first"><%= driver.forename %></span><%= driver.surname %>
+    </div>
+    <div class="footer">
+        <div class="stat"><span class="label">Wins</span><span class="value"><%= card.snapshot_wins %></span></div>
+        <div class="stat"><span class="label">Podiums</span><span class="value"><%= card.snapshot_podiums %></span></div>
+        <div class="stat"><span class="label">WDC</span><span class="value"><%= card.snapshot_wdc %></span></div>
+    </div>
+    <div class="f1-mark">F1 · <%= card.race.year %></div>
+    <div class="sheen"></div>
+</div>

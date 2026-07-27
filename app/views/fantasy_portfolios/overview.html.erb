@@ -8,32 +8,31 @@
         <% team_color = constructor_color(sc) %>
     <% end %>
     <div class="fantasy-dashboard-header">
-        <div class="fantasy-dashboard-title">
-            <h2>
-                <% if support && sc.logo_url.present? %>
-                    <%= link_to constructor_path(sc), class: "fantasy-team-badge-inline" do %>
-                        <img src="<%= sc.logo_url %>" alt="<%= sc.name %>" class="fantasy-team-badge-logo" onerror="this.style.display='none'">
-                    <% end %>
-                <% end %>
-                <% if support %>
-                    <span style="color: <%= team_color %>"><%= @user.display_name %></span>
-                <% else %>
+        <div class="fantasy-dashboard-identity">
+            <div class="fantasy-dashboard-title">
+                <h2 class="fantasy-dashboard-name<%= ' is-supported' if support %>"<%= support ? " style=\"color: #{team_color}\"".html_safe : '' %>>
                     <%= @user.display_name %>
-                <% end %>
-            </h2>
-            <span class="fantasy-season">
-                <%= @season.year %> Fantasy
-                <% if @is_owner %>
-                    <span class="fantasy-visibility-inline">
-                        <%= form_with url: toggle_public_profile_path, method: :post, local: true, style: "display:inline" do %>
-                            <label class="fantasy-visibility-inline-label">
+                </h2>
+                <div class="fantasy-dashboard-meta">
+                    <span class="fantasy-season"><%= @season.year %> Fantasy</span>
+                    <% if support %>
+                        <%= link_to constructor_path(sc), class: "fantasy-team-chip", style: "--team-color: #{team_color}", title: sc.name do %>
+                            <% if sc.logo_url.present? %>
+                                <img src="<%= sc.logo_url %>" alt="" class="fantasy-team-chip-logo" onerror="this.style.display='none'">
+                            <% end %>
+                            <span class="fantasy-team-chip-name"><%= sc.name %></span>
+                        <% end %>
+                    <% end %>
+                    <% if @is_owner %>
+                        <%= form_with url: toggle_public_profile_path, method: :post, local: true, class: "fantasy-visibility-inline-form" do %>
+                            <label class="fantasy-visibility-inline-label" title="<%= current_user.public_profile? ? 'Profile is public' : 'Profile is private' %>">
                                 <input type="checkbox" <%= "checked" if current_user.public_profile? %> onchange="this.form.requestSubmit()">
                                 <span><i class="fa-solid fa-<%= current_user.public_profile? ? 'globe' : 'lock' %>"></i></span>
                             </label>
                         <% end %>
-                    </span>
-                <% end %>
-            </span>
+                    <% end %>
+                </div>
+            </div>
         </div>
         <div class="fantasy-header-actions">
             <% if @is_owner && @stock_portfolio %>
@@ -55,33 +54,108 @@
     <% stock_invested = @stock_portfolio ? @stock_portfolio.total_invested : 0 %>
     <% total_invested = stock_invested + collateral %>
     <% total_value = cash + stock_positions %>
+    <% baseline = @portfolio&.starting_capital || Fantasy::CreatePortfolio::STARTING_CAPITAL %>
     <% total_pl = @portfolio ? @portfolio.total_return : 0 %>
-    <% total_pl_pct = total_invested > 0 ? (total_pl / total_invested * 100) : 0 %>
+    <% total_pl_pct = baseline > 0 ? (total_pl / baseline * 100) : 0 %>
+    <% pl_class = total_pl >= 0 ? 'gain' : 'loss' %>
+    <% last_snap_round = (@snapshots || []).last&.race&.round %>
     <div class="fantasy-value-hero">
         <div class="fantasy-value-main">
-            <span class="fantasy-value-label">Total Value</span>
-            <div class="fantasy-cash-display">
-                <span class="fantasy-value-number"><%= number_with_delimiter(total_value.round(0)) %></span>
+            <div class="fantasy-value-row-top">
+                <span class="fantasy-value-label">Total Value</span>
+                <% if @leaderboard_rank %>
+                    <span class="fantasy-rank-chip" title="Leaderboard rank">
+                        <i class="fa-solid fa-ranking-star"></i>
+                        <span class="fantasy-rank-num">#<%= @leaderboard_rank %></span>
+                        <% if @leaderboard_size && @leaderboard_size > 1 %>
+                            <span class="fantasy-rank-of">of <%= @leaderboard_size %></span>
+                        <% end %>
+                        <% if @leaderboard_rank_delta && @leaderboard_rank_delta != 0 %>
+                            <% up = @leaderboard_rank_delta > 0 %>
+                            <span class="fantasy-rank-delta <%= up ? 'gain' : 'loss' %>">
+                                <i class="fa-solid fa-caret-<%= up ? 'up' : 'down' %>"></i><%= @leaderboard_rank_delta.abs %>
+                            </span>
+                        <% end %>
+                    </span>
+                <% end %>
+                <% if @next_race&.starts_at && @next_race.starts_at > Time.current %>
+                    <span class="fantasy-lock-chip" data-controller="countdown" data-countdown-target-value="<%= @next_race.starts_at.iso8601 %>">
+                        <i class="fa-solid fa-lock"></i>
+                        <span class="fantasy-lock-label">Locks in</span>
+                        <span class="fantasy-lock-time" data-countdown-target="display">—</span>
+                    </span>
+                <% elsif @next_race %>
+                    <span class="fantasy-lock-chip locked">
+                        <i class="fa-solid fa-lock"></i>
+                        <span class="fantasy-lock-label">Locked</span>
+                    </span>
+                <% end %>
+            </div>
+            <span class="fantasy-value-number"><%= number_with_delimiter(total_value.round(0)) %></span>
+            <div class="fantasy-value-pl-row">
+                <span class="fantasy-value-pl <%= pl_class %>">
+                    <%= total_pl >= 0 ? '+' : '' %><%= number_with_delimiter(total_pl.round(0)) %>
+                    <span class="fantasy-value-pl-pct">(<%= total_pl_pct >= 0 ? '+' : '' %><%= total_pl_pct.round(1) %>%)</span>
+                </span>
+                <span class="fantasy-value-pl-sep">all-time</span>
+                <% if @value_delta && last_snap_round %>
+                    <span class="fantasy-value-race-delta <%= @value_delta >= 0 ? 'gain' : 'loss' %>">
+                        <%= @value_delta >= 0 ? '+' : '' %><%= number_with_delimiter(@value_delta.round(0)) %>
+                        <span class="fantasy-value-race-delta-label">R<%= last_snap_round %></span>
+                    </span>
+                <% end %>
             </div>
         </div>
         <div class="fantasy-value-details">
             <div class="fantasy-detail">
-                <span class="detail-label">Credits Available</span>
+                <span class="detail-label">Cash</span>
                 <span class="detail-value"><%= number_with_delimiter(cash_available.round(0)) %></span>
             </div>
             <div class="fantasy-detail">
                 <span class="detail-label">Invested</span>
                 <span class="detail-value"><%= number_with_delimiter(total_invested.round(0)) %></span>
             </div>
-            <div class="fantasy-detail">
-                <span class="detail-label">P&L</span>
-                <span class="detail-value <%= total_pl >= 0 ? 'text-green' : 'text-red' %>">
-                    <%= total_pl >= 0 ? '+' : '' %><%= number_with_delimiter(total_pl.round(0)) %>
-                    <span class="detail-pct">(<%= total_pl_pct >= 0 ? '+' : '' %><%= total_pl_pct.round(1) %>%)</span>
-                </span>
-            </div>
         </div>
     </div>
+
+    <%# ═══════════════════ Account Summary Strip ═══════════════════ %>
+    <% if @stock_portfolio && @stock_holdings&.any? %>
+        <%
+            invested_pct = (total_value > 0 ? (total_invested.to_f / total_value * 100).round : 0).clamp(0, 100)
+        %>
+        <div class="fantasy-stats-strip">
+            <div class="fantasy-stat-chip">
+                <span class="fantasy-stat-label">Allocation</span>
+                <div class="fantasy-allocation-bar" title="<%= invested_pct %>% invested · <%= 100 - invested_pct %>% cash">
+                    <div class="fantasy-allocation-bar-fill" style="width: <%= invested_pct %>%"></div>
+                </div>
+                <span class="fantasy-stat-value"><%= invested_pct %>% invested</span>
+            </div>
+            <div class="fantasy-stat-chip">
+                <span class="fantasy-stat-label">Positions</span>
+                <span class="fantasy-stat-value">
+                    <% if @long_count.to_i > 0 %>
+                        <span class="gain"><i class="fa-solid fa-arrow-trend-up"></i> <%= @long_count %></span>
+                    <% end %>
+                    <% if @short_count.to_i > 0 %>
+                        <span class="loss" style="margin-left: 8px"><i class="fa-solid fa-arrow-trend-down"></i> <%= @short_count %></span>
+                    <% end %>
+                </span>
+            </div>
+            <% if collateral > 0 %>
+                <div class="fantasy-stat-chip">
+                    <span class="fantasy-stat-label">Margin Locked</span>
+                    <span class="fantasy-stat-value"><i class="fa-solid fa-lock" style="font-size:10px; opacity:0.6"></i> <%= number_with_delimiter(collateral.round(0)) %></span>
+                </div>
+            <% end %>
+            <% if @top_team_pct && @top_team_pct >= 40 %>
+                <div class="fantasy-stat-chip warn">
+                    <span class="fantasy-stat-label">Concentration</span>
+                    <span class="fantasy-stat-value"><i class="fa-solid fa-triangle-exclamation"></i> <%= @top_team_pct %>% <%= @top_team_name %></span>
+                </div>
+            <% end %>
+        </div>
+    <% end %>
 
     <%# ═══════════════════ Getting Started Banner ═══════════════════ %>
     <% if @is_owner && @stock_portfolio && (@stock_holdings || []).empty? %>
@@ -119,7 +193,7 @@
         # Only include rounds that have at least one snapshot
         snapped_rounds = season_rounds.select { |r| roster_snaps[r] || stock_snaps[r] }
 
-        chart_start = Fantasy::CreatePortfolio::STARTING_CAPITAL
+        chart_start = baseline
         chart_labels = ["Start"] + snapped_rounds.map { |r| "R#{r}" }
         chart_total = [chart_start.round(0)] + snapped_rounds.map do |r|
             rs = roster_snaps[r]
@@ -138,7 +212,21 @@
                 symbolSize: 6,
                 lineStyle: { color: chart_color, width: 3 },
                 itemStyle: { color: chart_color },
-                areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(#{chart_rgb}, 0.15)" }, { offset: 1, color: "rgba(#{chart_rgb}, 0)" }] } }
+                areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(#{chart_rgb}, 0.15)" }, { offset: 1, color: "rgba(#{chart_rgb}, 0)" }] } },
+                markLine: {
+                    symbol: "none",
+                    silent: true,
+                    lineStyle: { color: "rgba(255,255,255,0.25)", type: "dashed", width: 1 },
+                    label: {
+                        show: true,
+                        position: "insideStartTop",
+                        formatter: "Start",
+                        color: "rgba(255,255,255,0.45)",
+                        fontSize: 10,
+                        padding: [0, 0, 2, 4]
+                    },
+                    data: [{ yAxis: chart_start }]
+                }
             }
         ]
 
@@ -163,9 +251,22 @@
           }
         JS
 
-        # Auto min: 80% of smallest non-nil value, rounded down
+        # Tight dynamic bounds — include the start reference so it always shows,
+        # add a small margin (at least 50 units) so flat or near-flat lines still
+        # have breathing room, then round to a clean step for legible axis labels.
         all_vals = chart_total.compact
-        chart_min = all_vals.any? ? (all_vals.min * 0.8 / 100).floor * 100 : 0
+        if all_vals.any?
+            effective_min = [all_vals.min, chart_start].min
+            effective_max = [all_vals.max, chart_start].max
+            range         = effective_max - effective_min
+            margin        = [range * 0.15, 50].max
+            step          = range > 2000 ? 500 : (range > 500 ? 100 : 50)
+            chart_min     = ((effective_min - margin) / step).floor * step
+            chart_max     = ((effective_max + margin) / step).ceil * step
+        else
+            chart_min = 0
+            chart_max = nil
+        end
     %>
     <div class="table-header"><h3>Portfolio Value</h3></div>
     <div class="card card-flush fantasy-chart-card">
@@ -191,14 +292,13 @@
             yAxis: {
                 type: "value",
                 min: chart_min,
+                max: chart_max,
                 axisLabel: { color: "#666" },
                 splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
             },
             series: chart_series
         } %>
-        <div style="width:100%; height:220px;">
-            <%= custom_chart(chart_options) %>
-        </div>
+        <%= custom_chart(chart_options.merge(width: "100%", height: "260px")) %>
     </div>
 
     <%# ═══════════════════ HOLDINGS ═══════════════════ %>
@@ -232,10 +332,10 @@
                 <% end %>
             </div>
 
-            <% if @stock_portfolio.total_collateral > 0 %>
+            <% if collateral > 0 %>
                 <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 8px; margin-bottom: 16px;">
                     <i class="fa-solid fa-lock"></i>
-                    <span><%= number_with_delimiter(@stock_portfolio.total_collateral.round(1)) %> locked as short collateral</span>
+                    <span><%= number_with_delimiter(collateral.round(1)) %> locked as short collateral</span>
                 </div>
             <% end %>
         <% else %>
@@ -266,8 +366,25 @@
             picks_sd_index = SeasonDriver.where(season: @season, driver_id: all_pick_driver_ids).includes(:constructor).index_by(&:driver_id) if all_pick_driver_ids.any?
             picks_sd_index ||= {}
         %>
+        <%
+            best_pick_entry = @pick_summaries.max_by { |_, s| s[:total].to_i }
+            best_pick = best_pick_entry && best_pick_entry[1][:total].to_i > 0 ? @race_picks.find { |rp| rp.id == best_pick_entry[0] } : nil
+            best_pick_summary = best_pick && best_pick_entry[1]
+        %>
         <div class="table-header">
             <h3><i class="fa-solid fa-hand-pointer" style="opacity:0.5; font-size:14px"></i> Race Picks</h3>
+            <% if best_pick %>
+                <span class="fantasy-best-pick" title="Your best-scoring pick this season">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span class="fantasy-best-pick-label">Best</span>
+                    <%= link_to race_pick_results_path(@user.username, best_pick.race_id), class: "fantasy-best-pick-link" do %>
+                        <span class="fantasy-best-pick-race">R<%= best_pick.race.round %></span>
+                        <span class="fantasy-best-pick-stat"><%= best_pick_summary[:total] %> pts</span>
+                        <span class="fantasy-best-pick-stat">·</span>
+                        <span class="fantasy-best-pick-stat"><%= best_pick_summary[:exact] %> exact</span>
+                    <% end %>
+                </span>
+            <% end %>
             <% if @is_owner && next_race %>
                 <span class="table-header-sub">
                     <% if !next_race.picks_open? %>
@@ -349,6 +466,37 @@
         <% end %>
     <% end %>
 
+    <%# ═══════════════════ Driver Cards ═══════════════════ %>
+    <% if @driver_cards_total.to_i > 0 %>
+        <div class="table-header" style="margin-top: 32px">
+            <h3>
+                <i class="fa-solid fa-id-card" style="opacity:0.5; font-size:14px"></i> Driver Cards
+                <span class="table-header-sub" style="margin-left:10px; opacity:0.7">
+                    <%= @driver_cards_total %> earned this season
+                </span>
+            </h3>
+            <%= link_to driver_cards_path(username: @user.username), class: "picks-compact-edit" do %>
+                View collection <i class="fa-solid fa-arrow-right"></i>
+            <% end %>
+        </div>
+        <div class="dc-collection dc-portfolio-strip">
+            <div class="dc-portfolio-strip-tiers">
+                <% %w[bronze silver gold platinum legendary].each do |t| %>
+                    <% n = @driver_cards_tier_counts[t].to_i %>
+                    <% next if n.zero? %>
+                    <span class="dc-portfolio-strip-tier dc-portfolio-strip-tier-<%= t %>">
+                        <%= n %> <%= t.first(2).upcase %>
+                    </span>
+                <% end %>
+            </div>
+            <div class="dc-grid dc-portfolio-strip-grid">
+                <% @driver_cards_decks.each do |deck_cards| %>
+                    <%= render "driver_cards/deck", cards: deck_cards, is_owner: @is_owner %>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+
     <%# ═══════════════════ Predictions ═══════════════════ %>
     <% if @predictions.any? %>
         <div class="table-header"><h3>Race Previews</h3></div>
@@ -368,52 +516,12 @@
         </div>
     <% end %>
 
-    <%# ═══════════════════ Transactions ═══════════════════ %>
-    <% if @is_owner %>
-        <%
-          all_txns = []
-          (@stock_transactions || []).each { |t| all_txns << { txn: t, source: "stocks" } }
-          all_txns.sort_by! { |t| -t[:txn].created_at.to_i }
-        %>
-        <% if all_txns.any? %>
-            <% shown_txns = all_txns.first(30) %>
-            <div class="table-header"><h3>Recent Transactions</h3></div>
-            <div class="card card-flush" data-controller="expandable-table"
-                 data-expandable-table-limit-value="10" data-expandable-table-label-value="transactions">
-                <div class="table-scroll-wrapper">
-                    <table class="fantasy-transactions-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th class="d-none d-md-table-cell">Note</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% shown_txns.each do |entry| %>
-                                <% txn = entry[:txn] %>
-                                <tr>
-                                    <td><%= txn.created_at.strftime("%b %d, %H:%M") %></td>
-                                    <td>
-                                        <span class="fantasy-txn-kind fantasy-txn-<%= txn.kind %>"><%= txn.kind.humanize %></span>
-                                    </td>
-                                    <td class="<%= txn.amount >= 0 ? 'text-green' : 'text-red' %>">
-                                        <%= txn.amount >= 0 ? '+' : '' %><%= txn.amount.round(1) %>
-                                    </td>
-                                    <td class="fantasy-txn-note d-none d-md-table-cell"><%= txn.note %></td>
-                                </tr>
-                            <% end %>
-                        </tbody>
-                    </table>
-                </div>
-                <% if shown_txns.size > 10 %>
-                    <button class="expand-table-btn" data-action="expandable-table#toggle" data-expandable-table-target="button">
-                        Show all <%= shown_txns.size %> transactions
-                    </button>
-                <% end %>
-            </div>
-        <% end %>
+    <%# ═══════════════════ Activity ═══════════════════ %>
+    <% if @is_owner && @activity_entries&.any? %>
+        <%= render "fantasy_portfolios/activity_feed",
+                   entries: @activity_entries,
+                   round_amount: true,
+                   view_all_path: fantasy_activity_path(username: @user.username) %>
     <% end %>
 
     <%# ═══════════════════ Achievements (combined) ═══════════════════ %>
@@ -424,32 +532,54 @@
       all_earned = [*(@achievements || []), *(@stock_achievements || [])]
       earned_keys = all_earned.map(&:key).to_set
       tier_order = { "gold" => 0, "silver" => 1, "bronze" => 2 }
-      sorted_definitions = all_definitions.sort_by do |key, defn|
-        is_earned = earned_keys.include?(key.to_s) ? 0 : 1
-        [is_earned, tier_order[defn[:tier]] || 3]
-      end
+      earned_definitions = all_definitions.select { |k, _| earned_keys.include?(k.to_s) }
+                                          .sort_by { |_, d| tier_order[d[:tier]] || 3 }
+      locked_definitions = all_definitions.reject { |k, _| earned_keys.include?(k.to_s) }
+                                          .sort_by { |_, d| tier_order[d[:tier]] || 3 }
     %>
     <div class="table-header">
         <h3>Achievements</h3>
         <span class="table-header-sub"><%= all_earned.size %>/<%= all_definitions.size %></span>
     </div>
-    <div class="fantasy-achievements-grid">
-        <% sorted_definitions.each do |key, defn| %>
-            <% match = all_earned.find { |a| a.key == key.to_s } %>
-            <div class="fantasy-achievement-card <%= match ? "earned tier-#{defn[:tier]}" : 'locked' %>">
-                <div class="fantasy-achievement-icon">
-                    <i class="fa-solid <%= defn[:icon] %>"></i>
-                </div>
-                <div class="fantasy-achievement-info">
-                    <strong><%= defn[:name] %></strong>
-                    <span><%= defn[:description] %></span>
-                </div>
-                <% if match %>
+    <% if earned_definitions.any? %>
+        <div class="fantasy-achievements-grid">
+            <% earned_definitions.each do |key, defn| %>
+                <div class="fantasy-achievement-card earned tier-<%= defn[:tier] %>">
+                    <div class="fantasy-achievement-icon">
+                        <i class="fa-solid <%= defn[:icon] %>"></i>
+                    </div>
+                    <div class="fantasy-achievement-info">
+                        <strong><%= defn[:name] %></strong>
+                        <span><%= defn[:description] %></span>
+                    </div>
                     <span class="fantasy-achievement-tier tier-<%= defn[:tier] %>"><%= defn[:tier] %></span>
+                </div>
+            <% end %>
+        </div>
+    <% else %>
+        <div class="fantasy-achievements-empty">No achievements earned yet.</div>
+    <% end %>
+    <% if locked_definitions.any? %>
+        <details class="fantasy-achievements-locked">
+            <summary>
+                <span>Show <%= locked_definitions.size %> locked</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </summary>
+            <div class="fantasy-achievements-grid">
+                <% locked_definitions.each do |key, defn| %>
+                    <div class="fantasy-achievement-card locked">
+                        <div class="fantasy-achievement-icon">
+                            <i class="fa-solid <%= defn[:icon] %>"></i>
+                        </div>
+                        <div class="fantasy-achievement-info">
+                            <strong><%= defn[:name] %></strong>
+                            <span><%= defn[:description] %></span>
+                        </div>
+                    </div>
                 <% end %>
             </div>
-        <% end %>
-    </div>
+        </details>
+    <% end %>
 
     <%# Team picker (only when no team chosen, owner only) %>
     <% if !support && @is_owner %>

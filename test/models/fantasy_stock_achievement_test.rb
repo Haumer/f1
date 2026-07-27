@@ -68,8 +68,8 @@ class FantasyStockAchievementTest < ActiveSupport::TestCase
   end
 
   test "DEFINITIONS covers all expected stock achievement types" do
-    expected_keys = %i[first_stock_trade five_stock_trades ten_stock_trades first_long first_short
-                       max_positions first_stock_profit stock_profit_500 stock_profit_1000
+    expected_keys = %i[first_stock_trade traded_5_races traded_15_races first_long first_short
+                       max_positions first_stock_profit stock_pl_500 stock_pl_2k stock_pl_5k stock_pl_20k
                        profitable_short first_dividend stock_top_3 stock_top_1]
     expected_keys.each do |key|
       assert FantasyStockAchievement::DEFINITIONS.key?(key), "Missing definition for #{key}"

@@ -61,6 +61,24 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to fantasy_overview_path(user.username)
   end
 
+  test "Devise signup auto-provisions a fantasy portfolio and redirects to overview" do
+    season = Season.sorted_by_year.first
+    assert_difference -> { User.count } => 1, -> { FantasyPortfolio.count } => 1 do
+      post user_registration_path, params: {
+        user: {
+          email: "autosignup@example.com",
+          password: "password123",
+          password_confirmation: "password123",
+          username: "autosignup",
+          terms_accepted: "1"
+        }
+      }
+    end
+    user = User.find_by(username: "autosignup")
+    assert user.fantasy_portfolio_for(season), "signup should auto-provision a portfolio"
+    assert_redirected_to fantasy_overview_path(user.username)
+  end
+
   # -- Toggle public --
 
   test "toggle_public requires authentication" do
@@ -106,27 +124,21 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  # -- Transactions collapse/expand --
+  # -- Activity feed --
 
-  test "transactions show expand button once more than 10 exist" do
+  test "activity feed shows View all link to dedicated page" do
     sign_in @user
     stock_p = fantasy_stock_portfolios(:codex_stock_2026)
     12.times { |i| stock_p.transactions.create!(kind: "buy", amount: -10 - i) }
 
     get fantasy_overview_path(@user.username)
     assert_response :success
-    assert_select "div[data-controller='expandable-table'][data-expandable-table-label-value='transactions']"
-    assert_select "button.expand-table-btn", text: /Show all \d+ transactions/
+    assert_select "a[href=?]", fantasy_activity_path(username: @user.username)
   end
 
-  test "transactions hide expand button when 10 or fewer exist" do
-    sign_in @user
-    stock_p = fantasy_stock_portfolios(:codex_stock_2026)
-    stock_p.transactions.destroy_all
-    3.times { |i| stock_p.transactions.create!(kind: "buy", amount: -10 - i) }
-
+  test "activity feed does not render for anonymous viewers" do
     get fantasy_overview_path(@user.username)
     assert_response :success
-    assert_select "button.expand-table-btn", count: 0
+    assert_select ".fantasy-activity-table", count: 0
   end
 end

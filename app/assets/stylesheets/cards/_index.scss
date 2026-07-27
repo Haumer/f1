@@ -1,0 +1,1089 @@
+// Driver cards collection. Three layers:
+//   1) Card chassis (.dc-card) — same shape for every card.
+//   2) Rarity treatments (.tier-bronze … .tier-legendary) — metallic frames,
+//      sheen, name foil. The metallic frame IS the rarity signal at a glance.
+//   3) 3D flip wrapper (.dc-flip) + stack layout (.dc-stack).
+//
+// Team colour is set per card via inline --team-base custom property; --team-dark
+// is computed in CSS with color-mix so we only need one value from Ruby.
+//
+// SassC compressor gotcha: avoid min() / calc() with sass variables — only literal
+// CSS calc() with concrete units is safe.
+
+.dc-collection {
+    --card-w: 240px;
+    --card-h: 336px;
+    --card-radius: 18px;
+
+    padding: 24px 0 80px;
+    color: #e8e8ed;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    .dc-page-title {
+        font-size: 26px; font-weight: 800; margin: 0 0 4px;
+    }
+    .dc-page-sub {
+        font-size: 13px; color: #888; margin: 0 0 24px;
+    }
+}
+
+// ───── Header strip with aggregate stats + filter chips ─────
+.dc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 18px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    margin-bottom: 24px;
+}
+.dc-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+.dc-stat {
+    .lbl {
+        display: block;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.45);
+        margin-bottom: 4px;
+    }
+    .val {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: white;
+    }
+    .breakdown {
+        display: flex; gap: 10px;
+        font-size: 11px; font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 4px;
+        .b { color: #c98951; }
+        .s { color: #b8b8b8; }
+        .g { color: #f0c84a; }
+        .p {
+            background: linear-gradient(120deg, #b8e3ff, #ffc4ec, #b8e3ff);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+        }
+        .l {
+            background: linear-gradient(120deg, #ff8fd6, #fff8b0, #8be2ff);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+        }
+    }
+}
+
+.dc-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.dc-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
+    text-decoration: none;
+    display: inline-block;
+
+    &:hover { border-color: rgba(255, 255, 255, 0.3); color: white; }
+    &.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+}
+
+// ───── Grid layout ─────
+.dc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 36px 24px;
+    margin-top: 8px;
+    perspective: 1200px;
+}
+
+.dc-empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: #888;
+    .ttl { font-size: 18px; font-weight: 700; color: #ccc; margin-bottom: 8px; }
+    a { color: #6c9eff; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+// ───── Shared card chassis ─────
+.dc-card {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+    font-family: inherit;
+    isolation: isolate;
+    transition: transform 350ms ease, box-shadow 200ms ease;
+    will-change: transform;
+    cursor: pointer;
+
+    // Team colour custom prop is set per card via inline style.
+    --team-base: #dc0000;
+    --team-dark: #{"color-mix(in srgb, var(--team-base) 40%, #000)"};
+    background: linear-gradient(155deg, var(--team-base) 0%, var(--team-dark) 100%);
+
+    .hex-pattern {
+        position: absolute; inset: 0;
+        background-image:
+            radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.16) 0, transparent 60%),
+            url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='32' viewBox='0 0 28 32'><polygon points='14,1 27,8 27,24 14,31 1,24 1,8' fill='none' stroke='rgba(255,255,255,0.16)' stroke-width='1'/></svg>");
+        background-size: auto, 28px 32px;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .crest {
+        position: absolute; top: 12px; right: 14px;
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 900; color: white;
+        z-index: 6;
+    }
+    .number {
+        position: absolute; top: 44px; right: 14px;
+        font-size: 13px; font-weight: 700;
+        color: rgba(255, 255, 255, 0.7);
+        z-index: 6;
+    }
+
+    .team-rail {
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 28px;
+        background: linear-gradient(180deg,
+            rgba(0, 0, 0, 0.4) 0%,
+            rgba(0, 0, 0, 0.2) 30%,
+            transparent 100%);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 7;
+        span {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 22px; font-weight: 900;
+            letter-spacing: 0.12em;
+            color: white;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+        }
+    }
+
+    .portrait {
+        position: absolute;
+        left: 14%; top: 8%;
+        width: 86%; height: 78%;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center bottom;
+        z-index: 3;
+    }
+
+    .name {
+        position: absolute;
+        left: 24px; right: 0;
+        bottom: 26%;
+        text-align: center;
+        z-index: 4;
+        font-family: 'Dancing Script', "Brush Script MT", cursive;
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 0.95;
+        color: rgba(255, 255, 255, 0.96);
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+        .first {
+            display: block;
+            font-size: 20px; font-weight: 600;
+            opacity: 0.82;
+        }
+    }
+
+    .footer {
+        position: absolute;
+        left: 28px; right: 0; bottom: 0;
+        height: 60px;
+        background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.45) 60%, rgba(0, 0, 0, 0.6) 100%);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        align-items: end;
+        padding: 0 12px 10px;
+        z-index: 5;
+        .stat { text-align: center; }
+        .stat .label {
+            display: block;
+            font-size: 8px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
+            margin-bottom: 2px;
+        }
+        .stat .value {
+            display: block;
+            font-size: 14px;
+            font-weight: 800;
+            color: white;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    .f1-mark {
+        position: absolute; left: 50%; bottom: 4px;
+        transform: translate(-22px, 0);
+        font-size: 8px; letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.35);
+        z-index: 6;
+    }
+
+    .sheen {
+        position: absolute;
+        top: 0; bottom: 0;
+        left: -50%; width: 200%;
+        background: linear-gradient(115deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.28) 50%,
+            transparent 65%);
+        transform: translate3d(-25%, 0, 0);
+        pointer-events: none;
+        z-index: 9;
+        opacity: 0;
+        will-change: transform, opacity;
+        transition: opacity 200ms ease;
+    }
+}
+
+// ───── Rarity treatments — Bronze · Silver · Gold · Platinum · Legendary ─────
+.dc-card.tier-bronze {
+    border: 5px solid transparent;
+    background:
+        linear-gradient(155deg, var(--team-base) 0%, var(--team-dark) 100%) padding-box,
+        linear-gradient(180deg, #d59a5f 0%, #8b5a2b 50%, #5a3a1a 100%) border-box;
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.55),
+        inset 0 0 0 1px rgba(255, 200, 140, 0.25);
+
+    .name {
+        background: linear-gradient(180deg, #f3c98a 0%, #c98951 45%, #8b5a2b 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+    }
+    &::after {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            radial-gradient(ellipse at 50% 110%, rgba(180, 110, 60, 0.18), transparent 55%),
+            linear-gradient(165deg, rgba(150, 90, 40, 0.05), transparent 55%);
+        z-index: 2;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+}
+
+// Silver is intentionally NEUTRAL grey — no hint of blue, no shimmer color
+// other than white. The cool-blue tint moved to platinum, so silver here is
+// almost monochrome to widen the visual distance between the two tiers.
+.dc-card.tier-silver {
+    border: 5px solid transparent;
+    background:
+        linear-gradient(155deg, var(--team-base) 0%, var(--team-dark) 100%) padding-box,
+        linear-gradient(115deg, transparent 35%, rgba(245, 245, 245, 0.85) 50%, transparent 65%) border-box,
+        linear-gradient(180deg, #d4d4d4 0%, #8c8c8c 50%, #4a4a4a 100%) border-box;
+    background-size: auto, 40% 100%, auto;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(180, 180, 180, 0.2);
+    animation: dc-frame-sheen-silver 14s linear infinite;
+
+    .name {
+        background: linear-gradient(180deg, #ededed 0%, #b0b0b0 45%, #6a6a6a 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+    }
+    &::after {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            repeating-linear-gradient(105deg,
+                rgba(255, 255, 255, 0.06) 0 1px,
+                transparent 1px 4px),
+            linear-gradient(160deg, rgba(220, 230, 245, 0.08) 0%, transparent 55%);
+        z-index: 2;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+}
+@keyframes dc-frame-sheen-silver {
+    0%, 80% { background-position: 0 0, -150% 0, 0 0; }
+    100%    { background-position: 0 0,  250% 0, 0 0; }
+}
+
+.dc-card.tier-gold {
+    border: 5px solid transparent;
+    background:
+        linear-gradient(155deg, var(--team-base) 0%, var(--team-dark) 100%) padding-box,
+        linear-gradient(115deg, transparent 35%, rgba(255, 250, 200, 0.95) 50%, transparent 65%) border-box,
+        linear-gradient(180deg, #fee48f 0%, #d4a02a 50%, #8b5a0a 100%) border-box;
+    background-size: auto, 40% 100%, auto;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 180, 40, 0.42);
+    animation:
+        dc-frame-sheen-gold 10s linear infinite,
+        dc-gold-pulse 3.6s ease-in-out infinite;
+
+    .name {
+        background: linear-gradient(180deg, #fff7c8 0%, #f0c84a 45%, #b07e0d 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+    }
+    &::after {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            linear-gradient(135deg, rgba(255, 220, 110, 0.55) 0 14px, transparent 14px) top left   / 28px 28px no-repeat,
+            linear-gradient(225deg, rgba(255, 220, 110, 0.55) 0 14px, transparent 14px) top right  / 28px 28px no-repeat,
+            linear-gradient(45deg,  rgba(255, 220, 110, 0.55) 0 14px, transparent 14px) bottom left  / 28px 28px no-repeat,
+            linear-gradient(315deg, rgba(255, 220, 110, 0.55) 0 14px, transparent 14px) bottom right / 28px 28px no-repeat,
+            radial-gradient(ellipse at 50% -10%, rgba(255, 215, 100, 0.4), transparent 60%),
+            linear-gradient(180deg, transparent 0%, rgba(255, 180, 50, 0.08) 100%);
+        z-index: 2;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+}
+@keyframes dc-frame-sheen-gold {
+    0%, 80% { background-position: 0 0, -150% 0, 0 0; }
+    100%    { background-position: 0 0,  250% 0, 0 0; }
+}
+@keyframes dc-gold-pulse {
+    0%, 100% { box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 180, 40, 0.42); }
+    50%      { box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 64px rgba(255, 200, 60, 0.6); }
+}
+
+// Platinum gets a holographic/prismatic frame so it cannot be mistaken for
+// silver. Key moves vs silver:
+//   - Frame gradient itself carries explicit rainbow stops (cyan/magenta/gold)
+//     instead of being neutral grey
+//   - Brighter near-white highlights at the corners
+//   - Stronger blue/pink glow box-shadow + a permanent halo
+//   - Holographic sheen sweeps over the FRAME color too (not just the border
+//     overlay), so the rainbow always reads even mid-animation
+.dc-card.tier-platinum {
+    border: 6px solid transparent;
+    background:
+        linear-gradient(155deg, var(--team-base) 0%, var(--team-dark) 100%) padding-box,
+        linear-gradient(115deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.95) 50%,
+            transparent 70%) border-box,
+        linear-gradient(135deg,
+            #b0e8ff 0%,
+            #ffffff 16%,
+            #ffc8e8 32%,
+            #ffffff 48%,
+            #c4e0ff 64%,
+            #ffffff 80%,
+            #ffe6a8 100%) border-box;
+    background-size: auto, 40% 100%, auto;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.55),
+        0 0 32px rgba(190, 230, 255, 0.55),
+        0 0 56px rgba(255, 180, 235, 0.32);
+    animation:
+        dc-frame-sheen-platinum 9s linear infinite,
+        dc-platinum-glow 4s ease-in-out infinite;
+
+    .name {
+        background: linear-gradient(180deg,
+            #ffffff 0%,
+            #b8e3ff 25%,
+            #ffc4ec 50%,
+            #b8e3ff 75%,
+            #ffffff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(0 0 8px rgba(255, 200, 240, 0.55)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+    }
+    &::after {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            // Bright prismatic corner glints
+            radial-gradient(circle at 92% 8%,  rgba(180, 230, 255, 0.7) 0%, transparent 32%),
+            radial-gradient(circle at 8%  92%, rgba(255, 200, 240, 0.6) 0%, transparent 32%),
+            radial-gradient(circle at 92% 92%, rgba(255, 240, 200, 0.45) 0%, transparent 30%),
+            radial-gradient(circle at 8%  8%,  rgba(200, 255, 230, 0.45) 0%, transparent 30%),
+            // Rainbow oil-slick band that drifts across the card
+            linear-gradient(115deg,
+                transparent 15%,
+                rgba(180, 230, 255, 0.18) 30%,
+                rgba(255, 200, 240, 0.20) 45%,
+                rgba(255, 240, 200, 0.20) 55%,
+                rgba(200, 255, 230, 0.18) 65%,
+                transparent 85%);
+        z-index: 2;
+        pointer-events: none;
+        border-radius: inherit;
+        animation: dc-platinum-shift 6s ease-in-out infinite alternate;
+    }
+}
+@keyframes dc-frame-sheen-platinum {
+    0%, 80% { background-position: 0 0, -150% 0, 0 0; }
+    100%    { background-position: 0 0,  250% 0, 0 0; }
+}
+@keyframes dc-platinum-shift {
+    from { filter: hue-rotate(-30deg) saturate(1.2); }
+    to   { filter: hue-rotate(50deg)  saturate(1.4); }
+}
+@keyframes dc-platinum-glow {
+    0%, 100% {
+        box-shadow:
+            0 14px 40px rgba(0, 0, 0, 0.55),
+            0 0 32px rgba(190, 230, 255, 0.55),
+            0 0 56px rgba(255, 180, 235, 0.32);
+    }
+    50% {
+        box-shadow:
+            0 14px 40px rgba(0, 0, 0, 0.55),
+            0 0 44px rgba(220, 240, 255, 0.7),
+            0 0 72px rgba(255, 200, 240, 0.45);
+    }
+}
+
+.dc-card.tier-legendary {
+    border: 5px solid transparent;
+    background-image:
+        linear-gradient(155deg, var(--team-base) 0%, var(--team-dark) 100%),
+        conic-gradient(from 0deg,
+            #ff64c8, #64c8ff, #78ffb4, #ffdc50, #ff64c8);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.65),
+        inset 0 0 0 1px rgba(255, 240, 180, 0.35),
+        0 0 70px rgba(255, 100, 220, 0.3);
+    animation: dc-legendary-frame-spin 9s linear infinite;
+
+    .name {
+        background: linear-gradient(120deg,
+            #ff8fd6 0%, #fff8b0 25%, #8be2ff 50%, #fff8b0 75%, #ff8fd6 100%);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55));
+        animation: dc-legendary-name-shift 6s linear infinite;
+    }
+    .hex-pattern { display: none; }
+    &::before {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            conic-gradient(from 0deg at 50% 36%,
+                rgba(255, 210, 120, 0.22) 0 10deg, transparent 10deg 30deg,
+                rgba(255, 210, 120, 0.22) 30deg 40deg, transparent 40deg 60deg,
+                rgba(255, 210, 120, 0.22) 60deg 70deg, transparent 70deg 90deg,
+                rgba(255, 210, 120, 0.22) 90deg 100deg, transparent 100deg 120deg,
+                rgba(255, 210, 120, 0.22) 120deg 130deg, transparent 130deg 150deg,
+                rgba(255, 210, 120, 0.22) 150deg 160deg, transparent 160deg 180deg,
+                rgba(255, 210, 120, 0.22) 180deg 190deg, transparent 190deg 210deg,
+                rgba(255, 210, 120, 0.22) 210deg 220deg, transparent 220deg 240deg,
+                rgba(255, 210, 120, 0.22) 240deg 250deg, transparent 250deg 270deg,
+                rgba(255, 210, 120, 0.22) 270deg 280deg, transparent 280deg 300deg,
+                rgba(255, 210, 120, 0.22) 300deg 310deg, transparent 310deg 330deg,
+                rgba(255, 210, 120, 0.22) 330deg 340deg, transparent 340deg 360deg),
+            radial-gradient(circle at 50% 36%, transparent 0 28%, rgba(0, 0, 0, 0.35) 65%, rgba(0, 0, 0, 0.6) 100%);
+        z-index: 1;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+    &::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: conic-gradient(from 0deg,
+            rgba(255, 80, 200, 0.30),
+            rgba(80, 200, 255, 0.30),
+            rgba(120, 255, 180, 0.30),
+            rgba(255, 220, 80, 0.30),
+            rgba(255, 80, 200, 0.30));
+        mix-blend-mode: overlay;
+        opacity: 0.7;
+        z-index: 2;
+        pointer-events: none;
+        border-radius: inherit;
+        animation: dc-rotate-prism 9s linear infinite;
+    }
+}
+@keyframes dc-legendary-frame-spin {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 0 0, 200% 0; }
+}
+@keyframes dc-legendary-name-shift {
+    from { background-position: 0 0; }
+    to   { background-position: 200% 0; }
+}
+@keyframes dc-rotate-prism {
+    from { transform: rotate(0); }
+    to   { transform: rotate(360deg); }
+}
+
+// ───── 3D flip wrapper ─────
+.dc-flip {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    perspective: 1600px;
+}
+.dc-flip-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 650ms cubic-bezier(.55, .08, .25, 1);
+    will-change: transform;
+}
+.dc-flip.flipped .dc-flip-inner { transform: rotateY(180deg); }
+.dc-flip .dc-card,
+.dc-flip .dc-card-back {
+    position: absolute;
+    inset: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+.dc-flip .dc-card-back { transform: rotateY(180deg); }
+
+// ───── Back face receipt ─────
+// Receipt content lives in a strict-height flex column. r-event can wrap to
+// 2 lines max (some circuits like "Shanghai International Circuit" need it).
+// r-hint sits in-flow at the bottom instead of position:absolute — when extra
+// rows appear (combined-from / sibling-count), it gets pushed off the bottom
+// of the card if it were absolute, then overlaps content above it.
+.dc-card-back .receipt {
+    position: absolute;
+    inset: 14px;
+    border-radius: 10px;
+    padding: 14px 16px 10px;
+    background: linear-gradient(170deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.82) 100%);
+    color: white;
+    display: flex; flex-direction: column;
+    z-index: 8;
+    overflow: hidden;
+
+    // Every meaningful row gets flex-shrink:0 — flex column defaults to
+    // shrink-to-fit when total content exceeds container, which would squash
+    // r-event down to 0px. Only r-driver is allowed to shrink (it's decorative).
+    .r-tier {
+        flex-shrink: 0;
+        font-size: 10px; font-weight: 800;
+        letter-spacing: 0.22em; text-transform: uppercase;
+        opacity: 0.7; margin-bottom: 4px;
+    }
+    .r-event {
+        flex-shrink: 0;
+        font-size: 15px; font-weight: 800; line-height: 1.2;
+        max-height: 2.4em;
+        overflow: hidden;
+    }
+    .r-round {
+        flex-shrink: 0;
+        font-size: 11px; opacity: 0.65; margin-bottom: 10px;
+    }
+    .r-row {
+        flex-shrink: 0;
+        display: flex; justify-content: space-between; align-items: baseline;
+        padding: 5px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 11px;
+        &:first-of-type { border-top: none; }
+        .lbl { opacity: 0.55; letter-spacing: 0.1em; text-transform: uppercase; font-size: 8px; }
+        .val { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 13px; }
+        .val.hit  { color: #6dffa3; }
+        .val.miss { color: #ff8a8a; }
+    }
+    .r-driver {
+        margin-top: auto;
+        font-family: 'Dancing Script', cursive;
+        font-size: 18px; opacity: 0.5;
+        text-align: right; line-height: 1;
+        padding-top: 4px;
+        overflow: hidden;
+    }
+    .r-hint {
+        flex-shrink: 0;
+        margin-top: 4px;
+        font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase;
+        opacity: 0.35;
+        text-align: center;
+    }
+}
+
+// ───── Stack (multiple cards of the same driver) ─────
+.dc-stack {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    transition: width 350ms ease;
+
+    &:hover { width: calc(var(--card-w) + 200px); z-index: 20; }
+
+    .dc-flip {
+        position: absolute;
+        top: 0; left: 0;
+        transition:
+            transform 380ms cubic-bezier(.2, .7, .2, 1),
+            filter 380ms ease,
+            opacity 300ms ease;
+    }
+    .dc-flip.stack-back-2 {
+        z-index: 1;
+        transform: translate(16px, 12px) rotate(4deg);
+        filter: brightness(0.6) saturate(0.7) blur(0.6px);
+        opacity: 0.85;
+    }
+    .dc-flip.stack-back-1 {
+        z-index: 2;
+        transform: translate(8px, 6px) rotate(2deg);
+        filter: brightness(0.78) saturate(0.85) blur(0.3px);
+        opacity: 0.92;
+    }
+    .dc-flip.stack-top {
+        z-index: 3;
+        transform: translate(0, 0) rotate(0);
+    }
+    &:hover .dc-flip.stack-back-1 {
+        transform: translate(110px, -4px) rotate(8deg);
+        filter: brightness(1) saturate(1) blur(0);
+        opacity: 1;
+    }
+    &:hover .dc-flip.stack-back-2 {
+        transform: translate(210px, -6px) rotate(14deg);
+        filter: brightness(0.95) saturate(0.95) blur(0);
+        opacity: 1;
+    }
+}
+.dc-stack-count {
+    position: absolute;
+    top: -10px; right: -8px;
+    z-index: 20;
+    background: linear-gradient(180deg, #1a1a23 0%, #0a0a0e 100%);
+    color: white;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+.dc-stack-breakdown {
+    position: absolute;
+    bottom: -28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 6px;
+    z-index: 18;
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    span {
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-variant-numeric: tabular-nums;
+    }
+    .br { color: #c98951; }
+    .si { color: #b8b8b8; }
+    .go { color: #f0c84a; }
+    .pt {
+        background: linear-gradient(120deg, rgba(180, 230, 255, 0.32), rgba(255, 200, 240, 0.32));
+        color: white;
+    }
+    .lg {
+        background: linear-gradient(120deg, rgba(255, 143, 214, 0.25), rgba(139, 226, 255, 0.25));
+    }
+}
+
+// Stack tile gets extra bottom margin so the breakdown chip doesn't overlap
+// the next grid row.
+.dc-grid .dc-stack-tile { margin-bottom: 36px; }
+
+// ───── Mobile: shrink the /cards grid to two roomy columns ─────
+// Below 600px viewport, `auto-fit minmax(240px, 1fr)` falls to one column and
+// stretches each card to full screen width — wastes vertical space and breaks
+// the card aspect. Two columns at 160×224 keeps cards readable and lets a
+// user see ~4 at a glance.
+@media (max-width: 600px) {
+    .dc-collection {
+        --card-w: 160px;
+        --card-h: 224px;
+        padding: 12px 0 60px;
+    }
+    .dc-grid {
+        grid-template-columns: repeat(2, var(--card-w));
+        justify-content: center;
+        gap: 24px 14px;
+    }
+    // Smaller tier badges + name + footer to match
+    .dc-card .name { font-size: 26px; bottom: 24%; }
+    .dc-card .name .first { font-size: 14px; }
+    .dc-card .footer { height: 46px; padding-bottom: 6px; }
+    .dc-card .footer .stat .label { font-size: 7px; }
+    .dc-card .footer .stat .value { font-size: 11px; }
+    .dc-card .crest { width: 20px; height: 20px; font-size: 9px; top: 8px; right: 10px; }
+    .dc-card .number { top: 32px; right: 10px; font-size: 10px; }
+    .dc-card .team-rail { width: 20px; span { font-size: 16px; } }
+    .dc-card .portrait { left: 12%; top: 6%; width: 88%; height: 76%; }
+}
+
+// ───── Portfolio strip — compact embed in the fantasy overview page ─────
+// Smaller tiles, horizontal scroll on narrow viewports, tier chips above the
+// grid so a glance answers "how am I doing across rarities?"
+.dc-portfolio-strip {
+    --card-w: 180px;
+    --card-h: 252px;
+
+    padding: 8px 0 28px;
+
+    .dc-portfolio-strip-tiers {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+    .dc-portfolio-strip-tier {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        font-variant-numeric: tabular-nums;
+    }
+    .dc-portfolio-strip-tier-bronze   { color: #c98951; }
+    .dc-portfolio-strip-tier-silver   { color: #b8b8b8; }
+    .dc-portfolio-strip-tier-gold     { color: #f0c84a; }
+    .dc-portfolio-strip-tier-platinum {
+        color: #ffffff;
+        background: linear-gradient(120deg, rgba(180, 230, 255, 0.22), rgba(255, 200, 240, 0.22));
+        border-color: rgba(220, 240, 255, 0.45);
+    }
+    .dc-portfolio-strip-tier-legendary {
+        background: linear-gradient(120deg, rgba(255, 143, 214, 0.25), rgba(139, 226, 255, 0.25));
+        border-color: rgba(255, 200, 240, 0.4);
+        color: white;
+    }
+
+    .dc-portfolio-strip-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px 16px;
+    }
+
+    .dc-card .name { font-size: 28px; bottom: 26%; }
+    .dc-card .name .first { font-size: 16px; }
+    .dc-card .footer { height: 50px; padding-bottom: 8px; }
+    .dc-card .footer .stat .value { font-size: 12px; }
+    .dc-card .crest { width: 22px; height: 22px; font-size: 10px; }
+    .dc-card .number { top: 38px; font-size: 11px; }
+    .dc-card .team-rail { width: 22px; span { font-size: 18px; } }
+
+    // ───── Mobile portfolio strip ─────
+    // Stacking the strip vertically eats screen on a phone. Switch to a
+    // horizontal scroll-snap row so users swipe through their recent cards.
+    @media (max-width: 600px) {
+        .dc-portfolio-strip-grid {
+            display: flex;
+            grid-template-columns: none;       // unset desktop grid
+            gap: 12px;
+            padding: 4px 16px 16px;
+            margin: 0 -16px;                   // bleed to page edge
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            &::-webkit-scrollbar { display: none; }
+            > * {
+                flex: 0 0 auto;
+                scroll-snap-align: start;
+            }
+        }
+    }
+}
+
+// ───── Deck (new tier-aware stack with combine) ─────
+// One driver, multiple tiers. Each tier is one .dc-tier-group positioned in
+// the stage via data-slot. Click an active card to flip its receipt; click a
+// behind-slot card to promote it to the front (carousel-style). The combine
+// pill destroys 3 of the same tier and mints one of the next.
+.dc-deck {
+    // Stage extends past the front card width so the behind tier-groups can
+    // poke out far enough to be clickable / tappable. Without this, behind-1
+    // sticks out only ~10-15px and is impossible to hit on mobile.
+    --deck-extra: 56px;
+    width: calc(var(--card-w) + var(--deck-extra));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dc-stage {
+    position: relative;
+    width: calc(var(--card-w) + var(--deck-extra));
+    height: var(--card-h);
+    perspective: 1800px;
+    margin-bottom: 20px;
+}
+
+.dc-tier-group {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--card-w);
+    height: var(--card-h);
+    transform-style: preserve-3d;
+    transition:
+        transform 520ms cubic-bezier(.2, .7, .2, 1),
+        opacity 380ms ease,
+        filter 380ms ease;
+    will-change: transform, opacity;
+    cursor: pointer;
+
+    &[data-slot="front"] {
+        z-index: 5;
+        transform: translate3d(0, 0, 0) rotateY(0);
+        opacity: 1;
+        filter: none;
+    }
+    &[data-slot="behind-1"] {
+        z-index: 3;
+        transform: translate3d(30px, 10px, -60px) rotateY(-14deg) rotateZ(2deg);
+        opacity: 0.95;
+        filter: brightness(0.88) saturate(0.92);
+    }
+    &[data-slot="behind-2"] {
+        z-index: 2;
+        transform: translate3d(54px, 18px, -110px) rotateY(-22deg) rotateZ(4deg);
+        opacity: 0.85;
+        filter: brightness(0.75) saturate(0.85) blur(0.3px);
+    }
+    &[data-slot="hidden"] {
+        z-index: 1;
+        transform: translate3d(70px, 26px, -160px) rotateY(-30deg) rotateZ(6deg);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .dc-flip {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+// ───── Within-tier ghost layers ─────
+// Decorative depth so multiples-of-the-same-rarity reads as a physical pile.
+// Pure CSS — no card data behind them. Sits beneath the .dc-flip-inner.
+.dc-ghost {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: linear-gradient(170deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.35) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    z-index: 0;
+    pointer-events: none;
+}
+.dc-ghost-1 {
+    transform: translate(4px, 3px) rotateZ(1deg);
+    filter: brightness(0.8);
+}
+.dc-ghost-2 {
+    transform: translate(8px, 6px) rotateZ(2.2deg);
+    filter: brightness(0.65);
+}
+
+// ×N chip on the active card for within-tier count
+.dc-rarity-count {
+    position: absolute;
+    top: -10px; right: -10px;
+    z-index: 20;
+    background: linear-gradient(180deg, #1a1a23 0%, #0a0a0e 100%);
+    color: white;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 4px 11px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+// ───── Deck controls ─────
+.dc-deck-controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.dc-tier-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.dc-tier-pill {
+    appearance: none;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.65);
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
+
+    .dc-tier-pill-count {
+        opacity: 0.7;
+        margin-left: 3px;
+        font-weight: 700;
+    }
+
+    &:hover { transform: translateY(-1px); }
+
+    &.tier-bronze    { color: #c98951; }
+    &.tier-silver    { color: #b8b8b8; }
+    &.tier-gold      { color: #f0c84a; }
+    // Platinum pill uses a pearl/iridescent treatment so it doesn't look like
+    // another shade of silver.
+    &.tier-platinum  {
+        color: #ffffff;
+        background: linear-gradient(120deg, rgba(180, 230, 255, 0.18), rgba(255, 200, 240, 0.18));
+        border-color: rgba(220, 240, 255, 0.45);
+    }
+    &.tier-legendary {
+        background: linear-gradient(120deg, rgba(255, 143, 214, 0.18), rgba(139, 226, 255, 0.18));
+        border-color: rgba(255, 200, 240, 0.4);
+        color: white;
+    }
+
+    &.is-active {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.45);
+        color: white;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+    }
+}
+
+// ───── Combine pill ─────
+.dc-combine-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+
+    form { margin: 0; }
+}
+
+.dc-combine-pill {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.35) 100%);
+    color: white;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    .dc-combine-icon {
+        font-size: 14px;
+        line-height: 1;
+        filter: drop-shadow(0 0 4px currentColor);
+    }
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    }
+
+    // Pill's accent colour reflects the TARGET tier so the upgrade is legible.
+    &.tier-silver    { border-color: #b8c2cf; color: #e8eef6; }
+    &.tier-gold      { border-color: #f0c84a; color: #fff3c4; box-shadow: 0 0 16px rgba(240, 200, 74, 0.25); }
+    &.tier-platinum  { border-color: #d6e3ef; color: #ffffff; box-shadow: 0 0 16px rgba(214, 227, 239, 0.25); }
+    &.tier-legendary {
+        border-color: rgba(255, 200, 240, 0.6);
+        color: #fff;
+        background: linear-gradient(120deg, rgba(255, 143, 214, 0.35), rgba(139, 226, 255, 0.35));
+        box-shadow: 0 0 20px rgba(255, 143, 214, 0.4);
+    }
+}
+
+// Back-face: combined-from receipt line
+.dc-card-back .receipt .r-combined .val {
+    color: #ffd989;
+}
+.dc-card-back .receipt .r-multi .val {
+    color: #b8d6ff;
+}
+
+// Deck takes more vertical room than a single card — the cards grid + the
+// portfolio strip both need a bit of breathing room for the pills + combine.
+.dc-grid .dc-deck,
+.dc-portfolio-strip-grid .dc-deck {
+    margin-bottom: 16px;
+}
+
+// ───── Mobile: deck adjustments ─────
+@media (max-width: 600px) {
+    .dc-deck { --deck-extra: 36px; }
+    .dc-tier-group { cursor: default; }
+    // Behind-slot offsets shrink so the cards don't poke off the narrow viewport
+    .dc-tier-group[data-slot="behind-1"] {
+        transform: translate3d(20px, 7px, -40px) rotateY(-12deg) rotateZ(1.5deg);
+    }
+    .dc-tier-group[data-slot="behind-2"] {
+        transform: translate3d(34px, 14px, -80px) rotateY(-20deg) rotateZ(3deg);
+    }
+    .dc-tier-pill { padding: 6px 11px; font-size: 11px; }
+    .dc-combine-pill { padding: 8px 14px; font-size: 11px; }
+}

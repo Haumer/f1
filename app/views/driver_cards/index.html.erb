@@ -1,0 +1,59 @@
+<% content_for(:title) { "#{@user.display_name}'s Driver Cards" } %>
+<% content_for(:description) { "Driver cards earned from correctly predicted race finishes." } %>
+
+<div class="homepage-container dc-collection">
+    <h2 class="dc-page-title">
+        <%= is_owner? ? "Your Driver Cards" : "#{@user.display_name}'s Driver Cards" %>
+    </h2>
+    <p class="dc-page-sub">
+        Earned by predicting a driver's exact finishing position on a race pick.
+        Rarer cards come from harder calls (P1, upset wins) or a lucky bump.
+    </p>
+
+    <% if @total.zero? %>
+        <div class="dc-empty">
+            <div class="ttl">No cards yet</div>
+            <% if is_owner? %>
+                <div>
+                    Make picks on the next race —
+                    <%= link_to "see upcoming races", races_path %> —
+                    and any exact-finish prediction earns you a card.
+                </div>
+            <% else %>
+                <div>
+                    <%= @user.display_name %> hasn't earned any cards yet.
+                </div>
+            <% end %>
+        </div>
+    <% else %>
+        <div class="dc-header">
+            <div class="dc-stats">
+                <div class="dc-stat">
+                    <span class="lbl">Cards earned</span>
+                    <span class="val"><%= @total %></span>
+                </div>
+                <div class="dc-stat">
+                    <span class="lbl">Unique drivers</span>
+                    <span class="val"><%= @unique_drivers %></span>
+                </div>
+                <div class="dc-stat">
+                    <span class="lbl">By tier</span>
+                    <span class="val"><%= @total %></span>
+                    <span class="breakdown">
+                        <% if (n = @counts_by_tier["bronze"].to_i) > 0 %><span class="b"><%= n %> BR</span><% end %>
+                        <% if (n = @counts_by_tier["silver"].to_i) > 0 %><span class="s"><%= n %> SI</span><% end %>
+                        <% if (n = @counts_by_tier["gold"].to_i) > 0 %><span class="g"><%= n %> GO</span><% end %>
+                        <% if (n = @counts_by_tier["platinum"].to_i) > 0 %><span class="p"><%= n %> PT</span><% end %>
+                        <% if (n = @counts_by_tier["legendary"].to_i) > 0 %><span class="l"><%= n %> LG</span><% end %>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dc-grid">
+            <% @stacks.values.sort_by { |cards| [-cards.size, -cards.map(&:earned_at).max.to_i] }.each do |cards| %>
+                <%= render "driver_cards/deck", cards: cards, is_owner: is_owner? %>
+            <% end %>
+        </div>
+    <% end %>
+</div>

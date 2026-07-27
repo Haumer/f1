@@ -152,16 +152,39 @@ export default class extends Controller {
 
     container.innerHTML = ""
 
+    const CARD_CUTOFF = 10
+    let cutoffInserted = false
+
     sorted.forEach(pick => {
+      // Drop in a scoring-cutoff divider just before the first P11+ slot.
+      // Picks below the cutoff score zero points and earn no driver card —
+      // they're still placed (so users can mentally rank the full grid) but
+      // don't count. Rules live in Fantasy::ScoreRacePicks + DriverCards::ResolveTier.
+      if (!cutoffInserted && pick.position > CARD_CUTOFF) {
+        const divider = document.createElement("div")
+        divider.className = "picks-card-cutoff"
+        divider.innerHTML = `
+          <span class="picks-card-cutoff-line"></span>
+          <span class="picks-card-cutoff-label">
+            <i class="fa-solid fa-ban"></i>
+            Picks below don't score or earn cards
+          </span>
+          <span class="picks-card-cutoff-line"></span>
+        `
+        container.appendChild(divider)
+        cutoffInserted = true
+      }
+
       const card = this.cardTargets.find(c => c.dataset.driverId === pick.driverId)
       const name = card?.dataset.driverName || "Unknown"
       const team = card?.dataset.driverTeam || ""
       const teamColor = card?.dataset.driverTeamColor || "#555"
       const elo = card?.dataset.driverElo || ""
       const isRandom = pick.source === "random"
+      const eligible = pick.position <= CARD_CUTOFF
 
       const row = document.createElement("div")
-      row.className = "pick-slot-filled"
+      row.className = "pick-slot-filled" + (eligible ? "" : " pick-slot-no-card")
       row.dataset.driverId = pick.driverId
       row.style.setProperty("--constructor-color", teamColor)
       row.innerHTML = `

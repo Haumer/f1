@@ -17,21 +17,56 @@ class FantasyPortfoliosController < ApplicationController
       @achievements = @portfolio.achievements.order(created_at: :desc)
       if @is_owner
         @next_race = @portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
-        @can_trade = @next_race && @portfolio.can_trade?(@next_race)
-        @current_support = ConstructorSupport.current_for(current_user, @portfolio.season)
-        @can_change_support = ConstructorSupport.can_change?(current_user, @portfolio.season)
       end
     end
 
     # Stock detail data (inline on overview)
     if @stock_portfolio
       @stock_achievements = @stock_portfolio.achievements.to_a
-      @stock_total_dividends = @stock_portfolio.transactions.where(kind: "dividend").sum(:amount)
       if @is_owner
         @next_race ||= @stock_portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
         @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
-        @stock_transactions = @stock_portfolio.transactions.order(created_at: :desc).limit(20)
       end
+    end
+
+    # Always resolve next_race for the hero countdown (public profiles too).
+    @next_race ||= @season.next_race || Race.where("date >= ?", Date.current).order(:date).first
+
+    # Leaderboard rank + delta from the user's two most recent snapshots. Snapshot
+    # rank is precomputed by Fantasy::SnapshotPortfolios so this is just a lookup.
+    if @portfolio
+      last_two = @portfolio.snapshots.joins(:race).order("races.date DESC").limit(2).to_a
+      latest = last_two.first
+      previous = last_two.second
+      if latest&.rank
+        @leaderboard_rank = latest.rank
+        @leaderboard_rank_delta = previous&.rank ? previous.rank - latest.rank : nil
+        @leaderboard_size = FantasySnapshot.where(race_id: latest.race_id).count
+      end
+    end
+
+    # Portfolio composition: long/short counts and team concentration. All derived
+    # from already-loaded holdings (no extra queries via prime_active_holdings).
+    if @stock_portfolio && @stock_holdings
+      @long_count = @stock_holdings.count(&:long?)
+      @short_count = @stock_holdings.size - @long_count
+      if @stock_holdings.any? && @stock_constructors.is_a?(Hash)
+        gross = @stock_holdings.sum { |h| h.entry_price.to_f * h.quantity.to_i }
+        if gross > 0
+          team_totals = @stock_holdings.group_by { |h| @stock_constructors[h.driver_id]&.name || "—" }
+                                        .transform_values { |hs| hs.sum { |h| h.entry_price.to_f * h.quantity.to_i } }
+          top_team, top_value = team_totals.max_by { |_, v| v }
+          @top_team_name = top_team
+          @top_team_pct  = (top_value / gross * 100).round
+        end
+      end
+    end
+
+    # Unified activity feed (credits + cards + achievements). Owner-only — public
+    # profiles don't expose individual events. Profile shows a teaser; full feed
+    # lives at fantasy_activity_path so the portfolio page stays scannable.
+    if @is_owner
+      @activity_entries = Fantasy::ActivityFeed.for_user(@user, season: @season, limit: 8)
     end
 
     # Race picks — upcoming + past
@@ -53,7 +88,11 @@ class FantasyPortfoliosController < ApplicationController
                            .transform_values { |rows| rows.to_h { |r| [r[1], r[2]] } }
       @race_picks.each do |rp|
         next unless finishes.key?(rp.race_id)
-        @pick_summaries[rp.id] = Fantasy::ScoreRacePicks.breakdown(rp.placed_drivers, finishes[rp.race_id])
+        @pick_summaries[rp.id] = Fantasy::ScoreRacePicks.breakdown(
+          rp.placed_drivers,
+          finishes[rp.race_id],
+          scoring_limit: Fantasy::ScoreRacePicks.scoring_limit_for(rp.race)
+        )
       end
     end
 
@@ -62,6 +101,25 @@ class FantasyPortfoliosController < ApplicationController
                              .where(seasons: { year: @season.year })
                              .includes(race: [:circuit, :season])
                              .order("races.round DESC")
+
+    # Driver cards earned this season — surfaced on the portfolio so users see
+    # them next to the picks that earned them. Full collection lives at /cards.
+    # We group by driver so each card "deck" shows the full per-driver picture
+    # (combine pill needs the whole tier count, not just the recent slice).
+    season_cards = DriverCard.where(user: @user)
+                             .joins(:race)
+                             .where(races: { season_id: @season.id })
+                             .includes(:driver, race: [:circuit, :season])
+                             .to_a
+    @driver_cards_total       = season_cards.size
+    @driver_cards_tier_counts = season_cards.group_by(&:tier).transform_values(&:count)
+    # Group by driver, sort each driver's group by most-recent card desc, then
+    # take the 4 drivers whose most recent card is newest.
+    @driver_cards_decks = season_cards
+      .group_by(&:driver_id)
+      .values
+      .sort_by { |grp| -grp.map(&:earned_at).max.to_i }
+      .first(4)
   end
 
   # ═══════════════════════════════════════

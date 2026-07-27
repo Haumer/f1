@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, controllers: { registrations: "users/registrations" }
   get "users/username_available", to: "users#username_available"
   root to: "pages#home"
 
@@ -18,7 +18,17 @@ Rails.application.routes.draw do
   get 'elo', to: 'pages#elo', as: :elo
   get 'about', to: 'pages#about', as: :about
   get 'terms', to: 'pages#terms', as: :terms
+  get 'impressum', to: 'pages#impressum', as: :impressum
   get 'fantasy_guide', to: 'pages#fantasy_guide', as: :fantasy_guide
+
+  # Head-to-Head: pairwise driver-preference game, playable without an account.
+  get  'head-to-head',                to: 'head_to_head#show',    as: :head_to_head
+  post 'head-to-head/start',          to: 'head_to_head#start',   as: :start_head_to_head
+  post 'head-to-head/pick',           to: 'head_to_head#pick',    as: :pick_head_to_head
+  get  'head-to-head/finish',         to: 'head_to_head#finish',  as: :finish_head_to_head
+  get  'head-to-head/results',        to: 'head_to_head#results', as: :head_to_head_results
+  get  'head-to-head/:year',          to: 'head_to_head#show',    constraints: { year: /\d{4}/ }, as: :head_to_head_year
+  get  'head-to-head/:year/results',  to: 'head_to_head#results', constraints: { year: /\d{4}/ }, as: :head_to_head_results_year
 
   authenticate :user, ->(u) { u.admin? } do
     mount Blazer::Engine, at: "blazer"
@@ -99,6 +109,20 @@ Rails.application.routes.draw do
   resource :race_picks, only: [:edit, :update], path: 'picks' do
     post :stash, on: :collection
   end
+
+  # Driver Cards (collectible cards earned from correct race picks). Lives
+  # under /fantasy/u/:username so the URL says whose collection it is.
+  # `/cards` redirects to the signed-in user's own collection.
+  get  'fantasy/u/:username/cards',           to: 'driver_cards#index',   as: :driver_cards
+  post 'fantasy/u/:username/cards/combine',   to: 'driver_cards#combine', as: :combine_driver_cards
+  get  'fantasy/u/:username/cards/:id',       to: 'driver_cards#show',    as: :driver_card
+  get  'cards', to: redirect { |_p, req|
+    user = req.env['warden']&.user
+    user ? "/fantasy/u/#{user.username}/cards" : "/users/sign_in"
+  }
+
+  # Activity feed (credits + cards + achievements). Owner-only.
+  get 'fantasy/u/:username/activity', to: 'fantasy_activity#index', as: :fantasy_activity
 
   # User account settings
   get   'u/:username', to: 'users#show',   as: :user_settings

@@ -9,14 +9,16 @@ module Fantasy
       def call
         earned = []
         earned << award(:first_stock_trade) if check_trade_count(1)
-        earned << award(:five_stock_trades) if check_trade_count(5)
-        earned << award(:ten_stock_trades) if check_trade_count(10)
+        earned << award(:traded_5_races) if check_distinct_race_count(5)
+        earned << award(:traded_15_races) if check_distinct_race_count(15)
         earned << award(:first_long) if check_has_direction("long")
         earned << award(:first_short) if check_has_direction("short")
         earned << award(:max_positions) if check_max_positions
         earned << award(:first_stock_profit) if check_profit(0)
-        earned << award(:stock_profit_500) if check_profit(500)
-        earned << award(:stock_profit_1000) if check_profit(1000)
+        earned << award(:stock_pl_500) if check_profit(500)
+        earned << award(:stock_pl_2k)  if check_profit(2_000)
+        earned << award(:stock_pl_5k)  if check_profit(5_000)
+        earned << award(:stock_pl_20k) if check_profit(20_000)
         earned << award(:profitable_short) if check_profitable_short
         earned << award(:first_dividend) if check_dividend
         earned << award(:stock_top_3) if check_leaderboard_rank(3)
@@ -43,6 +45,14 @@ module Fantasy
 
       def check_trade_count(n)
         @portfolio.transactions.where(kind: %w[buy sell short_open short_close]).count >= n
+      end
+
+      def check_distinct_race_count(n)
+        @portfolio.transactions
+                  .where(kind: %w[buy sell short_open short_close])
+                  .where.not(race_id: nil)
+                  .distinct
+                  .count(:race_id) >= n
       end
 
       def check_has_direction(direction)

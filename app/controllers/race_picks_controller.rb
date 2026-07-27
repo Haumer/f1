@@ -63,7 +63,8 @@ class RacePicksController < ApplicationController
     placed = @race_pick.placed_drivers
     finish = RaceResult.where(race: @race).where.not(position_order: nil)
                        .pluck(:driver_id, :position_order).to_h
-    @breakdown = Fantasy::ScoreRacePicks.breakdown(placed, finish)
+    @scoring_limit = Fantasy::ScoreRacePicks.scoring_limit_for(@race)
+    @breakdown = Fantasy::ScoreRacePicks.breakdown(placed, finish, scoring_limit: @scoring_limit)
 
     driver_ids = placed.map { |p| p["driver_id"] }
     @drivers_by_id = Driver.where(id: driver_ids).index_by(&:id)

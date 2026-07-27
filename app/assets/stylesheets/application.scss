@@ -15,6 +15,7 @@
 @import "race_results/race_result";
 @import "admin/admin";
 @import "fantasy/fantasy";
+@import "cards/index";
 
 // Formula 1 fonts
 @font-face {
@@ -52,6 +53,15 @@ body {
     padding: 0;
     overflow-x: hidden;
 
+    // Sticky footer: body grows to the viewport, .container flexes to fill
+    // remaining space, the footer never collapses. Keeps the footer at the
+    // viewport bottom on short pages (drivers index after a narrow search,
+    // 404s, impressum). No effect on tall pages — content overflows
+    // normally past 100vh.
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
     // Subtle noise texture for depth
     &::before {
         content: '';
@@ -84,6 +94,7 @@ body {
 .container {
     position: relative;
     z-index: 1;
+    flex: 1 0 auto; // sticky footer: grow to fill, never shrink
 }
 
 div, td, th, span, p, a {
@@ -259,19 +270,44 @@ th[data-sort] {
     }
 }
 
+// Shared podium-row highlight (gold/silver/bronze left border + gradient fade).
+// Any ranked-list table should extend this so the top-3 look identical across
+// standings, leaderboard, crowd rankings, etc.
+//     .my-table { @extend %standings-podium-rows; }
+%standings-podium-rows {
+    tbody tr { border-left: 3px solid transparent; }
+    tbody tr.podium-p1 {
+        border-left-color: $gold;
+        background: linear-gradient(90deg, rgba($gold, 0.06), transparent 50%);
+    }
+    tbody tr.podium-p2 {
+        border-left-color: $silver;
+        background: linear-gradient(90deg, rgba($silver, 0.04), transparent 50%);
+    }
+    tbody tr.podium-p3 {
+        border-left-color: $bronze;
+        background: linear-gradient(90deg, rgba($bronze, 0.04), transparent 50%);
+    }
+}
+
+// Bold numeric position column. Shared by any table whose first column is a rank.
+%standings-position-cell {
+    .position-cell {
+        font-weight: 700;
+        font-size: 14px;
+    }
+}
+
 // Standings table
 .current-driver-standings {
+    @extend %standings-podium-rows;
+    @extend %standings-position-cell;
+
     td {
         padding: 8px 12px;
     }
     tbody tr:hover {
         background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
-    }
-
-    // Position column
-    .position-cell {
-        font-weight: 700;
-        font-size: 14px;
     }
 
     // Icon cells fixed width
@@ -295,23 +331,6 @@ th[data-sort] {
     // Driver/constructor name no wrap
     .name-cell {
         white-space: nowrap;
-    }
-
-    // Top-3 podium highlighting
-    tbody tr {
-        border-left: 3px solid transparent;
-    }
-    tbody tr.podium-p1 {
-        border-left-color: $gold;
-        background: linear-gradient(90deg, rgba($gold, 0.06), transparent 50%);
-    }
-    tbody tr.podium-p2 {
-        border-left-color: $silver;
-        background: linear-gradient(90deg, rgba($silver, 0.04), transparent 50%);
-    }
-    tbody tr.podium-p3 {
-        border-left-color: $bronze;
-        background: linear-gradient(90deg, rgba($bronze, 0.04), transparent 50%);
     }
 
     // Driver name hover
@@ -473,6 +492,8 @@ th[data-sort] {
     margin-bottom: 16px;
     padding-bottom: 8px;
     border-bottom: 1px solid $border-color;
+    gap: 8px;
+    flex-wrap: wrap;
     h3 {
         margin: 0;
         font-family: $headers-font;
@@ -482,6 +503,12 @@ th[data-sort] {
         display: flex;
         align-items: center;
         gap: 8px;
+    }
+
+    @media (max-width: 600px) {
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        h3 { font-size: 18px; line-height: 1.2; }
     }
 }
 
@@ -834,6 +861,7 @@ table.race-results {
     margin-top: 80px;
     position: relative;
     z-index: 1;
+    flex-shrink: 0; // sticky footer: never collapse, partners with body+container above
     background: $bg-surface;
 
     @media (max-width: 640px) {
@@ -900,6 +928,37 @@ table.race-results {
     text-align: center;
     font-size: $type-label;
     color: $text-tertiary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+// Build chip — links to the deployed commit on GitHub. Lives in the footer
+// next to the copy line. Signals "this is a living project" and gives a
+// one-click trail from prod into the actual code that's running.
+.footer-build {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    color: $text-tertiary;
+    font-family: $mono-font;
+    font-size: $type-label;
+    text-decoration: none;
+    transition: color $t-fast, border-color $t-fast, background $t-fast;
+
+    i { font-size: 10px; opacity: 0.7; }
+
+    &:hover {
+        color: $text-secondary;
+        border-color: $border-accent;
+        background: rgba(255, 255, 255, 0.02);
+        text-decoration: none;
+    }
 }
 
 // Flash messages — glass-morphism

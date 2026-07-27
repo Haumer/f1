@@ -1,0 +1,97 @@
+<%#
+  Unified activity feed — credits + cards + achievements in one chronological stream.
+  Expects:
+    entries (Array<Fantasy::ActivityFeed::Entry>)
+  Optional:
+    round_amount   (Boolean, default true)
+    show_header    (Boolean, default true)
+    view_all_path  (String, optional) — when set, replaces in-place expand with a link to a full-page feed
+%>
+<% round_amount = local_assigns.fetch(:round_amount, true) %>
+<% show_header = local_assigns.fetch(:show_header, true) %>
+<% view_all_path = local_assigns[:view_all_path] %>
+
+<% if entries.any? %>
+    <% if show_header %>
+        <div class="table-header">
+            <h3>Activity</h3>
+            <% if view_all_path %>
+                <%= link_to view_all_path, class: "picks-compact-edit" do %>
+                    View all <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
+    <div class="card card-flush">
+        <div class="table-scroll-wrapper">
+            <table class="fantasy-activity-table fantasy-transactions-table">
+                <thead>
+                    <tr>
+                        <th>When</th>
+                        <th>Event</th>
+                        <th class="d-none d-md-table-cell">Subject</th>
+                        <th class="fantasy-activity-change">Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% entries.each do |entry| %>
+                        <%
+                          kind  = entry.kind
+                          label = activity_kind_label(kind)
+                          icon  = activity_kind_icon(kind)
+
+                          subject_parts = []
+                          if entry.achievement
+                            subject_parts << entry.achievement[:name]
+                            subject_parts << entry.achievement[:description] if entry.achievement[:description].present?
+                          else
+                            if entry.driver
+                              d = entry.driver
+                              subject_parts << "#{d.forename} #{d.surname}".strip
+                            end
+                            if entry.race
+                              circuit = entry.race.circuit&.name
+                              subject_parts << (circuit ? "#{circuit} · R#{entry.race.round}" : "R#{entry.race.round}")
+                            end
+                          end
+                        %>
+                        <tr>
+                            <td class="fantasy-activity-when">
+                                <%= entry.occurred_at.strftime("%b %d, %H:%M") %>
+                            </td>
+                            <td>
+                                <span class="fantasy-txn-kind fantasy-txn-<%= kind %>">
+                                    <% if icon %><i class="fa-solid <%= icon %>" aria-hidden="true"></i> <% end %><%= label %>
+                                </span>
+                            </td>
+                            <td class="fantasy-activity-subject d-none d-md-table-cell">
+                                <% if subject_parts.any? %>
+                                    <%= subject_parts.join(" · ") %>
+                                <% elsif entry.note.present? %>
+                                    <span class="fantasy-txn-note"><%= entry.note %></span>
+                                <% end %>
+                            </td>
+                            <td class="fantasy-activity-change">
+                                <% if entry.credits_delta %>
+                                    <span class="fantasy-activity-credits <%= entry.credits_delta >= 0 ? 'text-green' : 'text-red' %>">
+                                        <%= entry.credits_delta >= 0 ? '+' : '' %><%= round_amount ? entry.credits_delta.round(1) : entry.credits_delta.round(0) %>
+                                    </span>
+                                <% end %>
+                                <% if entry.card %>
+                                    <span class="fantasy-activity-tier dc-portfolio-strip-tier-<%= entry.card.tier %>">
+                                        <% if entry.credits_delta.nil? %>+1 <% end %><%= entry.card.tier.capitalize %>
+                                    </span>
+                                <% end %>
+                                <% if entry.achievement %>
+                                    <span class="fantasy-activity-tier dc-portfolio-strip-tier-<%= entry.achievement[:tier] %>">
+                                        <%= entry.achievement[:tier].capitalize %>
+                                    </span>
+                                <% end %>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<% end %>

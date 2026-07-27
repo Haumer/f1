@@ -1,0 +1,90 @@
+<%#
+  Deck of cards for ONE driver, grouped by tier. Each tier-group is one DOM
+  node positioned in a 3D stage. data-slot drives the CSS transform:
+    front / behind-1 / behind-2 / hidden
+
+  The within-tier count surfaces as:
+    - a ×N chip on the active card
+    - up to 2 ghost layer pseudo-elements behind the active card so a
+      multiples-of-the-same-rarity stack reads as a thicker physical deck
+
+  Combine pill appears under the deck when an owned tier has ≥3 cards.
+
+  Locals:
+    cards    — array of DriverCards for the same driver
+    is_owner — bool (default false). Controls whether the combine pill renders.
+               Defaulted because this partial is rendered from contexts that
+               don't expose the `is_owner?` controller method (e.g. the
+               fantasy portfolio overview).
+%>
+<%
+  is_owner     = local_assigns.fetch(:is_owner, false)
+  by_tier_desc = cards.group_by(&:tier)
+                      .sort_by { |t, _| -(DriverCardsHelper::TIER_ORDER[t] || 0) }
+                      .to_h
+  initial_tier = by_tier_desc.keys.first
+  driver       = cards.first.driver
+%>
+<div class="dc-deck"
+     data-controller="card-deck"
+     data-card-deck-tier-value="<%= initial_tier %>">
+    <div class="dc-stage">
+        <% by_tier_desc.each do |tier, group| %>
+            <%
+              representative = group.max_by(&:earned_at)
+              count          = group.size
+              ghost_layers   = [count - 1, 2].min
+            %>
+            <div class="dc-tier-group tier-<%= tier %>"
+                 data-card-deck-target="tierGroup"
+                 data-tier="<%= tier %>"
+                 data-count="<%= count %>"
+                 data-ghosts="<%= ghost_layers %>"
+                 data-action="click->card-deck#flip">
+                <div class="dc-flip" data-controller="card-tilt">
+                    <% ghost_layers.times do |i| %>
+                        <div class="dc-ghost dc-ghost-<%= i + 1 %>"></div>
+                    <% end %>
+                    <div class="dc-flip-inner" data-card-tilt-target="inner">
+                        <%= render "driver_cards/card", card: representative %>
+                        <%= render "driver_cards/card_back", card: representative, sibling_count: count %>
+                    </div>
+                    <% if count > 1 %>
+                        <span class="dc-rarity-count">×<%= count %></span>
+                    <% end %>
+                </div>
+            </div>
+        <% end %>
+    </div>
+
+    <div class="dc-deck-controls">
+        <div class="dc-tier-pills">
+            <% by_tier_desc.each do |tier, group| %>
+                <button type="button"
+                        class="dc-tier-pill tier-<%= tier %><%= " is-active" if tier == initial_tier %>"
+                        data-card-deck-target="tierPill"
+                        data-tier="<%= tier %>"
+                        data-action="click->card-deck#selectTier">
+                    <%= tier[0, 2].capitalize %><span class="dc-tier-pill-count">×<%= group.size %></span>
+                </button>
+            <% end %>
+        </div>
+
+        <% if is_owner %>
+            <div class="dc-combine-row">
+                <% by_tier_desc.each do |tier, group| %>
+                    <% next_tier = DriverCard.next_tier(tier) %>
+                    <% next unless group.size >= DriverCards::Combine::REQUIRED_COUNT && next_tier %>
+                    <%= button_to combine_driver_cards_path(username: @user.username),
+                                  params: { driver_id: driver.id, tier: tier },
+                                  method: :post,
+                                  class: "dc-combine-pill tier-#{next_tier}",
+                                  form: { data: { turbo_confirm: "Combine 3 #{tier.capitalize} #{driver.surname} cards into a #{next_tier.capitalize}? The 3 originals are destroyed." } } do %>
+                        <span class="dc-combine-icon">⚗</span>
+                        Combine 3 <%= tier.capitalize %> → <%= next_tier.capitalize %>
+                    <% end %>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+</div>

@@ -34,6 +34,10 @@ class PagesController < ApplicationController
     set_current_champion_accent
   end
 
+  def impressum
+    set_current_champion_accent
+  end
+
   def elo
     peak_col = Setting.elo_column(:peak_elo)
     thresholds = [2600, 2450, 2300, 2100]

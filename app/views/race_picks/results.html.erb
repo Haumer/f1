@@ -40,17 +40,23 @@
         <span class="scorecard-legend-item scorecard-close">±1 +30</span>
         <span class="scorecard-legend-item scorecard-near">±2 +20 · ±3 +10</span>
         <span class="scorecard-legend-item scorecard-miss">Miss 0</span>
+        <% if @scoring_limit %>
+            <span class="scorecard-legend-item scorecard-cutoff">P<%= @scoring_limit + 1 %>+ &nbsp;0</span>
+        <% end %>
     </div>
 
     <%# ═══════ Ranked picks, annotated ═══════ %>
     <div class="scorecard-rows">
+        <% cutoff_inserted = false %>
         <% @breakdown[:rows].each do |row| %>
             <% driver = @drivers_by_id[row.driver_id] %>
             <% next unless driver %>
             <% constructor = @constructors_by_driver[row.driver_id] %>
             <% color = constructor_color(constructor) %>
             <%
-                accuracy = if row.actual.nil?
+                accuracy = if row.out_of_zone
+                    "out"
+                elsif row.actual.nil?
                     "miss"
                 else
                     case (row.actual - row.predicted).abs
@@ -61,7 +67,18 @@
                     end
                 end
             %>
-            <div class="pick-slot-filled scorecard-row scorecard-<%= accuracy %>" style="--constructor-color: <%= color %>">
+            <% if row.out_of_zone && !cutoff_inserted %>
+                <div class="picks-card-cutoff">
+                    <span class="picks-card-cutoff-line"></span>
+                    <span class="picks-card-cutoff-label">
+                        <i class="fa-solid fa-ban"></i>
+                        Picks below P<%= @scoring_limit %> don't score
+                    </span>
+                    <span class="picks-card-cutoff-line"></span>
+                </div>
+                <% cutoff_inserted = true %>
+            <% end %>
+            <div class="pick-slot-filled scorecard-row scorecard-<%= accuracy %><%= ' pick-slot-no-card' if row.out_of_zone %>" style="--constructor-color: <%= color %>">
                 <span class="pick-slot-pos">P<%= row.predicted %></span>
                 <% if driver.display_image_url.present? %>
                     <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" class="scorecard-photo" onerror="this.style.display='none'">
@@ -73,8 +90,16 @@
                     <%= row.actual ? "P#{row.actual}" : "—" %>
                 </span>
                 <span class="scorecard-points scorecard-points-<%= accuracy %>">
-                    <%= row.points.positive? ? "+#{row.points}" : "0" %>
+                    <%= row.points.positive? ? "+#{row.points}" : (row.out_of_zone ? "—" : "0") %>
                 </span>
+                <%# Legacy signal: on pre-cutoff races the old rule still applies,
+                    so a perfect P11+ pick earns points but no card. Without this
+                    pill the row looks identical to any other exact hit. %>
+                <% if @scoring_limit.nil? && accuracy == "exact" && row.predicted > DriverCards::ResolveTier::CARD_ELIGIBLE_MAX %>
+                    <span class="scorecard-no-card" title="Predictions outside the top 10 score points but don't earn a driver card">
+                        <i class="fa-solid fa-trophy"></i> no card
+                    </span>
+                <% end %>
             </div>
         <% end %>
     </div>
