@@ -226,64 +226,64 @@
             </div>
         <% end %>
 
-        <div class="card card-flush">
-            <div class="table-scroll-wrapper">
-            <table class="driver-race-results current-driver-standings compact">
-                <thead>
-                    <tr>
-                        <th class="text-center">#</th>
-                        <th class="text-center">Elo</th>
-                        <th class="text-center d-none d-md-table-cell">Old</th>
-                        <th class="d-none d-md-table-cell"></th>
-                        <th class="text-center d-none d-md-table-cell">New</th>
-                        <th class="text-center d-none d-sm-table-cell">Status</th>
-                        <th class="d-none d-md-table-cell"></th>
-                        <th>Circuit</th>
-                        <th class="d-none d-sm-table-cell">Date</th>
-                        <th class="d-none d-lg-table-cell">Race</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% previous_year = nil %>
-                    <% @race_results_desc.each do |race_result| %>
-                        <% current_year = race_result.race.date.year %>
-                        <% if current_year != previous_year %>
-                            <tr class="season-divider">
-                                <td colspan="10"><strong><%= current_year %> Season</strong></td>
+        <% @race_results_desc.group_by { |r| r.race.date.year }.sort_by { |year, _| -year }.each_with_index do |(year, results), idx| %>
+            <details class="season-section" <%= 'open' if idx <= 1 %>>
+                <summary class="season-section-summary">
+                    <span class="season-section-year"><%= year %> Season</span>
+                    <span class="season-section-meta"><%= results.size %> <%= 'race'.pluralize(results.size) %></span>
+                </summary>
+                <div class="card card-flush">
+                    <div class="table-scroll-wrapper">
+                    <table class="driver-race-results current-driver-standings compact">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">Elo</th>
+                                <th class="text-center d-none d-md-table-cell">Old</th>
+                                <th class="d-none d-md-table-cell"></th>
+                                <th class="text-center d-none d-md-table-cell">New</th>
+                                <th class="text-center d-none d-sm-table-cell">Status</th>
+                                <th class="d-none d-md-table-cell"></th>
+                                <th>Circuit</th>
+                                <th class="d-none d-sm-table-cell">Date</th>
+                                <th class="d-none d-lg-table-cell">Race</th>
                             </tr>
-                            <% previous_year = current_year %>
-                        <% end %>
-                        <tr>
-                            <td class="text-center"><%= race_result.position_order %></td>
-                            <td class="text-center">
-                                <% if race_result.display_gained_elo? %>
-                                    <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
-                                <% else %>
-                                    <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
-                                <% end %>
-                            </td>
-                            <td class="text-center d-none d-md-table-cell"><%= elo_link(race_result.display_old_elo) %></td>
-                            <td class="text-center d-none d-md-table-cell"><i class="fa-solid fa-caret-right"></i></td>
-                            <td class="text-center d-none d-md-table-cell <%= 'underline' if race_result.driver.display_peak_elo == race_result.display_new_elo %>"><%= elo_link(race_result.display_new_elo) %></td>
-                            <td class="text-center d-none d-sm-table-cell <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>"><%= race_result.status.status_type %></td>
-                            <td class="text-center d-none d-md-table-cell">
-                                <%= link_to constructor_path(race_result.constructor) do %>
-                                    <% if race_result.constructor.logo_url.present? %>
-                                        <img src="<%= race_result.constructor.logo_url %>" alt="<%= race_result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
-                                    <% else %>
-                                        <span class="text-secondary"><%= race_result.constructor.name %></span>
-                                    <% end %>
-                                <% end %>
-                            </td>
-                            <td><%= link_to race_result.race.circuit.name, circuit_path(race_result.race.circuit) %></td>
-                            <td class="d-none d-sm-table-cell"><%= race_result.race.date.strftime("%b %d, %Y") %></td>
-                            <td class="d-none d-lg-table-cell"><%= link_to "Round #{race_result.race.round}", race_path(race_result.race) %></td>
-                        </tr>
-                    <% end %>
-                </tbody>
-            </table>
-            </div>
-        </div>
+                        </thead>
+                        <tbody>
+                            <% results.each do |race_result| %>
+                                <tr>
+                                    <td class="text-center"><%= race_result.position_order %></td>
+                                    <td class="text-center">
+                                        <% if race_result.display_gained_elo? %>
+                                            <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
+                                        <% else %>
+                                            <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
+                                        <% end %>
+                                    </td>
+                                    <td class="text-center d-none d-md-table-cell"><%= elo_link(race_result.display_old_elo) %></td>
+                                    <td class="text-center d-none d-md-table-cell"><i class="fa-solid fa-caret-right"></i></td>
+                                    <td class="text-center d-none d-md-table-cell <%= 'underline' if race_result.driver.display_peak_elo == race_result.display_new_elo %>"><%= elo_link(race_result.display_new_elo) %></td>
+                                    <td class="text-center d-none d-sm-table-cell <%= finished?(race_result.status.status_type) ? 'text-green' : 'text-red' %>"><%= race_result.status.status_type %></td>
+                                    <td class="text-center d-none d-md-table-cell">
+                                        <%= link_to constructor_path(race_result.constructor) do %>
+                                            <% if race_result.constructor.logo_url.present? %>
+                                                <img src="<%= race_result.constructor.logo_url %>" alt="<%= race_result.constructor.name %>" class="constructor-logo-sm" onerror="this.style.display='none'">
+                                            <% else %>
+                                                <span class="text-secondary"><%= race_result.constructor.name %></span>
+                                            <% end %>
+                                        <% end %>
+                                    </td>
+                                    <td><%= link_to race_result.race.circuit.name, circuit_path(race_result.race.circuit) %></td>
+                                    <td class="d-none d-sm-table-cell"><%= race_result.race.date.strftime("%b %d, %Y") %></td>
+                                    <td class="d-none d-lg-table-cell"><%= link_to "Round #{race_result.race.round}", race_path(race_result.race) %></td>
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </details>
+        <% end %>
     </div>
 </div>
 </div>

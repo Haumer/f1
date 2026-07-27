@@ -371,9 +371,7 @@ table.race-results {
         text-transform: uppercase;
         letter-spacing: 0.3px;
         margin-top: 2px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        line-height: 1.2;
     }
 }
 

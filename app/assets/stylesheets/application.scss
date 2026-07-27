@@ -39,6 +39,10 @@
 // Global styles
 html {
     overflow-x: hidden;
+    // Always reserve the vertical-scrollbar gutter so short pages don't shift
+    // horizontally when navigating between "has scrollbar" and "no scrollbar"
+    // pages (e.g. /leaderboard vs /). Firefox 94+, Chrome 94+, Safari 18.2+.
+    scrollbar-gutter: stable;
 }
 
 body {
@@ -368,6 +372,9 @@ th[data-sort] {
     @media (min-width: 769px) {
         padding-left: 0;
         padding-right: 0;
+    }
+    @media (max-width: 640px) {
+        padding-bottom: 24px;
     }
 }
 
@@ -856,6 +863,10 @@ table.race-results {
     z-index: 1;
     flex-shrink: 0; // sticky footer: never collapse, partners with body+container above
     background: $bg-surface;
+
+    @media (max-width: 640px) {
+        margin-top: 32px;
+    }
 }
 .site-footer-inner {
     max-width: $max-page-width;
