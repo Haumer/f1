@@ -4,13 +4,13 @@
 
 .fantasy-roster-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
     margin-bottom: $space-lg;
 
     @media (max-width: 520px) {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 8px;
     }
 
     @media (max-width: 340px) {
@@ -97,6 +97,21 @@
         background: linear-gradient(to top, $bg-card 0%, transparent 100%);
         pointer-events: none;
     }
+
+    // Top-of-photo scrim so the P/L + direction badges stay legible on
+    // drivers whose promo photos have a white / very-light background
+    // (otherwise translucent-green badges wash out against white).
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 55px;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 2;
+    }
 }
 
 // Fallback when no image
@@ -179,10 +194,10 @@
 // ── Card Body ──
 .driver-card-body {
     position: relative;
-    padding: 0 12px 12px;
+    padding: 0 10px 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     margin-top: -8px;
     z-index: 1;
 }
