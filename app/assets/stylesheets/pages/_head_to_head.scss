@@ -120,20 +120,54 @@
 }
 
 @media (max-width: 640px) {
+    // Keep the medal-stand 3-across at mobile so all three podium finishers
+    // are visible in one glance. Shrunk photo + type; hide team name to save
+    // vertical space (team color already shown as the top border).
+    .h2h-crowd-podium {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        align-items: end;
+    }
+    .h2h-crowd-podium-card {
+        padding: 22px 4px 10px;
+        border-radius: $radius-md;
+    }
+    .h2h-crowd-podium-p1 { padding-top: 24px; }
+    .h2h-crowd-podium-medal {
+        padding: 3px 8px;
+        font-size: 10px;
+        top: -10px;
+    }
+    .h2h-crowd-podium-photo { height: 70px; margin-bottom: 6px; img { max-height: 70px; } }
+    .h2h-crowd-podium-p1 .h2h-crowd-podium-photo { height: 88px; img { max-height: 88px; } }
+    .h2h-crowd-podium-name {
+        font-size: 12px;
+        gap: 3px;
+        // Wrap long names instead of overflowing the ~115px card
+        flex-wrap: wrap;
+        line-height: 1.15;
+        img { width: 12px; height: auto; }
+    }
+    .h2h-crowd-podium-team { display: none; }
+    .h2h-crowd-podium-stat { gap: 4px; margin-top: 4px; }
+    .h2h-crowd-podium-pct { font-size: 16px; }
+    .h2h-crowd-podium-record { font-size: 10px; }
+}
+
+// Ultra-narrow fallback: three cards side-by-side at <340px become too tight
+// to be legible, drop back to a vertical stack ordered 1 → 2 → 3.
+@media (max-width: 339px) {
     .h2h-crowd-podium {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 8px;
         align-items: stretch;
     }
-    // DOM order is [2nd, 1st, 3rd] for the desktop medal-stand visual.
-    // When stacked vertically we want ordinal top-to-bottom instead.
-    .h2h-crowd-podium-p1 {
-        order: 1;
-        padding-top: 34px;
-    }
+    .h2h-crowd-podium-p1 { order: 1; }
     .h2h-crowd-podium-p2 { order: 2; }
     .h2h-crowd-podium-p3 { order: 3; }
-    .h2h-crowd-podium-photo, .h2h-crowd-podium-p1 .h2h-crowd-podium-photo { height: 130px; img { max-height: 130px; } }
+    .h2h-crowd-podium-photo, .h2h-crowd-podium-p1 .h2h-crowd-podium-photo { height: 110px; img { max-height: 110px; } }
+    .h2h-crowd-podium-name { font-size: 14px; flex-wrap: nowrap; }
+    .h2h-crowd-podium-team { display: block; }
 }
 
 .h2h-progress {
