@@ -339,7 +339,8 @@
     margin-right: 6px;
 }
 
-// Season divider rows in race history
+// Season divider rows in race history (legacy — kept for any other pages
+// still using the single-table pattern).
 .season-divider {
     td {
         background: $bg-inset;
@@ -351,6 +352,80 @@
         border-bottom: 1px solid $border-accent;
     }
     &:hover td { background-color: $bg-inset; }
+}
+
+// Collapsible per-season race history block on the driver show page.
+// Current + previous year default open (via [open] in ERB); older years
+// collapse to a summary bar the user can expand.
+.season-section {
+    margin-bottom: 12px;
+
+    > .season-section-summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        background: $bg-inset;
+        border: 1px solid $border-color;
+        border-radius: $radius-sm;
+        user-select: none;
+        transition: border-color $t-fast, background $t-fast;
+
+        &::-webkit-details-marker { display: none; }
+        &::marker { content: ''; }
+
+        &::before {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 10px;
+            color: $text-tertiary;
+            margin-right: 8px;
+            transition: transform $t-fast;
+        }
+
+        &:hover {
+            border-color: $border-accent;
+            background: $bg-surface;
+        }
+    }
+
+    &[open] > .season-section-summary {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: none;
+
+        &::before { transform: rotate(180deg); }
+    }
+
+    // Collapsed by default: subtly de-emphasize so open sections dominate.
+    &:not([open]) > .season-section-summary {
+        opacity: 0.75;
+    }
+
+    .season-section-year {
+        font-weight: $weight-bold;
+        font-size: 14px;
+        color: $text-primary;
+        flex: 1;
+    }
+
+    .season-section-meta {
+        font-size: 11px;
+        color: $text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+    }
+
+    // Table sits flush under the summary — remove its top rounding.
+    > .card {
+        margin-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
 }
 
 // Layout grid max-width constraint
@@ -395,6 +470,15 @@
     flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
+    max-width: 100%;
+
+    // On mobile, clip horizontally so the hidden tooltip pseudo-elements
+    // (below) don't push scrollWidth past the container — iOS Safari would
+    // otherwise rubber-band horizontally even under body { overflow-x: hidden }.
+    // Tooltips need hover, which mobile doesn't have, so clipping is safe here.
+    @media (max-width: 640px) {
+        overflow-x: clip;
+    }
 }
 
 .achievement-badge {
@@ -430,7 +514,9 @@
         padding: 5px 10px;
         border-radius: $radius-sm;
         border: 1px solid $border-accent;
-        white-space: nowrap;
+        white-space: normal;
+        max-width: 200px;
+        width: max-content;
         pointer-events: none;
         opacity: 0;
         transition: opacity $t-fast, transform $t-fast;
