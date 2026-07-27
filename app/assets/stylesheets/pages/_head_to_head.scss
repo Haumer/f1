@@ -125,7 +125,14 @@
         gap: 12px;
         align-items: stretch;
     }
-    .h2h-crowd-podium-p1 { padding-top: 34px; }
+    // DOM order is [2nd, 1st, 3rd] for the desktop medal-stand visual.
+    // When stacked vertically we want ordinal top-to-bottom instead.
+    .h2h-crowd-podium-p1 {
+        order: 1;
+        padding-top: 34px;
+    }
+    .h2h-crowd-podium-p2 { order: 2; }
+    .h2h-crowd-podium-p3 { order: 3; }
     .h2h-crowd-podium-photo, .h2h-crowd-podium-p1 .h2h-crowd-podium-photo { height: 130px; img { max-height: 130px; } }
 }
 
