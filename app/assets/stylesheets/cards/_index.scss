@@ -207,13 +207,7 @@
         font-weight: 700;
         line-height: 0.95;
         color: rgba(255, 255, 255, 0.96);
-        // Multi-layer dark halo so the name stays legible when the driver's
-        // portrait behind it is light (white team shirts, empty white bg).
-        text-shadow:
-            0 0 3px rgba(0, 0, 0, 0.9),
-            0 0 8px rgba(0, 0, 0, 0.75),
-            0 2px 14px rgba(0, 0, 0, 0.55);
-        -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.55);
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
         .first {
             display: block;
             font-size: 20px; font-weight: 600;
@@ -225,7 +219,12 @@
         position: absolute;
         left: 28px; right: 0; bottom: 0;
         height: 60px;
-        background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.45) 60%, rgba(0, 0, 0, 0.6) 100%);
+        // Solid-enough scrim across the whole footer so the WINS/PODIUMS/WDC
+        // labels + values stay legible on drivers whose team shirts are
+        // white (Lawson) or whose portrait is missing (empty white bg).
+        // Prior gradient started transparent, leaving labels floating on
+        // the raw photo.
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.7) 55%, rgba(0, 0, 0, 0.82) 100%);
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         align-items: end;
