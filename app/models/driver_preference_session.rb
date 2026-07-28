@@ -1,4 +1,6 @@
 class DriverPreferenceSession < ApplicationRecord
+  include Reactable
+
   belongs_to :user, optional: true
   belongs_to :race, optional: true
   belongs_to :champion_driver, class_name: "Driver", optional: true

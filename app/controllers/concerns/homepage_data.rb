@@ -7,7 +7,67 @@ module HomepageData
     sprint: 1.hour, race: 2.hours + 30.minutes
   }.freeze
 
+  COMMUNITY_ACTIVITY_WINDOW = 7.days
+
   private
+
+  # Populates @community_activity + @recent_picks for the homepage activity strip.
+  # @community_activity is a hash of { picks_for_next_race:, trades_this_week:, new_members_this_week: }.
+  # @recent_picks is an array of { user:, driver:, constructor:, created_at: } for the next race,
+  # newest first, up to 6 rows.
+  def load_community_activity
+    since = @today.beginning_of_day - COMMUNITY_ACTIVITY_WINDOW
+
+    picks_for_next_race = @next_race ? RacePick.where(race_id: @next_race.id).count : 0
+    trades_this_week = FantasyStockTransaction
+                         .where(created_at: since..)
+                         .where(kind: %w[buy sell short_open short_close])
+                         .count
+    new_members_this_week = User.where(created_at: since..).count
+
+    @community_activity = {
+      picks_for_next_race: picks_for_next_race,
+      trades_this_week: trades_this_week,
+      new_members_this_week: new_members_this_week
+    }
+
+    @recent_picks = @next_race ? build_recent_picks_for(@next_race) : []
+  end
+
+  def build_recent_picks_for(race)
+    picks = RacePick.where(race_id: race.id)
+                    .where.not(picks: [])
+                    .order(created_at: :desc)
+                    .limit(6)
+                    .includes(:user)
+
+    driver_ids = picks.filter_map { |p| p1_driver_id(p) }.uniq
+    return [] if driver_ids.empty?
+
+    drivers_by_id = Driver.where(id: driver_ids).index_by(&:id)
+    constructors_by_driver = SeasonDriver.where(season_id: race.season_id, driver_id: driver_ids)
+                                         .includes(:constructor)
+                                         .index_by(&:driver_id)
+                                         .transform_values(&:constructor)
+
+    picks.filter_map do |pick|
+      did = p1_driver_id(pick)
+      driver = drivers_by_id[did]
+      next unless driver
+
+      {
+        user: pick.user,
+        driver: driver,
+        constructor: constructors_by_driver[did],
+        created_at: pick.created_at
+      }
+    end
+  end
+
+  def p1_driver_id(pick)
+    p1 = (pick.picks || []).find { |p| p["position"] == 1 }
+    p1&.dig("driver_id")
+  end
 
   def find_contextual_race
     # Find a race whose weekend window (FP1 through race+2) covers today

@@ -1,0 +1,94 @@
+// Reaction bar — polymorphic emoji reactions on picks, predictions, holdings, H2H.
+
+.reaction-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+
+  form {
+    margin: 0;
+    padding: 0;
+    display: inline;
+  }
+}
+
+.reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: $bg-surface;
+  border: 1px solid $border-subtle;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: background $t-fast, border-color $t-fast, transform $t-fast;
+
+  &:hover {
+    background: $bg-card-elevated;
+    border-color: $border-accent;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.reaction-btn--empty {
+  opacity: 0.4;
+  transition: opacity $t-fast, background $t-fast, border-color $t-fast, transform $t-fast;
+
+  &:hover { opacity: 1; }
+}
+
+.reaction-btn--mine {
+  background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
+  border-color: var(--page-accent, $accent-red);
+  color: $text-primary;
+
+  &:hover {
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.18);
+  }
+}
+
+.reaction-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.reaction-count {
+  font-family: $mono-font;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  font-size: 12px;
+}
+
+// Sizes
+.reaction-bar--sm .reaction-btn {
+  padding: 3px 7px;
+  font-size: 12px;
+  .reaction-emoji { font-size: 13px; }
+  .reaction-count { font-size: 11px; }
+}
+
+.reaction-bar--md .reaction-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  .reaction-emoji { font-size: 17px; }
+  .reaction-count { font-size: 13px; }
+}
+
+// Pop animation on click (added by reaction_bar_controller.js)
+.reaction-btn--pop {
+  animation: reaction-pop 240ms ease-out;
+}
+
+@keyframes reaction-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}

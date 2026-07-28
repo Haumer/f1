@@ -1,47 +1,242 @@
-<% content_for(:title) { "Fan Standings" } %>
-<% content_for(:description) { "Which F1 drivers have the most fans? See fan counts and rankings across the F1 Elo community." } %>
-<div class="homepage-container">
-    <div class="page-back-link">
-        <%= link_to stats_path do %>
-            <i class="fa-solid fa-arrow-left"></i> Stats
-        <% end %>
+<% content_for(:title) { "Community Standings — F1 Elo" } %>
+<% content_for(:description) { "Which drivers and constructors the F1 Elo community backs — fan popularity vs Elo model, side by side." } %>
+<%
+  # Aggregate stats for the hero.
+  total_shares_traded = @driver_popularity.sum { |r| r[:long_shares] + r[:short_shares] }
+%>
+<div class="homepage-container fanstandings-page">
+  <div class="page-back-link">
+    <%= link_to stats_path do %>
+      <i class="fa-solid fa-arrow-left"></i> Stats
+    <% end %>
+  </div>
+
+  <%# ═══ Hero — uses shared .page-hero component ═══ %>
+  <div class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+      <span class="page-hero-label">Community Standings · <%= @season.year %></span>
+      <h1 class="page-hero-title">Where the crowd stands</h1>
+      <p class="page-hero-meta">
+        <strong><%= @total_fans %></strong> team loyalists · <strong><%= total_shares_traded %></strong> shares in play · when fan rank diverges from Elo, that's a story.
+      </p>
     </div>
+  </div>
+
+  <%# ═══ Section 1: Driver Power Rankings ═══ %>
+  <% if @driver_popularity.any? %>
     <div class="table-header">
-        <h3>Fan Standings</h3>
-        <span class="table-header-sub"><%= @total_fans %> fan<%= @total_fans == 1 ? '' : 's' %> total</span>
+      <h3>Community Power Rankings — Drivers</h3>
+      <span class="table-header-sub">long shares × 3 + P1 picks × 2 − short shares</span>
+    </div>
+    <div class="card card-flush">
+      <div class="table-scroll-wrapper">
+        <table class="current-driver-standings compact fanstandings-table" data-controller="sortable-table">
+          <thead>
+            <tr>
+              <th class="text-center" data-sort="num" data-tooltip="Rank by fan score — best community-backed at #1">#</th>
+              <th></th>
+              <th data-sort="text">Driver</th>
+              <th></th>
+              <th class="text-center col-signal" data-sort="num" data-tooltip="Long-side fantasy shares held on this driver">Longs</th>
+              <th class="text-center col-signal" data-sort="num" data-tooltip="Times picked for P1 this season across all users">P1</th>
+              <th class="text-center col-signal" data-sort="num" data-tooltip="Short-side fantasy shares — the community's bet against">Shorts</th>
+              <th class="text-center" data-sort="num" data-tooltip="Composite fan score: long shares × 3 + P1 picks × 2 − short shares">Score</th>
+              <th class="text-center" data-sort="num" data-tooltip="Rank by current Elo rating — the model's take">Elo</th>
+              <th class="text-center col-model" data-sort="num" data-tooltip="Elo rank minus fan rank — positive means the crowd rates this driver higher than Elo does">Model</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @driver_popularity.each do |row| %>
+              <% next unless row[:driver] %>
+              <% delta = row[:rank_delta] %>
+              <% podium_class = row[:fan_rank] <= 3 ? "podium-row podium-p#{row[:fan_rank]}" : nil %>
+              <tr class="<%= podium_class %>">
+                <td class="text-center"><%= row[:fan_rank] %></td>
+                <td class="icon-cell"><%= flag_image(row[:driver], size: 24) %></td>
+                <td class="name-cell">
+                  <%= link_to driver_path(row[:driver]) do %>
+                    <%= row[:driver].forename[0] %>.<%= row[:driver].surname %>
+                  <% end %>
+                </td>
+                <td class="icon-cell">
+                  <% if row[:constructor]&.logo_url.present? %>
+                    <img src="<%= row[:constructor].logo_url %>"
+                         alt="<%= row[:constructor].name %>"
+                         class="constructor-logo-xs"
+                         title="<%= row[:constructor].name %>"
+                         onerror="this.style.display='none'">
+                  <% end %>
+                </td>
+                <td class="text-center fdr-cell-long col-signal"
+                    data-sort-value="<%= row[:long_shares] %>"
+                    title="<%= row[:long_shares] %> long share<%= 's' if row[:long_shares] != 1 %> held by <%= row[:long_fans] %> fan<%= 's' if row[:long_fans] != 1 %>">
+                  <%= row[:long_shares] > 0 ? row[:long_shares] : "—" %>
+                </td>
+                <td class="text-center fdr-cell-p1 col-signal"
+                    data-sort-value="<%= row[:p1_picks] %>"
+                    title="Picked for P1 in <%= row[:p1_picks] %> race<%= 's' if row[:p1_picks] != 1 %> this season by <%= row[:p1_fans] %> fan<%= 's' if row[:p1_fans] != 1 %>">
+                  <%= row[:p1_picks] > 0 ? row[:p1_picks] : "—" %>
+                </td>
+                <td class="text-center fdr-cell-short col-signal"
+                    data-sort-value="<%= row[:short_shares] %>"
+                    title="<%= row[:short_shares] %> short share<%= 's' if row[:short_shares] != 1 %> held by <%= row[:short_fans] %> fan<%= 's' if row[:short_fans] != 1 %>">
+                  <%= row[:short_shares] > 0 ? row[:short_shares] : "—" %>
+                </td>
+                <td class="text-center fdr-cell-score"
+                    title="Fan score = <%= row[:long_shares] %>×3 + <%= row[:p1_picks] %>×2 − <%= row[:short_shares] %> = <%= row[:fan_score] %>">
+                  <strong><%= row[:fan_score] %></strong>
+                </td>
+                <td class="text-center" title="Elo <%= row[:elo].round %>">#<%= row[:elo_rank] %></td>
+                <td class="text-center col-model" data-sort-value="<%= delta %>">
+                  <% if delta > 0 %>
+                    <span class="fdr-delta-badge fdr-delta-crowd" title="Crowd rates this driver <%= delta %> spot<%= 's' if delta != 1 %> higher than Elo does">
+                      <i class="fa-solid fa-fire"></i> +<%= delta %>
+                    </span>
+                  <% elsif delta < 0 %>
+                    <span class="fdr-delta-badge fdr-delta-model" title="Elo rates this driver <%= delta.abs %> spot<%= 's' if delta.abs != 1 %> higher than the crowd does">
+                      <i class="fa-solid fa-microchip"></i> <%= delta %>
+                    </span>
+                  <% else %>
+                    <span class="fdr-delta-badge fdr-delta-agree" title="Crowd and Elo agree exactly on this driver's rank">
+                      <i class="fa-solid fa-check"></i>
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="fan-standings-grid">
-        <% @constructors.each_with_index do |entry, idx| %>
-            <% c = entry[:constructor] %>
-            <% team_color = constructor_color(c) %>
-            <% pct = @total_fans > 0 ? (entry[:count].to_f / @total_fans * 100).round(1) : 0 %>
-            <div class="card fan-standings-card" style="border-left: 3px solid <%= team_color %>">
-                <div class="fan-standings-header">
-                    <div class="fan-standings-team">
-                        <% if c.logo_url.present? %>
-                            <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="fan-standings-logo" onerror="this.style.display='none'">
-                        <% end %>
-                        <%= link_to c.name, constructor_path(c), class: "fan-standings-name", style: "color: #{team_color}" %>
-                    </div>
-                    <div class="fan-standings-count">
-                        <span class="fan-standings-number"><%= entry[:count] %></span>
-                        <span class="fan-standings-pct"><%= pct %>%</span>
-                    </div>
-                </div>
-                <% if @total_fans > 0 %>
-                    <div class="fan-standings-bar-bg">
-                        <div class="fan-standings-bar-fill" style="width: <%= pct %>%; background: <%= team_color %>"></div>
-                    </div>
-                <% end %>
-                <% if entry[:fans].any? %>
-                    <div class="fan-standings-fans">
-                        <% entry[:fans].each do |fan| %>
-                            <span class="fan-standings-fan" style="color: <%= team_color %>"><%= fan.display_name %></span>
-                        <% end %>
-                    </div>
-                <% end %>
-            </div>
-        <% end %>
+    <%# Legend — decodes the Vs model badges %>
+    <div class="fanstandings-legend">
+      <div class="fanstandings-legend-group">
+        <span class="fanstandings-legend-label">Vs model</span>
+        <span class="fanstandings-legend-item">
+          <span class="fdr-delta-badge fdr-delta-crowd"><i class="fa-solid fa-fire"></i></span>
+          crowd rates higher
+        </span>
+        <span class="fanstandings-legend-item">
+          <span class="fdr-delta-badge fdr-delta-model"><i class="fa-solid fa-microchip"></i></span>
+          Elo rates higher
+        </span>
+        <span class="fanstandings-legend-item">
+          <span class="fdr-delta-badge fdr-delta-agree"><i class="fa-solid fa-check"></i></span>
+          agreement
+        </span>
+      </div>
     </div>
+
+    <%# Callout row — biggest divergences + community short %>
+    <% if @top_movers.any? || @most_shorted %>
+      <div class="fanstandings-callouts">
+        <% @top_movers.each do |row| %>
+          <% color = constructor_color(row[:constructor]) %>
+          <% is_crowd = row[:rank_delta] > 0 %>
+          <% tip = is_crowd ?
+                   "Crowd ranks this driver #{row[:rank_delta].abs} spot#{'s' if row[:rank_delta].abs != 1} higher than Elo does — a community-favoured pick" :
+                   "Elo ranks this driver #{row[:rank_delta].abs} spot#{'s' if row[:rank_delta].abs != 1} higher than the crowd does — the model likes them more than fans do" %>
+          <div class="fanstandings-callout" style="--constructor-color: <%= color %>" title="<%= tip %>">
+            <div class="fanstandings-callout-label">
+              <% if is_crowd %>
+                <i class="fa-solid fa-fire"></i> Crowd favourite
+              <% else %>
+                <i class="fa-solid fa-microchip"></i> Elo's underrated pick
+              <% end %>
+            </div>
+            <div class="fanstandings-callout-driver">
+              <%= link_to row[:driver].fullname, driver_path(row[:driver]) %>
+            </div>
+            <div class="fanstandings-callout-meta">
+              Fan #<%= row[:fan_rank] %> · Elo #<%= row[:elo_rank] %>
+            </div>
+          </div>
+        <% end %>
+        <% if @most_shorted %>
+          <% color = constructor_color(@most_shorted[:constructor]) %>
+          <% short_tip = "#{@most_shorted[:short_shares]} short share#{'s' if @most_shorted[:short_shares] != 1} held by #{@most_shorted[:short_fans]} fan#{'s' if @most_shorted[:short_fans] != 1} — the community's biggest bet against a driver" %>
+          <div class="fanstandings-callout fanstandings-callout-short" style="--constructor-color: <%= color %>" title="<%= short_tip %>">
+            <div class="fanstandings-callout-label">
+              <i class="fa-solid fa-arrow-trend-down"></i> Community short
+            </div>
+            <div class="fanstandings-callout-driver">
+              <%= link_to @most_shorted[:driver].fullname, driver_path(@most_shorted[:driver]) %>
+            </div>
+            <div class="fanstandings-callout-meta">
+              <%= @most_shorted[:short_shares] %> shares · <%= @most_shorted[:short_fans] %> fan<%= 's' if @most_shorted[:short_fans] != 1 %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# ═══ Section 2: Constructor Loyalty ═══ %>
+  <div class="table-header">
+    <h3>Constructor Loyalty</h3>
+    <span class="table-header-sub"><%= @total_fans %> supporter<%= @total_fans == 1 ? '' : 's' %> total</span>
+  </div>
+
+  <% if @supported_teams.any? %>
+    <div class="fanstandings-teams">
+      <% @supported_teams.each do |entry| %>
+        <% c = entry[:constructor] %>
+        <% team_color = constructor_color(c) %>
+        <% pct = @total_fans > 0 ? (entry[:count].to_f / @total_fans * 100).round : 0 %>
+        <div class="card fanstandings-team" style="border-left: 3px solid <%= team_color %>">
+          <div class="fanstandings-team-header">
+            <div class="fanstandings-team-name">
+              <% if c.logo_url.present? %>
+                <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="fanstandings-team-logo" onerror="this.style.display='none'">
+              <% end %>
+              <%= link_to c.name, constructor_path(c), style: "color: #{team_color}" %>
+            </div>
+            <div class="fanstandings-team-count">
+              <span class="fanstandings-team-num"><%= entry[:count] %></span>
+              <span class="fanstandings-team-pct"><%= pct %>%</span>
+            </div>
+          </div>
+          <div class="fanstandings-team-bar">
+            <div class="fanstandings-team-bar-fill" style="width: <%= pct %>%; background: <%= team_color %>"></div>
+          </div>
+          <div class="fanstandings-team-fans">
+            <% entry[:fans].each do |fan| %>
+              <%= link_to user_profile_path(fan.username),
+                          class: "fanstandings-fan-chip",
+                          style: "--fan-color: #{team_color};",
+                          title: "@#{fan.username}" do %>
+                <span class="fanstandings-fan-avatar" style="background: <%= team_color %>">
+                  <%= fan.username.first.upcase %>
+                </span>
+                <span class="fanstandings-fan-name">@<%= fan.username %></span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <p>No team loyalty declared yet this season.</p>
+    </div>
+  <% end %>
+
+  <% if @unsupported_teams.any? %>
+    <details class="fanstandings-unsupported">
+      <summary>Teams with no supporters yet (<%= @unsupported_teams.size %>)</summary>
+      <div class="fanstandings-unsupported-list">
+        <% @unsupported_teams.each do |entry| %>
+          <% c = entry[:constructor] %>
+          <%= link_to constructor_path(c), class: "fanstandings-unsupported-item", style: "color: #{constructor_color(c)}" do %>
+            <% if c.logo_url.present? %>
+              <img src="<%= c.logo_url %>" alt="<%= c.name %>" class="fanstandings-team-logo" onerror="this.style.display='none'">
+            <% end %>
+            <%= c.name %>
+          <% end %>
+        <% end %>
+      </div>
+    </details>
+  <% end %>
 </div>

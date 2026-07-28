@@ -1,0 +1,83 @@
+<% content_for(:title) { "How you picked — #{@race.circuit.name}" } %>
+<% content_for(:description) { "How #{@user.display_name}'s picks for #{@race.circuit.name} compare to the crowd." } %>
+
+<div class="page-container compare-page">
+  <div class="picks-header">
+    <div>
+      <h2><i class="fa-solid fa-people-group" style="opacity:0.5; font-size:18px"></i> How you compare</h2>
+      <p class="picks-subtitle">
+        <%= @race.circuit.name %> · Round <%= @race.round %>
+        <% if @race.date %> · <%= @race.date.strftime("%b %d, %Y") %><% end %>
+      </p>
+    </div>
+    <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+      <i class="fa-solid fa-arrow-left"></i> Profile
+    <% end %>
+  </div>
+
+  <%# ═══ Headline stats ═══ %>
+  <div class="compare-headline">
+    <div class="compare-headline-stat">
+      <span class="compare-headline-value"><%= @comparison[:total_picks] %></span>
+      <span class="compare-headline-label"><%= @comparison[:total_picks] == 1 ? "fan has picked" : "fans have picked" %> so far</span>
+    </div>
+    <% if @comparison[:contrarian_count] > 0 %>
+      <div class="compare-headline-stat compare-contrarian">
+        <span class="compare-headline-value"><%= @comparison[:contrarian_count] %></span>
+        <span class="compare-headline-label">contrarian <%= @comparison[:contrarian_count] == 1 ? "call" : "calls" %></span>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ═══ Crowd's P1 leaderboard ═══ %>
+  <% if @comparison[:crowd_p1_top].any? %>
+    <div class="compare-section">
+      <h3 class="compare-section-header">Crowd's P1 pick</h3>
+      <div class="compare-p1-list">
+        <% @comparison[:crowd_p1_top].each_with_index do |entry, idx| %>
+          <div class="compare-p1-row">
+            <span class="compare-p1-rank">#<%= idx + 1 %></span>
+            <span class="compare-p1-driver"><%= link_to entry[:driver].fullname, driver_path(entry[:driver]) %></span>
+            <span class="compare-p1-pct"><%= entry[:pct] %>%</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ═══ User's picks vs crowd ═══ %>
+  <div class="compare-section">
+    <h3 class="compare-section-header">Your picks vs the crowd</h3>
+    <div class="compare-rows">
+      <% @comparison[:rows].each do |row| %>
+        <% next unless row[:driver] %>
+        <div class="compare-row <%= 'compare-row-contrarian' if row[:contrarian] %>">
+          <span class="compare-row-pos">P<%= row[:position] %></span>
+          <span class="compare-row-driver">
+            <%= link_to row[:driver].fullname, driver_path(row[:driver]) %>
+          </span>
+          <div class="compare-row-crowd">
+            <div class="compare-row-agreement">
+              <div class="compare-agreement-bar" style="width: <%= row[:agreement_pct] %>%"></div>
+              <span class="compare-agreement-label"><%= row[:agreement_pct] %>% agree</span>
+            </div>
+            <% if row[:contrarian] && row[:crowd_top] %>
+              <span class="compare-row-mode">
+                Crowd: <strong><%= row[:crowd_top][:driver].surname %></strong> (<%= row[:crowd_top][:pct] %>%)
+              </span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="compare-cta">
+    <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+      <i class="fa-solid fa-house"></i> Back to Profile
+    <% end %>
+    <%= link_to edit_race_picks_path, class: "fantasy-btn fantasy-btn-primary" do %>
+      <i class="fa-solid fa-pen-to-square"></i> Edit picks
+    <% end %>
+  </div>
+</div>

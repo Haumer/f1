@@ -1,0 +1,36 @@
+<%
+  # Locals:
+  #   race         — the race these picks are for
+  #   recent_picks — array of { user:, driver:, constructor:, created_at: }
+%>
+<% if recent_picks&.any? %>
+  <div class="card recent-picks-card">
+    <div class="recent-picks-header">
+      <h4><i class="fa-solid fa-hand-pointer"></i> Recent picks for <%= race.circuit.name %></h4>
+      <% if user_signed_in? %>
+        <%= link_to edit_race_picks_path, class: "recent-picks-cta" do %>
+          Make yours <i class="fa-solid fa-arrow-right"></i>
+        <% end %>
+      <% else %>
+        <%= link_to new_user_registration_path, class: "recent-picks-cta" do %>
+          Join to pick <i class="fa-solid fa-arrow-right"></i>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="recent-picks-list">
+      <% recent_picks.each do |entry| %>
+        <div class="recent-pick-row" style="--constructor-color: <%= constructor_color(entry[:constructor]) %>">
+          <span class="recent-pick-user">@<%= entry[:user].username %></span>
+          <span class="recent-pick-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+          <span class="recent-pick-driver">
+            <%= link_to driver_path(entry[:driver]) do %>
+              <span class="recent-pick-p1">P1</span>
+              <%= entry[:driver].forename&.first %>. <%= entry[:driver].surname %>
+            <% end %>
+          </span>
+          <span class="recent-pick-time"><%= time_ago_in_words(entry[:created_at]) %> ago</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

@@ -1,6 +1,11 @@
 <% content_for(:title) { "Rating Every F1 Driver Since 1950" } %>
 <% content_for(:description) { "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." } %>
 <div class="homepage-container">
+    <%# 0. Signed-out visitor hero — hidden once user is signed in %>
+    <% unless user_signed_in? %>
+        <%= render "pages/logged_out_hero" %>
+    <% end %>
+
     <% if @season %>
         <%# 1. Contextual Hero %>
         <% case @homepage_phase %>
@@ -24,6 +29,9 @@
         <% if @latest_race&.has_results? && @homepage_phase != :post_race %>
             <%= render "pages/latest_result_strip", race: @latest_race, podium: @podium_results %>
         <% end %>
+
+        <%# 2b. Community activity strip — signals of life across the site %>
+        <%= render "pages/activity_strip", activity: @community_activity, next_race: @next_race %>
 
         <%# 3. Next Race strip (always visible when available, skip if hero already covers it) %>
         <% unless [:race_weekend, :race_day, :race_complete, :pre_race, :season_start].include?(@homepage_phase) %>
@@ -116,6 +124,11 @@
                     </div>
                 </div>
             <% end %>
+        <% end %>
+
+        <%# 5a. Recent picks for the upcoming race (community proof) %>
+        <% if @next_race && @recent_picks&.any? %>
+            <%= render "pages/recent_picks_card", race: @next_race, recent_picks: @recent_picks %>
         <% end %>
 
         <%# 5b. Race Picks CTA %>

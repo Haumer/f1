@@ -7,8 +7,8 @@
             <span class="fantasy-season">@<%= @user.username %></span>
         </div>
         <div class="fantasy-header-actions">
-            <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
-                <i class="fa-solid fa-arrow-left"></i> Portfolio
+            <%= link_to user_profile_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <i class="fa-solid fa-arrow-left"></i> Profile
             <% end %>
         </div>
     </div>

@@ -678,6 +678,186 @@
   font-variant-numeric: tabular-nums;
 }
 
+// Community Activity Strip — signals of life on the site
+.activity-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-left: 2px solid var(--page-accent, $accent-red);
+  border-radius: $radius-md;
+  margin-bottom: 24px;
+  font-size: $type-small;
+}
+
+.activity-strip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $type-label;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  color: $text-tertiary;
+  white-space: nowrap;
+
+  i {
+    color: var(--page-accent, $accent-red);
+    font-size: 11px;
+    animation: activity-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes activity-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+.activity-strip-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.activity-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: $text-secondary;
+
+  i {
+    color: $text-tertiary;
+    font-size: 11px;
+    align-self: center;
+  }
+
+  strong {
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    color: $text-primary;
+    font-weight: $weight-bold;
+  }
+}
+
+.activity-stat-label {
+  color: $text-tertiary;
+}
+
+.activity-strip-link {
+  margin-left: auto;
+  color: $text-tertiary;
+  font-size: $type-small;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  transition: color $t-fast;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  i { font-size: 10px; transition: transform $t-normal ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(3px); }
+}
+
+// Recent Picks Card — social proof for the upcoming race
+.recent-picks-card {
+  margin-bottom: 24px;
+}
+
+.recent-picks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h4 {
+    margin: 0;
+    font-size: $type-body;
+    font-weight: $weight-bold;
+
+    i { color: var(--page-accent, $accent-red); margin-right: 8px; }
+  }
+}
+
+.recent-picks-cta {
+  font-size: $type-small;
+  font-weight: $weight-bold;
+  color: $text-tertiary;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color $t-fast;
+  i { font-size: 10px; transition: transform $t-normal ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(3px); }
+}
+
+.recent-picks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recent-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: $radius-sm;
+  background: $bg-surface;
+  border-left: 2px solid var(--constructor-color, #{$border-subtle});
+  transition: background $t-fast;
+
+  &:hover { background: $bg-card-elevated; }
+}
+
+.recent-pick-user {
+  font-weight: $weight-semi;
+  font-size: $type-small;
+  color: $text-primary;
+  min-width: 120px;
+}
+
+.recent-pick-arrow {
+  color: $text-tertiary;
+  font-size: 9px;
+}
+
+.recent-pick-driver {
+  flex: 1;
+  font-size: $type-small;
+
+  a {
+    color: $text-primary;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color $t-fast;
+
+    &:hover { color: var(--constructor-color, var(--page-accent, $accent-red)); }
+  }
+}
+
+.recent-pick-p1 {
+  font-family: $mono-font;
+  font-size: $type-label;
+  font-weight: $weight-bold;
+  letter-spacing: $ls-label;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
+  background: var(--constructor-color, $bg-card-elevated);
+  color: white;
+}
+
+.recent-pick-time {
+  color: $text-tertiary;
+  font-size: $type-label;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .hero-podium-inline {
     gap: 8px;
@@ -704,6 +884,34 @@
 
   .latest-result-link {
     margin-left: 0;
+  }
+
+  .activity-strip {
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .activity-strip-stats {
+      gap: 12px;
+      row-gap: 6px;
+    }
+
+    .activity-strip-link {
+      margin-left: 0;
+    }
+  }
+
+  .recent-pick-row {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .recent-pick-user {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .recent-pick-time {
+    margin-left: auto;
   }
 
   .hero-intro {

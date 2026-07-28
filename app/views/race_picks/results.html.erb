@@ -8,6 +8,9 @@
                 <%= @race.circuit.name %> · Round <%= @race.round %>
                 <% if @race.date %> · <%= @race.date.strftime("%b %d, %Y") %><% end %>
             </p>
+            <% if @race_pick %>
+                <div class="picks-reactions"><%= reaction_bar(@race_pick, size: :sm) %></div>
+            <% end %>
         </div>
         <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
             <i class="fa-solid fa-arrow-left"></i> Profile

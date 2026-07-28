@@ -64,31 +64,38 @@
             </div>
         </div>
 
+        <%# Rankings — Elo & current state %>
         <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/stats') || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Stats <i class="fa-solid fa-chevron-down"></i>
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if [peak_elo_drivers_path, current_active_elo_drivers_path, by_nationality_drivers_path, highest_elo_races_path, elo_milestones_path, elo_rankings_constructors_path, stats_path].include?(request.path) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                Rankings <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <%= link_to "Stats Hub", stats_path, class: ("active" if current_page?(stats_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
                 <%= link_to "Peak Elo", peak_elo_drivers_path, class: ("active" if current_page?(peak_elo_drivers_path)), role: "menuitem" %>
                 <%= link_to "Active Elo", current_active_elo_drivers_path, class: ("active" if current_page?(current_active_elo_drivers_path)), role: "menuitem" %>
+                <%= link_to "Constructor Elo", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
                 <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
-                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
+                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
+            </div>
+        </div>
+
+        <%# History — records, timelines, achievements %>
+        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if [race_wins_path, winners_races_path, champion_timeline_path, badges_path, families_constructors_path, best_pairings_constructors_path].include?(request.path) || request.path.start_with?('/stats/title_chase') || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                History <i class="fa-solid fa-chevron-down"></i>
+            </a>
+            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <%= link_to "Race Wins & Podiums", race_wins_path, class: ("active" if current_page?(race_wins_path)), role: "menuitem" %>
                 <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
                 <%= link_to "Champion Timeline", champion_timeline_path, class: ("active" if current_page?(champion_timeline_path)), role: "menuitem" %>
                 <%= link_to "Title Chase", title_chase_path, class: ("active" if request.path.start_with?('/stats/title_chase')), role: "menuitem" %>
-                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
-                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
                 <%= link_to "Badges", badges_path, class: ("active" if current_page?(badges_path)), role: "menuitem" %>
                 <%= link_to "Circuits", circuits_path, class: ("active" if request.path.start_with?('/circuits')), role: "menuitem" %>
-                <div class="nav-dropdown-divider"></div>
-                <%= link_to "Constructor Elo", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
                 <%= link_to "Team Lineages", families_constructors_path, class: ("active" if current_page?(families_constructors_path)), role: "menuitem" %>
                 <%= link_to "Best Pairings", best_pairings_constructors_path, class: ("active" if current_page?(best_pairings_constructors_path)), role: "menuitem" %>
-                <%= link_to "Fan Standings", fan_standings_path, class: ("active" if current_page?(fan_standings_path)), role: "menuitem" %>
             </div>
         </div>
 
@@ -107,6 +114,7 @@
                 <% end %>
                 <%= link_to "Head to Head", head_to_head_path, class: ("active" if request.path.start_with?('/head-to-head') && !request.path.include?('/results')), role: "menuitem" %>
                 <%= link_to "Crowd Rankings", head_to_head_results_path, class: ("active" if request.path.start_with?('/head-to-head') && request.path.include?('/results')), role: "menuitem" %>
+                <%= link_to "Fan Standings", fan_standings_path, class: ("active" if current_page?(fan_standings_path)), role: "menuitem" %>
                 <%= link_to "How it Works", fantasy_guide_path, class: ("active" if current_page?(fantasy_guide_path)), role: "menuitem" %>
             </div>
         </div>
@@ -118,6 +126,9 @@
 
         <%# Desktop auth link (hidden on mobile) %>
         <% if current_user %>
+            <%= link_to user_profile_path(current_user.username), class: "nav-auth-link nav-auth-desktop", role: "menuitem", title: "Profile" do %>
+                <i class="fa-solid fa-user"></i>
+            <% end %>
             <%= link_to user_settings_path(current_user.username), class: "nav-auth-link nav-auth-desktop", role: "menuitem", title: "Settings" do %>
                 <i class="fa-solid fa-gear"></i>
             <% end %>
@@ -133,6 +144,9 @@
         <%# Mobile auth footer (hidden on desktop) %>
         <div class="mobile-nav-footer mobile-nav-item">
             <% if current_user %>
+                <%= link_to user_profile_path(current_user.username), class: "nav-auth-link", role: "menuitem" do %>
+                    <i class="fa-solid fa-user"></i> Profile
+                <% end %>
                 <%= link_to user_settings_path(current_user.username), class: "nav-auth-link", role: "menuitem" do %>
                     <i class="fa-solid fa-gear"></i> Settings
                 <% end %>

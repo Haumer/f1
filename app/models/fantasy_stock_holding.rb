@@ -1,4 +1,6 @@
 class FantasyStockHolding < ApplicationRecord
+  include Reactable
+
   belongs_to :fantasy_stock_portfolio
   belongs_to :driver
   belongs_to :opened_race, class_name: "Race"
