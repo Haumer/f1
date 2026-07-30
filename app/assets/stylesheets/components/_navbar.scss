@@ -170,6 +170,13 @@
       }
     }
 
+    // Right-anchored variant for dropdowns near the end of the nav (e.g. avatar
+     // "You" menu) so they don't spill off the right edge of the viewport.
+    .nav-dropdown-menu-right {
+      left: auto;
+      right: 0;
+    }
+
     .nav-dropdown-menu {
       display: none;
       position: absolute;
@@ -219,6 +226,89 @@
         background: $border-color;
         margin: 4px 16px;
       }
+    }
+  }
+
+  // ── Split-button variant ──────────────────────────────────────────
+  // Google-Docs-Share style: primary link on the left (larger, main
+  // action), thin divider, then a smaller caret button on the right
+  // that toggles the dropdown menu. Both halves share a wrapper border
+  // so it reads as one control.
+  .nav-split-dropdown {
+    display: inline-flex;
+    align-items: stretch;
+
+    // When the primary is active (we're on home), tint the whole pill so
+    // the caret half doesn't look disconnected from the primary half.
+    // Uses :has() so no extra server-side class needed.
+    &:has(.nav-split-primary.active) .nav-split-caret {
+      background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+      color: var(--page-accent, $accent-red);
+      border-left-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.25);
+    }
+    // Hover on either half raises both — reads as a single control.
+    &:hover .nav-split-primary,
+    &:hover .nav-split-caret {
+      background: rgba(255, 255, 255, 0.04);
+      color: $text-primary;
+    }
+    // But keep the active-red taking precedence over the plain hover tint.
+    &:has(.nav-split-primary.active):hover .nav-split-primary,
+    &:has(.nav-split-primary.active):hover .nav-split-caret {
+      background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.14);
+      color: var(--page-accent, $accent-red);
+    }
+
+    .nav-split-primary {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: $text-secondary;
+      font-weight: $weight-semi;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      transition: all $t-fast;
+      display: inline-flex;
+      align-items: center;
+      border-radius: $radius-sm 0 0 $radius-sm;
+
+      &:hover {
+        color: $text-primary;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      &.active {
+        color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+      }
+    }
+
+    .nav-split-caret {
+      padding: 0 10px;
+      background: transparent;
+      border: none;
+      border-left: 1px solid $border-subtle;
+      color: $text-secondary;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      transition: all $t-fast;
+      border-radius: 0 $radius-sm $radius-sm 0;
+
+      i {
+        font-size: 9px;
+        transition: transform 250ms $ease-out;
+      }
+
+      &:hover {
+        color: $text-primary;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      &.active,
+      &[aria-expanded="true"] {
+        color: var(--page-accent, $accent-red);
+      }
+
+      &[aria-expanded="true"] i { transform: rotate(180deg); }
     }
   }
 }
@@ -389,6 +479,99 @@
       // Chevron rotation when open
       .nav-dropdown-toggle[aria-expanded="true"] i {
         transform: rotate(180deg);
+      }
+    }
+
+    // ── Split-button on mobile: primary is a full-width link, caret sits
+    // to its right and still expands the accordion below. ──
+    .links .nav-split-dropdown {
+      display: flex;
+      align-items: stretch;
+      flex-wrap: wrap;
+      border-bottom: 1px solid $border-subtle;
+
+      &:hover { background: none; }
+
+      .nav-split-primary {
+        flex: 1;
+        padding: 14px 0;
+        font-size: 14px;
+        font-weight: $weight-bold;
+        letter-spacing: 0.8px;
+        color: $text-primary;
+        display: flex;
+        align-items: center;
+
+        &:hover { color: var(--page-accent, $accent-red); background: none; }
+        &.active {
+          color: var(--page-accent, $accent-red);
+          position: relative;
+          &::before {
+            content: '';
+            position: absolute;
+            left: -24px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            border-radius: 0 2px 2px 0;
+            background: var(--page-accent, $accent-red);
+          }
+        }
+      }
+
+      .nav-split-caret {
+        padding: 14px 12px;
+        border-left: 1px solid $border-subtle;
+        color: $text-primary;
+
+        i { font-size: 10px; }
+
+        &:hover { color: var(--page-accent, $accent-red); background: none; }
+        &[aria-expanded="true"] i { transform: rotate(180deg); }
+      }
+
+      // Full-width dropdown menu on the next line, accordion-style
+      .nav-dropdown-menu {
+        flex-basis: 100%;
+        position: static;
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        margin-top: 0;
+        background: transparent;
+        overflow: hidden;
+        max-height: 0;
+        padding: 0;
+        transition: max-height 300ms $ease-out, padding 300ms $ease-out;
+
+        &.open {
+          display: flex;
+          flex-direction: column;
+          animation: none;
+          max-height: 500px;
+          padding: 0 0 12px 0;
+        }
+
+        a {
+          padding: 10px 0 10px 16px;
+          font-size: 13px;
+          font-weight: $weight-semi;
+          color: $text-secondary;
+          border-left: 2px solid $border-color;
+          white-space: normal;
+
+          &:hover {
+            color: var(--page-accent, $accent-red);
+            border-left-color: var(--page-accent, $accent-red);
+            background: none;
+          }
+
+          &.active {
+            color: var(--page-accent, $accent-red);
+            border-left-color: var(--page-accent, $accent-red);
+          }
+        }
       }
 
       .nav-dropdown-menu {

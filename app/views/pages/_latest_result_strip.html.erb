@@ -1,7 +1,9 @@
 <div class="latest-result-strip">
     <div class="latest-result-label">
         <i class="fa-solid fa-flag-checkered"></i>
-        <%= link_to race.circuit.name, race_path(race) %>
+        <span class="latest-result-eyebrow">Previous Race</span>
+        <span class="latest-result-sep">·</span>
+        <%= link_to race.circuit.name, race_path(race), class: "latest-result-circuit" %>
     </div>
     <div class="latest-result-podium">
         <% podium&.each do |result| %>

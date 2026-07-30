@@ -114,7 +114,9 @@ module HomepageData
     # Season complete (only when no active race context)
     return :season_complete if @season_complete && @champion
 
-    # Pre-race: any gap before next race (no 7-day limit)
+    # Pre-race: split by proximity — imminent race weekend vs a quieter between-races moment
+    days_to_fp1 = (fp1_date - @today).to_i
+    return :between_races if days_to_fp1 > 3
     :pre_race
   end
 
@@ -137,6 +139,12 @@ module HomepageData
       @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
 
     when :pre_race
+      @countdown_race = race
+      @days_until_fp1 = (race.fp1_date - @today).to_i
+      @session_schedule = build_session_schedule(race)
+      @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
+
+    when :between_races
       @countdown_race = race
       @days_until_fp1 = (race.fp1_date - @today).to_i
       @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)

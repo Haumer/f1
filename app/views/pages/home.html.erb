@@ -1,11 +1,6 @@
 <% content_for(:title) { "Rating Every F1 Driver Since 1950" } %>
 <% content_for(:description) { "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1." } %>
 <div class="homepage-container">
-    <%# 0. Signed-out visitor hero — hidden once user is signed in %>
-    <% unless user_signed_in? %>
-        <%= render "pages/logged_out_hero" %>
-    <% end %>
-
     <% if @season %>
         <%# 1. Contextual Hero %>
         <% case @homepage_phase %>
@@ -23,10 +18,12 @@
             <%= render "pages/hero_race_weekend" %>
         <% when :pre_race %>
             <%= render "pages/hero_pre_race" %>
+        <% when :between_races %>
+            <%= render "pages/hero_between_races" %>
         <% end %>
 
-        <%# 2. Persistent Latest Result Strip (skip during post_race — hero already shows it) %>
-        <% if @latest_race&.has_results? && @homepage_phase != :post_race %>
+        <%# 2. Persistent Latest Result Strip (skip when hero already shows the previous race) %>
+        <% if @latest_race&.has_results? && ![:post_race, :between_races].include?(@homepage_phase) %>
             <%= render "pages/latest_result_strip", race: @latest_race, podium: @podium_results %>
         <% end %>
 
@@ -34,7 +31,7 @@
         <%= render "pages/activity_strip", activity: @community_activity, next_race: @next_race %>
 
         <%# 3. Next Race strip (always visible when available, skip if hero already covers it) %>
-        <% unless [:race_weekend, :race_day, :race_complete, :pre_race, :season_start].include?(@homepage_phase) %>
+        <% unless [:race_weekend, :race_day, :race_complete, :pre_race, :between_races, :season_start].include?(@homepage_phase) %>
             <% if @next_race && @next_race.date > @today %>
                 <div class="next-race-strip">
                     <i class="fa-solid fa-calendar"></i>
