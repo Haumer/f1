@@ -25,10 +25,10 @@
         <div class="between-races-info">
             <div class="between-races-eyebrow">
                 <i class="fa-solid fa-calendar-xmark"></i>
-                <span>No race this weekend</span>
+                <span>Next up · No race this weekend</span>
             </div>
             <h1 class="page-hero-title">
-                Next up: <%= link_to race.circuit.name, race_path(race) %>
+                <%= link_to race.circuit.name, race_path(race) %>
             </h1>
             <p class="page-hero-meta">
                 Round <%= race.round %> · <%= race.circuit.location %>, <%= race.circuit.country %>
