@@ -1,0 +1,374 @@
+// Community Standings — /stats/fan_standings
+// Table uses the canonical .current-driver-standings pattern. Only page-specific
+// bits live here: hero emphasis, column tooltips, subtle signal colouring,
+// Vs-model badges, callouts, constructor loyalty.
+
+.fanstandings-page {
+  padding-top: 20px;
+
+  // Emphasized bits inside the shared page-hero-meta
+  .page-hero-meta strong {
+    color: $text-primary;
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-bold;
+  }
+
+  // Column-header tooltips use position:absolute inside the table, and their
+  // 260px max-width would inflate the wrapper's scrollWidth and trigger a
+  // spurious horizontal scrollbar. We've already fitted the table to fit its
+  // container (compact padding + mobile column-hiding), so no scroll is needed.
+  .table-scroll-wrapper { overflow-x: visible; }
+}
+
+// ── Table tweaks ──
+// The extra .compact selector bumps specificity above .current-driver-standings.compact
+// (which is declared later in the cascade with 5px 8px padding).
+.current-driver-standings.compact.fanstandings-table {
+  // Ten columns is dense — trim padding on the numeric middle columns so the
+  // table fits within .homepage-container without triggering horizontal scroll.
+  th.text-center, td.text-center {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  width: 100%;
+}
+
+
+.fanstandings-table {
+
+  // Column-header hover tooltip (matches [data-tooltip]::after pattern used
+  // in _circuit_kings.scss / _show.scss). Drops below the header row.
+  thead th {
+    position: relative;
+  }
+
+  th[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-2px);
+    background: $bg-card-elevated;
+    color: $text-primary;
+    border: 1px solid $border-accent;
+    font-family: $body-font;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 6px 10px;
+    border-radius: $radius-sm;
+    white-space: normal;
+    width: max-content;
+    max-width: 260px;
+    line-height: 1.4;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 100;
+  }
+
+  th[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  // Subtle colour hints so each signal cell reads as its type at a glance.
+  tbody td.fdr-cell-long   { color: #4ade80; font-variant-numeric: tabular-nums; }
+  tbody td.fdr-cell-p1     { color: #facc15; font-variant-numeric: tabular-nums; }
+  tbody td.fdr-cell-short  { color: #f87171; font-variant-numeric: tabular-nums; }
+  tbody td.fdr-cell-score  { font-variant-numeric: tabular-nums; }
+
+  // Cells with zero value carry data-sort-value="0" — mute the em-dash so
+  // real numbers stand out.
+  tbody td.fdr-cell-long[data-sort-value="0"],
+  tbody td.fdr-cell-p1[data-sort-value="0"],
+  tbody td.fdr-cell-short[data-sort-value="0"] {
+    color: $text-tertiary;
+    opacity: 0.5;
+  }
+}
+
+// ── Vs-model badges (used both in-table and in the legend) ──
+.fdr-delta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: $mono-font;
+  font-variant-numeric: tabular-nums;
+  font-size: $type-label;
+  font-weight: $weight-bold;
+
+  i { font-size: 10px; }
+}
+
+.fdr-delta-crowd { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.32); }
+.fdr-delta-model { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.32); }
+.fdr-delta-agree { background: $bg-surface;               color: $text-tertiary; border: 1px solid $border-subtle; }
+
+// ── Legend ──
+.fanstandings-legend {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  margin-top: 12px;
+  background: $bg-surface;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  font-size: $type-small;
+}
+
+.fanstandings-legend-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.fanstandings-legend-label {
+  font-size: $type-label;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  font-weight: $weight-bold;
+  color: $text-tertiary;
+}
+
+.fanstandings-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-secondary;
+}
+
+// ── Callout row ──
+.fanstandings-callouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 16px 0 32px;
+}
+
+.fanstandings-callout {
+  padding: 14px 16px;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-left: 3px solid var(--constructor-color, $accent-red);
+  border-radius: $radius-md;
+}
+
+.fanstandings-callout-label {
+  font-size: $type-label;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  font-weight: $weight-bold;
+  color: $text-tertiary;
+  margin-bottom: 6px;
+
+  i { color: var(--constructor-color, $accent-red); margin-right: 4px; }
+}
+
+// Community short — swap accent to warning red so it reads as "bet against"
+.fanstandings-callout-short {
+  border-left-color: #f87171;
+
+  .fanstandings-callout-label i { color: #f87171; }
+}
+
+.fanstandings-callout-driver {
+  font-family: $headers-font;
+  font-size: $type-h3;
+  font-weight: $weight-bold;
+  margin-bottom: 3px;
+
+  a { color: $text-primary; text-decoration: none; }
+  a:hover { color: var(--constructor-color, $accent-red); }
+}
+
+.fanstandings-callout-meta {
+  font-family: $mono-font;
+  font-size: $type-label;
+  color: $text-tertiary;
+}
+
+// ── Constructor loyalty ──
+.fanstandings-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.fanstandings-team {
+  padding: 16px 20px;
+}
+
+.fanstandings-team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fanstandings-team-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: $headers-font;
+  font-size: $type-h3;
+  font-weight: $weight-bold;
+
+  a { text-decoration: none; }
+}
+
+.fanstandings-team-logo {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+}
+
+.fanstandings-team-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fanstandings-team-num {
+  font-family: $mono-font;
+  font-variant-numeric: tabular-nums;
+  font-size: $type-h2;
+  font-weight: $weight-bold;
+  color: $text-primary;
+}
+
+.fanstandings-team-pct {
+  font-size: $type-small;
+  color: $text-tertiary;
+  font-family: $mono-font;
+}
+
+.fanstandings-team-bar {
+  height: 4px;
+  background: $bg-surface;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.fanstandings-team-bar-fill {
+  height: 100%;
+  transition: width $t-normal ease;
+}
+
+.fanstandings-team-fans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fanstandings-fan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  background: $bg-surface;
+  border: 1px solid $border-subtle;
+  border-radius: 999px;
+  color: $text-primary;
+  text-decoration: none;
+  font-size: $type-small;
+  font-weight: $weight-semi;
+  transition: transform $t-fast, border-color $t-fast;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: var(--fan-color, $accent-red);
+  }
+}
+
+.fanstandings-fan-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: $headers-font;
+  font-weight: $weight-bold;
+  font-size: $type-small;
+}
+
+.fanstandings-fan-name {
+  color: $text-primary;
+}
+
+// ── Collapsed "no supporters" list ──
+.fanstandings-unsupported {
+  margin-top: 8px;
+  padding: 10px 16px;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+
+  summary {
+    cursor: pointer;
+    font-size: $type-small;
+    color: $text-tertiary;
+    font-weight: $weight-bold;
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
+    &::before {
+      content: "▸ ";
+      color: $text-tertiary;
+      margin-right: 4px;
+    }
+  }
+
+  &[open] summary::before { content: "▾ "; }
+}
+
+.fanstandings-unsupported-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+  margin-top: 10px;
+  border-top: 1px solid $border-subtle;
+}
+
+.fanstandings-unsupported-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: $bg-surface;
+  border-radius: $radius-sm;
+  font-size: $type-small;
+  font-weight: $weight-semi;
+  text-decoration: none;
+  transition: opacity $t-fast;
+
+  &:hover { opacity: 0.8; }
+}
+
+// ── Responsive ──
+// On tablet-and-narrower: hide the detail columns (Longs / P1 / Shorts / Model)
+// so the table collapses to the canonical driver-standings shape:
+//   # · Flag · Driver · Constructor · Score · Elo
+// Detail is still reachable via the row's title-attr tooltips and the callout row.
+@media (max-width: 900px) {
+  .fanstandings-table {
+    .col-signal,
+    .col-model { display: none; }
+  }
+}
+
+@media (max-width: 640px) {
+  .fanstandings-team { padding: 14px 16px; }
+  .fanstandings-team-num { font-size: $type-h3; }
+}

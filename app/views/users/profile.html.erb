@@ -1,0 +1,152 @@
+<% content_for(:title) { "@#{@user.username} — F1 Elo" } %>
+<% content_for(:description) { "#{@user.username}'s F1 fantasy portfolio, picks, and rankings on F1 Elo." } %>
+
+<div class="homepage-container profile-page" style="<%= "--page-accent: #{@team_color}; --page-accent-rgb: #{@team_color ? hex_to_rgb(@team_color) : '225,6,0'};" if @team_color %>">
+  <div class="profile-header">
+    <div class="profile-identity">
+      <div class="profile-avatar" style="<%= "background: #{@team_color};" if @team_color %>">
+        <%= @user.username.first.upcase %>
+      </div>
+      <div class="profile-identity-text">
+        <h1 class="profile-username">@<%= @user.username %></h1>
+        <div class="profile-meta">
+          <% if @supported_constructor %>
+            <span class="profile-team">
+              <% if @supported_constructor.logo_url.present? %>
+                <img src="<%= @supported_constructor.logo_url %>" alt="<%= @supported_constructor.name %>" class="profile-team-logo" onerror="this.style.display='none'">
+              <% end %>
+              <%= link_to @supported_constructor.name, constructor_path(@supported_constructor), style: "color: #{@team_color};" %>
+            </span>
+            <span class="profile-meta-dot">·</span>
+          <% end %>
+          <span class="profile-since">
+            <i class="fa-solid fa-calendar"></i>
+            Member since <%= @user.created_at.strftime("%B %Y") %>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="profile-header-actions">
+      <% if @is_owner %>
+        <%= link_to user_settings_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+          <i class="fa-solid fa-gear"></i> Settings
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ═══ Snapshot row ═══ %>
+  <div class="profile-snapshot">
+    <div class="profile-stat">
+      <span class="profile-stat-value"><%= @stock_portfolio ? number_with_delimiter(@stock_portfolio.profit_loss.round) : "—" %></span>
+      <span class="profile-stat-label">Fantasy P/L</span>
+    </div>
+    <% if @stock_rank %>
+      <div class="profile-stat">
+        <span class="profile-stat-value">#<%= @stock_rank %></span>
+        <span class="profile-stat-label">Season rank</span>
+      </div>
+    <% end %>
+    <div class="profile-stat">
+      <span class="profile-stat-value"><%= @recent_picks.size %></span>
+      <span class="profile-stat-label">Recent picks</span>
+    </div>
+    <% total_reactions = @reactions_received.values.sum %>
+    <% if total_reactions > 0 %>
+      <div class="profile-stat">
+        <span class="profile-stat-value"><%= total_reactions %></span>
+        <span class="profile-stat-label">Reactions received</span>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ═══ Reactions breakdown ═══ %>
+  <% if @reactions_received.any? %>
+    <div class="profile-reactions-row">
+      <% Reaction::KINDS.each do |kind| %>
+        <% count = @reactions_received[kind].to_i %>
+        <% next if count.zero? %>
+        <span class="profile-reaction-chip">
+          <span class="profile-reaction-emoji"><%= Reaction::KIND_META[kind][:emoji] %></span>
+          <span class="profile-reaction-count"><%= count %></span>
+        </span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# ═══ Fantasy portfolio card ═══ %>
+  <% if @stock_portfolio %>
+    <div class="table-header">
+      <%= link_to fantasy_overview_path(@user.username), class: "table-header-link" do %>
+        <h3>Fantasy Portfolio <i class="fa-solid fa-arrow-right"></i></h3>
+      <% end %>
+    </div>
+    <%= link_to fantasy_overview_path(@user.username), class: "card profile-card-link" do %>
+      <div class="profile-portfolio-summary">
+        <div class="profile-portfolio-block">
+          <span class="profile-portfolio-label">Cash</span>
+          <span class="profile-portfolio-value"><%= number_with_delimiter(@stock_portfolio.cash.round) %></span>
+        </div>
+        <div class="profile-portfolio-block">
+          <span class="profile-portfolio-label">Positions</span>
+          <span class="profile-portfolio-value"><%= @stock_portfolio.position_count %></span>
+        </div>
+        <div class="profile-portfolio-block">
+          <span class="profile-portfolio-label">Total return</span>
+          <% pl = @stock_portfolio.profit_loss %>
+          <span class="profile-portfolio-value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
+            <%= pl >= 0 ? "+" : "" %><%= number_with_delimiter(pl.round) %>
+          </span>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%# ═══ Recent picks ═══ %>
+  <% if @recent_picks.any? %>
+    <div class="table-header">
+      <h3>Recent Picks</h3>
+    </div>
+    <div class="card card-flush">
+      <div class="profile-picks-list">
+        <% @recent_picks.each do |pick| %>
+          <% next if pick.race.nil? %>
+          <%= link_to race_pick_results_path(username: @user.username, race_id: pick.race.id),
+                      class: "profile-pick-row" do %>
+            <span class="profile-pick-race"><%= pick.race.circuit.name %></span>
+            <span class="profile-pick-meta">
+              R<%= pick.race.round %> · <%= pick.race.year %>
+              <% if pick.score %> · <strong><%= pick.score %> pts</strong><% end %>
+            </span>
+            <i class="fa-solid fa-chevron-right profile-pick-chev"></i>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ═══ Latest H2H ═══ %>
+  <% if @latest_h2h&.champion_driver %>
+    <div class="table-header">
+      <h3>Latest Head-to-Head</h3>
+    </div>
+    <div class="card profile-h2h-card">
+      <div class="profile-h2h-champion">
+        <span class="profile-h2h-crown"><i class="fa-solid fa-crown"></i></span>
+        <div>
+          <span class="profile-h2h-label"><%= @latest_h2h.year %> #1 pick</span>
+          <%= link_to @latest_h2h.champion_driver.fullname, driver_path(@latest_h2h.champion_driver), class: "profile-h2h-name" %>
+        </div>
+      </div>
+      <span class="profile-h2h-meta"><%= @latest_h2h.rounds_played %> matchups</span>
+    </div>
+  <% end %>
+
+  <% if @recent_picks.empty? && @stock_portfolio.nil? %>
+    <div class="empty-state">
+      <i class="fa-solid fa-user"></i>
+      <h3>Nothing to show yet</h3>
+      <p>@<%= @user.username %> hasn't made any picks or opened a fantasy portfolio.</p>
+    </div>
+  <% end %>
+</div>

@@ -1,33 +1,92 @@
-<div class="page-hero pre-race-hero">
+<%
+  race     = @countdown_race
+  is_sprint = race.respond_to?(:sprint?) && race.sprint?
+  weekend_start = race.session_schedule.map { |s| s[:date] }.compact.min || race.date
+  weekend_end   = race.date
+  weekend_label = if weekend_start.month == weekend_end.month
+                    "#{weekend_start.strftime('%b %-d')}–#{weekend_end.strftime('%-d')}"
+                  else
+                    "#{weekend_start.strftime('%b %-d')}–#{weekend_end.strftime('%b %-d')}"
+                  end
+  has_track = race.circuit.track_image?
+%>
+<div class="page-hero pre-race-hero pre-race-hero-v2 <%= 'has-track' if has_track %>">
     <div class="page-hero-bg"></div>
-    <div class="page-hero-content">
-        <span class="page-hero-label">
-            <i class="fa-solid fa-calendar"></i>
-            Race Week · <%= @countdown_race.date.strftime("%B %d") %>
-        </span>
-        <h1 class="page-hero-title"><%= link_to @countdown_race.circuit.name, race_path(@countdown_race) %></h1>
-        <p class="page-hero-meta">Round <%= @countdown_race.round %> · <%= @countdown_race.circuit.location %>, <%= @countdown_race.circuit.country %></p>
 
-        <% if @next_session %>
-            <div class="countdown-timer"
-                 data-controller="countdown"
-                 data-countdown-target-value="<%= @next_session[:starts_at].iso8601 %>"
-                 data-countdown-label-value="<%= @next_session[:name] %> in">
-            </div>
-        <% else %>
-            <div class="countdown-badge">
-                <span class="countdown-number"><%= @days_until_fp1 %></span>
-                <span class="countdown-label"><%= @days_until_fp1 == 1 ? 'day' : 'days' %> until FP1</span>
-            </div>
-        <% end %>
+    <% if has_track %>
+        <div class="pre-race-hero-watermark" aria-hidden="true">
+            <%= image_tag race.circuit.track_image_path, alt: "" %>
+        </div>
+    <% end %>
 
-        <% if @countdown_race.starts_at %>
-            <div class="race-time-preview">
-                <span class="race-time-label">Race Start</span>
-                <span class="race-time-value"><%= @countdown_race.starts_at.strftime("%H:%M UTC") %></span>
+    <div class="page-hero-content pre-race-hero-content">
+        <div class="pre-race-hero-info">
+            <div class="pre-race-hero-banner">
+                <span class="pre-race-hero-banner-head">
+                    <i class="fa-solid fa-<%= is_sprint ? 'bolt' : 'flag-checkered' %>"></i>
+                    <span class="pre-race-hero-banner-title"><%= is_sprint ? 'Sprint Weekend' : 'Race Weekend' %></span>
+                </span>
+                <span class="pre-race-hero-banner-sep">·</span>
+                <span class="pre-race-hero-banner-dates"><%= weekend_label %></span>
             </div>
-        <% end %>
+            <h1 class="page-hero-title"><%= link_to race.circuit.name, race_path(race) %></h1>
+            <p class="page-hero-meta">Round <%= race.round %> · <%= race.circuit.location %>, <%= race.circuit.country %></p>
+
+            <% if @next_session %>
+                <div class="pre-race-hero-countdown countdown-timer"
+                     data-controller="countdown"
+                     data-countdown-target-value="<%= @next_session[:starts_at].iso8601 %>"
+                     data-countdown-label-value="<%= @next_session[:name] %> in">
+                </div>
+            <% else %>
+                <div class="pre-race-hero-countdown countdown-badge">
+                    <span class="countdown-number"><%= @days_until_fp1 %></span>
+                    <span class="countdown-label"><%= @days_until_fp1 == 1 ? 'day' : 'days' %> until FP1</span>
+                </div>
+            <% end %>
+
+            <%# Circuit Kings — moved from below the hero into the info column,
+                styled subtly here via the .pre-race-hero-info scope. %>
+            <% if @circuit_kings.present? %>
+                <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
+            <% end %>
+        </div>
+
+        <div class="pre-race-hero-schedule">
+            <div class="pre-race-hero-schedule-title">
+                <i class="fa-solid fa-calendar"></i> Session Schedule
+            </div>
+            <ul class="pre-race-schedule-list">
+                <% @session_schedule.each_with_index do |session, i| %>
+                    <% is_next = @next_session && @next_session[:key] == session[:key] %>
+                    <% connector_fill = session[:connector_before_fill].to_i %>
+                    <li class="pre-race-schedule-row pre-race-schedule-<%= session[:status] %><%= ' is-next' if is_next %>">
+                        <span class="pre-race-schedule-rail">
+                            <% if i > 0 %>
+                                <span class="pre-race-schedule-rail-line"></span>
+                                <span class="pre-race-schedule-rail-fill" style="height: <%= connector_fill %>%"></span>
+                            <% end %>
+                            <span class="pre-race-schedule-dot"></span>
+                        </span>
+                        <span class="pre-race-schedule-name"><%= session[:name] %></span>
+                        <span class="pre-race-schedule-day"><%= session[:date].strftime('%a') %></span>
+                        <span class="pre-race-schedule-time">
+                            <% if session[:starts_at] %>
+                                <%= session[:starts_at].strftime('%H:%M') %> UTC
+                            <% else %>
+                                <%= session[:date].strftime('%b %-d') %>
+                            <% end %>
+                        </span>
+                        <% if is_next %>
+                            <span class="pre-race-schedule-badge">Next</span>
+                        <% elsif session[:status] == :today %>
+                            <span class="pre-race-schedule-badge is-live">Live</span>
+                        <% elsif session[:status] == :done %>
+                            <span class="pre-race-schedule-badge is-done"><i class="fa-solid fa-check"></i></span>
+                        <% end %>
+                    </li>
+                <% end %>
+            </ul>
+        </div>
     </div>
 </div>
-
-<%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>

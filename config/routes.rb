@@ -81,6 +81,7 @@ Rails.application.routes.draw do
   # Fantasy user pages (must be before resources to avoid :id conflicts)
   get  'fantasy/u/:username',         to: 'fantasy_portfolios#overview',  as: :fantasy_overview
   get  'fantasy/u/:username/picks/:race_id', to: 'race_picks#results', as: :race_pick_results
+  get  'fantasy/u/:username/picks/:race_id/compare', to: 'race_picks#compare', as: :race_pick_compare
   post 'fantasy/toggle_public',       to: 'fantasy_portfolios#toggle_public', as: :toggle_public_profile
 
   resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create] do
@@ -124,7 +125,12 @@ Rails.application.routes.draw do
   # Activity feed (credits + cards + achievements). Owner-only.
   get 'fantasy/u/:username/activity', to: 'fantasy_activity#index', as: :fantasy_activity
 
-  # User account settings
-  get   'u/:username', to: 'users#show',   as: :user_settings
-  patch 'u/:username', to: 'users#update'
+  # User public profile + settings
+  get   'u/:username',          to: 'users#profile',  as: :user_profile
+  get   'u/:username/settings', to: 'users#settings', as: :user_settings
+  patch 'u/:username/settings', to: 'users#update'
+
+  # Reactions (polymorphic toggle)
+  post 'reactions/:reactable_type/:reactable_id/:kind',
+       to: 'reactions#toggle', as: :toggle_reaction
 end

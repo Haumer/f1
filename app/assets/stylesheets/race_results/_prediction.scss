@@ -84,6 +84,12 @@
     object-fit: contain;
 }
 
+.pred-reactions {
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+}
+
 // ── Section headers ──
 .preview-section {
     margin-bottom: $space-xl;

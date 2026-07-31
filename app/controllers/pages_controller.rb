@@ -20,6 +20,7 @@ class PagesController < ApplicationController
     prepare_homepage_phase
     load_fantasy_portfolio
     load_leaderboard_preview
+    load_community_activity
   end
 
   def about

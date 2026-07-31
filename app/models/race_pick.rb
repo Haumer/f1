@@ -1,4 +1,6 @@
 class RacePick < ApplicationRecord
+  include Reactable
+
   belongs_to :user
   belongs_to :race
 

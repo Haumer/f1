@@ -1,0 +1,46 @@
+<%
+  # Locals:
+  #   activity   — hash of counts (see load_community_activity)
+  #   next_race  — Race (for the picks stat label)
+  stats = []
+  if activity
+    if next_race && activity[:picks_for_next_race].to_i > 0
+      stats << {
+        icon: "fa-solid fa-hand-pointer",
+        value: activity[:picks_for_next_race],
+        label: "picks for #{next_race.circuit.name}"
+      }
+    end
+    if activity[:trades_this_week].to_i > 0
+      stats << {
+        icon: "fa-solid fa-arrow-right-arrow-left",
+        value: activity[:trades_this_week],
+        label: "trades this week"
+      }
+    end
+    if activity[:new_members_this_week].to_i > 0
+      stats << {
+        icon: "fa-solid fa-user-plus",
+        value: activity[:new_members_this_week],
+        label: activity[:new_members_this_week] == 1 ? "new member this week" : "new members this week"
+      }
+    end
+  end
+%>
+<% if stats.any? %>
+  <div class="activity-strip">
+    <span class="activity-strip-label"><i class="fa-solid fa-tower-broadcast"></i> Live on F1 Elo</span>
+    <div class="activity-strip-stats">
+      <% stats.each do |s| %>
+        <span class="activity-stat">
+          <i class="<%= s[:icon] %>"></i>
+          <strong><%= number_with_delimiter(s[:value]) %></strong>
+          <span class="activity-stat-label"><%= s[:label] %></span>
+        </span>
+      <% end %>
+    </div>
+    <%= link_to combined_leaderboard_path, class: "activity-strip-link" do %>
+      Leaderboard <i class="fa-solid fa-arrow-right"></i>
+    <% end %>
+  </div>
+<% end %>

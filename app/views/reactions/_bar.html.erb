@@ -1,0 +1,33 @@
+<%
+  # Locals:
+  #   reactable — any model that includes Reactable
+  #   size      — :sm | :md (default :sm)
+  size ||= :sm
+  counts = reactable.reaction_counts
+  user_kinds = reactable.reaction_kinds_for(current_user)
+  dom_id = reaction_bar_dom_id(reactable)
+%>
+<div id="<%= dom_id %>"
+     class="reaction-bar reaction-bar--<%= size %>"
+     data-controller="reaction-bar">
+  <% Reaction::KINDS.each do |kind| %>
+    <% meta = Reaction::KIND_META[kind] %>
+    <% count = counts[kind].to_i %>
+    <% mine = user_kinds.include?(kind) %>
+    <%= button_to toggle_reaction_path(
+                    reactable_type: reactable.class.name,
+                    reactable_id: reactable.id,
+                    kind: kind
+                  ),
+                  method: :post,
+                  form: { data: { turbo_stream: true } },
+                  class: "reaction-btn #{'reaction-btn--mine' if mine} #{'reaction-btn--empty' if count.zero?}",
+                  title: meta[:label],
+                  aria: { pressed: mine } do %>
+      <span class="reaction-emoji"><%= meta[:emoji] %></span>
+      <% if count > 0 %>
+        <span class="reaction-count"><%= count %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

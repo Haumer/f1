@@ -36,6 +36,9 @@
                     <%= link_to @user.display_name, fantasy_overview_path(username: @user.username), class: "pred-author-name" %>
                 <% end %>
             </div>
+            <div class="pred-reactions">
+                <%= reaction_bar(@prediction, size: :md) %>
+            </div>
         </div>
     </div>
 

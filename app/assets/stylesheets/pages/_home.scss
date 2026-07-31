@@ -154,6 +154,731 @@
   }
 }
 
+// ── Redesigned pre-race hero (v2) ─────────────────────────────────────
+// Layout: 2-col desktop, stacked mobile.
+//   Left  = identity + rotating countdown to the next session
+//   Right = full session schedule (FP1..Race, sprint handled by data)
+//   Track SVG sits behind everything as a subtle watermark.
+// Circuit Kings strip stays as its own component below.
+// Use the compound .page-hero.pre-race-hero-v2 selector so these tighter
+// spacing rules beat the shared .page-hero component's 40px/32px defaults
+// (which are declared later in the cascade).
+.page-hero.pre-race-hero-v2 {
+  text-align: left;
+  padding: 44px 0 12px;
+  margin-bottom: 4px;
+  // Kill the default centered ::after accent since the layout is asymmetric.
+  &::after { display: none; }
+
+  // Track SVG watermark — big, faint, kept fully inside the hero (no negative
+  // offset) so the full track outline is visible behind the content.
+  .pre-race-hero-watermark {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 55%;
+    pointer-events: none;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 480px;
+      max-height: 100%;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+      opacity: 0.08;
+    }
+  }
+
+  .pre-race-hero-content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 40px;
+    // Anchor content to the top so the identity block sits under the hero label
+    // instead of drifting into the vertical center when the schedule column is tall.
+    align-items: start;
+    padding: 0 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .page-hero-title { text-align: left; }
+  .page-hero-meta  { text-align: left; }
+  .page-hero-label { align-self: flex-start; }
+
+  .pre-race-hero-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  // ── Big distinctive "Race Weekend" banner ──
+  // Replaces the tiny .page-hero-label pill. Uses the F1 title font, is much
+  // larger than the meta line, and carries an accent-coloured chevron marker
+  // on the left so it reads like a proper section header, not a badge.
+  .pre-race-hero-banner {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 0 10px;
+    margin-bottom: 4px;
+    position: relative;
+    font-family: $headers-font;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: $weight-bold;
+    color: var(--page-accent, $accent-red);
+    line-height: 1;
+
+    // Left chevron bar as visual anchor
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 22px;
+      background: var(--page-accent, $accent-red);
+      margin-right: 4px;
+      box-shadow: 0 0 12px rgba(var(--page-accent-rgb, 225, 6, 0), 0.5);
+      transform: translateY(2px);
+    }
+
+    .pre-race-hero-banner-head {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    i { font-size: 20px; color: var(--page-accent, $accent-red); }
+
+    .pre-race-hero-banner-title {
+      font-size: 22px;
+      text-shadow: 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.35);
+    }
+
+    .pre-race-hero-banner-sep {
+      color: $text-tertiary;
+      opacity: 0.55;
+      font-size: 16px;
+    }
+
+    .pre-race-hero-banner-dates {
+      font-family: $mono-font;
+      font-variant-numeric: tabular-nums;
+      font-size: 15px;
+      font-weight: $weight-semi;
+      color: $text-secondary;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .pre-race-hero-countdown {
+    margin-top: 20px;
+    align-self: flex-start;
+  }
+
+  // ── Subtle Circuit Kings when nested inside the hero info column ──
+  // Overrides the shared component's default styling so it reads as
+  // supporting info, not competing with the title/countdown.
+  .pre-race-hero-info .circuit-kings {
+    margin-top: 22px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .pre-race-hero-info .circuit-kings-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.85;
+
+    i { color: #d4a017; font-size: 10px; }
+  }
+  .pre-race-hero-info .circuit-kings-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pre-race-hero-info .circuit-king-chip {
+    background: transparent;
+    border: 1px solid $border-subtle;
+    padding: 3px 8px;
+    font-size: 11px;
+    border-radius: 999px;
+    color: $text-secondary;
+
+    a { color: $text-secondary; font-weight: $weight-semi; }
+    a:hover { color: $text-primary; }
+
+    .circuit-king-wins {
+      color: $text-tertiary;
+      font-weight: $weight-bold;
+      margin-left: 4px;
+      font-family: $mono-font;
+    }
+  }
+
+  // ── Session schedule (right column) ──
+  .pre-race-hero-schedule {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+  }
+
+  .pre-race-hero-schedule-title {
+    font-size: $type-label;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i { font-size: 10px; }
+  }
+
+  .pre-race-schedule-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pre-race-schedule-row {
+    display: grid;
+    grid-template-columns: 14px 1fr auto auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    font-size: $type-small;
+    position: relative;
+  }
+
+  // ── Vertical progress rail on the left of the list ──
+  // Each row's rail contains: a line connecting to the previous row (grey),
+  // a fill overlay (accent-coloured, height = connector_before_fill %), and
+  // the row's own dot at the bottom. Together they form a continuous timeline.
+  .pre-race-schedule-rail {
+    position: relative;
+    width: 14px;
+    height: 100%;
+    align-self: stretch;
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pre-race-schedule-rail-line {
+    position: absolute;
+    top: 0;
+    bottom: 50%;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .pre-race-schedule-rail-fill {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom, var(--page-accent, $accent-red), transparent);
+    max-height: 50%;
+    transition: height 400ms ease-out;
+  }
+
+  .pre-race-schedule-dot {
+    position: relative;
+    z-index: 1;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $text-tertiary;
+    box-shadow: 0 0 0 3px $bg-card, 0 0 0 4px rgba(255, 255, 255, 0.06);
+  }
+
+  .pre-race-schedule-name {
+    font-weight: $weight-bold;
+    color: $text-primary;
+    letter-spacing: 0.3px;
+  }
+
+  .pre-race-schedule-day {
+    font-family: $mono-font;
+    color: $text-tertiary;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  .pre-race-schedule-time {
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    color: $text-secondary;
+    min-width: 68px;
+    text-align: right;
+  }
+
+  .pre-race-schedule-badge {
+    font-family: $mono-font;
+    font-size: 9px;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
+    color: var(--page-accent, $accent-red);
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+
+    &.is-live {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.35);
+    }
+    &.is-done {
+      background: transparent;
+      color: $text-tertiary;
+      border-color: transparent;
+    }
+  }
+
+  // ── Row status coloring ──
+  // "Next" (the first upcoming session, tagged from the ERB) gets the accent
+  // colour + a pulse animation on the dot to make it feel alive.
+  .pre-race-schedule-row.is-next {
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.05);
+    border-radius: $radius-sm;
+    .pre-race-schedule-name { color: $text-primary; }
+    .pre-race-schedule-dot {
+      background: var(--page-accent, $accent-red);
+      animation: pre-race-pulse 1.8s ease-in-out infinite;
+    }
+  }
+
+  // Currently running session — green with a glow.
+  .pre-race-schedule-row.pre-race-schedule-today {
+    .pre-race-schedule-dot {
+      background: #4ade80;
+      box-shadow: 0 0 0 3px $bg-card, 0 0 12px rgba(74, 222, 128, 0.6);
+      animation: pre-race-pulse-live 1.4s ease-in-out infinite;
+    }
+    .pre-race-schedule-name { color: $text-primary; }
+  }
+
+  // Finished sessions fade out but the connector fill stays solid above them.
+  .pre-race-schedule-row.pre-race-schedule-done {
+    opacity: 0.55;
+    .pre-race-schedule-dot { background: $text-tertiary; }
+    .pre-race-schedule-name { color: $text-secondary; }
+    .pre-race-schedule-rail-fill { background: var(--page-accent, $accent-red); }
+  }
+}
+
+// ── Dot pulse animations (defined at the top level so they're reusable) ──
+@keyframes pre-race-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px $bg-card, 0 0 0 4px rgba(var(--page-accent-rgb, 225, 6, 0), 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 3px $bg-card, 0 0 0 8px rgba(var(--page-accent-rgb, 225, 6, 0), 0);
+  }
+}
+
+@keyframes pre-race-pulse-live {
+  0%, 100% { box-shadow: 0 0 0 3px $bg-card, 0 0 8px rgba(74, 222, 128, 0.6); }
+  50%      { box-shadow: 0 0 0 3px $bg-card, 0 0 16px rgba(74, 222, 128, 0.9); }
+}
+
+// Re-open the pre-race-hero-v2 block for the mobile-only tweaks that were originally nested here.
+.pre-race-hero-v2 {
+
+  // ── Mobile: stack, keep track watermark visible ──
+  @media (max-width: 768px) {
+    text-align: center;
+    padding: 28px 0 24px;
+
+    .pre-race-hero-watermark {
+      top: 20px;
+      right: 50%;
+      transform: translateX(50%);
+      width: 240px;
+      height: 240px;
+      img { opacity: 0.09; }
+    }
+
+    .pre-race-hero-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 0 16px;
+    }
+
+    .page-hero-title { text-align: center; }
+    .page-hero-meta  { text-align: center; }
+    .page-hero-label { align-self: center; }
+
+    .pre-race-hero-info {
+      align-items: center;
+    }
+
+    .pre-race-hero-countdown {
+      align-self: center;
+    }
+
+    .pre-race-hero-schedule {
+      text-align: left;
+    }
+
+    // Compact the Race Weekend banner on mobile so it never wraps.
+    // Stack the title above the dates instead of trying to fit both on one line.
+    .pre-race-hero-banner {
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0 8px;
+
+      // Drop the vertical accent bar on mobile — feels visually noisy when the
+      // banner is centered rather than left-aligned.
+      &::before { display: none; }
+
+      i { font-size: 16px; margin-right: 4px; }
+
+      .pre-race-hero-banner-title {
+        font-size: 20px;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+
+      // Hide the middle "·" separator since we've stacked vertically.
+      .pre-race-hero-banner-sep { display: none; }
+
+      .pre-race-hero-banner-dates {
+        font-size: 13px;
+        white-space: nowrap;
+        letter-spacing: 0.3px;
+      }
+    }
+
+    // Tighten row gaps on mobile — keep the same 5 cells inline
+    .pre-race-schedule-row {
+      grid-template-columns: 8px auto auto 1fr auto;
+      gap: 8px;
+      padding: 6px 2px;
+    }
+
+    .pre-race-schedule-time { min-width: 0; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Between-races hero — quiet layout for when the next race is >3 days out
+// ═══════════════════════════════════════════════════════════════════
+// Deliberately calmer than .pre-race-hero-v2:
+//   - Muted "No race this weekend" eyebrow (no red glow, no chevron bar)
+//   - Countdown reduced to inline meta
+//   - Right column is the previous race podium recap (looking backward,
+//     since forward-looking session times aren't useful three weeks out)
+//   - Track watermark stays but at even lower opacity
+.page-hero.between-races-hero {
+  text-align: left;
+  padding: 40px 0 16px;
+  margin-bottom: 4px;
+  &::after { display: none; }
+
+  .between-races-watermark {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    pointer-events: none;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 420px;
+      max-height: 100%;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+      opacity: 0.05;
+    }
+  }
+
+  .between-races-content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+    padding: 0 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .page-hero-title { text-align: left; }
+  .page-hero-meta  { text-align: left; }
+
+  .between-races-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  // Muted eyebrow — the exact opposite of the shouty pre-race banner.
+  // No accent bar, no glow, no F1 font. Just a quiet label so users
+  // instantly understand "nothing is happening right now."
+  .between-races-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 8px;
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+
+    i { font-size: 12px; opacity: 0.75; }
+  }
+
+  .between-races-meta {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: $type-small;
+    color: $text-secondary;
+
+    strong {
+      color: $text-primary;
+      font-family: $mono-font;
+      font-variant-numeric: tabular-nums;
+      font-weight: $weight-bold;
+    }
+
+    i { font-size: 11px; margin-right: 4px; opacity: 0.7; }
+
+    .between-races-sep {
+      color: $text-tertiary;
+      opacity: 0.5;
+    }
+
+    .between-races-countdown {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .between-races-format {
+      display: inline-flex;
+      align-items: center;
+
+      &.is-sprint i { color: #fbbf24; opacity: 1; }
+    }
+
+    .between-races-dates {
+      font-family: $mono-font;
+      font-variant-numeric: tabular-nums;
+      color: $text-tertiary;
+    }
+  }
+
+  // Subtle Circuit Kings — same treatment as inside the pre-race hero
+  .between-races-info .circuit-kings {
+    margin-top: 22px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .between-races-info .circuit-kings-label {
+    font-size: $type-label;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.85;
+
+    i { color: #d4a017; font-size: 10px; }
+  }
+  .between-races-info .circuit-kings-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .between-races-info .circuit-king-chip {
+    background: transparent;
+    border: 1px solid $border-subtle;
+    padding: 3px 8px;
+    font-size: 11px;
+    border-radius: 999px;
+    color: $text-secondary;
+
+    a { color: $text-secondary; font-weight: $weight-semi; }
+    a:hover { color: $text-primary; }
+
+    .circuit-king-wins {
+      color: $text-tertiary;
+      font-weight: $weight-bold;
+      margin-left: 4px;
+      font-family: $mono-font;
+    }
+  }
+
+  // ── Right column: last race recap ──
+  .between-races-recap {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid $border-subtle;
+    border-radius: $radius-md;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .between-races-recap-title {
+    font-size: $type-label;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i { font-size: 10px; }
+
+    a {
+      color: $text-secondary;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: $weight-semi;
+      font-size: $type-small;
+
+      &:hover { color: $text-primary; }
+    }
+  }
+
+  .between-races-recap-podium {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .between-races-recap-entry {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-left: 3px solid var(--constructor-color, $border-subtle);
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: $radius-sm;
+  }
+
+  .between-races-recap-pos {
+    font-family: $mono-font;
+    font-weight: $weight-bold;
+    font-size: 13px;
+    text-align: center;
+
+    &.place-1 { color: #d4a017; }
+    &.place-2 { color: #c0c0c0; }
+    &.place-3 { color: #b06432; }
+  }
+
+  .between-races-recap-name {
+    font-weight: $weight-semi;
+    font-size: 14px;
+
+    a { color: $text-primary; }
+    a:hover { color: var(--page-accent, $accent-red); }
+  }
+
+  .between-races-recap-elo {
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    font-weight: $weight-semi;
+  }
+
+  .between-races-recap-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: $type-small;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+    align-self: flex-end;
+    margin-top: 2px;
+
+    &:hover { color: $text-primary; }
+    i { font-size: 10px; }
+  }
+
+  // ── Mobile: stack, keep watermark centered ──
+  @media (max-width: 768px) {
+    text-align: center;
+    padding: 24px 0 20px;
+
+    .between-races-watermark {
+      top: 20px;
+      right: 50%;
+      transform: translateX(50%);
+      width: 220px;
+      height: 220px;
+      img { opacity: 0.06; }
+    }
+
+    .between-races-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 0 16px;
+    }
+
+    .page-hero-title { text-align: center; }
+    .page-hero-meta  { text-align: center; }
+
+    .between-races-info { align-items: center; }
+    .between-races-eyebrow { justify-content: center; }
+    .between-races-meta    { justify-content: center; }
+    .between-races-recap   { text-align: left; }
+  }
+}
+
 // Next Race Strip (compact inline)
 .next-race-strip {
   display: flex;
@@ -573,6 +1298,24 @@
   }
 }
 
+// Eyebrow tag that names the strip — "PREVIOUS RACE · Suzuka Circuit"
+.latest-result-eyebrow {
+  font-size: $type-label;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  font-weight: $weight-bold;
+  color: $text-tertiary;
+}
+
+.latest-result-sep {
+  color: $text-tertiary;
+  opacity: 0.6;
+}
+
+.latest-result-circuit {
+  font-weight: $weight-bold;
+}
+
 .latest-result-podium {
   display: flex;
   align-items: center;
@@ -678,6 +1421,186 @@
   font-variant-numeric: tabular-nums;
 }
 
+// Community Activity Strip — signals of life on the site
+.activity-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-left: 2px solid var(--page-accent, $accent-red);
+  border-radius: $radius-md;
+  margin-bottom: 24px;
+  font-size: $type-small;
+}
+
+.activity-strip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $type-label;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  color: $text-tertiary;
+  white-space: nowrap;
+
+  i {
+    color: var(--page-accent, $accent-red);
+    font-size: 11px;
+    animation: activity-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes activity-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+.activity-strip-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.activity-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: $text-secondary;
+
+  i {
+    color: $text-tertiary;
+    font-size: 11px;
+    align-self: center;
+  }
+
+  strong {
+    font-family: $mono-font;
+    font-variant-numeric: tabular-nums;
+    color: $text-primary;
+    font-weight: $weight-bold;
+  }
+}
+
+.activity-stat-label {
+  color: $text-tertiary;
+}
+
+.activity-strip-link {
+  margin-left: auto;
+  color: $text-tertiary;
+  font-size: $type-small;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  transition: color $t-fast;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  i { font-size: 10px; transition: transform $t-normal ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(3px); }
+}
+
+// Recent Picks Card — social proof for the upcoming race
+.recent-picks-card {
+  margin-bottom: 24px;
+}
+
+.recent-picks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  h4 {
+    margin: 0;
+    font-size: $type-body;
+    font-weight: $weight-bold;
+
+    i { color: var(--page-accent, $accent-red); margin-right: 8px; }
+  }
+}
+
+.recent-picks-cta {
+  font-size: $type-small;
+  font-weight: $weight-bold;
+  color: $text-tertiary;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color $t-fast;
+  i { font-size: 10px; transition: transform $t-normal ease; }
+  &:hover { color: var(--page-accent, $accent-red); }
+  &:hover i { transform: translateX(3px); }
+}
+
+.recent-picks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recent-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: $radius-sm;
+  background: $bg-surface;
+  border-left: 2px solid var(--constructor-color, #{$border-subtle});
+  transition: background $t-fast;
+
+  &:hover { background: $bg-card-elevated; }
+}
+
+.recent-pick-user {
+  font-weight: $weight-semi;
+  font-size: $type-small;
+  color: $text-primary;
+  min-width: 120px;
+}
+
+.recent-pick-arrow {
+  color: $text-tertiary;
+  font-size: 9px;
+}
+
+.recent-pick-driver {
+  flex: 1;
+  font-size: $type-small;
+
+  a {
+    color: $text-primary;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color $t-fast;
+
+    &:hover { color: var(--constructor-color, var(--page-accent, $accent-red)); }
+  }
+}
+
+.recent-pick-p1 {
+  font-family: $mono-font;
+  font-size: $type-label;
+  font-weight: $weight-bold;
+  letter-spacing: $ls-label;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
+  background: var(--constructor-color, $bg-card-elevated);
+  color: white;
+}
+
+.recent-pick-time {
+  color: $text-tertiary;
+  font-size: $type-label;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .hero-podium-inline {
     gap: 8px;
@@ -704,6 +1627,34 @@
 
   .latest-result-link {
     margin-left: 0;
+  }
+
+  .activity-strip {
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .activity-strip-stats {
+      gap: 12px;
+      row-gap: 6px;
+    }
+
+    .activity-strip-link {
+      margin-left: 0;
+    }
+  }
+
+  .recent-pick-row {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .recent-pick-user {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .recent-pick-time {
+    margin-left: auto;
   }
 
   .hero-intro {

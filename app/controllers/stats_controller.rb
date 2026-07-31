@@ -116,15 +116,13 @@ class StatsController < ApplicationController
   end
 
   def fan_standings
-    season = current_season
-    @constructors = Constructor.where(active: true).order(:name).map do |c|
-      fans = User.joins(:constructor_supports)
-                 .where(constructor_supports: { constructor: c, active: true, season: season })
-                 .distinct.to_a
-      { constructor: c, fans: fans, count: fans.size }
-    end
-    @constructors.sort_by! { |c| [-c[:count], c[:constructor].name] }
-    @total_fans = @constructors.sum { |c| c[:count] }
+    @season = current_season
+
+    @driver_popularity = build_driver_popularity(@season)
+    @top_movers = @driver_popularity.select { |e| e[:rank_delta] != 0 }.first(3)
+    @most_shorted = @driver_popularity.select { |e| e[:short_shares] > 0 }
+                                      .max_by { |e| e[:short_shares] }
+    build_constructor_loyalty(@season)
   end
 
   def badges
@@ -211,5 +209,91 @@ class StatsController < ApplicationController
     end
 
     risers.sort_by { |r| -r[:rise] }.first(10)
+  end
+
+  # Composite fan score per driver: long_shares × 3 + p1_picks × 2 - short_shares.
+  # Uses share quantity (not fan count) so position size drives the signal —
+  # a whale with 20 shares counts more than 20 casuals with 1 each. Fan
+  # counts still displayed in tooltips for the community-breadth angle.
+  def build_driver_popularity(season)
+    season_drivers = SeasonDriver
+                       .where(season_id: season.id, standin: [false, nil])
+                       .sort_by { |sd| -sd.id }
+                       .uniq(&:driver_id)
+                       .select { |sd| sd.driver&.active? }
+    driver_ids = season_drivers.map(&:driver_id)
+    return [] if driver_ids.empty?
+
+    drivers = Driver.where(id: driver_ids).includes(:countries).index_by(&:id)
+    constructors = Constructor.where(id: season_drivers.map(&:constructor_id)).index_by(&:id)
+
+    long_holdings = FantasyStockHolding.active.longs.where(driver_id: driver_ids)
+    short_holdings = FantasyStockHolding.active.shorts.where(driver_id: driver_ids)
+    long_shares = long_holdings.group(:driver_id).sum(:quantity)
+    short_shares = short_holdings.group(:driver_id).sum(:quantity)
+    long_fans = long_holdings.group(:driver_id).distinct.count(:fantasy_stock_portfolio_id)
+    short_fans = short_holdings.group(:driver_id).distinct.count(:fantasy_stock_portfolio_id)
+
+    p1_picks = Hash.new(0)
+    p1_pickers = Hash.new { |h, k| h[k] = Set.new }
+    season_race_ids = season.races.pluck(:id)
+    RacePick.where(race_id: season_race_ids).pluck(:user_id, :picks).each do |user_id, arr|
+      (arr || []).each do |p|
+        next unless p["position"] == 1
+
+        did = p["driver_id"].to_i
+        p1_picks[did] += 1
+        p1_pickers[did] << user_id
+      end
+    end
+
+    elo_col = Setting.elo_column(:elo)
+    rows = season_drivers.map do |sd|
+      driver = drivers[sd.driver_id]
+      l_shares = long_shares[sd.driver_id].to_i
+      s_shares = short_shares[sd.driver_id].to_i
+      l_fans = long_fans[sd.driver_id].to_i
+      s_fans = short_fans[sd.driver_id].to_i
+      p1s = p1_picks[sd.driver_id].to_i
+
+      {
+        driver: driver,
+        constructor: constructors[sd.constructor_id],
+        long_shares: l_shares,
+        short_shares: s_shares,
+        long_fans: l_fans,
+        short_fans: s_fans,
+        p1_picks: p1s,
+        p1_fans: p1_pickers[sd.driver_id].size,
+        fan_score: l_shares * 3 + p1s * 2 - s_shares,
+        elo: driver&.send(elo_col).to_f
+      }
+    end
+
+    fan_ranks = rows.sort_by { |r| -r[:fan_score] }.each_with_index.to_h { |r, i| [r[:driver].id, i + 1] }
+    elo_ranks = rows.sort_by { |r| -r[:elo] }.each_with_index.to_h { |r, i| [r[:driver].id, i + 1] }
+
+    rows.map { |r|
+      r.merge(
+        fan_rank: fan_ranks[r[:driver].id],
+        elo_rank: elo_ranks[r[:driver].id],
+        rank_delta: elo_ranks[r[:driver].id] - fan_ranks[r[:driver].id]
+      )
+    }.sort_by { |r| r[:fan_rank] }
+  end
+
+  def build_constructor_loyalty(season)
+    all_constructors = Constructor.where(active: true).order(:name).map do |c|
+      fans = User.joins(:constructor_supports)
+                 .where(constructor_supports: { constructor: c, active: true, season: season })
+                 .distinct.to_a
+      { constructor: c, fans: fans, count: fans.size }
+    end
+    all_constructors.sort_by! { |c| [-c[:count], c[:constructor].name] }
+
+    @total_fans = all_constructors.sum { |c| c[:count] }
+    @supported_teams = all_constructors.reject { |c| c[:count].zero? }
+    @unsupported_teams = all_constructors.select { |c| c[:count].zero? }
+    @constructors = all_constructors # backward-compat if any partial references it
   end
 end

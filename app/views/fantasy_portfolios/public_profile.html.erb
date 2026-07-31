@@ -190,6 +190,7 @@
                                                     <%= link_to holding.driver.fullname, driver_path(holding.driver) %>
                                                 </span>
                                                 <span class="fantasy-market-team-name"><%= constructor&.name %></span>
+                                                <div class="holding-reactions"><%= reaction_bar(holding, size: :sm) %></div>
                                             </div>
                                         </div>
                                     </td>

@@ -1,0 +1,83 @@
+<%
+  race       = @countdown_race
+  is_sprint  = race.respond_to?(:sprint?) && race.sprint?
+  format_lbl = is_sprint ? "Sprint weekend" : "Race weekend"
+  weekend_start = race.session_schedule.map { |s| s[:date] }.compact.min || race.date
+  weekend_end   = race.date
+  weekend_label = if weekend_start.month == weekend_end.month
+                    "#{weekend_start.strftime('%b %-d')}–#{weekend_end.strftime('%-d')}"
+                  else
+                    "#{weekend_start.strftime('%b %-d')}–#{weekend_end.strftime('%b %-d')}"
+                  end
+  has_track = race.circuit.track_image?
+  prev      = @latest_race
+%>
+<div class="page-hero between-races-hero <%= 'has-track' if has_track %>">
+    <div class="page-hero-bg"></div>
+
+    <% if has_track %>
+        <div class="between-races-watermark" aria-hidden="true">
+            <%= image_tag race.circuit.track_image_path, alt: "" %>
+        </div>
+    <% end %>
+
+    <div class="page-hero-content between-races-content">
+        <div class="between-races-info">
+            <div class="between-races-eyebrow">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <span>Next up · No race this weekend</span>
+            </div>
+            <h1 class="page-hero-title">
+                <%= link_to race.circuit.name, race_path(race) %>
+            </h1>
+            <p class="page-hero-meta">
+                Round <%= race.round %> · <%= race.circuit.location %>, <%= race.circuit.country %>
+            </p>
+            <div class="between-races-meta">
+                <span class="between-races-countdown">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>in <strong><%= @days_until_fp1 %></strong> <%= @days_until_fp1 == 1 ? 'day' : 'days' %></span>
+                </span>
+                <span class="between-races-sep">·</span>
+                <span class="between-races-format <%= 'is-sprint' if is_sprint %>">
+                    <i class="fa-solid fa-<%= is_sprint ? 'bolt' : 'flag-checkered' %>"></i>
+                    <%= format_lbl %>
+                </span>
+                <span class="between-races-sep">·</span>
+                <span class="between-races-dates"><%= weekend_label %></span>
+            </div>
+
+            <% if @circuit_kings.present? %>
+                <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
+            <% end %>
+        </div>
+
+        <% if prev&.has_results? %>
+            <div class="between-races-recap">
+                <div class="between-races-recap-title">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    Last race · <%= link_to prev.circuit.name, race_path(prev) %>
+                </div>
+                <div class="between-races-recap-podium">
+                    <% @podium_results&.each do |result| %>
+                        <% color = constructor_color(result.constructor) %>
+                        <div class="between-races-recap-entry" style="--constructor-color: <%= color %>">
+                            <span class="between-races-recap-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
+                            <span class="between-races-recap-name">
+                                <%= link_to "#{result.driver.forename&.first}.#{result.driver.surname}", driver_path(result.driver) %>
+                            </span>
+                            <% if current_user && result.display_elo_diff %>
+                                <span class="between-races-recap-elo <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                                    <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
+                                </span>
+                            <% end %>
+                        </div>
+                    <% end %>
+                </div>
+                <%= link_to race_path(prev), class: "between-races-recap-link" do %>
+                    Full results <i class="fa-solid fa-arrow-right"></i>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+</div>

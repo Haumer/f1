@@ -10,129 +10,147 @@
         <span class="hamburger-line"></span>
     </button>
     <div class="links" data-navbar-target="links" role="menubar">
+
+        <%# ── Portfolio (express-lane for signed-in users) ── %>
         <% if current_user %>
             <% portfolio_nav = current_user.fantasy_portfolio_for(current_season) %>
             <% if portfolio_nav %>
-                <%= link_to "My Portfolio", fantasy_overview_path(current_user.username), class: "mobile-nav-item #{"active" if request.path.include?("/fantasy/u/#{current_user.username}")}", role: "menuitem" %>
+                <%= link_to "Portfolio", fantasy_overview_path(current_user.username),
+                            class: "mobile-nav-item #{'active' if request.path.include?("/fantasy/u/#{current_user.username}")}",
+                            role: "menuitem" %>
             <% else %>
-                <%= link_to "Start Trading", new_fantasy_portfolio_path, class: "mobile-nav-item nav-cta #{"active" if current_page?(new_fantasy_portfolio_path)}", role: "menuitem" %>
+                <%= link_to "Start Trading", new_fantasy_portfolio_path,
+                            class: "mobile-nav-item nav-cta #{'active' if current_page?(new_fantasy_portfolio_path)}",
+                            role: "menuitem" %>
             <% end %>
         <% end %>
-        <%= link_to "Leaderboard", combined_leaderboard_path, class: "mobile-nav-item #{"active" if request.path.start_with?('/leaderboard')}", role: "menuitem" %>
-        <%= link_to "Standings", root_path, class: "mobile-nav-item #{"active" if current_page?(root_path)}", role: "menuitem" %>
 
-        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/drivers') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Drivers <i class="fa-solid fa-chevron-down"></i>
-            </a>
-            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "#{current_season.year} Grid", grid_drivers_path, class: ("active" if current_page?(grid_drivers_path)), role: "menuitem" %>
-                <%= link_to "All Drivers", drivers_path, class: ("active" if current_page?(drivers_path)), role: "menuitem" %>
-                <%= link_to "Compare", compare_drivers_path, class: ("active" if current_page?(compare_drivers_path)), role: "menuitem" %>
-            </div>
-        </div>
-
-        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/races') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Races <i class="fa-solid fa-chevron-down"></i>
-            </a>
-            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "#{current_season.year} Calendar", calendar_races_path, class: ("active" if current_page?(calendar_races_path)), role: "menuitem" %>
-                <%= link_to "All Races", races_path, class: ("active" if current_page?(races_path)), role: "menuitem" %>
-            </div>
-        </div>
-
-        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/constructors') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Constructors <i class="fa-solid fa-chevron-down"></i>
-            </a>
-            <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "#{current_season.year} Grid", grid_constructors_path, class: ("active" if current_page?(grid_constructors_path)), role: "menuitem" %>
-                <%= link_to "All Constructors", constructors_path, class: ("active" if current_page?(constructors_path)), role: "menuitem" %>
-            </div>
-        </div>
-
-        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/seasons') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Seasons <i class="fa-solid fa-chevron-down"></i>
-            </a>
+        <%# ── Season split-button — primary click = home (dashboard), caret = sub-pages ── %>
+        <% season_home_active   = current_page?(root_path) %>
+        <% season_menu_active   = current_page?(grid_drivers_path) || current_page?(grid_constructors_path) || current_page?(calendar_races_path) || current_page?(current_active_elo_drivers_path) || current_page?(elo_rankings_constructors_path) || (current_season && request.path == season_path(current_season)) %>
+        <div class="nav-dropdown nav-split-dropdown mobile-nav-item" data-controller="dropdown" role="none">
+            <%= link_to root_path, class: "nav-split-primary #{'active' if season_home_active}", role: "menuitem" do %>
+                <%= current_season.year %> Season
+            <% end %>
+            <button type="button" class="nav-split-caret <%= 'active' if season_menu_active %>"
+                    data-action="click->dropdown#toggle keydown->dropdown#keydown"
+                    data-dropdown-target="trigger"
+                    aria-haspopup="true" aria-expanded="false"
+                    aria-label="More <%= current_season.year %> pages">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <% if current_season %>
-                    <%= link_to "#{current_season.year} Season", season_path(current_season), role: "menuitem" %>
+                    <%= link_to "#{current_season.year} Championship", season_path(current_season), class: ("active" if request.path == season_path(current_season)), role: "menuitem" %>
                 <% end %>
-                <%= link_to "All Seasons", seasons_path, class: ("active" if current_page?(seasons_path)), role: "menuitem" %>
+                <%= link_to "#{current_season.year} Grid — Drivers", grid_drivers_path, class: ("active" if current_page?(grid_drivers_path)), role: "menuitem" %>
+                <%= link_to "#{current_season.year} Grid — Constructors", grid_constructors_path, class: ("active" if current_page?(grid_constructors_path)), role: "menuitem" %>
+                <%= link_to "#{current_season.year} Calendar", calendar_races_path, class: ("active" if current_page?(calendar_races_path)), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Active Driver Elo", current_active_elo_drivers_path, class: ("active" if current_page?(current_active_elo_drivers_path)), role: "menuitem" %>
+                <%= link_to "Constructor Elo", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
             </div>
         </div>
 
+        <%# ── History ▾ — all-time, archival, evergreen ── %>
+        <% history_paths = [drivers_path, seasons_path, races_path, constructors_path, compare_drivers_path,
+                            peak_elo_drivers_path, elo_milestones_path, highest_elo_races_path,
+                            winners_races_path, champion_timeline_path, race_wins_path,
+                            badges_path, by_nationality_drivers_path, families_constructors_path, best_pairings_constructors_path] %>
+        <% history_active = history_paths.include?(request.path) || request.path.start_with?('/stats/title_chase') || request.path.start_with?('/circuits') %>
         <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/stats') || request.path.start_with?('/circuits') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Stats <i class="fa-solid fa-chevron-down"></i>
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if history_active %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+                History <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "Stats Hub", stats_path, class: ("active" if current_page?(stats_path)), role: "menuitem" %>
+                <%# Browse all %>
+                <%= link_to "All Drivers", drivers_path, class: ("active" if current_page?(drivers_path)), role: "menuitem" %>
+                <%= link_to "All Seasons", seasons_path, class: ("active" if current_page?(seasons_path)), role: "menuitem" %>
+                <%= link_to "All Races", races_path, class: ("active" if current_page?(races_path)), role: "menuitem" %>
+                <%= link_to "All Constructors", constructors_path, class: ("active" if current_page?(constructors_path)), role: "menuitem" %>
+                <%= link_to "Compare Drivers", compare_drivers_path, class: ("active" if current_page?(compare_drivers_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
+                <%# Elo records %>
                 <%= link_to "Peak Elo", peak_elo_drivers_path, class: ("active" if current_page?(peak_elo_drivers_path)), role: "menuitem" %>
-                <%= link_to "Active Elo", current_active_elo_drivers_path, class: ("active" if current_page?(current_active_elo_drivers_path)), role: "menuitem" %>
-                <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
+                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
+                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
-                <%= link_to "Race Wins & Podiums", race_wins_path, class: ("active" if current_page?(race_wins_path)), role: "menuitem" %>
+                <%# Champions %>
                 <%= link_to "World Champions", winners_races_path, class: ("active" if current_page?(winners_races_path)), role: "menuitem" %>
                 <%= link_to "Champion Timeline", champion_timeline_path, class: ("active" if current_page?(champion_timeline_path)), role: "menuitem" %>
                 <%= link_to "Title Chase", title_chase_path, class: ("active" if request.path.start_with?('/stats/title_chase')), role: "menuitem" %>
-                <%= link_to "Highest Race Elos", highest_elo_races_path, class: ("active" if current_page?(highest_elo_races_path)), role: "menuitem" %>
+                <%= link_to "Race Wins & Podiums", race_wins_path, class: ("active" if current_page?(race_wins_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>
-                <%= link_to "Elo Milestones", elo_milestones_path, class: ("active" if current_page?(elo_milestones_path)), role: "menuitem" %>
+                <%# Deep cuts %>
                 <%= link_to "Badges", badges_path, class: ("active" if current_page?(badges_path)), role: "menuitem" %>
                 <%= link_to "Circuits", circuits_path, class: ("active" if request.path.start_with?('/circuits')), role: "menuitem" %>
-                <div class="nav-dropdown-divider"></div>
-                <%= link_to "Constructor Elo", elo_rankings_constructors_path, class: ("active" if current_page?(elo_rankings_constructors_path)), role: "menuitem" %>
+                <%= link_to "By Nationality", by_nationality_drivers_path, class: ("active" if current_page?(by_nationality_drivers_path)), role: "menuitem" %>
                 <%= link_to "Team Lineages", families_constructors_path, class: ("active" if current_page?(families_constructors_path)), role: "menuitem" %>
                 <%= link_to "Best Pairings", best_pairings_constructors_path, class: ("active" if current_page?(best_pairings_constructors_path)), role: "menuitem" %>
-                <%= link_to "Fan Standings", fan_standings_path, class: ("active" if current_page?(fan_standings_path)), role: "menuitem" %>
             </div>
         </div>
 
+        <%# ── Fantasy ▾ — the game & community layer ── %>
         <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
+            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') || request.path.start_with?('/head-to-head') || request.path.start_with?('/leaderboard') || current_page?(fan_standings_path) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Fantasy <i class="fa-solid fa-chevron-down"></i>
             </a>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
+                <%= link_to "Leaderboard", combined_leaderboard_path, class: ("active" if request.path.start_with?('/leaderboard')), role: "menuitem" %>
                 <% if current_user %>
                     <% stock_portfolio = current_user.fantasy_stock_portfolio_for(current_season) %>
                     <% if stock_portfolio %>
+                        <div class="nav-dropdown-divider"></div>
                         <%= link_to "Market", market_fantasy_stock_portfolio_path(stock_portfolio), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
+                        <%= link_to "Driver Cards", driver_cards_path(username: current_user.username), class: ("active" if request.path.include?("/cards")), role: "menuitem" %>
                     <% end %>
-                    <%= link_to "Driver Cards", driver_cards_path(username: current_user.username), class: ("active" if request.path.include?("/cards")), role: "menuitem" %>
-                    <div class="nav-dropdown-divider"></div>
                 <% end %>
+                <div class="nav-dropdown-divider"></div>
                 <%= link_to "Head to Head", head_to_head_path, class: ("active" if request.path.start_with?('/head-to-head') && !request.path.include?('/results')), role: "menuitem" %>
                 <%= link_to "Crowd Rankings", head_to_head_results_path, class: ("active" if request.path.start_with?('/head-to-head') && request.path.include?('/results')), role: "menuitem" %>
+                <%= link_to "Fan Standings", fan_standings_path, class: ("active" if current_page?(fan_standings_path)), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
                 <%= link_to "How it Works", fantasy_guide_path, class: ("active" if current_page?(fantasy_guide_path)), role: "menuitem" %>
             </div>
         </div>
+
         <% if current_user&.admin? %>
             <%= link_to admin_root_path, class: "admin-link mobile-nav-item", "aria-label": "Admin panel" do %>
                 <i class="fa-solid fa-lock"></i>
             <% end %>
         <% end %>
 
-        <%# Desktop auth link (hidden on mobile) %>
+        <%# ── You ▾ — profile / settings / sign-out (desktop, hidden on mobile) ── %>
         <% if current_user %>
-            <%= link_to user_settings_path(current_user.username), class: "nav-auth-link nav-auth-desktop", role: "menuitem", title: "Settings" do %>
-                <i class="fa-solid fa-gear"></i>
-            <% end %>
-            <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-auth-link nav-auth-desktop", role: "menuitem" do %>
-                <i class="fa-solid fa-right-from-bracket"></i> <span class="nav-auth-label">Sign Out</span>
-            <% end %>
+            <div class="nav-dropdown nav-user-dropdown nav-auth-desktop" data-controller="dropdown" role="none">
+                <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path == user_profile_path(current_user.username) || request.path == user_settings_path(current_user.username) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger" title="Your account">
+                    <i class="fa-solid fa-user"></i> <i class="fa-solid fa-chevron-down"></i>
+                </a>
+                <div class="nav-dropdown-menu nav-dropdown-menu-right" data-dropdown-target="menu" role="menu">
+                    <%= link_to user_profile_path(current_user.username), role: "menuitem" do %>
+                        <i class="fa-solid fa-user"></i> Profile
+                    <% end %>
+                    <%= link_to user_settings_path(current_user.username), role: "menuitem" do %>
+                        <i class="fa-solid fa-gear"></i> Settings
+                    <% end %>
+                    <div class="nav-dropdown-divider"></div>
+                    <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, role: "menuitem" do %>
+                        <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                    <% end %>
+                </div>
+            </div>
         <% else %>
             <%= link_to new_user_session_path, class: "nav-auth-link nav-auth-desktop", role: "menuitem" do %>
                 <i class="fa-solid fa-right-to-bracket"></i> <span class="nav-auth-label">Sign In</span>
             <% end %>
         <% end %>
 
-        <%# Mobile auth footer (hidden on desktop) %>
+        <%# ── Mobile auth footer (drawer bottom) ── %>
         <div class="mobile-nav-footer mobile-nav-item">
             <% if current_user %>
+                <%= link_to user_profile_path(current_user.username), class: "nav-auth-link", role: "menuitem" do %>
+                    <i class="fa-solid fa-user"></i> Profile
+                <% end %>
                 <%= link_to user_settings_path(current_user.username), class: "nav-auth-link", role: "menuitem" do %>
                     <i class="fa-solid fa-gear"></i> Settings
                 <% end %>

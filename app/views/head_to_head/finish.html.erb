@@ -45,6 +45,9 @@
                     <% if @champion.current_constructor %>
                         <p class="h2h-finish-champ-team"><%= @champion.current_constructor.name %></p>
                     <% end %>
+                    <div class="h2h-finish-reactions">
+                        <%= reaction_bar(@session_record, size: :sm) %>
+                    </div>
                 </div>
             <% end %>
 
