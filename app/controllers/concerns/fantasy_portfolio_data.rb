@@ -90,8 +90,11 @@ module FantasyPortfolioData
   end
 
   def elo_trends_for(driver_ids)
+    # Explicit chained `where.not` — the hashed form (`.where.not(a: nil, b: nil)`)
+    # means "at least one column is not null", which would leak rows where one side
+    # of the subtraction below is nil.
     results = RaceResult.where(driver_id: driver_ids)
-                        .where.not(old_elo_v2: nil, new_elo_v2: nil)
+                        .where.not(old_elo_v2: nil).where.not(new_elo_v2: nil)
                         .joins(:race)
                         .order("races.date DESC")
                         .select(:driver_id, :old_elo_v2, :new_elo_v2)
