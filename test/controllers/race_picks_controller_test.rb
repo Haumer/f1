@@ -84,7 +84,7 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
       patch race_picks_path, params: { picks: picks_data }
     end
 
-    assert_redirected_to fantasy_overview_path(@user.username)
+    assert_redirected_to race_pick_compare_path(username: @user.username, race_id: @race.id)
     pick = RacePick.find_by(user: @user, race: @race)
     assert_equal 2, pick.picks.size
     assert_equal drivers(:verstappen).id, pick.picks.first["driver_id"]
@@ -153,7 +153,7 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
   test "update handles empty picks" do
     sign_in @user
     patch race_picks_path, params: { picks: "[]" }
-    assert_redirected_to fantasy_overview_path(@user.username)
+    assert_redirected_to race_pick_compare_path(username: @user.username, race_id: @race.id)
 
     pick = RacePick.find_by(user: @user, race: @race)
     assert_equal [], pick.picks
@@ -216,7 +216,7 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
     end.to_json
 
     patch race_picks_path, params: { picks: picks_data }
-    assert_redirected_to fantasy_overview_path(@user.username)
+    assert_redirected_to race_pick_compare_path(username: @user.username, race_id: @race.id)
 
     pick = RacePick.find_by(user: @user, race: @race)
     assert_equal 4, pick.picks.size
@@ -242,7 +242,7 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
   test "update with missing picks param saves empty array" do
     sign_in @user
     patch race_picks_path, params: { picks: "" }
-    assert_redirected_to fantasy_overview_path(@user.username)
+    assert_redirected_to race_pick_compare_path(username: @user.username, race_id: @race.id)
 
     pick = RacePick.find_by(user: @user, race: @race)
     assert_equal [], pick.picks
