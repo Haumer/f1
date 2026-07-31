@@ -1,6 +1,7 @@
 class DriverCardsController < ApplicationController
   before_action :authenticate_user!, only: [:combine]
   before_action :load_user_from_username
+  before_action :require_public_or_owner!, only: [:index, :show]
   before_action :require_owner!, only: [:combine]
 
   helper_method :is_owner?
@@ -50,5 +51,10 @@ class DriverCardsController < ApplicationController
     return if is_owner?
     flash[:alert] = "You can only combine your own cards."
     redirect_to driver_cards_path(username: @user.username)
+  end
+
+  def require_public_or_owner!
+    return if is_owner? || @user.public_profile?
+    redirect_to combined_leaderboard_path, alert: "This profile is private."
   end
 end

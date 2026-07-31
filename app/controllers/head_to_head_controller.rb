@@ -19,6 +19,12 @@ class HeadToHeadController < ApplicationController
       redirect_to finish_head_to_head_path and return
     end
     @pair = pair
+    # Remember the pair we offered so #pick can reject arbitrary driver IDs.
+    session[:h2h_pending_pair] = {
+      "session_id" => session_record.id,
+      "round"      => pair.round_index,
+      "driver_ids" => [pair.champion.id, pair.challenger.id].sort,
+    }
     @champion_side = %w[left right].include?(session[:h2h_champion_side]) ? session[:h2h_champion_side] : "left"
   end
 
@@ -52,6 +58,17 @@ class HeadToHeadController < ApplicationController
     round     = session_record.rounds_played
     tier      = HeadToHead::PairPicker.new(session_record).tier_for_round(round)
 
+    # Reject picks that don't match the pair the server offered on #show.
+    # Without this, a user can POST any two driver IDs and stuff CrowdRanker.
+    pending = session[:h2h_pending_pair]
+    valid_pending = pending &&
+      pending["session_id"] == session_record.id &&
+      pending["round"] == round &&
+      pending["driver_ids"] == [winner_id, loser_id].sort
+    unless valid_pending
+      return redirect_to head_to_head_path(year: url_year_param(session_record.year))
+    end
+
     # Guard against double-submits / stale rounds.
     if session_record.matches.exists?(round_index: round)
       return redirect_to head_to_head_path(year: url_year_param(session_record.year))
@@ -71,6 +88,8 @@ class HeadToHeadController < ApplicationController
         rounds_played: round + 1,
       )
     end
+
+    session.delete(:h2h_pending_pair)
 
     picked_side = params[:picked_side]
     session[:h2h_champion_side] = picked_side if %w[left right].include?(picked_side)

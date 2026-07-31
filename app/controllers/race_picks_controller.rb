@@ -46,6 +46,10 @@ class RacePicksController < ApplicationController
   def compare
     @user = User.find_by!(username: params[:username])
     @is_owner = current_user&.id == @user.id
+    unless @is_owner || @user.public_profile?
+      redirect_to combined_leaderboard_path, alert: "This profile is private."
+      return
+    end
 
     @race = Race.find_by(id: params[:race_id])
     @race_pick = @race && RacePick.find_by(user: @user, race: @race)
