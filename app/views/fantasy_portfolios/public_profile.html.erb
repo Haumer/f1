@@ -38,7 +38,7 @@
     <% roster_pl = @portfolio ? @portfolio.profit_loss : 0 %>
     <% stock_pl = @stock_portfolio ? @stock_portfolio.profit_loss : 0 %>
     <% total_pl = roster_pl + stock_pl %>
-    <% total_invested = (@portfolio ? @portfolio.roster_invested : 0) + (@stock_portfolio ? @stock_portfolio.total_invested : 0) %>
+    <% total_invested = @stock_portfolio ? @stock_portfolio.total_invested : 0 %>
     <% total_pl_pct = total_invested > 0 ? (total_pl / total_invested * 100) : 0 %>
     <% combined_delta = (@value_delta || 0) + (@stock_value_delta || 0) %>
 
@@ -224,117 +224,5 @@
         <%# Stock Achievements %>
         <%= render "fantasy_portfolios/achievements_grid", earned: @stock_achievements, definitions: FantasyStockAchievement::DEFINITIONS %>
 
-    <% elsif @portfolio %>
-        <%# ══════════════════════════════════ %>
-        <%# ROSTER TAB (read-only)            %>
-        <%# ══════════════════════════════════ %>
-
-        <% pl = @portfolio.profit_loss %>
-        <% pl_pct = @portfolio.roster_invested > 0 ? (pl / @portfolio.roster_invested * 100) : 0 %>
-        <div class="fantasy-sub-stats">
-            <div class="fantasy-sub-stat">
-                <span class="label">Value</span>
-                <span class="value"><%= number_with_delimiter(@portfolio.portfolio_value.round(0)) %></span>
-            </div>
-            <div class="fantasy-sub-stat">
-                <span class="label">P&L</span>
-                <span class="value <%= pl >= 0 ? 'text-green' : 'text-red' %>">
-                    <%= pl >= 0 ? '+' : '' %><%= number_with_delimiter(pl.round(0)) %>
-                    (<%= pl_pct >= 0 ? '+' : '' %><%= pl_pct.round(1) %>%)
-                </span>
-            </div>
-            <div class="fantasy-sub-stat">
-                <span class="label">Roster</span>
-                <span class="value"><%= @active_entries.size %>/<%= @portfolio.roster_slots %></span>
-            </div>
-            <div class="fantasy-sub-stat">
-                <span class="label">Teams</span>
-                <span class="value"><%= @portfolio.teams_owned %></span>
-            </div>
-        </div>
-
-        <%# Chart %>
-        <% if @snapshots.size >= 2 %>
-            <div class="table-header"><h3>Portfolio Value</h3></div>
-            <div class="card card-flush fantasy-chart-card">
-                <%= custom_chart({
-                    tooltip: { trigger: "axis" },
-                    grid: { left: 10, right: 20, top: 20, bottom: 10, containLabel: true },
-                    backgroundColor: "transparent",
-                    xAxis: {
-                        type: "category",
-                        data: @snapshots.map { |s| "R#{s.race.round}" },
-                        axisLabel: { color: "#666" },
-                        axisLine: { lineStyle: { color: "#333" } }
-                    },
-                    yAxis: {
-                        type: "value",
-                        axisLabel: { color: "#666" },
-                        splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
-                    },
-                    series: [
-                        {
-                            name: "Portfolio Value",
-                            type: "line",
-                            data: @snapshots.map { |s| s.value.round(0) },
-                            smooth: true,
-                            lineStyle: { color: "#e10600", width: 3 },
-                            itemStyle: { color: "#e10600" },
-                            areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
-                        }
-                    ]
-                }, style: "width:100%; height:280px;") %>
-            </div>
-        <% end %>
-
-        <%# Roster %>
-        <div class="table-header">
-            <h3>Roster</h3>
-            <span class="table-header-sub"><%= @active_entries.size %> of <%= @portfolio.roster_slots %> seats</span>
-        </div>
-        <% if @active_entries.any? %>
-            <div class="fantasy-roster-grid">
-                <% @active_entries.each do |entry| %>
-                    <% constructor = @constructors_by_driver[entry.driver.id] %>
-                    <% color = constructor_color(constructor) %>
-                    <div class="card fantasy-driver-card" style="--constructor-color: <%= color %>">
-                        <div class="fantasy-driver-header">
-                            <div class="fantasy-driver-info">
-                                <%= flag_image(entry.driver, size: 24) %>
-                                <div>
-                                    <h4><%= link_to entry.driver.fullname, driver_path(entry.driver) %></h4>
-                                    <%= constructor_logo_or_name(constructor, size: "xs") %>
-                                </div>
-                            </div>
-                            <% gl = entry.gain_loss %>
-                            <span class="elo-pill <%= gl >= 0 ? 'gain' : 'loss' %>">
-                                <%= gl >= 0 ? '+' : '' %><%= gl.round(0) %>
-                            </span>
-                        </div>
-                        <div class="fantasy-driver-stats">
-                            <div class="fantasy-driver-stat">
-                                <span class="label">Bought</span>
-                                <span class="value"><%= entry.bought_at_elo.round(0) %></span>
-                            </div>
-                            <div class="fantasy-driver-stat">
-                                <span class="label">Current</span>
-                                <span class="value"><%= entry.current_value.round(0) %></span>
-                            </div>
-                            <div class="fantasy-driver-stat">
-                                <span class="label">Return</span>
-                                <span class="value <%= gl >= 0 ? 'text-green' : 'text-red' %>"><%= entry.gain_loss_percent %>%</span>
-                            </div>
-                        </div>
-                    </div>
-                <% end %>
-            </div>
-        <% else %>
-            <div class="card empty-state">
-                <p>No drivers on roster yet.</p>
-            </div>
-        <% end %>
-
-        <%# Roster Achievements %>
-        <%= render "fantasy_portfolios/achievements_grid", earned: @achievements, definitions: FantasyAchievement::DEFINITIONS %>
     <% end %>
 </div>
