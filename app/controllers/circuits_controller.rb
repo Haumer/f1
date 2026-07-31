@@ -1,7 +1,5 @@
 class CircuitsController < ApplicationController
   def index
-    current_season = Season.find_by(year: Setting.effective_today.year.to_s) ||
-             Season.sorted_by_year.first
     @calendar_races = current_season&.races
               &.includes(:circuit, race_results: [:driver, :constructor])
               &.order(:date) || Race.none

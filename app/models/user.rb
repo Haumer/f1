@@ -73,10 +73,9 @@ class User < ApplicationRecord
   end
 
   def alert_new_user
-    AdminAlert.create!(
+    AdminAlertJob.perform_later(
       title: "New user signed up",
       message: "#{username} (#{email}) joined. User ##{User.count}.",
-      severity: "info",
       source: "User"
     )
   end

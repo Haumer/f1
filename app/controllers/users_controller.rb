@@ -52,7 +52,7 @@ class UsersController < ApplicationController
   private
 
   def load_profile_data
-    @current_season = Season.sorted_by_year.first
+    @current_season = current_season
     @supported_constructor = @user.supported_constructor(@current_season)
     @team_color = @user.team_color(@current_season)
 

@@ -1,4 +1,6 @@
 class FantasyPortfolio < ApplicationRecord
+  include PortfolioCommon
+
   belongs_to :user
   belongs_to :season
 
@@ -38,25 +40,14 @@ class FantasyPortfolio < ApplicationRecord
     (race.starts_at - 1.minute) > Time.current
   end
 
-  def has_achievement?(key)
-    achievements.exists?(key: key.to_s)
-  end
-
-  def value_change_since_last_race
-    last_two = snapshots.order(created_at: :desc).limit(2).to_a
-    return nil unless last_two.size >= 2
-    last_two[0].value - last_two[1].value
-  end
-
   private
 
   def alert_first_portfolio
     return if user.fantasy_portfolios.count > 1
 
-    AdminAlert.create!(
+    AdminAlertJob.perform_later(
       title: "New fantasy portfolio",
       message: "#{user.username} created their first fantasy portfolio (#{season.year}).",
-      severity: "info",
       source: "FantasyPortfolio"
     )
   end

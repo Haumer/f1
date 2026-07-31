@@ -149,8 +149,7 @@ class ConstructorsController < ApplicationController
 
     # Current lineup (active constructors only)
     if @constructor.active
-      current_season_record = Season.sorted_by_year.first
-      @current_drivers = SeasonDriver.where(season: current_season_record, constructor: @constructor, standin: [false, nil])
+      @current_drivers = SeasonDriver.where(season: current_season, constructor: @constructor, standin: [false, nil])
                                      .includes(driver: :countries).map(&:driver).uniq
       # Recent form: last 5 results per current driver
       if @current_drivers.any?

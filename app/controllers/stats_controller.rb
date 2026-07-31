@@ -283,10 +283,16 @@ class StatsController < ApplicationController
   end
 
   def build_constructor_loyalty(season)
+    # One query for all fan/constructor pairs, then group in-memory — the old
+    # per-constructor .joins ran ~1 query per active team on the Fan Standings
+    # page.
+    supports = ConstructorSupport.where(season: season, active: true).includes(:user).to_a
+    fans_by_constructor = supports.group_by(&:constructor_id).transform_values do |rows|
+      rows.map(&:user).uniq
+    end
+
     all_constructors = Constructor.where(active: true).order(:name).map do |c|
-      fans = User.joins(:constructor_supports)
-                 .where(constructor_supports: { constructor: c, active: true, season: season })
-                 .distinct.to_a
+      fans = fans_by_constructor[c.id] || []
       { constructor: c, fans: fans, count: fans.size }
     end
     all_constructors.sort_by! { |c| [-c[:count], c[:constructor].name] }

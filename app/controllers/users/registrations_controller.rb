@@ -24,9 +24,8 @@ module Users
     private
 
     def provision_fantasy_portfolio(user)
-      season = Season.sorted_by_year.first
-      return unless season
-      Fantasy::CreatePortfolio.new(user: user, season: season).call
+      return unless current_season
+      Fantasy::CreatePortfolio.new(user: user, season: current_season).call
     rescue => e
       Rails.logger.error("[Users::RegistrationsController] auto-portfolio failed for ##{user.id}: #{e.class}: #{e.message}")
     end

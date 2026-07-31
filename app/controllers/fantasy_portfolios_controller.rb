@@ -127,7 +127,6 @@ class FantasyPortfoliosController < ApplicationController
   # ═══════════════════════════════════════
 
   def new
-    current_season = Season.sorted_by_year.first
     existing = current_user.fantasy_portfolio_for(current_season)
     if existing
       redirect_to fantasy_overview_path(current_user.username)
@@ -139,8 +138,7 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def create
-    season = Season.sorted_by_year.first
-    result = Fantasy::CreatePortfolio.new(user: current_user, season: season).call
+    result = Fantasy::CreatePortfolio.new(user: current_user, season: current_season).call
 
     if result[:error]
       redirect_to new_fantasy_portfolio_path, alert: result[:error]
@@ -154,7 +152,7 @@ class FantasyPortfoliosController < ApplicationController
   # ═══════════════════════════════════════
 
   def leaderboard
-    @season = Season.sorted_by_year.first
+    @season = current_season
     @entries = Fantasy::Leaderboard.new(season: @season).call
     starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
     roster_starts = @entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = starting }
@@ -165,7 +163,7 @@ class FantasyPortfoliosController < ApplicationController
   end
 
   def combined_leaderboard
-    @season = Season.sorted_by_year.first
+    @season = current_season
     @entries = Fantasy::Leaderboard.new(season: @season).call
 
     starting = Fantasy::CreatePortfolio::STARTING_CAPITAL

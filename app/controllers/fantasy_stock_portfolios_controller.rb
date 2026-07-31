@@ -1,4 +1,6 @@
 class FantasyStockPortfoliosController < ApplicationController
+  include FantasyPortfolioData
+
   before_action :authenticate_user!
   before_action :set_portfolio, only: [:market, :buy, :sell, :short_open, :short_close, :buy_batch]
   before_action :set_next_race, only: [:market, :buy, :sell, :short_open, :short_close, :buy_batch]
@@ -105,7 +107,7 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def leaderboard
-    @season = Season.sorted_by_year.first
+    @season = current_season
     portfolios = FantasyStockPortfolio.where(season: @season)
                                        .includes(:user, :snapshots, holdings: :driver).to_a
     driver_ids = portfolios.flat_map { |p| p.holdings.select(&:active).map(&:driver_id) }.uniq
@@ -128,36 +130,5 @@ class FantasyStockPortfoliosController < ApplicationController
 
   def check_stock_achievements(portfolio)
     CheckAchievementsJob.perform_later(portfolio_type: "stock", portfolio_id: portfolio.id)
-  end
-
-  def constructors_for_drivers(drivers)
-    driver_ids = drivers.map(&:id)
-    season = @portfolio&.season || Season.sorted_by_year.first
-
-    entries = SeasonDriver.where(driver_id: driver_ids, season_id: season.id)
-                          .includes(:constructor)
-                          .index_by(&:driver_id)
-
-    missing = driver_ids - entries.keys
-    if missing.any?
-      SeasonDriver.where(driver_id: missing)
-                  .joins(:season).includes(:constructor)
-                  .order("seasons.year DESC")
-                  .each { |sd| entries[sd.driver_id] ||= sd }
-    end
-
-    entries.transform_values(&:constructor)
-  end
-
-  def elo_trends_for(driver_ids)
-    results = RaceResult.where(driver_id: driver_ids)
-                        .where.not(old_elo_v2: nil).where.not(new_elo_v2: nil)
-                        .joins(:race)
-                        .order("races.date DESC")
-                        .select(:driver_id, :old_elo_v2, :new_elo_v2)
-
-    results.group_by(&:driver_id).transform_values do |rrs|
-      rrs.first(5).map { |rr| (rr.new_elo_v2 - rr.old_elo_v2).round(0) }
-    end
   end
 end

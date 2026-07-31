@@ -31,10 +31,9 @@ class RacePick < ApplicationRecord
   def alert_first_picks
     return if RacePick.where(user_id: user_id).count > 1
 
-    AdminAlert.create!(
+    AdminAlertJob.perform_later(
       title: "First race picks",
       message: "#{user.username} submitted their first race picks (#{race.circuit.name}, R#{race.round}).",
-      severity: "info",
       source: "RacePick"
     )
   end
