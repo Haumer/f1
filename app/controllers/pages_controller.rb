@@ -209,10 +209,26 @@ class PagesController < ApplicationController
   end
 
   def load_leaderboard_preview
-    portfolios = FantasyPortfolio.where(season: @season).includes(:user).to_a
+    roster_portfolios = FantasyPortfolio.where(season: @season).includes(:user).to_a
+    return @leaderboard_preview = [] if roster_portfolios.empty?
 
-    combined = portfolios.map do |p|
-      { user: p.user, net: p.total_return }
+    # Preload every user's stock portfolio + holdings + prices in bulk so the
+    # per-portfolio total_return below doesn't fan out into (users) × (2 +
+    # holdings) queries.
+    user_ids = roster_portfolios.map(&:user_id)
+    stock_portfolios = FantasyStockPortfolio
+                         .where(user_id: user_ids, season_id: @season.id)
+                         .includes(holdings: :driver).to_a
+    stock_by_user = stock_portfolios.index_by(&:user_id)
+
+    driver_ids = stock_portfolios.flat_map { |sp| sp.holdings.select(&:active).map(&:driver_id) }.uniq
+    prices = Fantasy::Pricing.prices_for_season(driver_ids, @season)
+    starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
+
+    combined = roster_portfolios.map do |p|
+      sp = stock_by_user[p.user_id]
+      net = p.cash + (sp ? sp.positions_value(prices) : 0) - starting
+      { user: p.user, net: net }
     end.sort_by { |e| -e[:net] }.first(5)
 
     @leaderboard_preview = combined.map.with_index(1) do |entry, rank|
