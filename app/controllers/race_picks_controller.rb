@@ -102,7 +102,7 @@ class RacePicksController < ApplicationController
   private
 
   def set_race
-    @season = Season.sorted_by_year.first
+    @season = current_season
     @race = @season&.next_race
     unless @race
       redirect_to root_path, alert: "No upcoming race to make picks for."

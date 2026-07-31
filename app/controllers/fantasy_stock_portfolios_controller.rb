@@ -107,7 +107,7 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def leaderboard
-    @season = Season.sorted_by_year.first
+    @season = current_season
     portfolios = FantasyStockPortfolio.where(season: @season)
                                        .includes(:user, :snapshots, holdings: :driver).to_a
     driver_ids = portfolios.flat_map { |p| p.holdings.select(&:active).map(&:driver_id) }.uniq

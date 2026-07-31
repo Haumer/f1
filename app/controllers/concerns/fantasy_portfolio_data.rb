@@ -5,7 +5,7 @@ module FantasyPortfolioData
 
   def load_user_and_season
     @user = User.find_by!(username: params[:username])
-    @season = Season.sorted_by_year.first
+    @season = current_season
     @is_owner = current_user&.id == @user.id
 
     unless @is_owner || @user.public_profile?
@@ -46,7 +46,7 @@ module FantasyPortfolioData
 
   def constructors_for_drivers(drivers)
     driver_ids = drivers.map(&:id)
-    season = @portfolio&.season || @season || Season.sorted_by_year.first
+    season = @portfolio&.season || @season || current_season
 
     entries = SeasonDriver.where(driver_id: driver_ids, season_id: season.id)
                           .includes(:constructor)
