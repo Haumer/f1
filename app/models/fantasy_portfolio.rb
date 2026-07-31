@@ -45,10 +45,9 @@ class FantasyPortfolio < ApplicationRecord
   def alert_first_portfolio
     return if user.fantasy_portfolios.count > 1
 
-    AdminAlert.create!(
+    AdminAlertJob.perform_later(
       title: "New fantasy portfolio",
       message: "#{user.username} created their first fantasy portfolio (#{season.year}).",
-      severity: "info",
       source: "FantasyPortfolio"
     )
   end
