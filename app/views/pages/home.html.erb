@@ -30,6 +30,9 @@
         <%# 2b. Community activity strip — signals of life across the site %>
         <%= render "pages/activity_strip", activity: @community_activity, next_race: @next_race %>
 
+        <%# 2c. Live public activity ticker — real user trades / cards scrolling by %>
+        <%= render "pages/activity_ticker", entries: @public_activity %>
+
         <%# 3. Next Race strip (always visible when available, skip if hero already covers it) %>
         <% unless [:race_weekend, :race_day, :race_complete, :pre_race, :between_races, :season_start].include?(@homepage_phase) %>
             <% if @next_race && @next_race.date > @today %>
@@ -211,13 +214,11 @@
                 </div>
                 <div class="leaderboard-preview-list">
                     <% @leaderboard_preview.each do |entry| %>
-                        <div class="leaderboard-preview-row">
-                            <span class="leaderboard-preview-rank place-<%= entry[:rank] %>">#<%= entry[:rank] %></span>
-                            <span class="leaderboard-preview-name"><%= entry[:user].username %></span>
-                            <span class="leaderboard-preview-net <%= entry[:net] >= 0 ? 'text-green' : 'text-red' %>">
-                                <%= entry[:net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:net].round(0)) %>
-                            </span>
-                        </div>
+                        <%= render "pages/leaderboard_row", entry: entry %>
+                    <% end %>
+                    <% if @leaderboard_preview_self %>
+                        <div class="leaderboard-preview-divider"><span>your position</span></div>
+                        <%= render "pages/leaderboard_row", entry: @leaderboard_preview_self, self: true %>
                     <% end %>
                 </div>
             </div>
@@ -225,13 +226,18 @@
 
         <%# 9. Explore Grid (always visible) %>
         <div class="explore-archive">
-            <div class="explore-header">Explore</div>
+            <div class="table-header">
+                <h3><i class="fa-solid fa-compass"></i> Explore</h3>
+            </div>
             <div class="explore-grid">
                 <%= link_to peak_elo_drivers_path, class: "card explore-card" do %>
                     <div class="explore-icon"><i class="fa-solid fa-ranking-star"></i></div>
                     <div class="explore-info">
                         <span class="explore-name">Peak Elo</span>
                         <span class="explore-desc">All-time highest ratings</span>
+                        <% if (s = @explore_stats&.dig(:peak)) %>
+                            <span class="explore-stat"><%= s[:driver].forename&.first %>. <%= s[:driver].surname %> · <%= s[:value] %></span>
+                        <% end %>
                     </div>
                 <% end %>
                 <%= link_to compare_drivers_path, class: "card explore-card" do %>
@@ -239,6 +245,9 @@
                     <div class="explore-info">
                         <span class="explore-name">Compare Drivers</span>
                         <span class="explore-desc">Head-to-head Elo history</span>
+                        <% if (s = @explore_stats&.dig(:compare)) %>
+                            <span class="explore-stat">Try: <%= s[:a].surname %> vs <%= s[:b].surname %></span>
+                        <% end %>
                     </div>
                 <% end %>
                 <%= link_to seasons_path, class: "card explore-card" do %>
@@ -246,6 +255,9 @@
                     <div class="explore-info">
                         <span class="explore-name">All Seasons</span>
                         <span class="explore-desc">Browse every F1 season</span>
+                        <% if (s = @explore_stats&.dig(:seasons)) && s[:year] %>
+                            <span class="explore-stat"><%= s[:year] %> · Round <%= s[:races_completed] %> of <%= s[:total_races] %></span>
+                        <% end %>
                     </div>
                 <% end %>
                 <%= link_to circuits_path, class: "card explore-card" do %>
@@ -253,6 +265,11 @@
                     <div class="explore-info">
                         <span class="explore-name">Circuits</span>
                         <span class="explore-desc">Tracks around the world</span>
+                        <% if (s = @explore_stats&.dig(:circuits)) %>
+                            <span class="explore-stat">
+                                <%= s[:total] %> tracks<% if s[:next] %> · Next: <%= s[:next].name %><% end %>
+                            </span>
+                        <% end %>
                     </div>
                 <% end %>
                 <%= link_to constructors_path, class: "card explore-card" do %>
@@ -260,6 +277,9 @@
                     <div class="explore-info">
                         <span class="explore-name">Constructors</span>
                         <span class="explore-desc">Team histories & Elo</span>
+                        <% if (s = @explore_stats&.dig(:constructors)) %>
+                            <span class="explore-stat"><%= s[:constructor].name %> leads<% if s[:points] %> · <%= s[:points] %> pts<% end %></span>
+                        <% end %>
                     </div>
                 <% end %>
                 <%= link_to podiums_races_path, class: "card explore-card" do %>
@@ -267,6 +287,9 @@
                     <div class="explore-info">
                         <span class="explore-name">Podium Leaders</span>
                         <span class="explore-desc">Most podiums all-time</span>
+                        <% if (s = @explore_stats&.dig(:podiums)) %>
+                            <span class="explore-stat"><%= s[:driver].surname %> · <%= s[:count] %> podiums</span>
+                        <% end %>
                     </div>
                 <% end %>
             </div>

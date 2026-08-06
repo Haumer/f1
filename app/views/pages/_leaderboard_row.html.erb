@@ -1,0 +1,37 @@
+<%
+  # Locals:
+  #   entry — { rank:, user:, net:, gap_percent:, last_action:, ... }
+  #   self  — true when this is the "you are here" pin row
+  #   self  ||= false
+  row_class = ["leaderboard-preview-row"]
+  row_class << "leaderboard-preview-row--self" if local_assigns[:self]
+  user = entry[:user]
+  action = entry[:last_action]
+%>
+<%= link_to fantasy_overview_path(user.username), class: row_class.join(" ") do %>
+  <span class="leaderboard-preview-rank place-<%= entry[:rank] %>">#<%= entry[:rank] %></span>
+  <span class="leaderboard-preview-chip" style="background: <%= user_chip_color(user.username) %>">
+    <%= user_chip_initial(user.username) %>
+  </span>
+  <div class="leaderboard-preview-main">
+    <div class="leaderboard-preview-name-row">
+      <span class="leaderboard-preview-name"><%= user.username %></span>
+      <% if local_assigns[:self] %>
+        <span class="leaderboard-preview-you">you</span>
+      <% end %>
+    </div>
+    <div class="leaderboard-preview-gap">
+      <span class="leaderboard-preview-gap-bar" style="width: <%= entry[:gap_percent].to_f.round(1) %>%; background: <%= user_chip_color(user.username) %>"></span>
+    </div>
+    <% if action %>
+      <span class="leaderboard-preview-action">
+        <i class="fa-solid <%= activity_kind_icon(action.kind) || 'fa-arrow-right' %>"></i>
+        <%= activity_kind_label(action.kind) %><% if action.driver %> <strong><%= action.driver.surname %></strong><% end %>
+        · <%= time_ago_in_words(action.created_at) %> ago
+      </span>
+    <% end %>
+  </div>
+  <span class="leaderboard-preview-net <%= entry[:net] >= 0 ? 'text-green' : 'text-red' %>">
+    <%= entry[:net] >= 0 ? '+' : '' %><%= number_with_delimiter(entry[:net].round(0)) %>
+  </span>
+<% end %>
