@@ -1,0 +1,37 @@
+<%
+  # Locals:
+  #   entries — Array<Hash> from Fantasy::PublicActivityFeed.recent
+  return if entries.blank?
+
+  color_for = ->(kind) {
+    case kind
+    when "buy", "short_close" then "activity-ticker-item--pos"
+    when "sell", "short_open"  then "activity-ticker-item--neg"
+    when "card_earned", "card_combined" then "activity-ticker-item--card"
+    else "activity-ticker-item--neutral"
+    end
+  }
+%>
+<div class="activity-ticker" data-controller="activity-ticker">
+  <div class="activity-ticker-label">
+    <i class="fa-solid fa-tower-broadcast"></i>
+    Live
+  </div>
+  <div class="activity-ticker-viewport">
+    <div class="activity-ticker-track" data-activity-ticker-target="track">
+      <% (entries + entries).each_with_index do |e, idx| %>
+        <span class="activity-ticker-item <%= color_for.call(e[:kind]) %>">
+          <i class="fa-solid <%= activity_kind_icon(e[:kind]) || 'fa-circle' %>"></i>
+          <strong><%= e[:username] %></strong>
+          <span class="activity-ticker-verb"><%= e[:verb] %></span>
+          <% if e[:driver_name] %>
+            <span class="activity-ticker-driver"><%= e[:driver_name] %></span>
+          <% end %>
+          <% if e[:tier] %>
+            <span class="activity-ticker-tier"><%= e[:tier].to_s.capitalize %></span>
+          <% end %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+</div>
