@@ -1648,7 +1648,25 @@
   align-items: center;
   gap: 28px;
   white-space: nowrap;
+  animation: ticker-scroll 90s linear infinite;
   will-change: transform;
+
+  // Content is duplicated in the HTML, so translating -50% lands on the
+  // start of the second copy — visually identical to the first frame,
+  // making the loop seamless.
+  .activity-ticker:hover &,
+  .activity-ticker:focus-within & {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-ticker-track { animation: none; }
 }
 
 .activity-ticker-item {

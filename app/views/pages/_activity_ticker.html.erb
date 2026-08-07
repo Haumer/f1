@@ -12,13 +12,13 @@
     end
   }
 %>
-<div class="activity-ticker" data-controller="activity-ticker">
+<div class="activity-ticker">
   <div class="activity-ticker-label">
     <i class="fa-solid fa-tower-broadcast"></i>
     Live
   </div>
   <div class="activity-ticker-viewport">
-    <div class="activity-ticker-track" data-activity-ticker-target="track">
+    <div class="activity-ticker-track">
       <% (entries + entries).each_with_index do |e, idx| %>
         <span class="activity-ticker-item <%= color_for.call(e[:kind]) %>">
           <i class="fa-solid <%= activity_kind_icon(e[:kind]) || 'fa-circle' %>"></i>
