@@ -11,6 +11,14 @@
     else "activity-ticker-item--neutral"
     end
   }
+
+  # Duplicate the entries enough times that the track always overflows the
+  # viewport by ≥2×. The CSS keyframe translates -50%, and the number of
+  # copies MUST be even so that halfway lands on a copy boundary — otherwise
+  # the reset lands mid-entry and the loop visibly jumps.
+  copies = [ (40.0 / entries.size).ceil, 2 ].max
+  copies += 1 if copies.odd?
+  looped = entries * copies
 %>
 <div class="activity-ticker">
   <div class="activity-ticker-label">
@@ -19,7 +27,7 @@
   </div>
   <div class="activity-ticker-viewport">
     <div class="activity-ticker-track">
-      <% (entries + entries).each_with_index do |e, idx| %>
+      <% looped.each_with_index do |e, idx| %>
         <span class="activity-ticker-item <%= color_for.call(e[:kind]) %>">
           <i class="fa-solid <%= activity_kind_icon(e[:kind]) || 'fa-circle' %>"></i>
           <strong><%= e[:username] %></strong>
