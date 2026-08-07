@@ -211,6 +211,7 @@ class PagesController < ApplicationController
   end
 
   def load_public_activity
+    return @public_activity = [] unless current_user
     @public_activity = Fantasy::PublicActivityFeed.recent(season: @season, limit: 20)
   rescue StandardError
     @public_activity = []
