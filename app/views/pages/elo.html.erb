@@ -58,87 +58,37 @@
         </div>
     </div>
 
+    <%
+    tier_examples = ->(where, *bindings) {
+        Driver.where(where, *bindings).order(peak_col => :desc).limit(5).to_a
+    }
+    tiers = [
+        { key: :elite, label: "Elite", css: "tier-elite",
+          range_html: "#{thresholds[0]}+",
+          description: "The all-time greats. Drivers who achieved sustained dominance against the strongest competition. Only",
+          examples: tier_examples.call("#{peak_col} >= ?", thresholds[0]) },
+        { key: "world-class".to_sym, label: "World Class", css: "tier-world-class",
+          range_html: "#{thresholds[1]}&ndash;#{thresholds[0] - 1}",
+          description: "Championship contenders and race winners who consistently performed at the highest level.",
+          examples: tier_examples.call("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[1], thresholds[0]) },
+        { key: :strong, label: "Strong", css: "tier-strong",
+          range_html: "#{thresholds[2]}&ndash;#{thresholds[1] - 1}",
+          description: "Solid midfield performers and occasional podium finishers. Competitive drivers who proved themselves against strong fields.",
+          examples: tier_examples.call("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[2], thresholds[1]) },
+        { key: :average, label: "Average", css: "tier-average",
+          range_html: "#{thresholds[3]}&ndash;#{thresholds[2] - 1}",
+          description: "Reliable competitors who carved out respectable F1 careers without reaching the top step.",
+          examples: nil },
+        { key: :developing, label: "Developing", css: "tier-developing",
+          range_html: "Below #{thresholds[3]}",
+          description: "The largest group — short careers, backmarkers, or drivers who never had the machinery to climb higher. Many only raced a handful of grands prix.",
+          examples: nil }
+    ]
+    %>
     <div class="elo-tiers-grid">
-        <div class="elo-tier-card tier-elite">
-            <div class="tier-header">
-                <span class="elo-tier-badge elo-tier-elite">Elite</span>
-                <span class="tier-range"><%= thresholds[0] %>+</span>
-            </div>
-            <p class="tier-description">
-                The all-time greats. Drivers who achieved sustained dominance against the strongest competition.
-                Only <strong><%= @tier_counts[:elite] %></strong> drivers
-                (<%= (@tier_counts[:elite].to_f / @total_drivers * 100).round(1) %>%) have reached this level.
-            </p>
-            <div class="tier-examples">
-                <% Driver.where("#{peak_col} >= ?", thresholds[0]).order(peak_col => :desc).limit(5).each do |d| %>
-                    <%= link_to driver_path(d), class: "tier-driver" do %>
-                        <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
-                    <% end %>
-                <% end %>
-            </div>
-        </div>
-
-        <div class="elo-tier-card tier-world-class">
-            <div class="tier-header">
-                <span class="elo-tier-badge elo-tier-world-class">World Class</span>
-                <span class="tier-range"><%= thresholds[1] %>–<%= thresholds[0] - 1 %></span>
-            </div>
-            <p class="tier-description">
-                Championship contenders and race winners who consistently performed at the highest level.
-                <strong><%= @tier_counts[:world_class] %></strong> drivers
-                (<%= (@tier_counts[:world_class].to_f / @total_drivers * 100).round(1) %>%).
-            </p>
-            <div class="tier-examples">
-                <% Driver.where("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[1], thresholds[0]).order(peak_col => :desc).limit(5).each do |d| %>
-                    <%= link_to driver_path(d), class: "tier-driver" do %>
-                        <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
-                    <% end %>
-                <% end %>
-            </div>
-        </div>
-
-        <div class="elo-tier-card tier-strong">
-            <div class="tier-header">
-                <span class="elo-tier-badge elo-tier-strong">Strong</span>
-                <span class="tier-range"><%= thresholds[2] %>–<%= thresholds[1] - 1 %></span>
-            </div>
-            <p class="tier-description">
-                Solid midfield performers and occasional podium finishers. Competitive drivers who proved themselves against strong fields.
-                <strong><%= @tier_counts[:strong] %></strong> drivers
-                (<%= (@tier_counts[:strong].to_f / @total_drivers * 100).round(1) %>%).
-            </p>
-            <div class="tier-examples">
-                <% Driver.where("#{peak_col} >= ? AND #{peak_col} < ?", thresholds[2], thresholds[1]).order(peak_col => :desc).limit(5).each do |d| %>
-                    <%= link_to driver_path(d), class: "tier-driver" do %>
-                        <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
-                    <% end %>
-                <% end %>
-            </div>
-        </div>
-
-        <div class="elo-tier-card tier-average">
-            <div class="tier-header">
-                <span class="elo-tier-badge elo-tier-average">Average</span>
-                <span class="tier-range"><%= thresholds[3] %>–<%= thresholds[2] - 1 %></span>
-            </div>
-            <p class="tier-description">
-                Reliable competitors who carved out respectable F1 careers without reaching the top step.
-                <strong><%= @tier_counts[:average] %></strong> drivers
-                (<%= (@tier_counts[:average].to_f / @total_drivers * 100).round(1) %>%).
-            </p>
-        </div>
-
-        <div class="elo-tier-card tier-developing">
-            <div class="tier-header">
-                <span class="elo-tier-badge elo-tier-developing">Developing</span>
-                <span class="tier-range">Below <%= thresholds[3] %></span>
-            </div>
-            <p class="tier-description">
-                The largest group — short careers, backmarkers, or drivers who never had the machinery to climb higher. Many only raced a handful of grands prix.
-                <strong><%= @tier_counts[:developing] %></strong> drivers
-                (<%= (@tier_counts[:developing].to_f / @total_drivers * 100).round(1) %>%).
-            </p>
-        </div>
+        <% tiers.each do |tier| %>
+            <%= render "elo_tier_card", tier: tier, count: @tier_counts[tier[:key]], total_drivers: @total_drivers %>
+        <% end %>
     </div>
 
     <div class="table-header" id="example" style="margin-top: 24px;">

@@ -1,5 +1,6 @@
 class Constructor < ApplicationRecord
     include ConstructorFamilies
+    include DisplayElo
 
     has_many :race_results
     has_many :qualifying_results
@@ -103,14 +104,6 @@ class Constructor < ApplicationRecord
         'alphatauri'   => 'https://media.formula1.com/content/dam/fom-website/teams/2024/rb-logo.png',
         'alfa'         => 'https://media.formula1.com/content/dam/fom-website/teams/2024/alfa-romeo-logo.png',
     }
-
-    def display_elo
-        elo_v2
-    end
-
-    def display_peak_elo
-        peak_elo_v2
-    end
 
     private
 

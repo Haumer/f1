@@ -1,0 +1,33 @@
+<%
+# Locals: snapshots (FantasyStockSnapshot collection, ordered by race)
+#         chart_style (optional CSS style string for the chart tag)
+chart_style ||= "width:100%; height:280px;"
+%>
+<div class="table-header"><h3>Portfolio Value</h3></div>
+<div class="card card-flush fantasy-chart-card">
+    <%= custom_chart({
+        tooltip: { trigger: "axis" },
+        grid: { left: 10, right: 20, top: 20, bottom: 10, containLabel: true },
+        backgroundColor: "transparent",
+        xAxis: {
+            type: "category",
+            data: snapshots.map { |s| "R#{s.race.round}" },
+            axisLabel: { color: "#666" },
+            axisLine: { lineStyle: { color: "#333" } }
+        },
+        yAxis: {
+            type: "value",
+            axisLabel: { color: "#666" },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
+        },
+        series: [{
+            name: "Portfolio Value",
+            type: "line",
+            data: snapshots.map { |s| s.value.round(1) },
+            smooth: true,
+            lineStyle: { color: "#e10600", width: 3 },
+            itemStyle: { color: "#e10600" },
+            areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
+        }]
+    }, style: chart_style) %>
+</div>

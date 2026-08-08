@@ -98,83 +98,11 @@ class ConstructorsController < ApplicationController
     ).find_by!(constructor_ref: params[:id])
     set_constructor_accent(@constructor)
 
-    results = @constructor.race_results.to_a
-    @total_races = results.map(&:race_id).uniq.size
-    @race_wins = results.count { |rr| rr.position_order == 1 }
-    @podiums = results.count { |rr| rr.position_order && rr.position_order <= 3 }
-    @win_rate = @total_races > 0 ? (@race_wins.to_f / @total_races * 100).round(1) : 0
-
-    # Constructor championship wins (position 1 at season-end races)
-    season_end_race_ids = Race.where(season_end: true).pluck(:id)
-    @championship_standings = @constructor.constructor_standings
-      .where(race_id: season_end_race_ids, position: 1)
-      .includes(race: :season)
-    @championship_wins = @championship_standings.size
-    @championship_years = @championship_standings.map { |cs| cs.race.season.year }.sort
-
-    # Best season (most wins in a single year — most recent if tied)
-    wins_by_year = results.select { |rr| rr.position_order == 1 }.group_by { |rr| rr.race.year }
-    if wins_by_year.any?
-      best_year, best_wins = wins_by_year.max_by { |y, rrs| [rrs.size, y.to_i] }
-      @best_season = { year: best_year, wins: best_wins.size }
-    end
-
-    # Driver stats at this constructor — wins and podiums per driver while racing for this team
-    wins_by_driver = results.select { |rr| rr.position_order == 1 }.group_by(&:driver_id)
-    podiums_by_driver = results.select { |rr| rr.position_order && rr.position_order <= 3 }.group_by(&:driver_id)
-    races_by_driver = results.group_by(&:driver_id)
-
-    # Top drivers: sorted by wins, then podiums
-    driver_ids = races_by_driver.keys
-    drivers_index = Driver.where(id: driver_ids).includes(:countries).index_by(&:id)
-
-    @top_drivers = driver_ids.map do |did|
-      driver = drivers_index[did]
-      next unless driver
-      {
-        driver: driver,
-        wins: wins_by_driver[did]&.size || 0,
-        podiums: podiums_by_driver[did]&.size || 0,
-        races: races_by_driver[did]&.map(&:race_id)&.uniq&.size || 0
-      }
-    end.compact.sort_by { |d| [-d[:wins], -d[:podiums], -d[:races]] }
-
-    @most_winning_driver = @top_drivers.first
-    @supporter_count = ConstructorSupport.where(constructor: @constructor, active: true).count
-    @user_supports_any = current_user && ConstructorSupport.current_for(current_user, current_season).present?
-    @user_supports_this = current_user && ConstructorSupport.exists?(user: current_user, constructor: @constructor, season: current_season, active: true)
-    @fans = User.joins(:constructor_supports)
-                .where(constructor_supports: { constructor: @constructor, active: true })
-                .distinct.to_a
-
-    # Current lineup (active constructors only)
-    if @constructor.active
-      @current_drivers = SeasonDriver.where(season: current_season, constructor: @constructor, standin: [false, nil])
-                                     .includes(driver: :countries).map(&:driver).uniq
-      # Recent form: last 5 results per current driver
-      if @current_drivers.any?
-        recent_results = RaceResult.where(driver_id: @current_drivers.map(&:id))
-                                   .joins(:race).order("races.date DESC")
-                                   .includes(race: :circuit)
-                                   .limit(@current_drivers.size * 5)
-        @recent_form = recent_results.group_by(&:driver_id).transform_values { |rrs| rrs.first(5) }
-      end
-    end
-
-    # Recent team results (last 5 races)
-    recent_race_ids = results.map(&:race).uniq.sort_by(&:date).last(5).map(&:id)
-    @recent_results = results.select { |rr| recent_race_ids.include?(rr.race_id) }
-                             .sort_by { |rr| [-rr.race.date.to_time.to_i, rr.position_order || 999] }
-
-    # Driver roster grouped by season (most recent first)
-    @roster_by_season = @constructor.season_drivers
-      .includes(:driver, :season)
-      .group_by(&:season)
-      .sort_by { |season, _| -season.year.to_i }
-
-    # Split roster into recent (last 5 seasons) and historical
-    @recent_roster = @roster_by_season.first(5)
-    @historical_roster = @roster_by_season.drop(5)
+    Constructors::ShowPresenter.new(
+      constructor: @constructor,
+      current_user: current_user,
+      current_season: current_season
+    ).call.each { |k, v| instance_variable_set("@#{k}", v) }
   end
 
   def elo_rankings
@@ -187,81 +115,7 @@ class ConstructorsController < ApplicationController
   end
 
   def best_pairings
-    # Group season_drivers by (season, constructor) to find teammates
-    grouped = SeasonDriver.where(standin: [false, nil])
-                 .joins(:season).where("seasons.year >= '1990'")
-                 .includes(:driver, :season, :constructor)
-                 .group_by { |sd| [sd.season_id, sd.constructor_id] }
-
-    # Pre-load race results only for drivers in pairings
-    pairing_driver_ids = grouped.values.flat_map { |sds| sds.map(&:driver_id) }.uniq
-    pairing_season_ids = grouped.keys.map(&:first).uniq
-    all_results = RaceResult.where(driver_id: pairing_driver_ids)
-                 .joins(:race).where(races: { season_id: pairing_season_ids })
-                 .index_by { |rr| [rr.race_id, rr.driver_id] }
-    races_by_season = Race.where(season_id: pairing_season_ids)
-                 .joins(:race_results).distinct.group_by(&:season_id)
-
-    seen_pairs = Set.new
-    @pairings = []
-
-    grouped.each do |(_season_id, constructor_id), sds|
-      drivers = sds.map(&:driver).uniq(&:id)
-      next if drivers.size < 2
-      season = sds.first.season
-      constructor = sds.first.constructor
-
-      drivers.combination(2).each do |d1, d2|
-        pair_key = [d1.id, d2.id].sort
-        next if seen_pairs.include?(pair_key)
-        seen_pairs << pair_key
-
-        # Find all seasons they were teammates
-        shared = grouped.select do |(_sid, _cid), group_sds|
-          ids = group_sds.map(&:driver_id)
-          ids.include?(d1.id) && ids.include?(d2.id)
-        end
-
-        constructors = shared.map { |(_sid, _cid), group_sds| group_sds.first.constructor }.uniq(&:id)
-
-        # Calculate race stats across all shared seasons
-        races_together = 0
-        wins = 0
-        one_two_finishes = 0
-
-        shared.each do |(sid, _cid), _group_sds|
-          season_races = races_by_season[sid] || []
-          season_races.each do |race|
-            rr1 = all_results[[race.id, d1.id]]
-            rr2 = all_results[[race.id, d2.id]]
-            next unless rr1 && rr2
-
-            races_together += 1
-            p1 = rr1.position_order
-            p2 = rr2.position_order
-            wins += 1 if p1 == 1 || p2 == 1
-            one_two_finishes += 1 if p1 && p2 && [p1, p2].sort == [1, 2]
-          end
-        end
-
-        next if races_together < 5 # minimum threshold
-
-        @pairings << {
-          driver1: d1,
-          driver2: d2,
-          constructors: constructors,
-          seasons_together: shared.map { |(_sid, _cid), group_sds| group_sds.first.season }.uniq(&:id).sort_by(&:year),
-          races_together: races_together,
-          wins: wins,
-          win_pct: (wins.to_f / races_together * 100).round(1),
-          one_two_finishes: one_two_finishes,
-          one_two_pct: (one_two_finishes.to_f / races_together * 100).round(1)
-        }
-      end
-    end
-
-    @pairings.sort_by! { |p| [-p[:one_two_pct], -p[:win_pct], -p[:races_together]] }
-    @pairings = @pairings.first(50)
+    @pairings = Constructors::PairingCalculator.new.call
   end
 
   def support

@@ -1,0 +1,24 @@
+<%
+# Locals: tier {key:, label:, css:, range_html:, description:, examples: [drivers or nil]}
+#         count, total_drivers
+percent = total_drivers.positive? ? (count.to_f / total_drivers * 100).round(1) : 0
+%>
+<div class="elo-tier-card <%= tier[:css] %>">
+    <div class="tier-header">
+        <span class="elo-tier-badge elo-tier-<%= tier[:key] %>"><%= tier[:label] %></span>
+        <span class="tier-range"><%= tier[:range_html].html_safe %></span>
+    </div>
+    <p class="tier-description">
+        <%= tier[:description].html_safe %>
+        <strong><%= count %></strong> drivers (<%= percent %>%).
+    </p>
+    <% if tier[:examples].present? %>
+        <div class="tier-examples">
+            <% tier[:examples].each do |d| %>
+                <%= link_to driver_path(d), class: "tier-driver" do %>
+                    <%= d.forename[0] %>.<%= d.surname %> <span class="tier-elo"><%= d.display_peak_elo.round %></span>
+                <% end %>
+            <% end %>
+        </div>
+    <% end %>
+</div>

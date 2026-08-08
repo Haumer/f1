@@ -1,0 +1,349 @@
+module Homepage
+  # Computes the homepage's phase (pre_race, race_weekend, post_race, …) and
+  # all the phase-specific data the hero + activity strip render from. Was
+  # HomepageData controller concern; extracted so PagesController#home stays
+  # a thin orchestrator.
+  class PhaseData
+    SESSION_DURATIONS = {
+      fp1: 1.hour, fp2: 1.hour, fp3: 1.hour,
+      quali: 1.hour, sprint_quali: 1.hour,
+      sprint: 1.hour, race: 2.hours + 30.minutes
+    }.freeze
+
+    COMMUNITY_ACTIVITY_WINDOW = 7.days
+
+    def initialize(today:, season:, next_race:, latest_race:, season_complete:, champion:, constructor_top3: nil, races_completed: nil, total_races: nil)
+      @today = today
+      @season = season
+      @next_race = next_race
+      @latest_race = latest_race
+      @season_complete = season_complete
+      @champion = champion
+      @constructor_top3 = constructor_top3
+      @races_completed = races_completed
+      @total_races = total_races
+    end
+
+    def call
+      @contextual_race = find_contextual_race
+      @homepage_phase = determine_homepage_phase
+      prepare_phase_data
+      load_community_activity
+      load_explore_stats
+      output
+    end
+
+    private
+
+    def find_contextual_race
+      candidate = Race.where("date - 2 <= ? AND date + 2 >= ?", @today, @today)
+                      .order(:date)
+                      .includes(:circuit, :race_results)
+                      .first
+      candidate || @next_race
+    end
+
+    def determine_homepage_phase
+      return :pre_race unless @contextual_race
+
+      race = @contextual_race
+      fp1_date = race.fp1_date
+      race_date = race.date
+
+      if race.has_results? && @today >= race_date && @today <= race_date + 2.days
+        return :post_race
+      end
+
+      if @latest_race&.has_results? && @today >= @latest_race.date && @today <= @latest_race.date + 2.days
+        @contextual_race = @latest_race
+        return :post_race
+      end
+
+      if @today == race_date
+        return race.race_session_ended? ? :race_complete : :race_day
+      end
+
+      return :race_weekend if @today >= fp1_date && @today < race_date
+
+      first_race = @season.first_race
+      if first_race && !@season.latest_driver_standings&.any? && first_race.date > @today
+        return :season_start
+      end
+
+      return :season_complete if @season_complete && @champion
+
+      days_to_fp1 = (fp1_date - @today).to_i
+      return :between_races if days_to_fp1 > 3
+      :pre_race
+    end
+
+    def prepare_phase_data
+      race = @contextual_race
+      return unless race
+
+      @next_session = race.session_schedule.find { |s| s[:starts_at].present? && s[:starts_at] > Time.current }
+
+      case @homepage_phase
+      when :race_complete, :race_weekend, :race_day
+        @weekend_race = race
+        @session_schedule = build_session_schedule(race)
+        @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
+
+      when :pre_race
+        @countdown_race = race
+        @days_until_fp1 = (race.fp1_date - @today).to_i
+        @session_schedule = build_session_schedule(race)
+        @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
+
+      when :between_races
+        @countdown_race = race
+        @days_until_fp1 = (race.fp1_date - @today).to_i
+        @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
+
+      when :season_start
+        prepare_season_start_data
+
+      when :post_race
+        @post_race = race
+        @circuit_kings = DriverBadge.circuit_kings_for(race.circuit_id)
+        @podium_results_post = race.race_results
+                                   .where(position_order: 1..3)
+                                   .order(position_order: :asc)
+                                   .includes(driver: :countries, constructor: [])
+
+        @race_elo_changes = race.race_results
+                                .includes(driver: :countries, constructor: [])
+                                .sort_by { |rr| -(rr.display_elo_diff.abs) }
+                                .first(5)
+      end
+    end
+
+    def prepare_season_start_data
+      @first_race = @season.first_race
+
+      elo_col = Setting.elo_column(:elo)
+      @power_rankings = Driver.active
+        .where.not(elo_col => nil)
+        .order(elo_col => :desc)
+        .limit(10)
+        .includes(:countries, season_drivers: :constructor)
+
+      season_for_constructors = @season
+      unless SeasonDriver.where(season: @season).exists?
+        season_for_constructors = @season.previous_season
+      end
+      constructor_elo_col = Setting.elo_column(:elo)
+      @constructor_rankings = if season_for_constructors
+        Constructor.where.not(constructor_elo_col => nil)
+          .joins(:season_drivers)
+          .where(season_drivers: { season_id: season_for_constructors.id })
+          .distinct
+          .order(constructor_elo_col => :desc)
+      else
+        Constructor.none
+      end
+
+      @active_driver_count = Driver.active.count
+      @total_races_tracked = Race.joins(:race_results).distinct.count
+
+      prev_season = @season.previous_season
+      return unless prev_season
+
+      champion_standing = DriverStanding.find_by(
+        race: prev_season.last_race, position: 1, season_end: true
+      )
+      @prev_champion = champion_standing&.driver
+      @prev_champion_standing = champion_standing
+      @prev_champion_constructor = @prev_champion&.constructor_for(prev_season)
+      @prev_season = prev_season
+    end
+
+    def load_community_activity
+      since = @today.beginning_of_day - COMMUNITY_ACTIVITY_WINDOW
+
+      picks_for_next_race = @next_race ? RacePick.where(race_id: @next_race.id).count : 0
+      trades_this_week = FantasyStockTransaction
+                           .where(created_at: since..)
+                           .where(kind: %w[buy sell short_open short_close])
+                           .count
+      new_members_this_week = User.where(created_at: since..).count
+
+      @community_activity = {
+        picks_for_next_race: picks_for_next_race,
+        trades_this_week: trades_this_week,
+        new_members_this_week: new_members_this_week
+      }
+
+      @recent_picks = @next_race ? build_recent_picks_for(@next_race) : []
+    end
+
+    # Small, cheap live stats for the homepage Explore grid — one indexed lookup
+    # per card so each tile teases something real instead of a generic tagline.
+    def load_explore_stats
+      peak_col = Setting.elo_column(:peak_elo)
+      top_peak = Driver.where.not(peak_col => nil).order(peak_col => :desc).first
+      top_podium = Driver.where("podiums > 0").order(podiums: :desc).first
+
+      wcc_leader = @constructor_top3&.first
+      if wcc_leader.nil? && @season
+        standings = @season.latest_driver_standings
+        if standings&.any?
+          leader_ds = standings.first
+          sd = SeasonDriver.where(season: @season, driver_id: leader_ds.driver_id)
+                           .includes(:constructor).first
+          if sd&.constructor
+            wcc_leader = { constructor: sd.constructor, points: leader_ds.points&.round, wins: leader_ds.wins || 0 }
+          end
+        end
+      end
+
+      top_two = @season&.latest_driver_standings&.first(2)
+
+      @explore_stats = {
+        peak: top_peak && { driver: top_peak, value: top_peak.send(peak_col)&.round },
+        compare: top_two && top_two.size == 2 ? { a: top_two[0].driver, b: top_two[1].driver } : nil,
+        seasons: { races_completed: @races_completed, total_races: @total_races, year: @season&.year },
+        circuits: { total: Circuit.count, next: @next_race&.circuit },
+        constructors: wcc_leader,
+        podiums: top_podium && { driver: top_podium, count: top_podium.podiums }
+      }
+    end
+
+    def build_recent_picks_for(race)
+      picks = RacePick.where(race_id: race.id)
+                      .where.not(picks: [])
+                      .order(created_at: :desc)
+                      .limit(6)
+                      .includes(:user)
+
+      driver_ids = picks.filter_map { |p| p1_driver_id(p) }.uniq
+      return [] if driver_ids.empty?
+
+      drivers_by_id = Driver.where(id: driver_ids).index_by(&:id)
+      constructors_by_driver = SeasonDriver.where(season_id: race.season_id, driver_id: driver_ids)
+                                           .includes(:constructor)
+                                           .index_by(&:driver_id)
+                                           .transform_values(&:constructor)
+
+      picks.filter_map do |pick|
+        did = p1_driver_id(pick)
+        driver = drivers_by_id[did]
+        next unless driver
+
+        {
+          user: pick.user,
+          driver: driver,
+          constructor: constructors_by_driver[did],
+          created_at: pick.created_at
+        }
+      end
+    end
+
+    def p1_driver_id(pick)
+      p1 = (pick.picks || []).find { |p| p["position"] == 1 }
+      p1&.dig("driver_id")
+    end
+
+    def build_session_schedule(race)
+      now = Time.current
+      raw_schedule = race.session_schedule
+      sessions = raw_schedule.map.with_index do |session, _idx|
+        session_start = session[:starts_at]
+        duration = SESSION_DURATIONS[session[:key]] || 1.hour
+
+        status = compute_session_status(session, session_start, duration, raw_schedule, now)
+        session.merge(status: status)
+      end
+
+      sessions.each_with_index do |session, i|
+        prev = i > 0 ? sessions[i - 1] : nil
+        session[:connector_before_fill] = connector_fill(prev, session)
+      end
+
+      sessions
+    end
+
+    def compute_session_status(session, session_start, duration, raw_schedule, now)
+      if session_start
+        return :done if session_start + duration <= now
+        return :today if session_start <= now
+        return :upcoming
+      end
+
+      return :done if session[:date] < @today
+      return :upcoming if session[:date] > @today
+
+      earlier_still_pending = raw_schedule.any? { |s|
+        s[:date] == session[:date] &&
+        s[:starts_at].present? &&
+        s[:starts_at] + (SESSION_DURATIONS[s[:key]] || 1.hour) > now
+      }
+      earlier_still_pending ? :upcoming : :today
+    end
+
+    def connector_fill(prev, session)
+      return 0 if prev.nil?
+      return 100 if prev[:status] == :done && session[:status] == :done
+      return 100 if prev[:status] == :done && session[:status] == :today
+      return connector_gap_progress(prev, session) if prev[:status] == :done && session[:status] == :upcoming
+      return connector_time_progress(prev, session) if prev[:status] == :today && session[:status] == :upcoming
+      return 100 if prev[:status] == :today && session[:status] == :today
+      0
+    end
+
+    def connector_time_progress(current, upcoming)
+      return 50 unless current[:starts_at] && upcoming[:starts_at]
+
+      now = Time.current
+      total = (upcoming[:starts_at] - current[:starts_at]).to_f
+      elapsed = (now - current[:starts_at]).to_f
+      return 0 if total <= 0
+
+      pct = ((elapsed / total) * 100).clamp(0, 100).round
+      [pct, 10].max
+    end
+
+    def connector_gap_progress(prev_session, next_session)
+      return 100 unless prev_session[:starts_at] && next_session[:starts_at]
+
+      now = Time.current
+      prev_duration = SESSION_DURATIONS[prev_session[:key]] || 1.hour
+      gap_start = prev_session[:starts_at] + prev_duration
+      gap_end = next_session[:starts_at]
+      total = (gap_end - gap_start).to_f
+      return 100 if total <= 0
+
+      elapsed = (now - gap_start).to_f
+      pct = ((elapsed / total) * 100).clamp(0, 100).round
+      [pct, 10].max
+    end
+
+    def output
+      {
+        contextual_race: @contextual_race,
+        homepage_phase: @homepage_phase,
+        next_session: @next_session,
+        weekend_race: @weekend_race,
+        session_schedule: @session_schedule,
+        circuit_kings: @circuit_kings,
+        countdown_race: @countdown_race,
+        days_until_fp1: @days_until_fp1,
+        first_race: @first_race,
+        power_rankings: @power_rankings,
+        constructor_rankings: @constructor_rankings,
+        active_driver_count: @active_driver_count,
+        total_races_tracked: @total_races_tracked,
+        prev_champion: @prev_champion,
+        prev_champion_standing: @prev_champion_standing,
+        prev_champion_constructor: @prev_champion_constructor,
+        prev_season: @prev_season,
+        post_race: @post_race,
+        podium_results_post: @podium_results_post,
+        race_elo_changes: @race_elo_changes,
+        community_activity: @community_activity,
+        recent_picks: @recent_picks,
+        explore_stats: @explore_stats
+      }
+    end
+  end
+end

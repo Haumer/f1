@@ -127,34 +127,7 @@
 
         <%# Chart %>
         <% if @stock_snapshots.size >= 2 %>
-            <div class="table-header"><h3>Portfolio Value</h3></div>
-            <div class="card card-flush fantasy-chart-card">
-                <%= custom_chart({
-                    tooltip: { trigger: "axis" },
-                    grid: { left: 10, right: 20, top: 20, bottom: 10, containLabel: true },
-                    backgroundColor: "transparent",
-                    xAxis: {
-                        type: "category",
-                        data: @stock_snapshots.map { |s| "R#{s.race.round}" },
-                        axisLabel: { color: "#666" },
-                        axisLine: { lineStyle: { color: "#333" } }
-                    },
-                    yAxis: {
-                        type: "value",
-                        axisLabel: { color: "#666" },
-                        splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } }
-                    },
-                    series: [{
-                        name: "Portfolio Value",
-                        type: "line",
-                        data: @stock_snapshots.map { |s| s.value.round(1) },
-                        smooth: true,
-                        lineStyle: { color: "#e10600", width: 3 },
-                        itemStyle: { color: "#e10600" },
-                        areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(225,6,0,0.2)" }, { offset: 1, color: "rgba(225,6,0,0)" }] } }
-                    }]
-                }, style: "width:100%; height:280px;") %>
-            </div>
+            <%= render "stock_value_chart", snapshots: @stock_snapshots %>
         <% end %>
 
         <%# Holdings %>
@@ -163,58 +136,11 @@
             <span class="table-header-sub"><%= @stock_holdings.size %> positions</span>
         </div>
         <% if @stock_holdings.any? %>
-            <div class="card card-flush">
-                <div class="table-scroll-wrapper">
-                    <table class="fantasy-market-table">
-                        <thead>
-                            <tr>
-                                <th>Driver</th>
-                                <th>Type</th>
-                                <th class="text-end">Qty</th>
-                                <th class="text-end">Entry</th>
-                                <th class="text-end">Current</th>
-                                <th class="text-end">P&L</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% @stock_holdings.each do |holding| %>
-                                <% constructor = @stock_constructors[holding.driver_id] %>
-                                <% color = constructor_color(constructor) %>
-                                <% gl = holding.gain_loss %>
-                                <tr style="border-left: 3px solid <%= color %>">
-                                    <td>
-                                        <div class="fantasy-market-driver-cell">
-                                            <div class="fantasy-market-driver-info">
-                                                <span class="fantasy-market-driver-name">
-                                                    <%= flag_image(holding.driver, size: 16) %>
-                                                    <%= link_to holding.driver.fullname, driver_path(holding.driver) %>
-                                                </span>
-                                                <span class="fantasy-market-team-name"><%= constructor&.name %></span>
-                                                <div class="holding-reactions"><%= reaction_bar(holding, size: :sm) %></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="stock-direction-badge stock-<%= holding.direction %>">
-                                            <i class="fa-solid fa-<%= holding.long? ? 'arrow-trend-up' : 'arrow-trend-down' %>"></i>
-                                            <%= holding.direction.upcase %>
-                                        </span>
-                                    </td>
-                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.quantity %></span></td>
-                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.entry_price.round(1) %></span></td>
-                                    <td class="text-end"><span class="fantasy-market-price-cell"><%= holding.current_price.round(1) %></span></td>
-                                    <td class="text-end">
-                                        <span class="<%= gl >= 0 ? 'text-green' : 'text-red' %>" style="font-weight:700; font-size:13px;">
-                                            <%= gl >= 0 ? '+' : '' %><%= gl.round(1) %>
-                                            <span style="font-size:11px; opacity:0.7">(<%= holding.gain_loss_percent %>%)</span>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <% end %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <%= render "stock_holdings_table",
+                holdings: @stock_holdings,
+                constructors: @stock_constructors,
+                portfolio: @stock_portfolio,
+                show_reactions: true %>
         <% else %>
             <div class="card empty-state">
                 <p>No stock positions yet.</p>

@@ -13,6 +13,7 @@ class FantasyStockHolding < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :longs, -> { where(direction: "long") }
   scope :shorts, -> { where(direction: "short") }
+  scope :before_race, ->(race) { where("created_at < ?", race.settlement_cutoff_time) }
 
   def long?
     direction == "long"

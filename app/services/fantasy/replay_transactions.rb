@@ -31,7 +31,7 @@ module Fantasy
         # Build cutoffs: use when results were actually synced (not starts_at),
         # because trades before sync used pre-race Elo (it was still live)
         @race_cutoffs = @races.map do |race|
-          RaceResult.where(race: race).minimum(:created_at) || race.starts_at || race.date.beginning_of_day
+          RaceResult.where(race: race).minimum(:created_at) || race.settlement_cutoff_time
         end
 
         @races.each_with_index do |race, idx|
@@ -250,8 +250,8 @@ module Fantasy
     # ── Settle a race (dividends, borrow fees, margin calls) ─────────────
 
     def settle_for_replay(race, post_elo, results_by_driver)
-      race_cutoff = race.starts_at || race.date
-      settle_time = (race.starts_at || race.date.to_time) + 4.hours
+      race_cutoff = race.settlement_cutoff_time
+      settle_time = race.settlement_time
 
       pre_elo = RaceResult.where(race: race).pluck(:driver_id, :old_elo_v2).to_h
       elo_ranks = pre_elo.sort_by { |_, elo| -(elo || 0) }
@@ -272,11 +272,14 @@ module Fantasy
           rr = results_by_driver[holding.driver_id]
           next unless rr&.position_order && rr.position_order <= 10
 
-          constructor_mult = constructor_mults[holding.driver_id] || 2.5
+          constructor_mult = constructor_mults[holding.driver_id] ||
+            Fantasy::Stock::SettlementCalculator.default_constructor_multiplier
           elo_rank = elo_ranks[holding.driver_id] || 1
-          overperformance = [elo_rank - rr.position_order, 0].max
-          dividend_per_share = Fantasy::Stock::SettleRace::DIVIDEND_BASE * constructor_mult +
-                               Fantasy::Stock::SettleRace::DIVIDEND_SURPRISE_BONUS * overperformance
+          dividend_per_share = Fantasy::Stock::SettlementCalculator.dividend_breakdown(
+            constructor_mult: constructor_mult,
+            elo_rank: elo_rank,
+            position: rr.position_order
+          )[:per_share]
           next if dividend_per_share <= 0
 
           total = (dividend_per_share * holding.quantity).round(2)
@@ -298,7 +301,7 @@ module Fantasy
           h.active && h.direction == "short" && h.created_at < race_cutoff
         }
         eligible_shorts.each do |holding|
-          fee_per_share = holding.entry_price * Fantasy::Stock::SettleRace::BORROW_FEE_RATE
+          fee_per_share = Fantasy::Stock::SettlementCalculator.borrow_fee_per_share(entry_price: holding.entry_price)
           total_fee = (fee_per_share * holding.quantity).round(2)
 
           portfolio.transactions.create!(
@@ -308,7 +311,7 @@ module Fantasy
             quantity: holding.quantity,
             price: fee_per_share,
             amount: -total_fee,
-            note: "Borrow fee: #{holding.quantity}x #{holding.driver.fullname} (#{Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100}%)",
+            note: "Borrow fee: #{holding.quantity}x #{holding.driver.fullname} (#{Fantasy::Stock::SettlementCalculator::BORROW_FEE_RATE * 100}%)",
             created_at: settle_time
           )
           puts "  Borrow fee: #{holding.driver.fullname} #{holding.quantity}x -> -#{total_fee.round(2)}"
@@ -319,7 +322,7 @@ module Fantasy
           elo = post_elo[holding.driver_id] || holding.driver.elo_v2
           net = @demand[holding.driver_id]
           current_price = Fantasy::Pricing.stock_price_for_elo(elo, net)
-          max_price = holding.entry_price * (1 + Fantasy::Stock::SettleRace::MAX_LOSS_MULTIPLIER)
+          max_price = Fantasy::Stock::SettlementCalculator.margin_call_price(entry_price: holding.entry_price)
 
           next unless current_price >= max_price
 
@@ -333,7 +336,7 @@ module Fantasy
             quantity: holding.quantity,
             price: current_price,
             amount: loss,
-            note: "Margin call: #{holding.driver.fullname} hit #{Fantasy::Stock::SettleRace::MAX_LOSS_MULTIPLIER}x max loss, auto-closed",
+            note: "Margin call: #{holding.driver.fullname} hit #{Fantasy::Stock::SettlementCalculator::MAX_LOSS_MULTIPLIER}x max loss, auto-closed",
             created_at: settle_time
           )
           @demand[holding.driver_id] += holding.quantity
@@ -343,21 +346,7 @@ module Fantasy
     end
 
     def build_constructor_mults(race)
-      mults = {}
-      prev_season = race.season.previous_season
-      return mults unless prev_season
-
-      last_race = Race.where(season: prev_season).order(:round).last
-      return mults unless last_race
-
-      SeasonDriver.where(season_id: race.season_id).each do |sd|
-        next unless sd.constructor_id
-        cs = ConstructorStanding.find_by(constructor_id: sd.constructor_id, race_id: last_race.id)
-        pos = (cs&.position || 5).clamp(1, 10)
-        mults[sd.driver_id] = Fantasy::Stock::SettleRace::CONSTRUCTOR_MULT_MIN +
-          (pos - 1) * ((Fantasy::Stock::SettleRace::CONSTRUCTOR_MULT_MAX - Fantasy::Stock::SettleRace::CONSTRUCTOR_MULT_MIN) / 9.0)
-      end
-      mults
+      Fantasy::Stock::SettlementCalculator.constructor_multipliers_for_race(race)
     end
 
     # ── Snapshot a race ──────────────────────────────────────────────────
