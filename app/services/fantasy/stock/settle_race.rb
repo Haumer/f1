@@ -61,7 +61,7 @@ module Fantasy
         wallet = portfolio.wallet
         return unless wallet
         # Only pay dividends for holdings that existed before this race
-        eligible_longs = portfolio.active_longs.where("created_at < ?", @race.settlement_cutoff_time)
+        eligible_longs = portfolio.active_longs.before_race(@race)
         eligible_longs.each do |holding|
           rr = results_by_driver[holding.driver_id]
           next unless rr
@@ -96,7 +96,7 @@ module Fantasy
         wallet = portfolio.wallet
         return unless wallet
         # Only charge fees for shorts that existed before this race
-        eligible_shorts = portfolio.active_shorts.where("created_at < ?", @race.settlement_cutoff_time)
+        eligible_shorts = portfolio.active_shorts.before_race(@race)
         eligible_shorts.each do |holding|
           fee_per_share = holding.entry_price * BORROW_FEE_RATE
           total_fee = fee_per_share * holding.quantity
@@ -121,7 +121,7 @@ module Fantasy
         wallet = portfolio.wallet
         return unless wallet
         # Only check shorts that existed before this race
-        portfolio.active_shorts.where("created_at < ?", @race.settlement_cutoff_time).reload.each do |holding|
+        portfolio.active_shorts.before_race(@race).reload.each do |holding|
           current = portfolio.share_price(holding.driver)
           max_price = holding.entry_price * (1 + MAX_LOSS_MULTIPLIER)
 
