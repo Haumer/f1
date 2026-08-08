@@ -31,7 +31,7 @@ module Fantasy
         # Build cutoffs: use when results were actually synced (not starts_at),
         # because trades before sync used pre-race Elo (it was still live)
         @race_cutoffs = @races.map do |race|
-          RaceResult.where(race: race).minimum(:created_at) || race.starts_at || race.date.beginning_of_day
+          RaceResult.where(race: race).minimum(:created_at) || race.settlement_cutoff_time
         end
 
         @races.each_with_index do |race, idx|
@@ -250,8 +250,8 @@ module Fantasy
     # ── Settle a race (dividends, borrow fees, margin calls) ─────────────
 
     def settle_for_replay(race, post_elo, results_by_driver)
-      race_cutoff = race.starts_at || race.date
-      settle_time = (race.starts_at || race.date.to_time) + 4.hours
+      race_cutoff = race.settlement_cutoff_time
+      settle_time = race.settlement_time
 
       pre_elo = RaceResult.where(race: race).pluck(:driver_id, :old_elo_v2).to_h
       elo_ranks = pre_elo.sort_by { |_, elo| -(elo || 0) }

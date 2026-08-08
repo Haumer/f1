@@ -81,9 +81,7 @@ class FantasyStockPortfolio < ApplicationRecord
 
   def can_trade?(race)
     return false unless race
-    cutoff = race.starts_at || race.date&.beginning_of_day
-    return false unless cutoff
-    (cutoff - 1.minute) > Time.current
+    (race.settlement_cutoff_time - 1.minute) > Time.current
   end
 
   def total_collateral

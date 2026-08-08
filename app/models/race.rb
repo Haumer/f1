@@ -63,6 +63,17 @@ class Race < ApplicationRecord
     Time.parse("#{date}T#{time}")
   end
 
+  # Cutoff instant used to decide which trades/holdings belong to a race window.
+  # Falls back to midnight when the race has no scheduled start time.
+  def settlement_cutoff_time
+    starts_at || date.beginning_of_day
+  end
+
+  # Instant at which race results are considered final and portfolios settle.
+  def settlement_time
+    (starts_at || date.to_time) + 4.hours
+  end
+
   def sprint?
     sprint_time.present?
   end
