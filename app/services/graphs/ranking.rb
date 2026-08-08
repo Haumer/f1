@@ -141,10 +141,8 @@ class Graphs::Ranking
     end
 
     def season_constructor_standings_data
-        sd_index = SeasonDriver.where(season: @season)
-                               .includes(:constructor)
-                               .group_by(&:driver_id)
-                               .transform_values { |sds| sds.last.constructor }
+        # Reuse @constructor_by_driver from the initializer instead of re-querying.
+        sd_index = @constructor_by_driver
 
         # For each race, sum driver points by constructor to get constructor positions
         constructor_points_by_race = {}
