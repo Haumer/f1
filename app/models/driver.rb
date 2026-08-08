@@ -1,4 +1,6 @@
 class Driver < ApplicationRecord
+    include DisplayElo
+
     has_many :race_results
     has_many :qualifying_results
     has_many :races, through: :race_results
@@ -98,14 +100,6 @@ class Driver < ApplicationRecord
 
     def lowest_elo
         self.race_results.minimum(:new_elo_v2)
-    end
-
-    def display_elo
-        elo_v2
-    end
-
-    def display_peak_elo
-        peak_elo_v2
     end
 
     def display_lowest_elo
