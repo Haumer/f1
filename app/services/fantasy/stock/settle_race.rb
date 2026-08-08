@@ -1,16 +1,14 @@
 module Fantasy
   module Stock
     class SettleRace
-      # Constructor-scaled dividends: underdogs pay more
-      # dividend = BASE × constructor_mult + SURPRISE_BONUS × overperformance
-      DIVIDEND_BASE = 0.10
-      DIVIDEND_SURPRISE_BONUS = 0.02
-      # Constructor multiplier range: 0.5 (WCC P1) → 5.0 (WCC P10)
-      CONSTRUCTOR_MULT_MIN = 0.5
-      CONSTRUCTOR_MULT_MAX = 5.0
-
-      BORROW_FEE_RATE = 0.0025 # 0.25% per race
-      MAX_LOSS_MULTIPLIER = 2.0 # Auto-liquidate at 2x entry price loss
+      # Money-math constants live on Fantasy::Stock::SettlementCalculator.
+      # Aliased here for callers/tests/views that reference SettleRace::*.
+      DIVIDEND_BASE = SettlementCalculator::DIVIDEND_BASE
+      DIVIDEND_SURPRISE_BONUS = SettlementCalculator::DIVIDEND_SURPRISE_BONUS
+      CONSTRUCTOR_MULT_MIN = SettlementCalculator::CONSTRUCTOR_MULT_MIN
+      CONSTRUCTOR_MULT_MAX = SettlementCalculator::CONSTRUCTOR_MULT_MAX
+      BORROW_FEE_RATE = SettlementCalculator::BORROW_FEE_RATE
+      MAX_LOSS_MULTIPLIER = SettlementCalculator::MAX_LOSS_MULTIPLIER
 
       def initialize(race:)
         @race = race
@@ -98,7 +96,7 @@ module Fantasy
         # Only charge fees for shorts that existed before this race
         eligible_shorts = portfolio.active_shorts.before_race(@race)
         eligible_shorts.each do |holding|
-          fee_per_share = holding.entry_price * BORROW_FEE_RATE
+          fee_per_share = SettlementCalculator.borrow_fee_per_share(entry_price: holding.entry_price)
           total_fee = fee_per_share * holding.quantity
 
           new_cash = [wallet.cash - total_fee, 0].max
@@ -123,7 +121,7 @@ module Fantasy
         # Only check shorts that existed before this race
         portfolio.active_shorts.before_race(@race).reload.each do |holding|
           current = portfolio.share_price(holding.driver)
-          max_price = holding.entry_price * (1 + MAX_LOSS_MULTIPLIER)
+          max_price = SettlementCalculator.margin_call_price(entry_price: holding.entry_price)
 
           next unless current >= max_price
 
@@ -201,18 +199,12 @@ module Fantasy
         end
       end
 
-      # Dividend per top-10 finish = BASE × constructor_mult + SURPRISE_BONUS × overperformance
-      # constructor_mult: 0.5 (WCC P1 last year) → 5.0 (WCC P10)
-      # overperformance: max(elo_rank - finish_position, 0)
       def dividend_breakdown(driver, position)
-        return { per_share: 0, elo_rank: 0, overperformance: 0 } unless position && position <= 10
-
-        constructor_mult = constructor_multiplier(driver)
-        elo_rank = @elo_ranks[driver.id] || 1
-        overperformance = [elo_rank - position, 0].max
-        per_share = DIVIDEND_BASE * constructor_mult + DIVIDEND_SURPRISE_BONUS * overperformance
-
-        { per_share: per_share, elo_rank: elo_rank, overperformance: overperformance }
+        SettlementCalculator.dividend_breakdown(
+          constructor_mult: constructor_multiplier(driver),
+          elo_rank: @elo_ranks[driver.id] || 1,
+          position: position
+        )
       end
 
       # Rank portfolios by snapshot value for this race. Cheap pluck + bulk update.
@@ -224,27 +216,11 @@ module Fantasy
       end
 
       def constructor_multiplier(driver)
-        @constructor_mults[driver.id] || multiplier_for_position(5)
+        @constructor_mults[driver.id] || SettlementCalculator.default_constructor_multiplier
       end
 
       def preload_constructor_multipliers!
-        @constructor_mults = {}
-        prev_season = @race.season.previous_season
-        last_race = prev_season && Race.where(season: prev_season).order(:round).last
-        return unless last_race
-
-        sd_pairs = SeasonDriver.where(season_id: @race.season_id).pluck(:driver_id, :constructor_id)
-        cs_pos = ConstructorStanding.where(race_id: last_race.id)
-                                     .pluck(:constructor_id, :position).to_h
-        sd_pairs.each do |driver_id, constructor_id|
-          pos = cs_pos[constructor_id] || 5
-          @constructor_mults[driver_id] = multiplier_for_position(pos)
-        end
-      end
-
-      def multiplier_for_position(pos)
-        clamped = pos.clamp(1, 10)
-        CONSTRUCTOR_MULT_MIN + (clamped - 1) * ((CONSTRUCTOR_MULT_MAX - CONSTRUCTOR_MULT_MIN) / 9.0)
+        @constructor_mults = SettlementCalculator.constructor_multipliers_for_race(@race)
       end
     end
   end
