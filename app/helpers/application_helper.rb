@@ -1,5 +1,24 @@
 module ApplicationHelper
 
+    # Deterministic hue derived from a stable string — used for the colored
+    # initial chip on the fantasy leaderboard so each user has a recognizable,
+    # consistent color without a stored preference.
+    USER_CHIP_PALETTE = [
+      "#e64848", "#e67e22", "#f39c12", "#27ae60", "#16a085",
+      "#2980b9", "#8e44ad", "#c0392b", "#d35400", "#2ecc71",
+      "#1abc9c", "#3498db", "#9b59b6", "#e74c3c"
+    ].freeze
+
+    def user_chip_color(username)
+      return USER_CHIP_PALETTE.first if username.blank?
+      USER_CHIP_PALETTE[username.bytes.sum % USER_CHIP_PALETTE.size]
+    end
+
+    def user_chip_initial(username)
+      return "?" if username.blank?
+      username.strip[0].to_s.upcase
+    end
+
     def elo_tier(peak_elo)
         return nil unless peak_elo
 

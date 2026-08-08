@@ -19,6 +19,7 @@ class PagesController < ApplicationController
     load_homepage_phase_data
     load_fantasy_portfolio
     load_leaderboard_preview
+    load_public_activity
   end
 
   def about
@@ -196,8 +197,18 @@ class PagesController < ApplicationController
       next_race: @next_race,
       latest_race: @latest_race,
       season_complete: @season_complete,
-      champion: @champion
+      champion: @champion,
+      constructor_top3: @constructor_top3,
+      races_completed: @races_completed,
+      total_races: @total_races
     ).call.each { |k, v| instance_variable_set("@#{k}", v) }
+  end
+
+  def load_public_activity
+    return @public_activity = [] unless current_user
+    @public_activity = Fantasy::PublicActivityFeed.recent(season: @season, limit: 20)
+  rescue StandardError
+    @public_activity = []
   end
 
   def load_fantasy_portfolio
@@ -209,6 +220,13 @@ class PagesController < ApplicationController
       @fantasy_support = ConstructorSupport.current_for(current_user, @season)
       @fantasy_rank = @fantasy_portfolio.snapshots.order(created_at: :desc).first&.rank
     end
+  end
+
+  def load_public_activity
+    return @public_activity = [] unless current_user
+    @public_activity = Fantasy::PublicActivityFeed.recent(season: @season, limit: 20)
+  rescue StandardError
+    @public_activity = []
   end
 
   def load_leaderboard_preview
@@ -228,16 +246,51 @@ class PagesController < ApplicationController
     prices = Fantasy::Pricing.prices_for_season(driver_ids, @season)
     starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
 
-    combined = roster_portfolios.map do |p|
+    ranked = roster_portfolios.map do |p|
       sp = stock_by_user[p.user_id]
       net = p.cash + (sp ? sp.positions_value(prices) : 0) - starting
-      { user: p.user, net: net }
-    end.sort_by { |e| -e[:net] }.first(5)
+      { user: p.user, net: net, stock_portfolio_id: sp&.id }
+    end.sort_by { |e| -e[:net] }
 
-    @leaderboard_preview = combined.map.with_index(1) do |entry, rank|
-      entry.merge(rank: rank)
+    ranked_with_rank = ranked.map.with_index(1) { |e, rank| e.merge(rank: rank) }
+    top = ranked_with_rank.first(5)
+
+    # One DISTINCT ON per portfolio — the most recent trade per user in the season.
+    sp_ids = top.map { |e| e[:stock_portfolio_id] }.compact
+    last_txn_by_sp = if sp_ids.any?
+                       FantasyStockTransaction
+                         .where(fantasy_stock_portfolio_id: sp_ids)
+                         .select("DISTINCT ON (fantasy_stock_portfolio_id) *")
+                         .order("fantasy_stock_portfolio_id, created_at DESC")
+                         .includes(:driver)
+                         .index_by(&:fantasy_stock_portfolio_id)
+                     else
+                       {}
+                     end
+
+    max_net = [top.first&.dig(:net) || 0, 1].max
+    @leaderboard_preview_max_net = max_net
+
+    @leaderboard_preview = top.map do |entry|
+      entry.merge(
+        last_action: last_txn_by_sp[entry[:stock_portfolio_id]],
+        gap_percent: (entry[:net].to_f / max_net * 100).clamp(0, 100)
+      )
+    end
+
+    # You-are-here: if current_user isn't in top 5, surface their own row.
+    if current_user && @leaderboard_preview.none? { |e| e[:user].id == current_user.id }
+      self_entry = ranked_with_rank.find { |e| e[:user].id == current_user.id }
+      if self_entry
+        @leaderboard_preview_self = self_entry.merge(
+          last_action: nil,
+          gap_percent: (self_entry[:net].to_f / max_net * 100).clamp(0, 100)
+        )
+      end
     end
   rescue StandardError
     @leaderboard_preview = []
+    @leaderboard_preview_self = nil
+    @leaderboard_preview_max_net = 0
   end
 end

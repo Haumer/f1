@@ -12,13 +12,16 @@ module Homepage
 
     COMMUNITY_ACTIVITY_WINDOW = 7.days
 
-    def initialize(today:, season:, next_race:, latest_race:, season_complete:, champion:)
+    def initialize(today:, season:, next_race:, latest_race:, season_complete:, champion:, constructor_top3: nil, races_completed: nil, total_races: nil)
       @today = today
       @season = season
       @next_race = next_race
       @latest_race = latest_race
       @season_complete = season_complete
       @champion = champion
+      @constructor_top3 = constructor_top3
+      @races_completed = races_completed
+      @total_races = total_races
     end
 
     def call
@@ -26,6 +29,7 @@ module Homepage
       @homepage_phase = determine_homepage_phase
       prepare_phase_data
       load_community_activity
+      load_explore_stats
       output
     end
 
@@ -173,6 +177,38 @@ module Homepage
       @recent_picks = @next_race ? build_recent_picks_for(@next_race) : []
     end
 
+    # Small, cheap live stats for the homepage Explore grid — one indexed lookup
+    # per card so each tile teases something real instead of a generic tagline.
+    def load_explore_stats
+      peak_col = Setting.elo_column(:peak_elo)
+      top_peak = Driver.where.not(peak_col => nil).order(peak_col => :desc).first
+      top_podium = Driver.where("podiums > 0").order(podiums: :desc).first
+
+      wcc_leader = @constructor_top3&.first
+      if wcc_leader.nil? && @season
+        standings = @season.latest_driver_standings
+        if standings&.any?
+          leader_ds = standings.first
+          sd = SeasonDriver.where(season: @season, driver_id: leader_ds.driver_id)
+                           .includes(:constructor).first
+          if sd&.constructor
+            wcc_leader = { constructor: sd.constructor, points: leader_ds.points&.round, wins: leader_ds.wins || 0 }
+          end
+        end
+      end
+
+      top_two = @season&.latest_driver_standings&.first(2)
+
+      @explore_stats = {
+        peak: top_peak && { driver: top_peak, value: top_peak.send(peak_col)&.round },
+        compare: top_two && top_two.size == 2 ? { a: top_two[0].driver, b: top_two[1].driver } : nil,
+        seasons: { races_completed: @races_completed, total_races: @total_races, year: @season&.year },
+        circuits: { total: Circuit.count, next: @next_race&.circuit },
+        constructors: wcc_leader,
+        podiums: top_podium && { driver: top_podium, count: top_podium.podiums }
+      }
+    end
+
     def build_recent_picks_for(race)
       picks = RacePick.where(race_id: race.id)
                       .where.not(picks: [])
@@ -305,7 +341,8 @@ module Homepage
         podium_results_post: @podium_results_post,
         race_elo_changes: @race_elo_changes,
         community_activity: @community_activity,
-        recent_picks: @recent_picks
+        recent_picks: @recent_picks,
+        explore_stats: @explore_stats
       }
     end
   end

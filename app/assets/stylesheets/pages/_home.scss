@@ -1393,12 +1393,23 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: $radius-sm;
   background: $bg-surface;
-  transition: background $t-fast;
+  transition: background $t-fast, transform $t-fast;
+  color: $text-primary;
+  text-decoration: none;
 
-  &:hover { background: $bg-card-elevated; }
+  &:hover {
+    background: $bg-card-elevated;
+    transform: translateX(2px);
+    color: $text-primary;
+  }
+
+  &--self {
+    background: color-mix(in srgb, var(--page-accent, $accent-red) 10%, $bg-surface);
+    border: 1px solid color-mix(in srgb, var(--page-accent, $accent-red) 35%, transparent);
+  }
 }
 
 .leaderboard-preview-rank {
@@ -1406,12 +1417,78 @@
   font-weight: $weight-bold;
   font-size: $type-small;
   min-width: 28px;
+  color: $text-secondary;
+}
+
+.leaderboard-preview-chip {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: $weight-bold;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-preview-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.leaderboard-preview-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .leaderboard-preview-name {
-  flex: 1;
   font-weight: $weight-semi;
   font-size: $type-small;
+  color: $text-primary;
+}
+
+.leaderboard-preview-you {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: $weight-bold;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--page-accent, $accent-red);
+  color: white;
+}
+
+.leaderboard-preview-gap {
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, $border-subtle 60%, transparent);
+  overflow: hidden;
+}
+
+.leaderboard-preview-gap-bar {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width $t-normal ease;
+}
+
+.leaderboard-preview-action {
+  font-size: 11px;
+  color: $text-tertiary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  i { margin-right: 4px; opacity: 0.7; }
+  strong { color: $text-secondary; font-weight: $weight-semi; }
 }
 
 .leaderboard-preview-net {
@@ -1419,6 +1496,25 @@
   font-weight: $weight-bold;
   font-size: $type-small;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.leaderboard-preview-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 4px 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $text-tertiary;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $border-subtle;
+  }
 }
 
 // Community Activity Strip — signals of life on the site
@@ -1503,6 +1599,122 @@
   i { font-size: 10px; transition: transform $t-normal ease; }
   &:hover { color: var(--page-accent, $accent-red); }
   &:hover i { transform: translateX(3px); }
+}
+
+// Live public activity ticker — real user trades / cards scrolling by
+.activity-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  margin-bottom: 24px;
+  overflow: hidden;
+  font-size: $type-small;
+}
+
+.activity-ticker-label {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $type-label;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  letter-spacing: $ls-label;
+  color: $text-tertiary;
+  padding-right: 12px;
+  border-right: 1px solid $border-subtle;
+
+  i {
+    color: #ff4757;
+    font-size: 10px;
+    animation: activity-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+.activity-ticker-viewport {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+  mask-image: linear-gradient(90deg, transparent 0, black 4%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, black 4%, black 96%, transparent 100%);
+}
+
+.activity-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  white-space: nowrap;
+  animation: ticker-scroll 90s linear infinite;
+  will-change: transform;
+
+  // Content is duplicated in the HTML, so translating -50% lands on the
+  // start of the second copy — visually identical to the first frame,
+  // making the loop seamless.
+  .activity-ticker:hover &,
+  .activity-ticker:focus-within & {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-ticker-track { animation: none; }
+}
+
+.activity-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-secondary;
+
+  i {
+    font-size: 11px;
+    opacity: 0.75;
+  }
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-bold;
+  }
+
+  &--pos { i { color: #2ecc71; } }
+  &--neg { i { color: #ff4757; } }
+  &--card { i { color: #9b59b6; } }
+  &--neutral { i { color: $text-tertiary; } }
+}
+
+.activity-ticker-verb {
+  color: $text-tertiary;
+}
+
+.activity-ticker-driver {
+  font-weight: $weight-semi;
+  color: $text-primary;
+}
+
+.activity-ticker-tier {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(155, 89, 182, 0.15);
+  color: #b884d0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: $weight-bold;
+}
+
+@media (max-width: 600px) {
+  .activity-ticker { padding: 6px 10px; }
+  .activity-ticker-label { padding-right: 8px; }
+  .activity-ticker-track { gap: 20px; }
 }
 
 // Recent Picks Card — social proof for the upcoming race
