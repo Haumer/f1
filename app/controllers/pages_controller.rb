@@ -1,6 +1,5 @@
 class PagesController < ApplicationController
   include StandingsData
-  include HomepageData
 
   def home
     set_current_champion_accent
@@ -17,10 +16,9 @@ class PagesController < ApplicationController
     build_season_driver_grid
     build_next_race_and_champion
     build_constructor_top3
-    prepare_homepage_phase
+    load_homepage_phase_data
     load_fantasy_portfolio
     load_leaderboard_preview
-    load_community_activity
   end
 
   def about
@@ -191,10 +189,15 @@ class PagesController < ApplicationController
     @constructor_top3 = top_ids.map { |cid| { constructor: constructors[cid], points: constructor_points[cid].round, wins: constructor_wins[cid] || 0 } }
   end
 
-  def prepare_homepage_phase
-    @contextual_race = find_contextual_race
-    @homepage_phase = determine_homepage_phase
-    prepare_phase_data
+  def load_homepage_phase_data
+    Homepage::PhaseData.new(
+      today: @today,
+      season: @season,
+      next_race: @next_race,
+      latest_race: @latest_race,
+      season_complete: @season_complete,
+      champion: @champion
+    ).call.each { |k, v| instance_variable_set("@#{k}", v) }
   end
 
   def load_fantasy_portfolio
