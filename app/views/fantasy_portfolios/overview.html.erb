@@ -157,29 +157,116 @@
         </div>
     <% end %>
 
-    <%# ═══════════════════ Getting Started Banner ═══════════════════ %>
-    <% if @is_owner && @stock_portfolio && (@stock_holdings || []).empty? %>
-        <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-getting-started-v2">
-            <div class="fantasy-info-banner-content">
-                <i class="fa-solid fa-rocket"></i>
-                <div>
-                    <p style="margin:0"><strong>Welcome to Fantasy F1!</strong></p>
-                    <p style="margin:4px 0 0; opacity:0.8">
-                        Head to the <strong>Market</strong> to buy your first shares. Go <strong>long</strong> on drivers you believe in,
-                        or <strong>short</strong> those you think will drop. Your portfolio grows as their Elo changes race by race.
-                    </p>
-                </div>
-            </div>
-            <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-    <% end %>
-
-    <%# ═══════════════════ Action Nudges ═══════════════════ %>
+    <%# ═══════════════════ This Weekend Checklist ═══════════════════ %>
+    <%# Single strip replacing the old welcome banner + stacked nudges. Chips are
+        state-driven — done ones dim + get a check; pending ones pop. H2H shows a
+        +50 credit reward until claimed. All-done state collapses to a one-liner. %>
     <% if @is_owner && @portfolio %>
-        <%= render "nudges", portfolio: @portfolio, stock_portfolio: @stock_portfolio,
-                             next_race: @next_race, race_picks: @race_picks, current_support: support %>
+        <%
+            checklist_race = @next_race
+            has_holdings   = @stock_portfolio && (@stock_holdings || []).any?
+            picks_done     = checklist_race && @race_picks.any? { |rp| rp.race_id == checklist_race.id && rp.picks.present? }
+            picks_open     = checklist_race&.picks_open?
+            h2h_done       = @h2h_done_for_race
+            team_done      = support.present?
+            first_shares_done = @stock_portfolio ? has_holdings : true
+
+            chips = []
+            if checklist_race
+                chips << {
+                    key: :picks, icon: "hand-pointer", label: "Race picks",
+                    done: picks_done,
+                    locked: !picks_done && !picks_open,
+                    path: (picks_open ? edit_race_picks_path : nil),
+                    sub: (picks_done ? "Locked in" : (picks_open ? "Pick your top 10" : "Locked"))
+                }
+            end
+            chips << {
+                key: :h2h, icon: "people-arrows", label: "Head-to-Head",
+                done: h2h_done, path: head_to_head_path,
+                reward: (h2h_done ? nil : 50),
+                sub: (h2h_done ? "Bonus claimed" : "Play once per race")
+            }
+            unless team_done
+                chips << {
+                    key: :team, icon: "shield-halved", label: "Pick a team",
+                    done: false, path: "#team-picker",
+                    sub: "Wear its colours"
+                }
+            end
+            unless first_shares_done
+                chips << {
+                    key: :first_shares, icon: "store", label: "Buy first shares",
+                    done: false, path: market_fantasy_stock_portfolio_path(@stock_portfolio),
+                    sub: "Long or short a driver"
+                }
+            end
+
+            actionable = chips.reject { |c| c[:locked] }
+            done_count = actionable.count { |c| c[:done] }
+            total_count = actionable.size
+            all_done = total_count > 0 && done_count == total_count
+        %>
+
+        <% if chips.any? %>
+            <section class="fantasy-weekend <%= 'is-complete' if all_done %>"
+                     <%= all_done ? "data-controller=\"dismissable\" data-dismissable-key-value=\"fantasy-weekend-done-r#{checklist_race&.id}\"".html_safe : '' %>>
+                <% if all_done %>
+                    <div class="fantasy-weekend-done">
+                        <span class="fantasy-weekend-done-icon"><i class="fa-solid fa-flag-checkered"></i></span>
+                        <span class="fantasy-weekend-done-text">
+                            You're set<% if checklist_race %> for <strong><%= checklist_race.circuit.name %></strong><% end %>. Enjoy the race.
+                        </span>
+                        <button class="fantasy-weekend-done-close" data-action="dismissable#dismiss" aria-label="Dismiss">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                <% else %>
+                    <header class="fantasy-weekend-header">
+                        <span class="fantasy-weekend-title">
+                            <i class="fa-solid fa-flag-checkered"></i>
+                            <span class="fantasy-weekend-title-label">This weekend</span>
+                        </span>
+                        <% if checklist_race %>
+                            <span class="fantasy-weekend-title-race"><%= checklist_race.circuit.name %></span>
+                        <% end %>
+                        <% if total_count > 1 %>
+                            <span class="fantasy-weekend-progress"><%= done_count %> / <%= total_count %></span>
+                        <% end %>
+                    </header>
+                    <div class="fantasy-weekend-chips">
+                        <% chips.each do |chip| %>
+                            <% chip_classes = ["fantasy-weekend-chip"] %>
+                            <% chip_classes << "is-done" if chip[:done] %>
+                            <% chip_classes << "is-locked" if chip[:locked] %>
+                            <% tag = (chip[:path] && !chip[:locked]) ? :a : :div %>
+                            <%= content_tag tag, class: chip_classes.join(" "), href: (tag == :a ? chip[:path] : nil) do %>
+                                <span class="fantasy-weekend-chip-icon">
+                                    <% if chip[:done] %>
+                                        <i class="fa-solid fa-check"></i>
+                                    <% elsif chip[:locked] %>
+                                        <i class="fa-solid fa-lock"></i>
+                                    <% else %>
+                                        <i class="fa-solid fa-<%= chip[:icon] %>"></i>
+                                    <% end %>
+                                </span>
+                                <span class="fantasy-weekend-chip-body">
+                                    <span class="fantasy-weekend-chip-label"><%= chip[:label] %></span>
+                                    <% if chip[:sub] %>
+                                        <span class="fantasy-weekend-chip-sub"><%= chip[:sub] %></span>
+                                    <% end %>
+                                </span>
+                                <% if chip[:reward] %>
+                                    <span class="fantasy-weekend-chip-reward">+<%= chip[:reward] %></span>
+                                <% elsif !chip[:done] && !chip[:locked] && chip[:path] %>
+                                    <span class="fantasy-weekend-chip-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                                <% end %>
+                            <% end %>
+                        <% end %>
+                    </div>
+                <% end %>
+            </section>
+        <% end %>
     <% end %>
 
     <%# ═══════════════════ Chart ═══════════════════ %>

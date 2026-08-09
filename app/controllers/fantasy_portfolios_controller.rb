@@ -32,6 +32,16 @@ class FantasyPortfoliosController < ApplicationController
     # Always resolve next_race for the hero countdown (public profiles too).
     @next_race ||= @season.next_race || Race.where("date >= ?", Date.current).order(:date).first
 
+    # Whether this user has claimed their H2H completion bonus for the current
+    # anchor race. Anchor matches HeadToHeadController: next_race || last_race.
+    # Owner-only — checklist is not shown on public profiles.
+    if @is_owner
+      @h2h_anchor_race = @next_race || @season.last_race
+      @h2h_done_for_race = @h2h_anchor_race && DriverPreferenceSession
+        .where(user_id: @user.id, race_id: @h2h_anchor_race.id)
+        .where.not(bonus_awarded_at: nil).exists?
+    end
+
     # Leaderboard rank + delta from the user's two most recent snapshots. Snapshot
     # rank is precomputed by Fantasy::SnapshotPortfolios so this is just a lookup.
     if @portfolio

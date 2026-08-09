@@ -566,45 +566,221 @@
 }
 
 // ═══════════════════════════════════════
-// INFO BANNER (dismissable explainer)
+// THIS WEEKEND CHECKLIST
+// One compact strip replacing the old welcome banner + stacked nudges.
+// Desktop: horizontal chip row. Mobile: 2-col grid.
 // ═══════════════════════════════════════
 
-.fantasy-info-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 14px;
-    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
-    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.12);
-    border-radius: $radius-sm;
+.fantasy-weekend {
     margin-bottom: $space-md;
-    overflow: hidden;
-    transition: opacity 0.3s, max-height 0.3s, margin-bottom 0.3s, padding 0.3s;
+    padding: 10px 14px 12px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.035);
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.11);
+    border-radius: $radius-sm;
 }
 
-.fantasy-info-banner-content {
+.fantasy-weekend-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 10px;
+    min-height: 20px;
+}
+
+.fantasy-weekend-title {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    flex: 1;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: $text-secondary;
 
     > i {
-        font-size: 13px;
-        color: var(--page-accent, $accent-red);
-        margin-top: 2px;
-        flex-shrink: 0;
-    }
-
-    p {
         font-size: 12px;
-        line-height: 1.5;
-        color: $text-secondary;
-        margin: 0;
-        strong { color: $text-primary; }
+        color: var(--page-accent, $accent-red);
     }
 }
 
-.fantasy-info-banner-close {
+.fantasy-weekend-title-race {
+    color: $text-primary;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: $weight-regular;
+    font-size: 12px;
+    opacity: 0.85;
+
+    &::before {
+        // Desktop: inline separator before the race name.
+        content: "· ";
+        opacity: 0.5;
+    }
+}
+
+.fantasy-weekend-progress {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.4px;
+    color: $text-tertiary;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.fantasy-weekend-title-label {
+    white-space: nowrap;
+}
+
+.fantasy-weekend-chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.fantasy-weekend-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: $radius-sm;
+    color: $text-primary;
+    text-decoration: none;
+    transition: background $t-fast, border-color $t-fast, transform $t-fast;
+    min-width: 0;
+
+    &:hover {
+        text-decoration: none;
+        color: $text-primary;
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
+        border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.35);
+    }
+
+    &.is-done {
+        background: rgba(74, 222, 128, 0.04);
+        border-color: rgba(74, 222, 128, 0.18);
+        opacity: 0.72;
+
+        .fantasy-weekend-chip-icon {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.14);
+            border-color: rgba(74, 222, 128, 0.35);
+        }
+
+        &:hover {
+            opacity: 1;
+            background: rgba(74, 222, 128, 0.07);
+            border-color: rgba(74, 222, 128, 0.35);
+        }
+    }
+
+    &.is-locked {
+        opacity: 0.5;
+        cursor: default;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+    }
+}
+
+.fantasy-weekend-chip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.28);
+    color: var(--page-accent, $accent-red);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.fantasy-weekend-chip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.fantasy-weekend-chip-label {
+    font-size: 13px;
+    font-weight: $weight-semi;
+    color: $text-primary;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fantasy-weekend-chip-sub {
+    font-size: 11px;
+    color: $text-tertiary;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fantasy-weekend-chip-reward {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: $weight-bold;
+    letter-spacing: 0.3px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.32);
+    font-variant-numeric: tabular-nums;
+}
+
+.fantasy-weekend-chip-arrow {
+    flex-shrink: 0;
+    font-size: 10px;
+    color: $text-tertiary;
+    transition: transform $t-fast, color $t-fast;
+
+    .fantasy-weekend-chip:hover & {
+        color: var(--page-accent, $accent-red);
+        transform: translateX(2px);
+    }
+}
+
+// All-done state — collapse to one dismissable line.
+.fantasy-weekend.is-complete {
+    padding: 8px 12px;
+    background: rgba(74, 222, 128, 0.05);
+    border-color: rgba(74, 222, 128, 0.22);
+}
+
+.fantasy-weekend-done {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fantasy-weekend-done-icon {
+    color: #4ade80;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.fantasy-weekend-done-text {
+    flex: 1;
+    font-size: 12px;
+    color: $text-secondary;
+    line-height: 1.4;
+    strong { color: $text-primary; }
+}
+
+.fantasy-weekend-done-close {
     background: none;
     border: none;
     color: $text-tertiary;
@@ -617,64 +793,81 @@
     &:hover { color: $text-primary; }
 }
 
-// ═══════════════════════════════════════
-// ACTION NUDGES (state-driven prompts)
-// ═══════════════════════════════════════
-
-.fantasy-nudges {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: $space-md;
-}
-
-.fantasy-nudge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.05);
-    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.14);
-    border-left: 3px solid var(--page-accent, $accent-red);
-    border-radius: $radius-sm;
-}
-
-.fantasy-nudge-icon {
-    color: var(--page-accent, $accent-red);
-    font-size: 13px;
-    flex-shrink: 0;
-}
-
-.fantasy-nudge-text {
-    flex: 1;
-    font-size: 12px;
-    line-height: 1.4;
-    color: $text-secondary;
-    min-width: 0;
-}
-
-.fantasy-nudge-cta {
-    flex-shrink: 0;
-    font-size: 11px;
-    font-weight: $weight-bold;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    padding: 6px 12px;
-    border-radius: $radius-sm;
-    color: #fff;
-    background: var(--page-accent, $accent-red);
-    white-space: nowrap;
-
-    &:hover { opacity: 0.88; text-decoration: none; color: #fff; }
-}
-
-@media (max-width: 480px) {
-    .fantasy-nudge {
-        flex-wrap: wrap;
-        gap: 6px 10px;
+@media (max-width: 768px) {
+    .fantasy-weekend {
+        padding: 10px 12px 12px;
     }
-    .fantasy-nudge-cta {
-        margin-left: auto; // sit the button on its own line, right-aligned
+
+    .fantasy-weekend-header {
+        // Progress stays inline with title on line 1; race name drops to line 2.
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .fantasy-weekend-title {
+        // Uppercase + tracking eats horizontal space; keep it normal on mobile.
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 12px;
+    }
+
+    .fantasy-weekend-title-race {
+        // Drop to line 2 on mobile so title + progress stay on line 1.
+        order: 3;
+        flex-basis: 100%;
+        margin-top: 2px;
+        font-size: 11px;
+        opacity: 0.75;
+        // No leading dot on mobile — the line break separates it visually.
+        &::before { content: none; }
+    }
+
+    .fantasy-weekend-chips {
+        // 2-col grid on mobile, single col at very narrow widths.
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .fantasy-weekend-chip {
+        padding: 8px 10px;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .fantasy-weekend-chip-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+        margin-top: 1px;
+    }
+
+    .fantasy-weekend-chip-label {
+        font-size: 12px;
+        // Let labels wrap to 2 lines instead of ellipsing to "Hea..." on very
+        // narrow 2-col screens.
+        white-space: normal;
+        line-height: 1.25;
+    }
+
+    .fantasy-weekend-chip-sub {
+        // Hide the value-prop sub-text on tight 2-col mobile — the label alone
+        // carries the meaning and this frees the chip to breathe.
+        display: none;
+    }
+
+    .fantasy-weekend-chip-arrow {
+        margin-top: 2px;
+    }
+}
+
+@media (max-width: 340px) {
+    // Fall back to single-column only on very narrow screens (older/tiny devices).
+    // 375-wide phones (SE, Mini) keep the 2-col grid so the strip stays compact.
+    .fantasy-weekend-chips {
+        grid-template-columns: 1fr;
+    }
+    .fantasy-weekend-chip-sub {
+        // Bring the sub back when we have full-width chips again.
+        display: block;
     }
 }
 
