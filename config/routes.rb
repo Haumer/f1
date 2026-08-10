@@ -3,6 +3,8 @@ Rails.application.routes.draw do
   get "users/username_available", to: "users#username_available"
   root to: "pages#home"
 
+  get 'sitemap.xml', to: 'sitemaps#index', defaults: { format: 'xml' }, as: :sitemap
+
   namespace :admin do
     root to: 'dashboard#index'
     resource :settings, only: [:show, :update]

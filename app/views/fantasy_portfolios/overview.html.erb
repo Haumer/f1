@@ -410,12 +410,12 @@
                         stock_portfolio: @stock_portfolio %>
                 <% end %>
                 <% if @is_owner && !@stock_portfolio.positions_full? %>
-                    <div class="driver-card-empty">
+                    <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "driver-card-empty" do %>
                         <div class="driver-card-empty-content">
                             <i class="fa-solid fa-plus"></i>
-                            <%= link_to "Buy Shares", market_fantasy_stock_portfolio_path(@stock_portfolio) %>
+                            <span>Buy Shares</span>
                         </div>
-                    </div>
+                    <% end %>
                 <% end %>
             </div>
 

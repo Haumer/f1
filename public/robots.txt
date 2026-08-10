@@ -1,1 +1,22 @@
 # See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+User-agent: *
+Allow: /
+
+# Auth, admin, and user-mutation endpoints
+Disallow: /admin/
+Disallow: /blazer/
+Disallow: /users/
+Disallow: /u/*/settings
+Disallow: /picks
+Disallow: /picks/
+Disallow: /reactions/
+
+# Fantasy: personal pages and trading actions (low SEO value, per-user)
+Disallow: /fantasy/u/
+Disallow: /fantasy/toggle_public
+Disallow: /stocks/
+
+# OG image previews (rendered assets, not content pages)
+Disallow: /races/*/preview/
+
+Sitemap: https://f1elo.com/sitemap.xml
