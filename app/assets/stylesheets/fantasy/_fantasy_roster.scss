@@ -342,6 +342,8 @@
 }
 
 // ── Empty Slot Card ──
+// The whole tile is a link so the entire box is a hit target — not just the
+// text inside it. Previous markup only made the label clickable.
 .driver-card-empty {
     border: 1px dashed rgba(255, 255, 255, 0.08);
     background: transparent;
@@ -350,11 +352,16 @@
     align-items: center;
     justify-content: center;
     border-radius: $radius-md;
-    transition: border-color $t-fast, background $t-fast;
+    color: $text-tertiary;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color $t-fast, background $t-fast, color $t-fast;
 
-    &:hover {
-        border-color: rgba(255, 255, 255, 0.15);
-        background: rgba(255, 255, 255, 0.01);
+    &:hover, &:focus-visible {
+        border-color: var(--page-accent, $accent-red);
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+        color: $text-primary;
+        text-decoration: none;
     }
 }
 
@@ -363,16 +370,20 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    color: $text-tertiary;
+    color: inherit;
 
     i { font-size: 18px; }
 
-    a {
+    span {
         font-size: 12px;
         color: $text-secondary;
-        text-decoration: none;
         font-weight: $weight-semi;
-        &:hover { color: var(--page-accent, $accent-red); }
+        transition: color $t-fast;
+    }
+
+    .driver-card-empty:hover & span,
+    .driver-card-empty:focus-visible & span {
+        color: var(--page-accent, $accent-red);
     }
 }
 
