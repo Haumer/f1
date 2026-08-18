@@ -117,6 +117,15 @@
     margin-bottom: $space-lg;
     border-bottom: 1px solid $border-color;
     padding-bottom: 0;
+
+    // Phones: let tabs scroll horizontally rather than overflow silently when
+    // there are too many to fit (era tabs on /races/winners, /stats/race_wins).
+    @media (max-width: 480px) {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        &::-webkit-scrollbar { display: none; }
+    }
 }
 .fantasy-tab {
     display: inline-flex;
@@ -132,6 +141,7 @@
     margin-bottom: -1px;
     transition: color $t-fast, border-color $t-fast, background $t-fast;
     border-radius: $radius-sm $radius-sm 0 0;
+    white-space: nowrap;
 
     &:hover {
         color: $text-primary;
@@ -151,6 +161,7 @@
         justify-content: center;
         padding: 10px 8px;
         letter-spacing: 0.3px;
+        flex-shrink: 0;
     }
 }
 

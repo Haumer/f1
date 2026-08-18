@@ -351,6 +351,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;
 
     i { font-size: 10px; }
   }
@@ -424,6 +425,7 @@
     font-weight: $weight-bold;
     color: $text-primary;
     letter-spacing: 0.3px;
+    white-space: nowrap;
   }
 
   .pre-race-schedule-day {
@@ -1584,6 +1586,7 @@
 
 .activity-stat-label {
   color: $text-tertiary;
+  white-space: nowrap;
 }
 
 .activity-strip-link {

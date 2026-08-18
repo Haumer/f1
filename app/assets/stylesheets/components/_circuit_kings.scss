@@ -12,6 +12,7 @@
     text-transform: uppercase;
     letter-spacing: $ls-label;
     color: $text-secondary;
+    white-space: nowrap;
     i { color: $gold; margin-right: 4px; }
 }
 
