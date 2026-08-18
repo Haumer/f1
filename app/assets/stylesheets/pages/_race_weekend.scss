@@ -14,6 +14,7 @@
     text-transform: uppercase;
     letter-spacing: $ls-label;
     color: $text-secondary;
+    white-space: nowrap;
   }
 
   .countdown-timer-value {
