@@ -121,7 +121,11 @@
     <%# ═══════════════════ Account Summary Strip ═══════════════════ %>
     <% if @stock_portfolio && @stock_holdings&.any? %>
         <%
-            invested_pct = (total_value > 0 ? (total_invested.to_f / total_value * 100).round : 0).clamp(0, 100)
+            # Derive from current values so the split reflects actual allocation
+            # (using total_invested here would mix cost basis with market value —
+            # a portfolio with 150 cash of 12k showed 95% instead of ~99% before).
+            cash_pct     = total_value > 0 ? (cash_available.to_f / total_value * 100).round : 0
+            invested_pct = (100 - cash_pct).clamp(0, 100)
         %>
         <div class="fantasy-stats-strip">
             <div class="fantasy-stat-chip">
