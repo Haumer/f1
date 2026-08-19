@@ -515,7 +515,12 @@
 }
 
 // Re-open the pre-race-hero-v2 block for the mobile-only tweaks that were originally nested here.
-.pre-race-hero-v2 {
+// NOTE: must use the SAME compound selector .page-hero.pre-race-hero-v2 as the desktop
+// rules above — using just .pre-race-hero-v2 drops specificity below the desktop
+// selector and the mobile overrides never apply. That silently kept the hero as
+// 2 columns on phones (and the schedule column overflowed once its labels stopped
+// wrapping).
+.page-hero.pre-race-hero-v2 {
 
   // ── Mobile: stack, keep track watermark visible ──
   @media (max-width: 768px) {
