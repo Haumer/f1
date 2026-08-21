@@ -375,6 +375,16 @@ table.race-results {
     }
 }
 
+// At 390px the 6-card row packs 3-up, leaving ~93px of content per card, so name
+// values ellipsis away to "M.Schu…". Two-up gives them room to render in full.
+@media (max-width: 480px) {
+    .race-stat-card {
+        min-width: 120px;
+
+        .race-stat-value { font-size: 18px; }
+    }
+}
+
 // Muted text for grid position unchanged
 .race-text-muted { color: $text-tertiary; }
 

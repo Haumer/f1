@@ -1845,6 +1845,16 @@
     gap: 8px;
   }
 
+  // `flex: 1` gives the podium a 0% basis, so it always "fits" the first row and
+  // never wraps — the nowrap label and Results link take the row and squeeze it
+  // to ~11px, hiding all three drivers behind a sliver of scroll. Give it a full
+  // row of its own; the 251px of content then fits outright and needs no scroll.
+  .latest-result-podium {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
   .latest-result-link {
     margin-left: 0;
   }
