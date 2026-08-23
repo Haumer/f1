@@ -1906,6 +1906,19 @@
 }
 
 @media (max-width: 768px) {
+  // At 390px the header title is within a pixel or two of the CTA, and the
+  // longest calendar locations (Monte-Carlo, Silverstone, Mexico City) are two
+  // characters longer than Zandvoort. Buy real headroom rather than sitting on
+  // the boundary and ellipsising a nine-letter place name.
+  .recent-picks-header {
+    gap: 8px;
+
+    h4 {
+      font-size: $type-small;
+      i { margin-right: 6px; }
+    }
+  }
+
   .next-race-strip {
     flex-wrap: wrap;
     gap: 8px;
