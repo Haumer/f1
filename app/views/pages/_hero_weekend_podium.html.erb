@@ -1,0 +1,43 @@
+<%# Right column of the v2 weekend hero once results are in: podium, plus the
+    race's biggest Elo swings. @race_elo_changes was already being computed in
+    Homepage::PhaseData but had no view rendering it — this is that column. %>
+<div class="weekend-hero-podium">
+    <div class="weekend-hero-schedule-title">
+        <i class="fa-solid fa-flag-checkered"></i> Podium
+    </div>
+
+    <div class="weekend-podium-list">
+        <% @podium_results_post&.each do |result| %>
+            <div class="weekend-podium-entry" style="--constructor-color: <%= constructor_color(result.constructor) %>">
+                <span class="weekend-podium-pos place-<%= result.position_order %>">P<%= result.position_order %></span>
+                <span class="weekend-podium-name">
+                    <%= link_to "#{result.driver.forename&.first}.#{result.driver.surname}", driver_path(result.driver) %>
+                </span>
+                <% if current_user && result.display_elo_diff %>
+                    <span class="weekend-podium-elo <%= result.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                        <%= result.display_gained_elo? ? '+' : '' %><%= result.display_elo_diff.round(1) %>
+                    </span>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+
+    <% movers = current_user ? @race_elo_changes&.reject { |rr| rr.display_elo_diff.nil? }&.first(3) : nil %>
+    <% if movers.present? %>
+        <div class="weekend-podium-movers">
+            <span class="weekend-podium-movers-label">Biggest Elo swings</span>
+            <% movers.each do |rr| %>
+                <span class="weekend-podium-mover">
+                    <%= link_to "#{rr.driver.forename&.first}.#{rr.driver.surname}", driver_path(rr.driver) %>
+                    <span class="<%= rr.display_gained_elo? ? 'text-green' : 'text-red' %>">
+                        <%= rr.display_gained_elo? ? '+' : '' %><%= rr.display_elo_diff.round(1) %>
+                    </span>
+                </span>
+            <% end %>
+        </div>
+    <% end %>
+
+    <%= link_to race_path(race), class: "weekend-podium-link" do %>
+        Full results <i class="fa-solid fa-arrow-right"></i>
+    <% end %>
+</div>

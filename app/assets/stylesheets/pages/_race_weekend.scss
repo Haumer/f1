@@ -1,8 +1,10 @@
 // Countdown Timer
 .countdown-timer {
   display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  // Optically centre the 11px label against the 26px value. `baseline` pinned
+  // both to the same bottom line, which left the label hanging low.
+  align-items: center;
+  gap: 10px;
   margin-top: 20px;
   padding: 12px 24px;
   background: $bg-surface;
@@ -15,6 +17,7 @@
     letter-spacing: $ls-label;
     color: $text-secondary;
     white-space: nowrap;
+    line-height: 1;
   }
 
   .countdown-timer-value {
@@ -31,165 +34,6 @@
     border: 1px solid rgba($green, 0.15);
 
     .countdown-timer-label { color: $green; }
-  }
-}
-
-// Race Weekend Hero
-.race-weekend-hero {
-  .page-hero-label i {
-    font-size: 8px;
-    animation: pulse-dot 1.5s ease-in-out infinite;
-  }
-}
-
-// Session Schedule Card
-.session-schedule-card {
-  margin-bottom: 24px;
-  padding: 24px;
-}
-
-// Grid-based timeline: dots and labels share exact column positions
-.session-timeline {
-  display: grid;
-  row-gap: 10px;
-  // Columns set via inline style: repeat(N, 1fr) where N = session count
-}
-
-// Track row: dots connected by lines, all in one grid row
-.session-track {
-  grid-row: 1;
-  display: contents; // children participate in the parent grid
-}
-
-.session-track-dot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.session-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid $border-color;
-  background: $bg-card;
-  z-index: 2;
-  flex-shrink: 0;
-
-  &-done {
-    background: $green;
-    border-color: $green;
-  }
-
-  &-today {
-    background: $green;
-    border-color: $green;
-    box-shadow: 0 0 0 4px rgba($green, 0.15);
-  }
-}
-
-// Connector line extends from center of this dot to center of the next dot
-.session-connector-line {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  // Width spans to center of next column (100% of one grid column)
-  width: 100%;
-  height: 2px;
-  transform: translateY(-50%);
-  background: $border-color;
-  z-index: 1;
-  overflow: hidden;
-
-  &.session-connector-done {
-    background: $green;
-  }
-}
-
-.session-connector-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: $green;
-  transition: width 0.6s ease;
-}
-
-// Labels row
-.session-labels {
-  grid-row: 2;
-  display: contents;
-}
-
-.session-label-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 2px;
-
-  .session-name {
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
-    color: $text-primary;
-  }
-
-  .session-date {
-    font-size: $type-label;
-    color: $text-secondary;
-  }
-
-  .session-time {
-    font-size: $type-label;
-    color: $text-secondary;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .badge-done {
-    color: $green;
-    font-size: $type-label;
-    margin-top: 2px;
-  }
-
-  .badge-today {
-    font-size: 9px;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
-    color: $green;
-    margin-top: 2px;
-
-    i {
-      font-size: 6px;
-      vertical-align: middle;
-      margin-right: 3px;
-      animation: pulse-dot 1.5s ease-in-out infinite;
-    }
-  }
-
-  &.session-done .session-name { color: $text-secondary; }
-  &.session-today .session-name { color: $green; }
-  &.session-upcoming .session-name { color: $text-secondary; }
-
-  .session-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    text-decoration: none;
-    color: inherit;
-    transition: color 0.15s ease;
-
-    &:hover .session-name {
-      color: var(--page-accent, #e10600);
-    }
-  }
-
-  &.session-linkable {
-    cursor: pointer;
   }
 }
 
@@ -242,33 +86,6 @@
 }
 
 // Race Day — Lights Out time badge
-.race-start-time {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 16px;
-  padding: 10px 20px;
-  background: rgba($green, 0.08);
-  border-radius: $radius-md;
-  border: 1px solid rgba($green, 0.15);
-
-  .race-start-label {
-    font-size: $type-label;
-    font-weight: $weight-semi;
-    text-transform: uppercase;
-    letter-spacing: $ls-label;
-    color: $green;
-  }
-
-  .race-start-value {
-    font-size: 20px;
-    font-weight: $weight-bold;
-    color: $text-primary;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-// Post-Race Elo Card
 .post-race-elo-card {
   margin-bottom: 24px;
 
@@ -320,17 +137,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-// Mobile: keep horizontal but allow scroll
 @media (max-width: 768px) {
-  .session-schedule-card {
-    padding: 16px;
-    overflow-x: auto;
-  }
-
-  .session-timeline {
-    min-width: 320px;
-  }
-
   .countdown-badge {
     flex-direction: column;
     align-items: center;

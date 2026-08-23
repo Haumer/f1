@@ -60,119 +60,59 @@
   }
 }
 
-// Race Day Hero
-.race-day-hero {
-  .page-hero-label {
-    color: $green;
-    border-color: rgba($green, 0.25);
-
-    i {
-      font-size: 8px;
-      animation: pulse-dot 1.5s ease-in-out infinite;
-    }
-  }
-}
-
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
 
-// Post-Race Hero
-.post-race-hero {
-  .page-hero-label {
-    color: $text-secondary;
-    border-color: rgba($text-secondary, 0.25);
-  }
-}
-
-// Inline podium within the hero (merged hero + podium)
-.hero-podium-inline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
-
-.hero-podium-entry {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: $radius-sm;
-  border-left: 2px solid var(--constructor-color, $text-secondary);
-  transition: background $t-fast;
-
-  &:hover { background: rgba(255, 255, 255, 0.07); }
-}
-
-.hero-podium-pos {
-  font-family: $mono-font;
-  font-weight: $weight-bold;
-  font-size: $type-small;
-}
-
-.hero-podium-name {
-  font-weight: $weight-bold;
-  font-size: $type-body;
-
-  a {
-    color: $text-primary;
-    transition: color $t-fast;
-    &:hover { color: var(--page-accent, $accent-red); }
-  }
-}
-
-.hero-podium-elo {
-  font-family: $mono-font;
-  font-size: $type-small;
-  font-weight: $weight-bold;
-}
-
-.hero-podium-link {
-  font-size: $type-small;
-  font-weight: $weight-bold;
-  color: $text-tertiary;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: color $t-fast;
-
-  i { font-size: 10px; transition: transform $t-normal ease; }
-  &:hover { color: var(--page-accent, $accent-red); }
-  &:hover i { transform: translateX(3px); }
-}
-
-// Pre-Race Hero
-.pre-race-hero {
-  .page-hero-label {
-    color: $text-secondary;
-    border-color: rgba($text-secondary, 0.25);
-  }
-}
-
-// ── Redesigned pre-race hero (v2) ─────────────────────────────────────
+// ── Weekend hero (v2) ─────────────────────────────────────────────────
+// Shared by every homepage phase that has a contextual race: pre_race,
+// race_weekend, race_day, race_complete, post_race. Markup lives in
+// pages/_hero_weekend.
 // Layout: 2-col desktop, stacked mobile.
-//   Left  = identity + rotating countdown to the next session
-//   Right = full session schedule (FP1..Race, sprint handled by data)
+//   Left  = identity + phase status (countdown / results incoming)
+//   Right = full session schedule (FP1..Race, sprint handled by data),
+//           or the podium once results are in.
 //   Track SVG sits behind everything as a subtle watermark.
-// Circuit Kings strip stays as its own component below.
-// Use the compound .page-hero.pre-race-hero-v2 selector so these tighter
+// Use the compound .page-hero.weekend-hero-v2 selector so these tighter
 // spacing rules beat the shared .page-hero component's 40px/32px defaults
 // (which are declared later in the cascade).
-.page-hero.pre-race-hero-v2 {
+.page-hero.weekend-hero-v2 {
   text-align: left;
   padding: 44px 0 12px;
   margin-bottom: 4px;
   // Kill the default centered ::after accent since the layout is asymmetric.
   &::after { display: none; }
 
+  // ── Phase tone ──
+  // Every accent inside this hero reads from --hero-tone rather than
+  // --page-accent directly, so a phase can recolour the whole block with one
+  // override. Default falls through to the page accent (circuit/constructor).
+  --hero-tone: var(--page-accent, #{$accent-red});
+  --hero-tone-rgb: var(--page-accent-rgb, 225, 6, 0);
+
+  // Race day: green, live, imminent.
+  &.weekend-hero-live {
+    --hero-tone: #{$green};
+    --hero-tone-rgb: 0, 210, 106;
+
+    .weekend-hero-banner i { animation: pulse-dot 1.5s ease-in-out infinite; }
+  }
+
+  // Sessions running but not race day yet — page accent, with a live pulse.
+  &.weekend-hero-open .weekend-hero-banner i {
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  // Race is run. Drop the urgency; the results are the story now.
+  &.weekend-hero-done {
+    --hero-tone: #{$text-secondary};
+    --hero-tone-rgb: 138, 138, 154;
+  }
+
   // Track SVG watermark — big, faint, kept fully inside the hero (no negative
   // offset) so the full track outline is visible behind the content.
-  .pre-race-hero-watermark {
+  .weekend-hero-watermark {
     position: absolute;
     top: 0;
     right: 0;
@@ -195,7 +135,7 @@
     }
   }
 
-  .pre-race-hero-content {
+  .weekend-hero-content {
     position: relative;
     z-index: 1;
     display: grid;
@@ -213,7 +153,7 @@
   .page-hero-meta  { text-align: left; }
   .page-hero-label { align-self: flex-start; }
 
-  .pre-race-hero-info {
+  .weekend-hero-info {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -223,7 +163,7 @@
   // Replaces the tiny .page-hero-label pill. Uses the F1 title font, is much
   // larger than the meta line, and carries an accent-coloured chevron marker
   // on the left so it reads like a proper section header, not a badge.
-  .pre-race-hero-banner {
+  .weekend-hero-banner {
     display: inline-flex;
     align-items: baseline;
     gap: 12px;
@@ -234,7 +174,7 @@
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-weight: $weight-bold;
-    color: var(--page-accent, $accent-red);
+    color: var(--hero-tone);
     line-height: 1;
 
     // Left chevron bar as visual anchor
@@ -243,32 +183,32 @@
       display: inline-block;
       width: 4px;
       height: 22px;
-      background: var(--page-accent, $accent-red);
+      background: var(--hero-tone);
       margin-right: 4px;
-      box-shadow: 0 0 12px rgba(var(--page-accent-rgb, 225, 6, 0), 0.5);
+      box-shadow: 0 0 12px rgba(var(--hero-tone-rgb), 0.5);
       transform: translateY(2px);
     }
 
-    .pre-race-hero-banner-head {
+    .weekend-hero-banner-head {
       display: inline-flex;
       align-items: baseline;
       gap: 12px;
     }
 
-    i { font-size: 20px; color: var(--page-accent, $accent-red); }
+    i { font-size: 20px; color: var(--hero-tone); }
 
-    .pre-race-hero-banner-title {
+    .weekend-hero-banner-title {
       font-size: 22px;
-      text-shadow: 0 0 20px rgba(var(--page-accent-rgb, 225, 6, 0), 0.35);
+      text-shadow: 0 0 20px rgba(var(--hero-tone-rgb), 0.35);
     }
 
-    .pre-race-hero-banner-sep {
+    .weekend-hero-banner-sep {
       color: $text-tertiary;
       opacity: 0.55;
       font-size: 16px;
     }
 
-    .pre-race-hero-banner-dates {
+    .weekend-hero-banner-dates {
       font-family: $mono-font;
       font-variant-numeric: tabular-nums;
       font-size: 15px;
@@ -278,15 +218,130 @@
     }
   }
 
-  .pre-race-hero-countdown {
+  .weekend-hero-countdown {
     margin-top: 20px;
     align-self: flex-start;
+  }
+
+  // Static phase status where there's nothing to count down to — race finished
+  // and awaiting results, or a lights-out time with no live session feed.
+  .weekend-hero-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: $radius-md;
+    background: rgba(var(--hero-tone-rgb), 0.08);
+    border: 1px solid rgba(var(--hero-tone-rgb), 0.18);
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: var(--hero-tone);
+    line-height: 1;
+
+    i { font-size: 13px; }
+  }
+
+  // ── Right column: podium (post-race) ──
+  .weekend-hero-podium {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 22px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+  }
+
+  .weekend-podium-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .weekend-podium-entry {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: $radius-sm;
+    border-left: 2px solid var(--constructor-color, var(--hero-tone));
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .weekend-podium-pos {
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .weekend-podium-name {
+    font-size: $type-body;
+    font-weight: $weight-semi;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    a { color: $text-primary; }
+    a:hover { color: var(--constructor-color, var(--hero-tone)); }
+  }
+
+  .weekend-podium-elo {
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .weekend-podium-movers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    padding-top: 10px;
+    border-top: 1px solid $border-subtle;
+    font-size: $type-small;
+  }
+
+  .weekend-podium-movers-label {
+    flex-basis: 100%;
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+  }
+
+  .weekend-podium-mover {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-variant-numeric: tabular-nums;
+
+    a { color: $text-secondary; }
+    a:hover { color: $text-primary; }
+  }
+
+  .weekend-podium-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: $type-small;
+    font-weight: $weight-semi;
+    color: var(--hero-tone);
+    align-self: flex-start;
+
+    i { transition: transform 0.2s ease; }
+    &:hover i { transform: translateX(3px); }
   }
 
   // ── Subtle Circuit Kings when nested inside the hero info column ──
   // Overrides the shared component's default styling so it reads as
   // supporting info, not competing with the title/countdown.
-  .pre-race-hero-info .circuit-kings {
+  .weekend-hero-info .circuit-kings {
     margin-top: 22px;
     padding: 0;
     background: transparent;
@@ -296,7 +351,7 @@
     align-items: flex-start;
     gap: 8px;
   }
-  .pre-race-hero-info .circuit-kings-label {
+  .weekend-hero-info .circuit-kings-label {
     font-size: $type-label;
     text-transform: uppercase;
     letter-spacing: $ls-label;
@@ -309,12 +364,12 @@
 
     i { color: #d4a017; font-size: 10px; }
   }
-  .pre-race-hero-info .circuit-kings-list {
+  .weekend-hero-info .circuit-kings-list {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
-  .pre-race-hero-info .circuit-king-chip {
+  .weekend-hero-info .circuit-king-chip {
     background: transparent;
     border: 1px solid $border-subtle;
     padding: 3px 8px;
@@ -334,14 +389,14 @@
   }
 
   // ── Session schedule (right column) ──
-  .pre-race-hero-schedule {
+  .weekend-hero-schedule {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid $border-subtle;
     border-radius: $radius-md;
     padding: 14px 16px;
   }
 
-  .pre-race-hero-schedule-title {
+  .weekend-hero-schedule-title {
     font-size: $type-label;
     font-weight: $weight-bold;
     text-transform: uppercase;
@@ -356,7 +411,7 @@
     i { font-size: 10px; }
   }
 
-  .pre-race-schedule-list {
+  .weekend-schedule-list {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -365,7 +420,7 @@
     gap: 2px;
   }
 
-  .pre-race-schedule-row {
+  .weekend-schedule-row {
     display: grid;
     grid-template-columns: 14px 1fr auto auto auto;
     align-items: center;
@@ -379,7 +434,7 @@
   // Each row's rail contains: a line connecting to the previous row (grey),
   // a fill overlay (accent-coloured, height = connector_before_fill %), and
   // the row's own dot at the bottom. Together they form a continuous timeline.
-  .pre-race-schedule-rail {
+  .weekend-schedule-rail {
     position: relative;
     width: 14px;
     height: 100%;
@@ -390,7 +445,7 @@
     justify-content: center;
   }
 
-  .pre-race-schedule-rail-line {
+  .weekend-schedule-rail-line {
     position: absolute;
     top: 0;
     bottom: 50%;
@@ -400,18 +455,18 @@
     background: rgba(255, 255, 255, 0.06);
   }
 
-  .pre-race-schedule-rail-fill {
+  .weekend-schedule-rail-fill {
     position: absolute;
     top: 0;
     left: 50%;
     width: 2px;
     transform: translateX(-50%);
-    background: linear-gradient(to bottom, var(--page-accent, $accent-red), transparent);
+    background: linear-gradient(to bottom, var(--hero-tone), transparent);
     max-height: 50%;
     transition: height 400ms ease-out;
   }
 
-  .pre-race-schedule-dot {
+  .weekend-schedule-dot {
     position: relative;
     z-index: 1;
     width: 8px;
@@ -421,21 +476,21 @@
     box-shadow: 0 0 0 3px $bg-card, 0 0 0 4px rgba(255, 255, 255, 0.06);
   }
 
-  .pre-race-schedule-name {
+  .weekend-schedule-name {
     font-weight: $weight-bold;
     color: $text-primary;
     letter-spacing: 0.3px;
     white-space: nowrap;
   }
 
-  .pre-race-schedule-day {
+  .weekend-schedule-day {
     font-family: $mono-font;
     color: $text-tertiary;
     text-transform: uppercase;
     font-size: 11px;
   }
 
-  .pre-race-schedule-time {
+  .weekend-schedule-time {
     font-family: $mono-font;
     font-variant-numeric: tabular-nums;
     color: $text-secondary;
@@ -443,7 +498,7 @@
     text-align: right;
   }
 
-  .pre-race-schedule-badge {
+  .weekend-schedule-badge {
     font-family: $mono-font;
     font-size: 9px;
     font-weight: $weight-bold;
@@ -451,9 +506,9 @@
     letter-spacing: 0.4px;
     padding: 2px 6px;
     border-radius: 999px;
-    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.15);
-    color: var(--page-accent, $accent-red);
-    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+    background: rgba(var(--hero-tone-rgb), 0.15);
+    color: var(--hero-tone);
+    border: 1px solid rgba(var(--hero-tone-rgb), 0.3);
 
     &.is-live {
       background: rgba(74, 222, 128, 0.15);
@@ -470,32 +525,32 @@
   // ── Row status coloring ──
   // "Next" (the first upcoming session, tagged from the ERB) gets the accent
   // colour + a pulse animation on the dot to make it feel alive.
-  .pre-race-schedule-row.is-next {
-    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.05);
+  .weekend-schedule-row.is-next {
+    background: rgba(var(--hero-tone-rgb), 0.05);
     border-radius: $radius-sm;
-    .pre-race-schedule-name { color: $text-primary; }
-    .pre-race-schedule-dot {
-      background: var(--page-accent, $accent-red);
+    .weekend-schedule-name { color: $text-primary; }
+    .weekend-schedule-dot {
+      background: var(--hero-tone);
       animation: pre-race-pulse 1.8s ease-in-out infinite;
     }
   }
 
   // Currently running session — green with a glow.
-  .pre-race-schedule-row.pre-race-schedule-today {
-    .pre-race-schedule-dot {
+  .weekend-schedule-row.weekend-schedule-today {
+    .weekend-schedule-dot {
       background: #4ade80;
       box-shadow: 0 0 0 3px $bg-card, 0 0 12px rgba(74, 222, 128, 0.6);
       animation: pre-race-pulse-live 1.4s ease-in-out infinite;
     }
-    .pre-race-schedule-name { color: $text-primary; }
+    .weekend-schedule-name { color: $text-primary; }
   }
 
   // Finished sessions fade out but the connector fill stays solid above them.
-  .pre-race-schedule-row.pre-race-schedule-done {
+  .weekend-schedule-row.weekend-schedule-done {
     opacity: 0.55;
-    .pre-race-schedule-dot { background: $text-tertiary; }
-    .pre-race-schedule-name { color: $text-secondary; }
-    .pre-race-schedule-rail-fill { background: var(--page-accent, $accent-red); }
+    .weekend-schedule-dot { background: $text-tertiary; }
+    .weekend-schedule-name { color: $text-secondary; }
+    .weekend-schedule-rail-fill { background: var(--hero-tone); }
   }
 }
 
@@ -514,20 +569,20 @@
   50%      { box-shadow: 0 0 0 3px $bg-card, 0 0 16px rgba(74, 222, 128, 0.9); }
 }
 
-// Re-open the pre-race-hero-v2 block for the mobile-only tweaks that were originally nested here.
-// NOTE: must use the SAME compound selector .page-hero.pre-race-hero-v2 as the desktop
-// rules above — using just .pre-race-hero-v2 drops specificity below the desktop
+// Re-open the weekend-hero-v2 block for the mobile-only tweaks that were originally nested here.
+// NOTE: must use the SAME compound selector .page-hero.weekend-hero-v2 as the desktop
+// rules above — using just .weekend-hero-v2 drops specificity below the desktop
 // selector and the mobile overrides never apply. That silently kept the hero as
 // 2 columns on phones (and the schedule column overflowed once its labels stopped
 // wrapping).
-.page-hero.pre-race-hero-v2 {
+.page-hero.weekend-hero-v2 {
 
   // ── Mobile: stack, keep track watermark visible ──
   @media (max-width: 768px) {
     text-align: center;
     padding: 28px 0 24px;
 
-    .pre-race-hero-watermark {
+    .weekend-hero-watermark {
       top: 20px;
       right: 50%;
       transform: translateX(50%);
@@ -536,7 +591,7 @@
       img { opacity: 0.09; }
     }
 
-    .pre-race-hero-content {
+    .weekend-hero-content {
       grid-template-columns: 1fr;
       gap: 20px;
       padding: 0 16px;
@@ -546,21 +601,34 @@
     .page-hero-meta  { text-align: center; }
     .page-hero-label { align-self: center; }
 
-    .pre-race-hero-info {
+    .weekend-hero-info {
       align-items: center;
     }
 
-    .pre-race-hero-countdown {
+    .weekend-hero-countdown {
       align-self: center;
     }
 
-    .pre-race-hero-schedule {
+    .weekend-hero-schedule {
       text-align: left;
+    }
+
+    .weekend-hero-status {
+      align-self: center;
+    }
+
+    .weekend-hero-podium {
+      text-align: left;
+      padding: 16px;
+    }
+
+    .weekend-podium-link {
+      align-self: center;
     }
 
     // Compact the Race Weekend banner on mobile so it never wraps.
     // Stack the title above the dates instead of trying to fit both on one line.
-    .pre-race-hero-banner {
+    .weekend-hero-banner {
       flex-direction: column;
       align-items: center;
       gap: 4px;
@@ -572,16 +640,16 @@
 
       i { font-size: 16px; margin-right: 4px; }
 
-      .pre-race-hero-banner-title {
+      .weekend-hero-banner-title {
         font-size: 20px;
         letter-spacing: 1px;
         white-space: nowrap;
       }
 
       // Hide the middle "·" separator since we've stacked vertically.
-      .pre-race-hero-banner-sep { display: none; }
+      .weekend-hero-banner-sep { display: none; }
 
-      .pre-race-hero-banner-dates {
+      .weekend-hero-banner-dates {
         font-size: 13px;
         white-space: nowrap;
         letter-spacing: 0.3px;
@@ -589,20 +657,20 @@
     }
 
     // Tighten row gaps on mobile — keep the same 5 cells inline
-    .pre-race-schedule-row {
+    .weekend-schedule-row {
       grid-template-columns: 8px auto auto 1fr auto;
       gap: 8px;
       padding: 6px 2px;
     }
 
-    .pre-race-schedule-time { min-width: 0; }
+    .weekend-schedule-time { min-width: 0; }
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // Between-races hero — quiet layout for when the next race is >3 days out
 // ═══════════════════════════════════════════════════════════════════
-// Deliberately calmer than .pre-race-hero-v2:
+// Deliberately calmer than .weekend-hero-v2:
 //   - Muted "No race this weekend" eyebrow (no red glow, no chevron bar)
 //   - Countdown reduced to inline meta
 //   - Right column is the previous race podium recap (looking backward,

@@ -8,18 +8,14 @@
             <%= render "pages/hero_season_start" %>
         <% when :season_complete %>
             <%= render "pages/hero_season_complete" %>
-        <% when :post_race %>
-            <%= render "pages/hero_post_race" %>
-        <% when :race_complete %>
-            <%= render "pages/hero_race_complete" %>
-        <% when :race_day %>
-            <%= render "pages/hero_race_day" %>
-        <% when :race_weekend %>
-            <%= render "pages/hero_race_weekend" %>
-        <% when :pre_race %>
-            <%= render "pages/hero_pre_race" %>
         <% when :between_races %>
             <%= render "pages/hero_between_races" %>
+        <% when :post_race %>
+            <%= render "pages/hero_weekend", race: @post_race, phase: :post_race %>
+        <% when :race_complete, :race_day, :race_weekend %>
+            <%= render "pages/hero_weekend", race: @weekend_race, phase: @homepage_phase, sessions: @session_schedule %>
+        <% when :pre_race %>
+            <%= render "pages/hero_weekend", race: @countdown_race, phase: :pre_race, sessions: @session_schedule %>
         <% end %>
 
         <%# 2. Persistent Latest Result Strip (skip when hero already shows the previous race) %>

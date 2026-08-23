@@ -1,0 +1,38 @@
+<%# Right column of the v2 weekend hero: vertical FP1→Race timeline with a
+    progress rail. Sprint weekends come through the same data shape. %>
+<div class="weekend-hero-schedule">
+    <div class="weekend-hero-schedule-title">
+        <i class="fa-solid fa-calendar"></i> Session Schedule
+    </div>
+    <ul class="weekend-schedule-list">
+        <% sessions.each_with_index do |session, i| %>
+            <% is_next = @next_session && @next_session[:key] == session[:key] %>
+            <% connector_fill = session[:connector_before_fill].to_i %>
+            <li class="weekend-schedule-row weekend-schedule-<%= session[:status] %><%= ' is-next' if is_next %>">
+                <span class="weekend-schedule-rail">
+                    <% if i > 0 %>
+                        <span class="weekend-schedule-rail-line"></span>
+                        <span class="weekend-schedule-rail-fill" style="height: <%= connector_fill %>%"></span>
+                    <% end %>
+                    <span class="weekend-schedule-dot"></span>
+                </span>
+                <span class="weekend-schedule-name"><%= session[:name] %></span>
+                <span class="weekend-schedule-day"><%= session[:date].strftime('%a') %></span>
+                <span class="weekend-schedule-time">
+                    <% if session[:starts_at] %>
+                        <%= session[:starts_at].strftime('%H:%M') %> UTC
+                    <% else %>
+                        <%= session[:date].strftime('%b %-d') %>
+                    <% end %>
+                </span>
+                <% if is_next %>
+                    <span class="weekend-schedule-badge">Next</span>
+                <% elsif session[:status] == :today %>
+                    <span class="weekend-schedule-badge is-live">Live</span>
+                <% elsif session[:status] == :done %>
+                    <span class="weekend-schedule-badge is-done"><i class="fa-solid fa-check"></i></span>
+                <% end %>
+            </li>
+        <% end %>
+    </ul>
+</div>
