@@ -1802,12 +1802,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 12px;
 
   h4 {
     margin: 0;
+    min-width: 0;
     font-size: $type-body;
     font-weight: $weight-bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
     i { color: var(--page-accent, $accent-red); margin-right: 8px; }
   }
@@ -1820,6 +1825,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
   transition: color $t-fast;
   i { font-size: 10px; transition: transform $t-normal ease; }
   &:hover { color: var(--page-accent, $accent-red); }
@@ -1849,7 +1856,12 @@
   font-weight: $weight-semi;
   font-size: $type-small;
   color: $text-primary;
-  min-width: 120px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .recent-pick-arrow {
@@ -1858,7 +1870,8 @@
 }
 
 .recent-pick-driver {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: $type-small;
 
   a {
@@ -1866,6 +1879,8 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    max-width: 100%;
+    white-space: nowrap;
     transition: color $t-fast;
 
     &:hover { color: var(--constructor-color, var(--page-accent, $accent-red)); }
@@ -1873,6 +1888,7 @@
 }
 
 .recent-pick-p1 {
+  flex-shrink: 0;
   font-family: $mono-font;
   font-size: $type-label;
   font-weight: $weight-bold;
@@ -1890,17 +1906,6 @@
 }
 
 @media (max-width: 768px) {
-  .hero-podium-inline {
-    gap: 8px;
-  }
-
-  .hero-podium-entry {
-    padding: 5px 10px;
-    gap: 6px;
-  }
-
-  .hero-podium-name { font-size: $type-small; }
-
   .next-race-strip {
     flex-wrap: wrap;
     gap: 8px;

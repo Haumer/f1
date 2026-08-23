@@ -69,4 +69,37 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "225, 6, 0", hex_to_rgb(nil)
     assert_equal "225, 6, 0", hex_to_rgb("")
   end
+
+  # Dense rows (leaderboard activity, recent picks) were cut mid-value by
+  # `time_ago_in_words` strings like "about 16 hours ago" on a phone.
+  test "compact_time_ago abbreviates to a single unit" do
+    {
+      10.seconds  => "now",
+      59.seconds  => "now",
+      1.minute    => "1m",
+      59.minutes  => "59m",
+      1.hour      => "1h",
+      16.hours    => "16h",
+      23.hours    => "23h",
+      1.day       => "1d",
+      6.days      => "6d",
+      15.days     => "2w",
+      28.days     => "4w",
+      90.days     => "3mo",
+      400.days    => "1y"
+    }.each do |ago, expected|
+      assert_equal expected, compact_time_ago(ago.ago), "#{ago.inspect} ago"
+    end
+  end
+
+  test "compact_time_ago never returns a string long enough to overflow a row" do
+    [1.second, 30.minutes, 5.hours, 3.days, 20.days, 200.days, 3000.days].each do |ago|
+      assert_operator compact_time_ago(ago.ago).length, :<=, 4, "#{ago.inspect} ago"
+    end
+  end
+
+  test "compact_time_ago returns nil for a missing timestamp" do
+    assert_nil compact_time_ago(nil)
+    assert_nil compact_time_ago("")
+  end
 end

@@ -27,7 +27,7 @@
       <span class="leaderboard-preview-action">
         <i class="fa-solid <%= activity_kind_icon(action.kind) || 'fa-arrow-right' %>"></i>
         <%= activity_kind_label(action.kind) %><% if action.driver %> <strong><%= action.driver.surname %></strong><% end %>
-        · <%= time_ago_in_words(action.created_at) %> ago
+        · <%= compact_time_ago(action.created_at) %>
       </span>
     <% end %>
   </div>
