@@ -45,6 +45,68 @@
 }
 
 // Calendar Grid (Circuits index)
+// ── Season journey map ──────────────────────────────────────────────
+// The calendar as a route rather than a list: arcs between consecutive rounds,
+// past stops coloured by the winning constructor. Drawn by the circuit-map
+// Stimulus controller; everything here is the frame around the canvas.
+.calendar-map-card {
+    position: relative;
+    padding: 12px 12px 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.calendar-map {
+    width: 100%;
+    // Height tracks the map's own aspect ratio at the container widths this
+    // card hits, so the card has no dead space above or below the world.
+    height: 400px;
+}
+
+.calendar-map-legend {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    pointer-events: none;
+}
+
+.calendar-map-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: $type-label;
+    font-weight: $weight-semi;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $text-tertiary;
+
+    i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    &.is-done i     { background: $text-secondary; }
+    &.is-next i     { background: var(--page-accent, $accent-red); }
+    &.is-upcoming i { border: 1.2px solid $text-secondary; }
+}
+
+@media (max-width: 768px) {
+    .calendar-map { height: 118px; }
+
+    // The legend would sit on top of the northern hemisphere at this size.
+    .calendar-map-legend {
+        position: static;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 4px;
+    }
+}
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

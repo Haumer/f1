@@ -1,0 +1,102 @@
+<%#
+  Shared v2 race-weekend hero. Drives every phase that has a contextual race:
+  pre_race, race_weekend, race_day, race_complete, post_race.
+
+  Layout: 2-col desktop, stacked mobile.
+    Left  = identity banner + title + phase status (countdown / results) + circuit kings
+    Right = session schedule, or the podium once the race has run
+    Track SVG watermark sits behind everything.
+
+  Was five near-identical partials that drifted apart — only two of them ever
+  got the v2 treatment, which is how race day ended up on the old layout.
+%>
+<%
+  race      = local_assigns.fetch(:race)
+  phase     = local_assigns.fetch(:phase)
+  sessions  = local_assigns[:sessions]
+  is_sprint = race.sprint?
+  has_track = race.circuit.track_image?
+  raced     = phase == :post_race
+
+  weekend_start = race.session_schedule.map { |s| s[:date] }.compact.min || race.date
+  weekend_end   = race.date
+  weekend_label = if weekend_start.month == weekend_end.month
+                    "#{weekend_start.strftime('%b %-d')}–#{weekend_end.strftime('%-d')}"
+                  else
+                    "#{weekend_start.strftime('%b %-d')}–#{weekend_end.strftime('%b %-d')}"
+                  end
+
+  tone, icon, banner_title = case phase
+    when :race_day      then ["live", "circle",         "Race Day"]
+    when :race_weekend  then ["open", "circle",         is_sprint ? "Sprint Weekend" : "Race Weekend"]
+    when :race_complete then ["done", "flag-checkered", "Race Complete"]
+    when :post_race     then ["done", "flag-checkered", "Race Complete"]
+    else                     ["ahead", (is_sprint ? "bolt" : "flag-checkered"), is_sprint ? "Sprint Weekend" : "Race Weekend"]
+  end
+
+  # On race day the only session left is the race itself — say so in F1 terms.
+  countdown_label = if phase == :race_day && @next_session && @next_session[:key] == :race
+                      "Lights Out in"
+                    elsif @next_session
+                      "#{@next_session[:name]} in"
+                    end
+%>
+<div class="page-hero weekend-hero-v2 weekend-hero-<%= tone %> <%= 'has-track' if has_track %>">
+    <div class="page-hero-bg"></div>
+
+    <% if has_track %>
+        <div class="weekend-hero-watermark" aria-hidden="true">
+            <%= image_tag race.circuit.track_image_path, alt: "" %>
+        </div>
+    <% end %>
+
+    <div class="page-hero-content weekend-hero-content">
+        <div class="weekend-hero-info">
+            <div class="weekend-hero-banner">
+                <span class="weekend-hero-banner-head">
+                    <i class="fa-solid fa-<%= icon %>"></i>
+                    <span class="weekend-hero-banner-title"><%= banner_title %></span>
+                </span>
+                <span class="weekend-hero-banner-sep">·</span>
+                <span class="weekend-hero-banner-dates"><%= weekend_label %></span>
+            </div>
+            <h1 class="page-hero-title"><%= link_to race.circuit.name, race_path(race) %></h1>
+            <p class="page-hero-meta">Round <%= race.round %> · <%= race.circuit.location %>, <%= race.circuit.country %></p>
+
+            <% if phase == :race_complete %>
+                <div class="weekend-hero-countdown weekend-hero-status">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    <span>Results incoming</span>
+                </div>
+            <% elsif phase == :post_race %>
+                <%# The podium in the right column is the status. %>
+            <% elsif countdown_label %>
+                <div class="weekend-hero-countdown countdown-timer <%= 'countdown-timer-race' if phase == :race_day %>"
+                     data-controller="countdown"
+                     data-countdown-target-value="<%= @next_session[:starts_at].iso8601 %>"
+                     data-countdown-label-value="<%= countdown_label %>">
+                </div>
+            <% elsif phase == :race_day && race.starts_at %>
+                <div class="weekend-hero-countdown weekend-hero-status">
+                    <i class="fa-solid fa-traffic-light"></i>
+                    <span>Lights out <%= race.starts_at.strftime("%H:%M UTC") %></span>
+                </div>
+            <% elsif phase == :pre_race && @days_until_fp1 %>
+                <div class="weekend-hero-countdown countdown-badge">
+                    <span class="countdown-number"><%= @days_until_fp1 %></span>
+                    <span class="countdown-label"><%= @days_until_fp1 == 1 ? 'day' : 'days' %> until FP1</span>
+                </div>
+            <% end %>
+
+            <% if @circuit_kings.present? %>
+                <%= render "shared/circuit_kings", circuit_kings: @circuit_kings %>
+            <% end %>
+        </div>
+
+        <% if raced %>
+            <%= render "pages/hero_weekend_podium", race: race %>
+        <% elsif sessions.present? %>
+            <%= render "pages/hero_weekend_schedule", sessions: sessions %>
+        <% end %>
+    </div>
+</div>
