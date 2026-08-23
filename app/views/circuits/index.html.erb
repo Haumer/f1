@@ -6,11 +6,28 @@
         <div class="table-header">
             <h3><%= @season_year %> Calendar</h3>
         </div>
+
+        <%# The season as a journey. Only worth drawing once there are legs to
+            draw — a single round is just a dot on a world map. %>
+        <% if @calendar_map[:stops].size > 1 %>
+            <div class="card calendar-map-card">
+                <div class="calendar-map-legend">
+                    <span class="calendar-map-legend-item is-done"><i></i>Raced</span>
+                    <span class="calendar-map-legend-item is-next"><i></i>Next round</span>
+                    <span class="calendar-map-legend-item is-upcoming"><i></i>To come</span>
+                </div>
+                <div class="calendar-map"
+                     data-controller="circuit-map"
+                     data-circuit-map-geojson-value="<%= asset_path("world.geo.json") %>"
+                     data-circuit-map-stops-value="<%= @calendar_map[:stops].to_json %>"
+                     data-circuit-map-legs-value="<%= @calendar_map[:legs].to_json %>"></div>
+            </div>
+        <% end %>
         <div class="calendar-grid">
             <% @calendar_races.each do |race| %>
                 <% circuit = race.circuit %>
                 <% past = race.date < Setting.effective_today %>
-                <% winner = past ? race.race_results.find_by(position_order: 1) : nil %>
+                <% winner = past ? @winners_by_race_id[race.id] : nil %>
                 <% color = winner ? constructor_color(winner.constructor) : nil %>
                 <%= link_to circuit_path(circuit), class: "card calendar-race-card #{'calendar-past' if past}" do %>
                     <% if color %>
