@@ -6,6 +6,12 @@
 }
 .nationality-card {
     display: flex;
+    // Third instance of the .card flex-direction trap. The intent is a row —
+    // .nationality-info takes flex: 1 to claim the space between, and
+    // .nationality-top is text-align: right, which only means anything as the
+    // right-hand end of a row. Stacked, the right-aligned block just floated
+    // under centred text.
+    flex-direction: row;
     align-items: center;
     gap: 12px;
     padding: 14px 16px;

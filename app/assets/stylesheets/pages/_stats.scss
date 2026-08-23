@@ -26,6 +26,13 @@
 
 .stats-hub-card {
     display: flex;
+    // Same trap as .explore-card: the shared .card sets flex-direction: column
+    // and this rule never said otherwise, so the icon stacked above the text and
+    // each card's text started at a different x. The row is clearly what was
+    // meant — .stats-hub-icon is flex-shrink: 0, .stats-hub-info carries
+    // min-width: 0, and .stats-hub-title ellipsises; all three are no-ops in a
+    // column and only do anything with a sibling competing for width.
+    flex-direction: row;
     align-items: center;
     gap: 14px;
     padding: 16px 18px;
