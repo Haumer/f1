@@ -263,7 +263,7 @@
                         <span class="explore-desc">Tracks around the world</span>
                         <% if (s = @explore_stats&.dig(:circuits)) %>
                             <span class="explore-stat">
-                                <%= s[:total] %> tracks<% if s[:next] %> · Next: <%= s[:next].name %><% end %>
+                                <%= s[:total] %> tracks<% if s[:next] %> · Next: <%= s[:next].location.presence || s[:next].name %><% end %>
                             </span>
                         <% end %>
                     </div>

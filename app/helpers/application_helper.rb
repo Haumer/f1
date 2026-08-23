@@ -118,4 +118,29 @@ module ApplicationHelper
         end
     end
 
+
+    # Compact relative time for dense rows: "3m", "16h", "15d", "2mo".
+    # `time_ago_in_words` returns things like "about 16 hours" and "28 days",
+    # which overflow the leaderboard and recent-pick rows on a phone and get
+    # cut mid-value.
+    def compact_time_ago(time)
+        return nil if time.blank?
+
+        seconds = (Time.current - time).to_i
+        return "now" if seconds < 60
+
+        minutes = seconds / 60
+        return "#{minutes}m" if minutes < 60
+
+        hours = minutes / 60
+        return "#{hours}h" if hours < 24
+
+        days = hours / 24
+        return "#{days}d" if days < 7
+        return "#{days / 7}w" if days < 60
+
+        months = days / 30
+        months < 12 ? "#{months}mo" : "#{days / 365}y"
+    end
+
 end

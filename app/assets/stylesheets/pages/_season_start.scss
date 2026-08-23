@@ -691,6 +691,12 @@
 
 .explore-card {
   display: flex;
+  // The shared .card sets flex-direction: column and, since this rule never
+  // said otherwise, it won — stacking the icon above a shrink-to-fit text block
+  // that was still left-aligned inside. Every card then started its text at a
+  // different x depending on how long its stat line was. The rest of this rule
+  // (centred cross-axis, non-shrinking icon, gap) was always written for a row.
+  flex-direction: row;
   align-items: center;
   gap: 14px;
   padding: 18px 16px;
@@ -730,6 +736,17 @@
   .explore-info {
     display: flex;
     flex-direction: column;
+    // Let the text column shrink below its content width so a long stat line
+    // ellipsises instead of pushing the card wider.
+    min-width: 0;
+  }
+
+  .explore-name,
+  .explore-desc,
+  .explore-stat {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .explore-name {

@@ -6,7 +6,7 @@
 <% if recent_picks&.any? %>
   <div class="card recent-picks-card">
     <div class="recent-picks-header">
-      <h4><i class="fa-solid fa-hand-pointer"></i> Recent picks for <%= race.circuit.name %></h4>
+      <h4><i class="fa-solid fa-hand-pointer"></i> Recent picks · <%= race.circuit.location.presence || race.circuit.name %></h4>
       <% if user_signed_in? %>
         <%= link_to edit_race_picks_path, class: "recent-picks-cta" do %>
           Make yours <i class="fa-solid fa-arrow-right"></i>
@@ -28,7 +28,7 @@
               <%= entry[:driver].forename&.first %>. <%= entry[:driver].surname %>
             <% end %>
           </span>
-          <span class="recent-pick-time"><%= time_ago_in_words(entry[:created_at]) %> ago</span>
+          <span class="recent-pick-time"><%= compact_time_ago(entry[:created_at]) %></span>
         </div>
       <% end %>
     </div>
