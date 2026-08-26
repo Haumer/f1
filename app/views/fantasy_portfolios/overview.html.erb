@@ -46,26 +46,85 @@
         </div>
     </div>
 
-    <%# ═══════════════════ Value Hero ═══════════════════ %>
-    <% cash = @portfolio ? @portfolio.cash : 0 %>
-    <% collateral = @stock_portfolio ? @stock_portfolio.total_collateral : 0 %>
-    <% cash_available = cash - collateral %>
-    <% stock_positions = @stock_portfolio ? @stock_portfolio.positions_value : 0 %>
-    <% stock_invested = @stock_portfolio ? @stock_portfolio.total_invested : 0 %>
-    <% total_invested = stock_invested + collateral %>
-    <% total_value = cash + stock_positions %>
-    <% baseline = @portfolio&.starting_capital || Fantasy::CreatePortfolio::STARTING_CAPITAL %>
-    <% total_pl = @portfolio ? @portfolio.total_return : 0 %>
-    <% total_pl_pct = baseline > 0 ? (total_pl / baseline * 100) : 0 %>
-    <% pl_class = total_pl >= 0 ? 'gain' : 'loss' %>
-    <% last_snap_round = (@snapshots || []).last&.race&.round %>
-    <div class="fantasy-value-hero">
-        <div class="fantasy-value-main">
+    <%# ═══════════════════ Pit Wall ═══════════════════ %>
+    <%# One panel where the value hero, the account-summary chips and the
+        weekend checklist used to be three stacked full-width bands. They all
+        answer "where do I stand right now", so they belong in one block with a
+        single focal point — the value — rather than three competing ones. %>
+    <%
+        cash            = @portfolio ? @portfolio.cash : 0
+        collateral      = @stock_portfolio ? @stock_portfolio.total_collateral : 0
+        cash_available  = cash - collateral
+        stock_positions = @stock_portfolio ? @stock_portfolio.positions_value : 0
+        stock_invested  = @stock_portfolio ? @stock_portfolio.total_invested : 0
+        total_invested  = stock_invested + collateral
+        total_value     = cash + stock_positions
+        baseline        = @portfolio&.starting_capital || Fantasy::CreatePortfolio::STARTING_CAPITAL
+        total_pl        = @portfolio ? @portfolio.total_return : 0
+        total_pl_pct    = baseline > 0 ? (total_pl / baseline * 100) : 0
+        pl_class        = total_pl >= 0 ? 'gain' : 'loss'
+        last_snap_round = (@snapshots || []).last&.race&.round
+        has_holdings    = @stock_portfolio && (@stock_holdings || []).any?
+        cash_pct        = total_value > 0 ? (cash_available.to_f / total_value * 100).round : 0
+        invested_pct    = (100 - cash_pct).clamp(0, 100)
+    %>
+
+    <%# Weekend checklist chips — state-driven; done ones dim and get a check,
+        pending ones pop. H2H shows its +50 credit reward until claimed. %>
+    <%
+        chips = []
+        if @is_owner && @portfolio
+            checklist_race    = @next_race
+            picks_done        = checklist_race && @race_picks.any? { |rp| rp.race_id == checklist_race.id && rp.picks.present? }
+            picks_open        = checklist_race&.picks_open?
+            h2h_done          = @h2h_done_for_race
+            team_done         = support.present?
+            first_shares_done = @stock_portfolio ? has_holdings : true
+
+            if checklist_race
+                chips << {
+                    key: :picks, icon: "list", label: "Race picks",
+                    done: picks_done,
+                    locked: !picks_done && !picks_open,
+                    path: (picks_open ? edit_race_picks_path : nil),
+                    sub: (picks_done ? "Locked in" : (picks_open ? "Pick your top 10" : "Locked"))
+                }
+            end
+            chips << {
+                key: :h2h, icon: "versus", label: "Head-to-Head",
+                done: h2h_done, path: head_to_head_path,
+                reward: (h2h_done ? nil : 50),
+                sub: (h2h_done ? "Bonus claimed" : "Play once per race")
+            }
+            unless team_done
+                chips << {
+                    key: :team, icon: "shield", label: "Pick a team",
+                    done: false, path: "#team-picker",
+                    sub: "Wear its colours"
+                }
+            end
+            unless first_shares_done
+                chips << {
+                    key: :first_shares, icon: "store", label: "Buy first shares",
+                    done: false, path: market_fantasy_stock_portfolio_path(@stock_portfolio),
+                    sub: "Long or short a driver"
+                }
+            end
+        end
+
+        actionable  = chips.reject { |c| c[:locked] }
+        done_count  = actionable.count { |c| c[:done] }
+        total_count = actionable.size
+        all_done    = total_count > 0 && done_count == total_count
+    %>
+
+    <section class="fantasy-pitwall <%= 'has-weekend' if chips.any? %>">
+        <div class="fantasy-pitwall-value">
             <div class="fantasy-value-row-top">
                 <span class="fantasy-value-label">Total Value</span>
                 <% if @leaderboard_rank %>
                     <span class="fantasy-rank-chip" title="Leaderboard rank">
-                        <i class="fa-solid fa-ranking-star"></i>
+                        <%= ui_icon "podium", size: 12 %>
                         <span class="fantasy-rank-num">#<%= @leaderboard_rank %></span>
                         <% if @leaderboard_size && @leaderboard_size > 1 %>
                             <span class="fantasy-rank-of">of <%= @leaderboard_size %></span>
@@ -73,25 +132,15 @@
                         <% if @leaderboard_rank_delta && @leaderboard_rank_delta != 0 %>
                             <% up = @leaderboard_rank_delta > 0 %>
                             <span class="fantasy-rank-delta <%= up ? 'gain' : 'loss' %>">
-                                <i class="fa-solid fa-caret-<%= up ? 'up' : 'down' %>"></i><%= @leaderboard_rank_delta.abs %>
+                                <%= ui_icon(up ? "trend_up" : "trend_down", size: 11) %><%= @leaderboard_rank_delta.abs %>
                             </span>
                         <% end %>
                     </span>
                 <% end %>
-                <% if @next_race&.starts_at && @next_race.starts_at > Time.current %>
-                    <span class="fantasy-lock-chip" data-controller="countdown" data-countdown-target-value="<%= @next_race.starts_at.iso8601 %>">
-                        <i class="fa-solid fa-lock"></i>
-                        <span class="fantasy-lock-label">Locks in</span>
-                        <span class="fantasy-lock-time" data-countdown-target="display">—</span>
-                    </span>
-                <% elsif @next_race %>
-                    <span class="fantasy-lock-chip locked">
-                        <i class="fa-solid fa-lock"></i>
-                        <span class="fantasy-lock-label">Locked</span>
-                    </span>
-                <% end %>
             </div>
+
             <span class="fantasy-value-number"><%= number_with_delimiter(total_value.round(0)) %></span>
+
             <div class="fantasy-value-pl-row">
                 <span class="fantasy-value-pl <%= pl_class %>">
                     <%= total_pl >= 0 ? '+' : '' %><%= number_with_delimiter(total_pl.round(0)) %>
@@ -105,173 +154,149 @@
                     </span>
                 <% end %>
             </div>
-        </div>
-        <div class="fantasy-value-details">
-            <div class="fantasy-detail">
-                <span class="detail-label">Cash</span>
-                <span class="detail-value"><%= number_with_delimiter(cash_available.round(0)) %></span>
-            </div>
-            <div class="fantasy-detail">
-                <span class="detail-label">Invested</span>
-                <span class="detail-value"><%= number_with_delimiter(total_invested.round(0)) %></span>
-            </div>
-        </div>
-    </div>
 
-    <%# ═══════════════════ Account Summary Strip ═══════════════════ %>
-    <% if @stock_portfolio && @stock_holdings&.any? %>
-        <%
-            # Derive from current values so the split reflects actual allocation
-            # (using total_invested here would mix cost basis with market value —
-            # a portfolio with 150 cash of 12k showed 95% instead of ~99% before).
-            cash_pct     = total_value > 0 ? (cash_available.to_f / total_value * 100).round : 0
-            invested_pct = (100 - cash_pct).clamp(0, 100)
-        %>
-        <div class="fantasy-stats-strip">
-            <div class="fantasy-stat-chip">
-                <span class="fantasy-stat-label">Allocation</span>
-                <div class="fantasy-allocation-bar" title="<%= invested_pct %>% invested · <%= 100 - invested_pct %>% cash">
-                    <div class="fantasy-allocation-bar-fill" style="width: <%= invested_pct %>%"></div>
-                </div>
-                <span class="fantasy-stat-value"><%= invested_pct %>% invested</span>
-            </div>
-            <div class="fantasy-stat-chip">
-                <span class="fantasy-stat-label">Positions</span>
-                <span class="fantasy-stat-value">
-                    <% if @long_count.to_i > 0 %>
-                        <span class="gain"><i class="fa-solid fa-arrow-trend-up"></i> <%= @long_count %></span>
+            <%# A number on its own says nothing about whether you're doing well.
+                The gap to the player either side turns "#3 of 6" into a race. %>
+            <% if @leaderboard_gap %>
+                <p class="fantasy-value-standing">
+                    <%= link_to combined_leaderboard_path, class: "fantasy-value-standing-link" do %>
+                        <% if @leaderboard_gap_direction == :behind %>
+                            <strong><%= number_with_delimiter(@leaderboard_gap) %></strong> behind P<%= @leaderboard_rank - 1 %>
+                        <% else %>
+                            <strong><%= number_with_delimiter(@leaderboard_gap) %></strong> clear of P2
+                        <% end %>
+                        <%= ui_icon "arrow_right", size: 12 %>
                     <% end %>
-                    <% if @short_count.to_i > 0 %>
-                        <span class="loss" style="margin-left: 8px"><i class="fa-solid fa-arrow-trend-down"></i> <%= @short_count %></span>
+                </p>
+            <% end %>
+
+            <%# Allocation + the cash/invested split, previously three separate chips. %>
+            <div class="fantasy-pitwall-meters">
+                <% if has_holdings %>
+                    <div class="fantasy-allocation-row">
+                        <div class="fantasy-allocation-bar" title="<%= invested_pct %>% invested · <%= cash_pct %>% cash">
+                            <div class="fantasy-allocation-bar-fill" style="width: <%= invested_pct %>%"></div>
+                        </div>
+                        <span class="fantasy-allocation-legend"><%= invested_pct %>% invested</span>
+                    </div>
+                <% end %>
+                <dl class="fantasy-pitwall-figures">
+                    <div>
+                        <dt>Cash</dt>
+                        <dd><%= number_with_delimiter(cash_available.round(0)) %></dd>
+                    </div>
+                    <div>
+                        <dt>Invested</dt>
+                        <dd><%= number_with_delimiter(total_invested.round(0)) %></dd>
+                    </div>
+                    <% if @long_count.to_i > 0 || @short_count.to_i > 0 %>
+                        <div>
+                            <dt>Positions</dt>
+                            <dd class="fantasy-pitwall-positions">
+                                <% if @long_count.to_i > 0 %>
+                                    <span class="gain"><%= ui_icon "trend_up", size: 12 %><%= @long_count %></span>
+                                <% end %>
+                                <% if @short_count.to_i > 0 %>
+                                    <span class="loss"><%= ui_icon "trend_down", size: 12 %><%= @short_count %></span>
+                                <% end %>
+                            </dd>
+                        </div>
                     <% end %>
-                </span>
+                    <% if collateral > 0 %>
+                        <div>
+                            <dt>Margin locked</dt>
+                            <dd><%= ui_icon "lock", size: 12 %><%= number_with_delimiter(collateral.round(0)) %></dd>
+                        </div>
+                    <% end %>
+                </dl>
+                <% if @top_team_pct && @top_team_pct >= 40 %>
+                    <p class="fantasy-pitwall-warning">
+                        <%= ui_icon "warning", size: 13 %>
+                        <span><strong><%= @top_team_pct %>%</strong> of your book is <%= @top_team_name %> — a bad weekend for them is a bad weekend for you.</span>
+                    </p>
+                <% end %>
             </div>
-            <% if collateral > 0 %>
-                <div class="fantasy-stat-chip">
-                    <span class="fantasy-stat-label">Margin Locked</span>
-                    <span class="fantasy-stat-value"><i class="fa-solid fa-lock" style="font-size:10px; opacity:0.6"></i> <%= number_with_delimiter(collateral.round(0)) %></span>
-                </div>
-            <% end %>
-            <% if @top_team_pct && @top_team_pct >= 40 %>
-                <div class="fantasy-stat-chip warn">
-                    <span class="fantasy-stat-label">Concentration</span>
-                    <span class="fantasy-stat-value"><i class="fa-solid fa-triangle-exclamation"></i> <%= @top_team_pct %>% <%= @top_team_name %></span>
-                </div>
-            <% end %>
         </div>
-    <% end %>
-
-    <%# ═══════════════════ This Weekend Checklist ═══════════════════ %>
-    <%# Single strip replacing the old welcome banner + stacked nudges. Chips are
-        state-driven — done ones dim + get a check; pending ones pop. H2H shows a
-        +50 credit reward until claimed. All-done state collapses to a one-liner. %>
-    <% if @is_owner && @portfolio %>
-        <%
-            checklist_race = @next_race
-            has_holdings   = @stock_portfolio && (@stock_holdings || []).any?
-            picks_done     = checklist_race && @race_picks.any? { |rp| rp.race_id == checklist_race.id && rp.picks.present? }
-            picks_open     = checklist_race&.picks_open?
-            h2h_done       = @h2h_done_for_race
-            team_done      = support.present?
-            first_shares_done = @stock_portfolio ? has_holdings : true
-
-            chips = []
-            if checklist_race
-                chips << {
-                    key: :picks, icon: "hand-pointer", label: "Race picks",
-                    done: picks_done,
-                    locked: !picks_done && !picks_open,
-                    path: (picks_open ? edit_race_picks_path : nil),
-                    sub: (picks_done ? "Locked in" : (picks_open ? "Pick your top 10" : "Locked"))
-                }
-            end
-            chips << {
-                key: :h2h, icon: "people-arrows", label: "Head-to-Head",
-                done: h2h_done, path: head_to_head_path,
-                reward: (h2h_done ? nil : 50),
-                sub: (h2h_done ? "Bonus claimed" : "Play once per race")
-            }
-            unless team_done
-                chips << {
-                    key: :team, icon: "shield-halved", label: "Pick a team",
-                    done: false, path: "#team-picker",
-                    sub: "Wear its colours"
-                }
-            end
-            unless first_shares_done
-                chips << {
-                    key: :first_shares, icon: "store", label: "Buy first shares",
-                    done: false, path: market_fantasy_stock_portfolio_path(@stock_portfolio),
-                    sub: "Long or short a driver"
-                }
-            end
-
-            actionable = chips.reject { |c| c[:locked] }
-            done_count = actionable.count { |c| c[:done] }
-            total_count = actionable.size
-            all_done = total_count > 0 && done_count == total_count
-        %>
 
         <% if chips.any? %>
-            <section class="fantasy-weekend <%= 'is-complete' if all_done %>"
-                     <%= all_done ? "data-controller=\"dismissable\" data-dismissable-key-value=\"fantasy-weekend-done-r#{checklist_race&.id}\"".html_safe : '' %>>
-                <% if all_done %>
-                    <div class="fantasy-weekend-done">
-                        <span class="fantasy-weekend-done-icon"><i class="fa-solid fa-flag-checkered"></i></span>
-                        <span class="fantasy-weekend-done-text">
-                            You're set<% if checklist_race %> for <strong><%= checklist_race.circuit.name %></strong><% end %>. Enjoy the race.
-                        </span>
-                        <button class="fantasy-weekend-done-close" data-action="dismissable#dismiss" aria-label="Dismiss">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                <% else %>
-                    <header class="fantasy-weekend-header">
-                        <span class="fantasy-weekend-title">
-                            <i class="fa-solid fa-flag-checkered"></i>
-                            <span class="fantasy-weekend-title-label">This weekend</span>
-                        </span>
-                        <% if checklist_race %>
-                            <span class="fantasy-weekend-title-race"><%= checklist_race.circuit.name %></span>
-                        <% end %>
-                        <% if total_count > 1 %>
-                            <span class="fantasy-weekend-progress"><%= done_count %> / <%= total_count %></span>
-                        <% end %>
-                    </header>
-                    <div class="fantasy-weekend-chips">
-                        <% chips.each do |chip| %>
-                            <% chip_classes = ["fantasy-weekend-chip"] %>
-                            <% chip_classes << "is-done" if chip[:done] %>
-                            <% chip_classes << "is-locked" if chip[:locked] %>
-                            <% tag = (chip[:path] && !chip[:locked]) ? :a : :div %>
-                            <%= content_tag tag, class: chip_classes.join(" "), href: (tag == :a ? chip[:path] : nil) do %>
-                                <span class="fantasy-weekend-chip-icon">
-                                    <% if chip[:done] %>
-                                        <i class="fa-solid fa-check"></i>
-                                    <% elsif chip[:locked] %>
-                                        <i class="fa-solid fa-lock"></i>
-                                    <% else %>
-                                        <i class="fa-solid fa-<%= chip[:icon] %>"></i>
-                                    <% end %>
-                                </span>
-                                <span class="fantasy-weekend-chip-body">
-                                    <span class="fantasy-weekend-chip-label"><%= chip[:label] %></span>
-                                    <% if chip[:sub] %>
-                                        <span class="fantasy-weekend-chip-sub"><%= chip[:sub] %></span>
-                                    <% end %>
-                                </span>
-                                <% if chip[:reward] %>
-                                    <span class="fantasy-weekend-chip-reward">+<%= chip[:reward] %></span>
-                                <% elsif !chip[:done] && !chip[:locked] && chip[:path] %>
-                                    <span class="fantasy-weekend-chip-arrow"><i class="fa-solid fa-arrow-right"></i></span>
-                                <% end %>
-                            <% end %>
+            <aside class="fantasy-pitwall-weekend <%= 'is-complete' if all_done %>">
+                <header class="fantasy-weekend-header">
+                    <span class="fantasy-weekend-title">
+                        <%= ui_icon "flag", size: 13 %>
+                        <span class="fantasy-weekend-title-label">This weekend</span>
+                    </span>
+                    <% if total_count > 1 %>
+                        <span class="fantasy-weekend-progress"><%= done_count %> / <%= total_count %></span>
+                    <% end %>
+                </header>
+
+                <% if checklist_race %>
+                    <div class="fantasy-weekend-race">
+                        <span class="fantasy-weekend-race-name"><%= checklist_race.circuit.name %></span>
+                        <% if checklist_race.starts_at && checklist_race.starts_at > Time.current %>
+                            <span class="fantasy-weekend-lock" data-controller="countdown" data-countdown-target-value="<%= checklist_race.starts_at.iso8601 %>">
+                                <%= ui_icon "lock", size: 11 %>
+                                <span>Locks in</span>
+                                <span data-countdown-target="display">—</span>
+                            </span>
+                        <% else %>
+                            <span class="fantasy-weekend-lock is-locked">
+                                <%= ui_icon "lock", size: 11 %><span>Locked</span>
+                            </span>
                         <% end %>
                     </div>
                 <% end %>
-            </section>
+
+                <% if all_done %>
+                    <p class="fantasy-weekend-done-text">
+                        <%= ui_icon "check", size: 14 %>
+                        You're all set. Enjoy the race.
+                    </p>
+                <% end %>
+
+                <div class="fantasy-weekend-chips">
+                    <% chips.each do |chip| %>
+                        <% chip_classes = ["fantasy-weekend-chip"] %>
+                        <% chip_classes << "is-done" if chip[:done] %>
+                        <% chip_classes << "is-locked" if chip[:locked] %>
+                        <% tag = (chip[:path] && !chip[:locked]) ? :a : :div %>
+                        <%= content_tag tag, class: chip_classes.join(" "), href: (tag == :a ? chip[:path] : nil) do %>
+                            <span class="fantasy-weekend-chip-icon">
+                                <% if chip[:done] %>
+                                    <%= ui_icon "check", size: 14 %>
+                                <% elsif chip[:locked] %>
+                                    <%= ui_icon "lock", size: 13 %>
+                                <% else %>
+                                    <%= ui_icon chip[:icon], size: 14 %>
+                                <% end %>
+                            </span>
+                            <span class="fantasy-weekend-chip-body">
+                                <span class="fantasy-weekend-chip-label"><%= chip[:label] %></span>
+                                <% if chip[:sub] %>
+                                    <span class="fantasy-weekend-chip-sub"><%= chip[:sub] %></span>
+                                <% end %>
+                            </span>
+                            <% if chip[:reward] %>
+                                <span class="fantasy-weekend-chip-reward">+<%= chip[:reward] %></span>
+                            <% elsif !chip[:done] && !chip[:locked] && chip[:path] %>
+                                <span class="fantasy-weekend-chip-arrow"><%= ui_icon "arrow_right", size: 13 %></span>
+                            <% end %>
+                        <% end %>
+                    <% end %>
+                </div>
+
+                <%# The checklist is the one place a player is already thinking
+                    "what am I meant to do this weekend" — so it's where the
+                    rules belong, rather than only in a nav dropdown. %>
+                <%= link_to fantasy_guide_path, class: "fantasy-weekend-guide" do %>
+                    <%= ui_icon "book", size: 13 %>
+                    <span>How scoring, dividends and shorts work</span>
+                    <%= ui_icon "arrow_right", size: 12 %>
+                <% end %>
+            </aside>
         <% end %>
-    <% end %>
+    </section>
+
 
     <%# ═══════════════════ Chart ═══════════════════ %>
     <%
@@ -389,11 +414,10 @@
             },
             series: chart_series
         } %>
-        <%= custom_chart(chart_options.merge(width: "100%", height: "260px")) %>
+        <%= custom_chart(chart_options.merge(width: "100%", height: "200px")) %>
     </div>
 
     <%# ═══════════════════ HOLDINGS ═══════════════════ %>
-    <% has_holdings = @stock_portfolio && (@stock_holdings || []).any? %>
 
     <% if @portfolio %>
         <div class="table-header">
@@ -423,12 +447,6 @@
                 <% end %>
             </div>
 
-            <% if collateral > 0 %>
-                <div class="fantasy-status-item fantasy-status-closed" style="margin-top: 8px; margin-bottom: 16px;">
-                    <i class="fa-solid fa-lock"></i>
-                    <span><%= number_with_delimiter(collateral.round(1)) %> locked as short collateral</span>
-                </div>
-            <% end %>
         <% else %>
             <div class="card empty-state">
                 <i class="fa-solid fa-chart-line"></i>
@@ -445,6 +463,49 @@
         <% end %>
     <% end %>
 
+    <%# ═══════════════════ Season log ═══════════════════ %>
+    <%# Picks, cards, activity and achievements were four more full-width bands
+        below the fold, each with the same visual weight as the portfolio itself.
+        They're all "what happened already", so they share one panel. Tabs keep
+        every one of them named and one click away rather than hiding them — the
+        labels are the discovery surface. %>
+    <%
+        picks_count       = @race_picks.count { |rp| rp.placed_drivers.any? }
+        cards_count       = @driver_cards_total.to_i
+        activity_count    = @is_owner ? (@activity_entries || []).size : 0
+        all_definitions   = {}
+        FantasyAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v }
+        FantasyStockAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v }
+        all_earned        = [*(@achievements || []), *(@stock_achievements || [])]
+        earned_keys       = all_earned.map(&:key).to_set
+        tier_order        = { "gold" => 0, "silver" => 1, "bronze" => 2 }
+        earned_definitions = all_definitions.select { |k, _| earned_keys.include?(k.to_s) }
+                                            .sort_by { |_, d| tier_order[d[:tier]] || 3 }
+        locked_definitions = all_definitions.reject { |k, _| earned_keys.include?(k.to_s) }
+                                            .sort_by { |_, d| tier_order[d[:tier]] || 3 }
+
+        log_tabs = []
+        log_tabs << { key: "picks",   label: "Race Picks",   count: (picks_count if picks_count > 0) } if @race_picks.any? || (@is_owner && @season.next_race)
+        log_tabs << { key: "cards",   label: "Driver Cards", count: (cards_count if cards_count > 0) } if cards_count > 0
+        log_tabs << { key: "activity", label: "Activity",    count: nil } if @is_owner && (@activity_entries || []).any?
+        log_tabs << { key: "achievements", label: "Achievements", count: "#{all_earned.size}/#{all_definitions.size}" }
+        default_log_tab = log_tabs.first&.dig(:key)
+    %>
+
+    <% if log_tabs.any? %>
+        <section class="fantasy-log" data-controller="tab-table">
+            <div class="table-header table-header-tabs fantasy-log-tabs">
+                <% log_tabs.each do |t| %>
+                    <h3 class="table-tab <%= 'active' if t[:key] == default_log_tab %>"
+                        data-tab="<%= t[:key] %>" data-tab-table-target="tab"
+                        data-action="click->tab-table#switch">
+                        <%= t[:label] %><% if t[:count] %><span class="table-tab-count"><%= t[:count] %></span><% end %>
+                    </h3>
+                <% end %>
+            </div>
+
+            <div class="fantasy-log-panel" data-tab="picks" data-tab-table-target="panel"
+                 style="<%= 'display:none' unless default_log_tab == 'picks' %>">
     <%# ═══════════════════ Race Picks ═══════════════════ %>
     <% if @race_picks.any? || (@is_owner && @season.next_race) %>
         <%
@@ -462,8 +523,7 @@
             best_pick = best_pick_entry && best_pick_entry[1][:total].to_i > 0 ? @race_picks.find { |rp| rp.id == best_pick_entry[0] } : nil
             best_pick_summary = best_pick && best_pick_entry[1]
         %>
-        <div class="table-header">
-            <h3>Race Picks</h3>
+        <div class="fantasy-log-toolbar">
             <% if best_pick %>
                 <span class="fantasy-best-pick" title="Your best-scoring pick this season">
                     <i class="fa-solid fa-trophy"></i>
@@ -557,17 +617,16 @@
         <% end %>
     <% end %>
 
+            </div>
+
+            <div class="fantasy-log-panel" data-tab="cards" data-tab-table-target="panel"
+                 style="<%= 'display:none' unless default_log_tab == 'cards' %>">
     <%# ═══════════════════ Driver Cards ═══════════════════ %>
     <% if @driver_cards_total.to_i > 0 %>
-        <div class="table-header" style="margin-top: 32px">
-            <h3>
-                Driver Cards
-                <span class="table-header-sub" style="margin-left:10px; opacity:0.7">
-                    <%= @driver_cards_total %> earned this season
-                </span>
-            </h3>
+        <div class="fantasy-log-toolbar">
+            <span class="fantasy-log-toolbar-note"><%= @driver_cards_total %> earned this season</span>
             <%= link_to driver_cards_path(username: @user.username), class: "picks-compact-edit" do %>
-                View collection <i class="fa-solid fa-arrow-right"></i>
+                View collection <%= ui_icon "arrow_right", size: 13 %>
             <% end %>
         </div>
         <div class="dc-collection dc-portfolio-strip">
@@ -588,50 +647,30 @@
         </div>
     <% end %>
 
-    <%# ═══════════════════ Predictions ═══════════════════ %>
-    <% if @predictions.any? %>
-        <div class="table-header"><h3>Race Previews</h3></div>
-        <div class="fantasy-nav-cards">
-            <% @predictions.each do |prediction| %>
-                <%= link_to preview_race_path(prediction.race, username: @user.username), class: "fantasy-nav-card" do %>
-                    <div class="fantasy-nav-card-header">
-                        <i class="fa-solid fa-robot"></i>
-                        <h3><%= prediction.race.circuit.name %></h3>
-                        <span class="fantasy-nav-stat" style="margin-left:auto">R<%= prediction.race.round %></span>
-                    </div>
-                    <div class="fantasy-nav-card-body">
-                        <span class="fantasy-nav-stat"><%= prediction.analysis.truncate(120) %></span>
-                    </div>
-                <% end %>
+            </div>
+
+            <div class="fantasy-log-panel" data-tab="activity" data-tab-table-target="panel"
+                 style="<%= 'display:none' unless default_log_tab == 'activity' %>">
+    <%# ═══════════════════ Activity ═══════════════════ %>
+    <% if @is_owner && @activity_entries&.any? %>
+        <%# show_header: false — the tab label is the heading here. %>
+        <%= render "fantasy_portfolios/activity_feed",
+                   entries: @activity_entries,
+                   round_amount: true,
+                   show_header: false,
+                   view_all_path: fantasy_activity_path(username: @user.username) %>
+        <div class="fantasy-log-toolbar fantasy-log-toolbar-end">
+            <%= link_to fantasy_activity_path(username: @user.username), class: "picks-compact-edit" do %>
+                View all activity <%= ui_icon "arrow_right", size: 13 %>
             <% end %>
         </div>
     <% end %>
 
-    <%# ═══════════════════ Activity ═══════════════════ %>
-    <% if @is_owner && @activity_entries&.any? %>
-        <%= render "fantasy_portfolios/activity_feed",
-                   entries: @activity_entries,
-                   round_amount: true,
-                   view_all_path: fantasy_activity_path(username: @user.username) %>
-    <% end %>
+            </div>
 
+            <div class="fantasy-log-panel" data-tab="achievements" data-tab-table-target="panel"
+                 style="<%= 'display:none' unless default_log_tab == 'achievements' %>">
     <%# ═══════════════════ Achievements (combined) ═══════════════════ %>
-    <%
-      all_definitions = {}
-      FantasyAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v }
-      FantasyStockAchievement::DEFINITIONS.each { |k, v| all_definitions[k] = v }
-      all_earned = [*(@achievements || []), *(@stock_achievements || [])]
-      earned_keys = all_earned.map(&:key).to_set
-      tier_order = { "gold" => 0, "silver" => 1, "bronze" => 2 }
-      earned_definitions = all_definitions.select { |k, _| earned_keys.include?(k.to_s) }
-                                          .sort_by { |_, d| tier_order[d[:tier]] || 3 }
-      locked_definitions = all_definitions.reject { |k, _| earned_keys.include?(k.to_s) }
-                                          .sort_by { |_, d| tier_order[d[:tier]] || 3 }
-    %>
-    <div class="table-header">
-        <h3>Achievements</h3>
-        <span class="table-header-sub"><%= all_earned.size %>/<%= all_definitions.size %></span>
-    </div>
     <% if earned_definitions.any? %>
         <div class="fantasy-achievements-grid">
             <% earned_definitions.each do |key, defn| %>
@@ -670,6 +709,30 @@
                 <% end %>
             </div>
         </details>
+    <% end %>
+
+            </div>
+
+        </section>
+    <% end %>
+
+    <%# ═══════════════════ Predictions ═══════════════════ %>
+    <% if @predictions.any? %>
+        <div class="table-header"><h3>Race Previews</h3></div>
+        <div class="fantasy-nav-cards">
+            <% @predictions.each do |prediction| %>
+                <%= link_to preview_race_path(prediction.race, username: @user.username), class: "fantasy-nav-card" do %>
+                    <div class="fantasy-nav-card-header">
+                        <i class="fa-solid fa-robot"></i>
+                        <h3><%= prediction.race.circuit.name %></h3>
+                        <span class="fantasy-nav-stat" style="margin-left:auto">R<%= prediction.race.round %></span>
+                    </div>
+                    <div class="fantasy-nav-card-body">
+                        <span class="fantasy-nav-stat"><%= prediction.analysis.truncate(120) %></span>
+                    </div>
+                <% end %>
+            <% end %>
+        </div>
     <% end %>
 
     <%# Team picker (only when no team chosen, owner only) %>

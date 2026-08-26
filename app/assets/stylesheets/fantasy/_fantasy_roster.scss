@@ -4,7 +4,7 @@
 
 .fantasy-roster-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
     gap: 10px;
     margin-bottom: $space-lg;
 
@@ -347,7 +347,10 @@
 .driver-card-empty {
     border: 1px dashed rgba(255, 255, 255, 0.08);
     background: transparent;
-    min-height: 180px;
+    // No min-height: when this tile wraps onto a row of its own (5 holdings in
+    // a 5-up grid put it alone on row two) a 180px dashed box read as a broken
+    // layout. Sized to its content, a lone row is just a slim "add" strip.
+    min-height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;

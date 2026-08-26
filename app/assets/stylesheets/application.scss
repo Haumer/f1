@@ -566,6 +566,11 @@ th[data-sort] {
 .table-header-tabs {
     gap: 0;
     justify-content: flex-start;
+
+    // Tabs are a row of peers, not a section title — the accent tick that marks
+    // a single section header would repeat on every tab.
+    h3::before { display: none; }
+
     .table-tab {
         cursor: pointer;
         padding: 4px 16px 8px;

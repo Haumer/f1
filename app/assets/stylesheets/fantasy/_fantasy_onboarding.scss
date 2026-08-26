@@ -87,6 +87,201 @@
 }
 
 // ═══════════════════════════════════════
+// PIT WALL
+// The value, the account meters and the weekend checklist used to be three
+// stacked full-width bands, each with its own header, each competing to be the
+// thing you looked at first. They all answer the same question — "where do I
+// stand right now" — so they're one panel with a single focal point: the
+// number. Everything else in the panel is subordinate to it.
+// ═══════════════════════════════════════
+
+.fantasy-pitwall {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: $space-lg;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-card;
+    overflow: hidden;
+
+    &.has-weekend {
+        @media (min-width: 861px) {
+            grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+        }
+    }
+}
+
+.fantasy-pitwall-value {
+    display: flex;
+    flex-direction: column;
+    padding: 20px $space-lg 22px;
+    min-width: 0;
+    position: relative;
+
+    // A faint accent wash behind the headline number — the panel should feel
+    // lit rather than being another flat grey card.
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse at 0% 0%, rgba(var(--page-accent-rgb, 225, 6, 0), 0.07) 0%, transparent 62%);
+    }
+
+    > * { position: relative; }
+
+    @media (max-width: 600px) { padding: 16px $space-md 18px; }
+}
+
+.fantasy-pitwall-meters {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid $border-subtle;
+}
+
+.fantasy-allocation-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+
+    .fantasy-allocation-bar { flex: 1; min-width: 0; }
+}
+
+.fantasy-allocation-legend {
+    flex: none;
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+    color: $text-secondary;
+}
+
+// Figures read as a timing-board readout: label above, mono value below.
+.fantasy-pitwall-figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px $space-lg;
+    margin: 0;
+
+    > div { min-width: 0; }
+
+    dt {
+        font-size: $type-label;
+        font-weight: $weight-semi;
+        text-transform: uppercase;
+        letter-spacing: $ls-label;
+        color: $text-tertiary;
+        margin-bottom: 3px;
+    }
+
+    dd {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: 0;
+        font-family: $mono-font;
+        font-size: 15px;
+        font-weight: $weight-bold;
+        color: $text-primary;
+
+        .icon { opacity: 0.55; }
+    }
+}
+
+.fantasy-pitwall-positions {
+    gap: 12px;
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .gain { color: $green; }
+    .loss { color: $accent-red; }
+    .icon { opacity: 1; }
+}
+
+// Concentration warning — was a chip that just said "48% Ferrari" with no hint
+// as to why that mattered.
+.fantasy-pitwall-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 9px 11px;
+    border-radius: $radius-sm;
+    background: rgba($gold, 0.07);
+    border: 1px solid rgba($gold, 0.22);
+    font-size: 13px;
+    line-height: 1.45;
+    color: $text-secondary;
+
+    .icon { flex: none; margin-top: 1px; color: $gold; }
+    strong { color: $gold; }
+}
+
+// ── Weekend column ──
+.fantasy-pitwall-weekend {
+    display: flex;
+    flex-direction: column;
+    padding: 20px $space-lg 22px;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.04);
+    border-left: 1px solid $border-color;
+    min-width: 0;
+
+    &.is-complete {
+        background: rgba($green, 0.04);
+    }
+
+    @media (max-width: 860px) {
+        border-left: 0;
+        border-top: 1px solid $border-color;
+    }
+
+    @media (max-width: 600px) { padding: 16px $space-md 18px; }
+}
+
+.fantasy-weekend-race {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 14px;
+}
+
+.fantasy-weekend-race-name {
+    font-size: $type-card-title;
+    font-weight: $weight-bold;
+    letter-spacing: $ls-heading;
+    color: $text-primary;
+}
+
+.fantasy-weekend-lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: $mono-font;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+
+    .icon { opacity: 0.7; }
+    &.is-locked { color: $accent-red; }
+}
+
+.fantasy-weekend-done-text {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: $green;
+
+    .icon { flex: none; }
+}
+
+// ═══════════════════════════════════════
 // PORTFOLIO VALUE HERO
 // ═══════════════════════════════════════
 
@@ -122,10 +317,14 @@
 
 .fantasy-value-number {
     font-family: $mono-font;
-    font-size: 36px;
+    font-size: 42px;
     font-weight: $weight-bold;
-    letter-spacing: -1px;
-    line-height: 1.1;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    // Tabular figures so the number doesn't jiggle between races.
+    font-variant-numeric: tabular-nums;
+
+    @media (max-width: 600px) { font-size: 34px; }
 }
 
 .fantasy-cash-display {
@@ -636,6 +835,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 8px;
+
+    // Below ~420px a two-up grid leaves ~150px per chip, which broke
+    // "Head-to-Head" across three lines. One chip per row instead.
+    @media (max-width: 440px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .fantasy-weekend-chip {
@@ -964,5 +1169,55 @@
     .fantasy-swaps-remaining {
         margin-left: 0;
         flex-basis: 100%;
+    }
+}
+
+// The gap to the player either side of you — turns a bare rank into a race.
+.fantasy-value-standing {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: $text-secondary;
+
+    strong {
+        font-family: $mono-font;
+        font-weight: $weight-bold;
+        color: $text-primary;
+    }
+}
+
+.fantasy-value-standing-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+
+    .icon { opacity: 0.5; transition: transform $t-fast $ease-out, opacity $t-fast; }
+
+    &:hover {
+        color: $text-primary;
+        .icon { opacity: 1; transform: translateX(2px); }
+    }
+}
+
+// Way into the rules from the one place a player is already asking what they're
+// meant to be doing. Pinned to the bottom of the weekend column, which is
+// otherwise dead space whenever the checklist is short.
+.fantasy-weekend-guide {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 14px;
+    font-size: $type-small;
+    font-weight: $weight-semi;
+    color: $text-tertiary;
+
+    span { flex: 1; min-width: 0; }
+    .icon { flex: none; }
+    .icon:last-child { opacity: 0.6; transition: transform $t-fast $ease-out; }
+
+    &:hover {
+        color: var(--page-accent, $accent-red);
+        .icon:last-child { transform: translateX(2px); opacity: 1; }
     }
 }

@@ -590,3 +590,76 @@
     &-sm { padding: 4px 12px; font-size: 12px; }
     &-lg { padding: 12px 28px; font-size: 15px; }
 }
+
+// ═══════════════════════════════════════
+// SEASON LOG
+// Picks / cards / activity / achievements in one tabbed panel instead of four
+// stacked full-width sections. Every label stays visible, so nothing is less
+// discoverable than it was — but the page stops being a 3,500px scroll where
+// March's achievements carry the same weight as this weekend's positions.
+// ═══════════════════════════════════════
+
+.fantasy-log {
+    margin-top: 32px;
+
+    @media (max-width: 600px) { margin-top: 26px; }
+}
+
+.fantasy-log-tabs {
+    // Phones: let the tab row scroll rather than wrap into a ragged block.
+    @media (max-width: 640px) {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        &::-webkit-scrollbar { display: none; }
+
+        .table-tab { white-space: nowrap; flex: none; }
+    }
+}
+
+// The count that rides on a tab label ("8", "15/25").
+.table-tab-count {
+    display: inline-block;
+    margin-left: 7px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    font-family: $mono-font;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    vertical-align: 1px;
+
+    .table-tab.active & {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.16);
+        color: var(--page-accent, $accent-red);
+    }
+}
+
+.fantasy-log-panel {
+    padding-top: 4px;
+}
+
+// Light toolbar for the controls that used to live in each section's header
+// (best pick, edit picks, view collection). No title — the tab is the title.
+.fantasy-log-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 14px;
+    min-height: 24px;
+
+    &-end {
+        justify-content: flex-end;
+        margin: 14px 0 0;
+    }
+}
+
+.fantasy-log-toolbar-note {
+    margin-right: auto;
+    font-size: $type-small;
+    color: $text-tertiary;
+}

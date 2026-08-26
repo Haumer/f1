@@ -51,7 +51,18 @@ class FantasyPortfoliosController < ApplicationController
       if latest&.rank
         @leaderboard_rank = latest.rank
         @leaderboard_rank_delta = previous&.rank ? previous.rank - latest.rank : nil
-        @leaderboard_size = FantasySnapshot.where(race_id: latest.race_id).count
+        peers = FantasySnapshot.where(race_id: latest.race_id)
+        @leaderboard_size = peers.count
+
+        # "#3 of 6" says where you are but not whether that's close. The gap to
+        # the rank above (or, if you're leading, to the one below) is what makes
+        # the position mean something.
+        neighbour_rank = @leaderboard_rank > 1 ? @leaderboard_rank - 1 : @leaderboard_rank + 1
+        neighbour = peers.find_by(rank: neighbour_rank)
+        if neighbour
+          @leaderboard_gap = (neighbour.value.to_f - latest.value.to_f).abs.round
+          @leaderboard_gap_direction = @leaderboard_rank > 1 ? :behind : :ahead
+        end
       end
     end
 
