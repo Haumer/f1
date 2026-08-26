@@ -1,16 +1,39 @@
+// The bar itself is full-bleed (it sits outside .container in the layout) so the
+// sticky background spans the viewport like the footer does. Its contents are
+// constrained to $max-page-width by .navbar-inner, which puts the logo and the
+// nav links on the same left/right edges as page content and the footer.
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  margin-bottom: 24px;
+  // Bootstrap's own .navbar sets display:flex — override it so .navbar-inner is a
+  // block-level flex container that can centre itself at $max-page-width.
+  display: block;
+  // Bootstrap's .navbar ships 0.5rem of vertical padding; zero it so the bar's
+  // height is exactly $nav-height and things pinned below it line up.
+  padding: 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  margin-bottom: 24px;
   background: rgba($bg-surface, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid $border-color;
+
+  .navbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: $max-page-width;
+    margin: 0 auto;
+    // Fixed row height keeps $nav-height honest across breakpoints.
+    height: $nav-height - 1px;
+    padding: 0 16px;
+
+    @media (min-width: 769px) {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
 
   // Accent gradient line beneath navbar
   &::after {
@@ -329,9 +352,10 @@
 // ═══════════════════════════════════════
 @media (max-width: 768px) {
   .navbar {
-    flex-wrap: nowrap;
     position: sticky;
     top: 0;
+
+    .navbar-inner { flex-wrap: nowrap; }
 
     &::after { display: none; }
 

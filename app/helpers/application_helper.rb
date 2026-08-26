@@ -143,4 +143,43 @@ module ApplicationHelper
         months < 12 ? "#{months}mo" : "#{days / 365}y"
     end
 
+    # ── Page hero ──────────────────────────────────────────────────────
+    # The one page-title component. Two compositions, chosen by what the page
+    # is for — not by who wrote it:
+    #
+    #   bar: false (default) — centred hero. Browse, editorial, landing pages.
+    #   bar: true            — left-aligned with an actions slot. Pages you
+    #                          operate: portfolio, market, picks, settings.
+    #
+    # Both render the same three parts, so the type ramp and the accent
+    # treatment stay identical across the app.
+    #
+    #   <%= page_hero "Market", label: "Fantasy", meta: "Trade driver shares.",
+    #                 bar: true do %>
+    #     <%= link_to "Portfolio", ..., class: "fantasy-btn fantasy-btn-outline" %>
+    #   <% end %>
+    def page_hero(title, label: nil, meta: nil, bar: false, compact: true, class_name: nil, &block)
+      actions = capture(&block) if block_given?
+
+      classes = ["page-hero"]
+      classes << (bar ? "page-hero-bar" : ("page-hero-compact" if compact))
+      classes << class_name
+      classes = classes.compact.join(" ")
+
+      content = content_tag(:div, class: "page-hero-content") do
+        safe_join([
+          (content_tag(:span, label, class: "page-hero-label") if label.present?),
+          content_tag(:h1, title, class: "page-hero-title"),
+          (content_tag(:p, meta, class: "page-hero-meta") if meta.present?)
+        ].compact)
+      end
+
+      content_tag :div, class: classes do
+        safe_join([
+          content_tag(:div, "", class: "page-hero-bg"),
+          content,
+          (content_tag(:div, actions, class: "page-hero-actions") if actions.present?)
+        ].compact)
+      end
+    end
 end

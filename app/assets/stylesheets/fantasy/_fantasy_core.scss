@@ -1,24 +1,26 @@
 // Fantasy F1 Styles
 
-// Dashboard header (sticky below navbar)
+// ── Dashboard header ────────────────────────────────────────────────
+// Structurally identical to .page-hero-bar (label / title / actions) — the
+// fantasy pages just came by it via a different class name. Rather than
+// rewriting eight views, the class is restyled onto the shared page-title
+// ramp, so /leaderboard, /market, the portfolio and /settings introduce
+// themselves exactly like /stats and /drivers/grid do.
+//
+// It stays sticky (unlike .page-hero-bar) because these pages scroll long and
+// the header carries the primary actions.
 .fantasy-dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: $space-lg;
-    flex-wrap: wrap;
-    gap: 12px;
+    @include page-title-bar;
     position: sticky;
-    top: 49px; // below sticky navbar
+    top: $nav-height; // pins directly below the sticky navbar
     z-index: 50;
     background: rgba($bg-page, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 12px 0;
-    margin: -12px -16px $space-lg;
-    padding-left: 16px;
-    padding-right: 16px;
-    border-bottom: 1px solid $border-color;
+    margin: -12px -16px 26px;
+    padding: 14px 16px 13px;
+
+    &::after { @include page-title-bar-tick; }
 
     @media (min-width: 769px) {
         margin-left: 0;
@@ -32,16 +34,22 @@
     display: flex;
     align-items: center;
     min-width: 0;
+    flex: 1 1 300px;
 }
 
 .fantasy-dashboard-title {
     min-width: 0;
+    flex: 1 1 300px;
 
     h2 {
         margin: 0;
-        font-weight: $weight-bold;
-        font-size: 22px;
-        line-height: 1.15;
+        font-family: 'Formula1', sans-serif;
+        font-size: $type-page-title;
+        font-weight: 700;
+        letter-spacing: $ls-display;
+        line-height: $lh-tight;
+
+        @media (max-width: 768px) { font-size: 24px; }
     }
 }
 
@@ -53,19 +61,28 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 7px;
     flex-wrap: wrap;
 }
 
+// The season/context line above or below the title — the .page-hero-label slot.
 .fantasy-season {
-    font-size: 12px;
+    font-family: $mono-font;
+    font-size: $type-label;
     color: $text-tertiary;
     text-transform: uppercase;
     letter-spacing: $ls-label;
-    font-weight: $weight-semi;
+    font-weight: $weight-bold;
 
     strong { color: $text-primary; }
 }
+
+.fantasy-visibility-inline-form {
+    display: inline-flex;
+    align-items: center;
+}
+
+.fantasy-header-actions { @include page-title-bar-actions; }
 
 .fantasy-team-chip {
     --team-color: #{$border-color};

@@ -51,7 +51,11 @@ body {
     font-family: $body-font;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+    // NOTE: no overflow-x here. Any overflow value other than visible makes the
+    // body a scroll container, which silently kills `position: sticky` for every
+    // descendant — the navbar and the fantasy dashboard header both declared
+    // sticky and neither ever stuck. `html` keeps overflow-x: hidden, which
+    // still clips stray horizontal overflow without breaking sticky.
 
     // Sticky footer: body grows to the viewport, .container flexes to fill
     // remaining space, the footer never collapses. Keeps the footer at the
@@ -116,6 +120,22 @@ input:focus-visible {
     outline-offset: 3px;
     border-radius: 2px;
 }
+
+// Inline SVG icons (see IconsHelper). Sized in px by the helper; these rules
+// only handle how the glyph sits next to text.
+.icon {
+    display: inline-block;
+    flex: none;
+    vertical-align: -0.15em;
+    // Icons carry meaning through their silhouette, not their weight — keeping
+    // the stroke constant across sizes stops the small ones going muddy.
+    stroke-width: 1.75;
+}
+
+// Icons inside a flex row (buttons, chips) shouldn't get the baseline nudge.
+button .icon,
+.fantasy-btn .icon,
+.page-head-actions .icon { vertical-align: 0; }
 
 // Card component
 .card {
@@ -485,19 +505,41 @@ th[data-sort] {
     }
 }
 
+// Section header — the tier directly below .page-head. Its h3 used to inherit
+// Bootstrap's 1.75rem (28px), which made every section header LOUDER than the
+// page titles above them. Pinned to $type-section so the ramp is
+// page title (34) > section (22) > card title (17).
 .table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin: 32px 0 16px;
     padding-bottom: 8px;
     border-bottom: 1px solid $border-color;
     gap: 8px;
     flex-wrap: wrap;
     h3 {
+        display: flex;
+        align-items: center;
+        gap: 9px;
         margin: 0;
         font-family: $headers-font;
+        font-size: $type-section;
         font-weight: $weight-bold;
+        letter-spacing: $ls-heading;
+        line-height: $lh-heading;
+
+        // Same accent tick as .page-head-eyebrow, so the two tiers read as one
+        // family rather than two unrelated header styles.
+        &::before {
+            content: '';
+            flex: none;
+            width: 3px;
+            height: 15px;
+            border-radius: 1px;
+            background: var(--page-accent, $accent-red);
+            opacity: 0.75;
+        }
     }
     .table-header-title {
         display: flex;
@@ -505,10 +547,19 @@ th[data-sort] {
         gap: 8px;
     }
 
+    // First section on a page sits right under .page-head — no extra top gap.
+    &:first-child { margin-top: 0; }
+
     @media (max-width: 600px) {
+        margin-top: 26px;
         margin-bottom: 12px;
         padding-bottom: 6px;
-        h3 { font-size: 18px; line-height: 1.2; }
+        h3 {
+            font-size: 18px;
+            line-height: 1.2;
+            gap: 7px;
+            &::before { height: 13px; }
+        }
     }
 }
 

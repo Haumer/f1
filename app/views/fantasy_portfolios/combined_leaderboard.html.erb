@@ -1,29 +1,23 @@
 <% content_for(:title) { "Fantasy Leaderboard" } %>
 <% content_for(:description) { "Fantasy F1 leaderboard — portfolio rankings for the #{@season.year} season on F1 Elo." } %>
 <div class="homepage-container">
-    <div class="fantasy-dashboard-header">
-        <div class="fantasy-dashboard-title">
-            <h2>Leaderboard</h2>
-            <span class="fantasy-season"><%= @season.year %> Season</span>
-        </div>
-        <div class="fantasy-header-actions">
-            <% if current_user %>
-                <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
-                    <i class="fa-solid fa-briefcase"></i> My Portfolio
-                <% end %>
+    <%= page_hero "Leaderboard",
+                  label: "#{@season.year} Season",
+                  meta: "Ranked by net value \u2014 the profit or loss each player has generated from the same starting capital.",
+                  bar: true do %>
+        <% if current_user %>
+            <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" do %>
+                <%= ui_icon "briefcase" %> My Portfolio
             <% end %>
-        </div>
-    </div>
-
-    <div class="fantasy-info-banner" data-controller="dismissable" data-dismissable-key-value="fantasy-leaderboard-explainer-v2">
-        <div class="fantasy-info-banner-content">
-            <i class="fa-solid fa-trophy"></i>
-            <p>Rankings are based on <strong>Net Value</strong> &mdash; the profit or loss you've generated from your starting capital. Everyone starts equal, so whoever generates the most value wins.</p>
-        </div>
-        <button class="fantasy-info-banner-close" data-action="dismissable#dismiss">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
+        <% else %>
+            <%= link_to new_user_session_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                <%= ui_icon "flag" %> Join the league
+            <% end %>
+        <% end %>
+        <%= link_to fantasy_guide_path, class: "fantasy-btn fantasy-btn-outline" do %>
+            <%= ui_icon "book" %> How it works
+        <% end %>
+    <% end %>
 
     <% if @entries.any? %>
         <div class="card card-flush">

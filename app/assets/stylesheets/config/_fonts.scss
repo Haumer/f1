@@ -9,6 +9,15 @@ $body-font: "IBM Plex Sans", "Helvetica", sans-serif;
 $headers-font: $body-font;
 $mono-font: "IBM Plex Mono", "SF Mono", "Consolas", monospace;
 
+// Heading ramp — page title > section header > card title.
+// Kept separate from the general $type-* scale below, which is also used for
+// stat values and numerals; changing those to fix a heading would resize
+// half the dashboards.
+$type-page-title:    32px;  // Formula1 — .page-hero-compact / .page-hero-bar
+$type-page-title-lg: 40px;  // Formula1 — .page-hero (full: editorial + landing)
+$type-section:       22px;  // 700 — .table-header h3 (section headers)
+$type-card-title:    17px;  // 600 — titles inside cards
+
 // Type scale
 $type-display: 48px;   // Formula1 — hero h1 only
 $type-stat:    32px;   // Mono — large stat values
