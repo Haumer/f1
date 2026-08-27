@@ -477,3 +477,36 @@
         color: white;
     }
 }
+
+// ── Season sparkline column ─────────────────────────────────────────
+// A standings table tells you who's ahead. It can't tell you who got there by
+// climbing all season and who's been sliding since round three — which is the
+// half people actually argue about.
+.fantasy-leaderboard-spark {
+    width: 88px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+
+    .sparkline {
+        display: block;
+        margin: 0 auto;
+        opacity: 0.85;
+    }
+
+    tr:hover & .sparkline { opacity: 1; }
+}
+
+.fantasy-leaderboard-gap {
+    font-family: $mono-font;
+    font-size: $type-small;
+    color: $text-tertiary;
+}
+
+.fantasy-leaderboard-leader {
+    font-family: $body-font;
+    font-size: $type-label;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: $gold;
+}

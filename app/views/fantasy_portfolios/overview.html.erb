@@ -676,7 +676,7 @@
             <% earned_definitions.each do |key, defn| %>
                 <div class="fantasy-achievement-card earned tier-<%= defn[:tier] %>">
                     <div class="fantasy-achievement-icon">
-                        <i class="fa-solid <%= defn[:icon] %>"></i>
+                        <%= ui_icon defn[:glyph] || "star", size: 17 %>
                     </div>
                     <div class="fantasy-achievement-info">
                         <strong><%= defn[:name] %></strong>
@@ -699,7 +699,7 @@
                 <% locked_definitions.each do |key, defn| %>
                     <div class="fantasy-achievement-card locked">
                         <div class="fantasy-achievement-icon">
-                            <i class="fa-solid <%= defn[:icon] %>"></i>
+                            <%= ui_icon defn[:glyph] || "star", size: 17 %>
                         </div>
                         <div class="fantasy-achievement-info">
                             <strong><%= defn[:name] %></strong>

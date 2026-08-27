@@ -27,8 +27,10 @@
                         <tr>
                             <th class="text-center">#</th>
                             <th>Player</th>
+                            <th class="text-center d-none d-md-table-cell">Season</th>
                             <th class="text-end">Net Value</th>
                             <th class="text-end d-none d-sm-table-cell">Last Race</th>
+                            <th class="text-end d-none d-lg-table-cell">Behind</th>
                             <th class="text-end d-none d-md-table-cell">Total Value</th>
                         </tr>
                     </thead>
@@ -48,7 +50,7 @@
                                         <% if support&.constructor&.logo_url.present? %>
                                             <img src="<%= support.constructor.logo_url %>" alt="" class="constructor-logo-xs leaderboard-team-logo" onerror="this.parentElement.querySelector('.leaderboard-team-placeholder').style.display='inline-flex'; this.remove();">
                                         <% end %>
-                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if support&.constructor&.logo_url.present? %>><i class="fa-solid fa-question"></i></span>
+                                        <span class="leaderboard-team-placeholder" title="No team chosen"<%= ' style="display:none"'.html_safe if support&.constructor&.logo_url.present? %>><%= ui_icon "shield", size: 12 %></span>
                                         <% if user.public_profile? %>
                                             <%= link_to fantasy_overview_path(user.username), class: "leaderboard-player-name", style: color ? "color: #{color}" : nil do %><strong><%= user.display_name %></strong><% end %>
                                         <% else %>
@@ -56,6 +58,11 @@
                                         <% end %>
                                         <% if is_me %><span class="fantasy-you-badge">You</span><% end %>
                                     </span>
+                                </td>
+                                <%# Season shape — who's climbing, who's sliding. A rank
+                                    column alone can't show that. %>
+                                <td class="text-center d-none d-md-table-cell fantasy-leaderboard-spark">
+                                    <%= sparkline(@sparklines[portfolio.id], baseline: Fantasy::CreatePortfolio::STARTING_CAPITAL) %>
                                 </td>
                                 <td class="text-end fantasy-leaderboard-value">
                                     <span class="<%= net >= 0 ? 'text-green' : 'text-red' %>">
@@ -76,6 +83,14 @@
                                         <span class="text-secondary">&mdash;</span>
                                     <% end %>
                                 </td>
+                                <td class="text-end d-none d-lg-table-cell fantasy-leaderboard-gap">
+                                    <% gap = @leader_value ? (@leader_value - entry[:value]) : nil %>
+                                    <% if gap.nil? || gap <= 0 %>
+                                        <span class="fantasy-leaderboard-leader">Leader</span>
+                                    <% else %>
+                                        &minus;<%= number_with_delimiter(gap.round(0)) %>
+                                    <% end %>
+                                </td>
                                 <td class="text-end d-none d-md-table-cell"><%= number_with_delimiter(entry[:value].round(0)) %></td>
                             </tr>
                         <% end %>
@@ -85,9 +100,9 @@
         </div>
     <% else %>
         <div class="card empty-state">
-            <i class="fa-solid fa-ranking-star"></i>
+            <%= ui_icon "podium", size: 30 %>
             <h3>No portfolios yet</h3>
-            <p>Be the first to <%= link_to "create a fantasy portfolio", new_fantasy_portfolio_path %>!</p>
+            <p>Be the first to <%= link_to "create a fantasy portfolio", new_fantasy_portfolio_path %>.</p>
         </div>
     <% end %>
 </div>

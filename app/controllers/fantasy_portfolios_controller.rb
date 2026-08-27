@@ -196,6 +196,18 @@ class FantasyPortfoliosController < ApplicationController
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
                           .includes(:constructor).index_by(&:user_id)
 
+    # Season shape per player, for the inline sparkline. A standings table says
+    # who is ahead; it says nothing about who is climbing and who is sliding,
+    # which is the more interesting half of a leaderboard.
+    @sparklines = FantasySnapshot.where(fantasy_portfolio_id: portfolio_ids)
+                    .joins(:race).order("races.date ASC")
+                    .pluck(:fantasy_portfolio_id, :value)
+                    .each_with_object(Hash.new { |h, k| h[k] = [] }) { |(pid, value), acc| acc[pid] << value.to_f }
+    @sparklines.each_value { |vals| vals.unshift(starting.to_f) }
+
+    # Gap to the leader, so mid-table rows read as a race rather than a list.
+    @leader_value = @entries.first&.dig(:value)
+
     render "fantasy_portfolios/combined_leaderboard"
   end
 

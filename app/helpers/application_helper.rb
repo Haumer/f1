@@ -182,4 +182,48 @@ module ApplicationHelper
         ].compact)
       end
     end
+
+    # ── Sparkline ──────────────────────────────────────────────────────
+    # Inline SVG season shape. Deliberately hand-rolled rather than pulled from
+    # the charting library: at 72x22 in a table cell there is no room for axes,
+    # ticks or a tooltip, and loading a chart per row would be absurd.
+    #
+    # Draws the trend line plus a baseline at the starting value, so "above
+    # where they started" is readable at a glance without any labels.
+    def sparkline(values, width: 72, height: 22, baseline: nil)
+      values = Array(values).compact.map(&:to_f)
+      return "".html_safe if values.size < 2
+
+      min = values.min
+      max = values.max
+      min = [min, baseline.to_f].min if baseline
+      max = [max, baseline.to_f].max if baseline
+      span = (max - min).abs
+      span = 1.0 if span.zero? # a perfectly flat season would divide by zero
+
+      pad = 2.0
+      usable = height - (pad * 2)
+      step = values.size > 1 ? (width.to_f / (values.size - 1)) : width.to_f
+      y_for = ->(v) { pad + (usable - ((v - min) / span * usable)) }
+
+      points = values.each_with_index.map { |v, i| "#{(i * step).round(2)},#{y_for.call(v).round(2)}" }.join(" ")
+      rising = values.last >= (baseline || values.first)
+      stroke = rising ? "#00d26a" : "#e10600"
+
+      parts = []
+      if baseline
+        by = y_for.call(baseline.to_f).round(2)
+        parts << %(<line x1="0" y1="#{by}" x2="#{width}" y2="#{by}" stroke="rgba(255,255,255,0.14)" stroke-width="1" stroke-dasharray="2 2"/>)
+      end
+      parts << %(<polyline points="#{points}" fill="none" stroke="#{stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>)
+      parts << %(<circle cx="#{((values.size - 1) * step).round(2)}" cy="#{y_for.call(values.last).round(2)}" r="2" fill="#{stroke}"/>)
+
+      content_tag :svg, parts.join.html_safe,
+                  class: "sparkline",
+                  width: width, height: height,
+                  viewBox: "0 0 #{width} #{height}",
+                  fill: "none",
+                  "aria-hidden": "true",
+                  focusable: "false"
+    end
 end
