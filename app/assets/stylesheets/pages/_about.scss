@@ -599,3 +599,308 @@
         grid-template-columns: 1fr;
     }
 }
+
+// ═══════════════════════════════════════
+// FANTASY GUIDE
+// The guide documented the stock market and nothing else, so picks, cards,
+// head-to-head and allegiance shipped with no explanation anywhere in the app.
+// The pillar grid is the map: what each mode is, how it pays, and a way in.
+// ═══════════════════════════════════════
+
+// Five pillars, so the column count is explicit rather than auto-fit — auto-fit
+// landed on four and left the fifth card stranded alone on its own row.
+.guide-pillars {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: $space-xl;
+
+    @media (max-width: 1040px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 720px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    @media (max-width: 460px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.guide-pillar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 0;
+    padding: 20px 18px 18px;
+    color: $text-primary;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+
+    // Accent hairline along the top edge, drawn on hover — the cards are links,
+    // and they should feel like it without a permanent decorative stripe.
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--page-accent, $accent-red);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform $t-normal $ease-out;
+    }
+
+    &:is(a):hover {
+        text-decoration: none;
+        color: $text-primary;
+        border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.35);
+
+        &::before { transform: scaleX(1); }
+        .guide-pillar-cta .icon { transform: translateX(3px); }
+    }
+}
+
+.guide-pillar-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 14px;
+    border-radius: $radius-sm;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    color: var(--page-accent, $accent-red);
+}
+
+.guide-pillar-title {
+    margin: 0 0 7px;
+    font-size: $type-card-title;
+    font-weight: $weight-bold;
+    letter-spacing: $ls-heading;
+}
+
+.guide-pillar-blurb {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: $text-secondary;
+}
+
+// The one line that answers "why would I bother" — kept in mono so it reads as
+// a figure rather than more prose.
+.guide-pillar-pays {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 3px 8px;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.05);
+    font-family: $mono-font;
+    font-size: $type-label;
+    font-weight: $weight-bold;
+    color: $text-primary;
+}
+
+.guide-pillar-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    font-size: $type-small;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+    color: var(--page-accent, $accent-red);
+
+    .icon { transition: transform $t-fast $ease-out; }
+}
+
+// ── Long / short, side by side ──
+.guide-split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin: $space-md 0 $space-lg;
+}
+
+.guide-side {
+    padding: 16px 18px;
+    border-radius: $radius-md;
+    border: 1px solid $border-color;
+    background: $bg-card;
+
+    p {
+        margin: 0;
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: $text-secondary;
+    }
+
+    &-long {
+        border-color: rgba($green, 0.22);
+        background: rgba($green, 0.03);
+        .guide-side-tag { color: $green; }
+    }
+
+    &-short {
+        border-color: rgba($accent-red, 0.22);
+        background: rgba($accent-red, 0.03);
+        .guide-side-tag { color: $accent-red; }
+    }
+}
+
+.guide-side-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 9px;
+    font-size: $type-label;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+}
+
+// ── Card tier ladder ──
+.guide-tier-ladder {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: $space-md 0;
+}
+
+.guide-tier {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr) minmax(0, 0.9fr);
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    border-radius: $radius-sm;
+    border: 1px solid $border-color;
+    background: $bg-card;
+    border-left-width: 3px;
+
+    @media (max-width: 620px) {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+}
+
+.guide-tier-name {
+    font-family: $mono-font;
+    font-size: $type-label;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+    letter-spacing: $ls-label;
+}
+
+.guide-tier-how {
+    font-size: 13.5px;
+    color: $text-primary;
+}
+
+.guide-tier-note {
+    font-size: $type-small;
+    color: $text-tertiary;
+}
+
+// Tier colours, shared with the collectible cards themselves.
+$guide-tiers: (
+    "bronze":    $bronze,
+    "silver":    $silver,
+    "gold":      $gold,
+    "platinum":  #7fd4e8,
+    "legendary": #c77dff
+);
+
+@each $name, $color in $guide-tiers {
+    .guide-tier-#{$name} {
+        border-left-color: $color;
+        .guide-tier-name { color: $color; }
+    }
+    .guide-tier-word-#{$name} { color: $color; font-weight: $weight-semi; }
+}
+
+// ── Inline asides ──
+.guide-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: $space-md 0 0;
+    padding: 11px 13px;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid $border-color;
+    font-size: 13px;
+    line-height: 1.55;
+    color: $text-secondary;
+
+    .icon { flex: none; margin-top: 2px; color: var(--page-accent, $accent-red); }
+}
+
+.guide-inline-link {
+    color: var(--page-accent, $accent-red);
+    border-bottom: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.35);
+
+    &:hover { border-bottom-color: currentColor; }
+}
+
+// ── Closing call to action ──
+.guide-cta {
+    display: flex;
+    // Bootstrap's .card sets flex-direction: column — without overriding it the
+    // text and the buttons stack and centre instead of sitting either side.
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: $space-xl;
+    border-color: rgba(var(--page-accent-rgb, 225, 6, 0), 0.22);
+    background:
+        radial-gradient(ellipse at 100% 0%, rgba(var(--page-accent-rgb, 225, 6, 0), 0.1) 0%, transparent 60%),
+        $bg-card;
+
+    h2 {
+        margin: 0 0 5px;
+        font-family: 'Formula1', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: $ls-display;
+    }
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        color: $text-secondary;
+    }
+}
+
+.guide-cta-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    @media (max-width: 560px) {
+        width: 100%;
+        > * { flex: 1 1 auto; justify-content: center; }
+    }
+}
+
+// Six scoring figures read as two clean rows of three; the shared results grid
+// fits five across at this width and orphans the sixth.
+.guide-picks-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    @media (max-width: 720px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 460px) {
+        grid-template-columns: 1fr;
+    }
+}
