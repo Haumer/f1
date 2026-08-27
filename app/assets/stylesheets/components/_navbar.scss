@@ -691,3 +691,15 @@
     transform: translateY(0);
   }
 }
+
+// "How Fantasy Works" is the entry point for anyone who doesn't yet know what
+// the other items in this menu are — it gets an icon so it reads as the odd one
+// out (a guide, not another destination).
+.nav-dropdown-menu .nav-dropdown-guide {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .icon { flex: none; opacity: 0.7; }
+  &:hover .icon { opacity: 1; }
+}

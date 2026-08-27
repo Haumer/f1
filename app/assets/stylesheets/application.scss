@@ -518,7 +518,11 @@ th[data-sort] {
     border-bottom: 1px solid $border-color;
     gap: 8px;
     flex-wrap: wrap;
-    h3 {
+
+    // h4 as well as h3: six pages (the stats hub, milestones, title chase,
+    // champion timeline, race wins, circuit show) introduce their sections with
+    // an h4, which picked up Bootstrap's 1.5rem and none of this treatment.
+    h3, h4 {
         display: flex;
         align-items: center;
         gap: 9px;
@@ -547,14 +551,14 @@ th[data-sort] {
         gap: 8px;
     }
 
-    // First section on a page sits right under .page-head — no extra top gap.
+    // First section on a page sits right under the page hero — no extra top gap.
     &:first-child { margin-top: 0; }
 
     @media (max-width: 600px) {
         margin-top: 26px;
         margin-bottom: 12px;
         padding-bottom: 6px;
-        h3 {
+        h3, h4 {
             font-size: 18px;
             line-height: 1.2;
             gap: 7px;
@@ -569,7 +573,7 @@ th[data-sort] {
 
     // Tabs are a row of peers, not a section title — the accent tick that marks
     // a single section header would repeat on every tab.
-    h3::before { display: none; }
+    h3::before, h4::before { display: none; }
 
     .table-tab {
         cursor: pointer;

@@ -19,9 +19,15 @@
 // Stats hub grid
 .stats-hub-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    // 260px fits four across at page width, which strands the fifth card of a
+    // five-card section on a row of its own. 208px fits five.
+    grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));
     gap: 10px;
     margin-bottom: 24px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    }
 }
 
 .stats-hub-card {
@@ -33,7 +39,7 @@
     // min-width: 0, and .stats-hub-title ellipsises; all three are no-ops in a
     // column and only do anything with a sibling competing for width.
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     gap: 14px;
     padding: 16px 18px;
     transition: border-color $t-fast, box-shadow $t-fast;
@@ -72,10 +78,11 @@
 .stats-hub-title {
     font-weight: $weight-bold;
     font-size: 14px;
+    line-height: 1.25;
     color: $text-primary;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    // These are navigation labels — "Driver Comp…" is worse than two lines.
+    // Grid rows stretch, so a wrapped title just makes the whole row taller.
+    overflow-wrap: break-word;
 }
 
 .stats-hub-desc {
