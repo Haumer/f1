@@ -33,5 +33,9 @@
         <div class="stat"><span class="label">WDC</span><span class="value"><%= card.snapshot_wdc %></span></div>
     </div>
     <div class="f1-mark">F1 · <%= card.race.year %></div>
-    <div class="sheen"></div>
+    <%# Pointer-driven surface. .dc-holo is the colour layer (color-dodge),
+        .dc-glare the specular highlight (overlay). Both are inert until
+        card-tilt sets --px/--py/--holo-opa on the wrapper. %>
+    <div class="dc-holo"></div>
+    <div class="dc-glare"></div>
 </div>

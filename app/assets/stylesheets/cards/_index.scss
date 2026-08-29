@@ -256,20 +256,65 @@
         z-index: 6;
     }
 
-    .sheen {
+    // ── Pointer-driven surface state ──
+    // card_tilt_controller writes these on the .dc-flip wrapper; custom
+    // properties inherit, so both faces read the same values.
+    //   --px/--py    pointer position over the card, in %
+    //   --bgx/--bgy  holo background-position — moves opposite the pointer,
+    //                which is what sells the "layer floating under glass" depth
+    //   --holo-opa   0 at rest, ramps to 1 on hover
+    // Tier strength lives in the gradient alphas, NOT in a calc() on opacity —
+    // see the SassC note at the top of this file.
+    //
+    // These are read with var() FALLBACKS rather than declared here. Declaring
+    // them on .dc-card would shadow the wrapper's inherited values, because the
+    // card sits between .dc-flip (where the controller writes) and the layers
+    // (which read) — the card's own --holo-opa: 0 would win and the surface
+    // would never light. The fallbacks also mean a bare .dc-card rendered
+    // without the flip wrapper still has sane values.
+
+    .dc-holo,
+    .dc-glare {
         position: absolute;
-        top: 0; bottom: 0;
-        left: -50%; width: 200%;
-        background: linear-gradient(115deg,
-            transparent 35%,
-            rgba(255, 255, 255, 0.28) 50%,
-            transparent 65%);
-        transform: translate3d(-25%, 0, 0);
+        inset: 0;
+        border-radius: inherit;
         pointer-events: none;
-        z-index: 9;
-        opacity: 0;
-        will-change: transform, opacity;
-        transition: opacity 200ms ease;
+        opacity: var(--holo-opa, 0);
+        transition: opacity 240ms ease;
+    }
+
+    // Colour layer. color-dodge is the blend that makes a dark surface throw
+    // saturated light instead of washing grey — the whole reason holo foil
+    // reads as metallic rather than as a translucent sticker.
+    .dc-holo {
+        // BEHIND the driver art (portrait 3, name 4, footer 5, badges 6) but
+        // above the background gradient and hex pattern. This is how a real
+        // holo card is built — foil in the background, character printed over
+        // it. Sitting on top instead washes the portrait out and eats the
+        // stat text, which is exactly what the first pass did.
+        z-index: 2;
+        background-position: var(--bgx, 50%) var(--bgy, 50%);
+        background-size: 300% 300%;
+        mix-blend-mode: color-dodge;
+        filter: brightness(0.9) contrast(1.15) saturate(1.05);
+    }
+
+    // Specular highlight. Rides above the colour layer and tracks the pointer
+    // directly, so the bright spot sits under the cursor.
+    .dc-glare {
+        z-index: 10;
+        background: radial-gradient(farthest-corner circle at var(--px, 50%) var(--py, 50%),
+            rgba(255, 255, 255, 0.28) 6%,
+            rgba(255, 255, 255, 0.10) 22%,
+            rgba(8, 8, 16, 0.40) 100%);
+        mix-blend-mode: overlay;
+    }
+
+    // Only promise the compositor a repaint while the card is actually live —
+    // will-change on every card in a collection costs real memory.
+    &:hover .dc-holo,
+    &:hover .dc-glare {
+        will-change: opacity, background-position;
     }
 }
 
@@ -1095,4 +1140,101 @@
     }
     .dc-tier-pill { padding: 6px 11px; font-size: 11px; }
     .dc-combine-pill { padding: 8px 14px; font-size: 11px; }
+}
+
+// ───── Holo surface per rarity ─────────────────────────────────────────────
+// The frame says what tier a card is at a glance; this says it again the
+// moment you touch it. Character changes up the ladder rather than just
+// intensity, so the tiers stay tellable apart in motion:
+//   bronze     plain foil  — specular glare only, no colour
+//   silver     fine vertical bands, desaturated
+//   gold       warm amber bands, wider pitch
+//   platinum   full rainbow diagonal (the "V" treatment) with parallax
+//   legendary  rainbow + glitter that twinkles as the parallax moves
+//
+// Bronze deliberately has no .dc-holo background at all — an empty color-dodge
+// layer composites to nothing, so it costs a paint and no more.
+//
+// BAND PITCH: the card shows one third of the tile (background-size: 300%), so
+// a gradient period of P% yields roughly 33/P bands across the card. Periods
+// here sit at 3–6%, i.e. 5–10 visible bands. The first pass used 30%, which put
+// less than one band on the card — it read as a flat colour wash with no
+// structure, which is not what foil looks like.
+
+.dc-card.tier-silver .dc-holo {
+    background-image: repeating-linear-gradient(97deg,
+        rgba(190, 210, 235, 0.19) 0%,
+        rgba(255, 255, 255, 0.24) 0.8%,
+        rgba(150, 170, 200, 0.16) 1.6%,
+        rgba(210, 225, 245, 0.20) 2.4%,
+        rgba(190, 210, 235, 0.19) 3.2%);
+    filter: brightness(0.9) contrast(1.1) saturate(0.7);
+}
+
+.dc-card.tier-gold .dc-holo {
+    background-image: repeating-linear-gradient(105deg,
+        rgba(255, 196, 92, 0.20) 0%,
+        rgba(255, 240, 170, 0.27) 1%,
+        rgba(214, 150, 48, 0.17) 2.2%,
+        rgba(255, 224, 130, 0.23) 3.4%,
+        rgba(255, 196, 92, 0.20) 4.6%);
+    filter: brightness(0.92) contrast(1.15) saturate(1);
+}
+
+// The V-style card: two superimposed rainbow passes at different angles and
+// pitches. One pass alone reads as stripes; crossing them is what produces the
+// shifting interference colours that look like real holo foil.
+.dc-card.tier-platinum .dc-holo {
+    background-image:
+        repeating-linear-gradient(115deg,
+            rgba(255, 119, 115, 0.21) 0%,
+            rgba(255, 237, 95, 0.21) 1%,
+            rgba(168, 255, 95, 0.21) 2%,
+            rgba(131, 255, 247, 0.21) 3%,
+            rgba(120, 148, 255, 0.21) 4%,
+            rgba(216, 117, 255, 0.21) 5%,
+            rgba(255, 119, 115, 0.21) 6%),
+        repeating-linear-gradient(-72deg,
+            rgba(14, 21, 41, 0.25) 0%,
+            rgba(199, 198, 233, 0.19) 1.2%,
+            rgba(255, 255, 255, 0.23) 2%,
+            rgba(199, 198, 233, 0.19) 2.8%,
+            rgba(14, 21, 41, 0.25) 4%);
+    background-blend-mode: color-dodge;
+    background-size: 300% 300%, 220% 220%;
+    filter: brightness(0.95) contrast(1.3) saturate(1.15);
+}
+
+.dc-card.tier-legendary .dc-holo {
+    background-image:
+        // glitter — small hard dots on three different pitches so they never
+        // land on a visible grid; parallax makes them wink in and out
+        radial-gradient(circle at 18% 26%, rgba(255, 255, 255, 0.95) 0 1px, transparent 2px),
+        radial-gradient(circle at 63% 71%, rgba(255, 245, 200, 0.85) 0 1px, transparent 2px),
+        radial-gradient(circle at 41% 88%, rgba(200, 240, 255, 0.90) 0 1px, transparent 2px),
+        repeating-linear-gradient(122deg,
+            rgba(255, 119, 160, 0.22) 0%,
+            rgba(255, 240, 130, 0.22) 1.2%,
+            rgba(140, 255, 190, 0.22) 2.4%,
+            rgba(120, 200, 255, 0.22) 3.6%,
+            rgba(216, 117, 255, 0.22) 4.8%,
+            rgba(255, 119, 160, 0.22) 6%);
+    background-size: 37px 37px, 53px 53px, 71px 71px, 300% 300%;
+    filter: brightness(0.95) contrast(1.35) saturate(1.2);
+}
+
+// ───── Accessibility & input-mode guards ──────────────────────────────────
+// Touch devices can't hover, so the effect would either never fire or latch on
+// after a tap. Coarse pointers get the frames and nothing else — which also
+// keeps blend-mode compositing off the phones that can least afford it.
+@media (hover: none), (pointer: coarse) {
+    .dc-card .dc-holo,
+    .dc-card .dc-glare { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dc-card .dc-holo,
+    .dc-card .dc-glare { transition: none; }
+    // Keep a static holo — the colour is identity, the movement is the problem.
+    .dc-card .dc-holo { filter: brightness(0.8) contrast(1.3) saturate(0.9); }
 }
