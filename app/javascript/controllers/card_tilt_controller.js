@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Pokemon-card mouse-tracking tilt + sheen sweep. Three correctness rules
-// (learned the hard way in the mockup):
+// Pokemon-card mouse-tracking tilt + holographic surface. Three correctness
+// rules (learned the hard way in the mockup):
 //   1) Bind events to the wrapper, NOT the card. If we bind to the card, the
 //      3D rotation can briefly move the card out from under the cursor; the
 //      cursor enters a "gap", mouseleave fires, card snaps back, mouseenter
@@ -11,10 +11,21 @@ import { Controller } from "@hotwired/stimulus"
 //
 // Composes with card-flip: rotateY adds 180deg when flipped so tilt still
 // feels natural on the back face.
+//
+// The holo surface is driven entirely through CSS custom properties written on
+// THIS element (the .dc-flip wrapper). Custom properties inherit, so both faces
+// and every layer inside read the same pointer state from one write, and the
+// per-tier appearance stays in the stylesheet where it belongs — this
+// controller has no idea what a tier is.
 export default class extends Controller {
-  static targets = ["inner", "sheen"]
+  static targets = ["inner"]
 
   connect() {
+    // No hover on touch: the effect would either never fire or latch on after
+    // a tap. Matches the @media (hover: none) guard in the stylesheet.
+    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return
+    this.enabled = true
+
     this.MAX_TILT = 12
     this.rect = null
     this.lastX = 0.5
@@ -31,6 +42,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    if (!this.enabled) return
     this.element.removeEventListener("mouseenter", this.onEnter)
     this.element.removeEventListener("mousemove",  this.onMove)
     this.element.removeEventListener("mouseleave", this.onLeave)
@@ -47,9 +59,17 @@ export default class extends Controller {
     return this.element.querySelector(".dc-flip-inner")
   }
 
-  sheen() {
-    if (this.hasSheenTarget) return this.sheenTarget
-    return this.element.querySelector(".dc-card .sheen")
+  // Write pointer state once, on the wrapper. `x` and `y` are 0..1.
+  setSurface(x, y, opacity) {
+    const st = this.element.style
+    st.setProperty("--px", `${(x * 100).toFixed(2)}%`)
+    st.setProperty("--py", `${(y * 100).toFixed(2)}%`)
+    // Background travels OPPOSITE the pointer and at a shorter throw. That
+    // mismatch is the parallax — it reads as a foil layer sitting under glass
+    // rather than painted on the surface.
+    st.setProperty("--bgx", `${(50 + (0.5 - x) * 40).toFixed(2)}%`)
+    st.setProperty("--bgy", `${(50 + (0.5 - y) * 40).toFixed(2)}%`)
+    st.setProperty("--holo-opa", opacity.toFixed(3))
   }
 
   isFlipping() {
@@ -58,17 +78,15 @@ export default class extends Controller {
   }
 
   onEnter() {
-    if (this.isFlipping()) return
+    if (!this.enabled || this.isFlipping()) return
     const flip = this.flipNode()
     this.rect = flip ? flip.getBoundingClientRect() : this.element.getBoundingClientRect()
     const inner = this.inner()
     if (inner) inner.style.transition = "none"
-    const sheen = this.sheen()
-    if (sheen) sheen.style.opacity = "1"
   }
 
   onMove(e) {
-    if (this.isFlipping()) return
+    if (!this.enabled || this.isFlipping()) return
     const flip = this.flipNode()
     if (!this.rect) this.rect = flip ? flip.getBoundingClientRect() : this.element.getBoundingClientRect()
     this.lastX = Math.max(0, Math.min(1, (e.clientX - this.rect.left) / this.rect.width))
@@ -91,14 +109,22 @@ export default class extends Controller {
     inner.style.transition = "none"
     inner.style.transform =
       `rotateX(${rx.toFixed(2)}deg) rotateY(${(ry + flipY).toFixed(2)}deg)`
-    const sheen = this.sheen()
-    if (sheen) {
-      const sx = (this.lastX - 0.5) * 50
-      sheen.style.transform = `translate3d(${sx}%, 0, 0)`
-    }
+
+    // Brightest toward the edges, where a real card catches the light as it
+    // tilts away from you. Never drops to 0 while hovered, or the surface
+    // flickers off every time the pointer crosses the middle.
+    //
+    // Ceiling is deliberately well under 1. The foil is a surface treatment on
+    // top of the driver artwork, and at full strength color-dodge simply eats
+    // the portrait — the card stops being a picture of a driver.
+    const dx = this.lastX - 0.5
+    const dy = this.lastY - 0.5
+    const fromCenter = Math.min(1, Math.hypot(dx, dy) / 0.7071)
+    this.setSurface(this.lastX, this.lastY, 0.34 + fromCenter * 0.28)
   }
 
   onLeave() {
+    if (!this.enabled) return
     this.rect = null
     const flip = this.flipNode()
     const inner = this.inner()
@@ -106,7 +132,8 @@ export default class extends Controller {
       inner.style.transition = ""
       inner.style.transform = flip && flip.classList.contains("flipped") ? "rotateY(180deg)" : ""
     }
-    const sheen = this.sheen()
-    if (sheen) sheen.style.opacity = "0"
+    // Recentre the surface as it fades, so the next hover doesn't start from
+    // wherever the pointer happened to exit.
+    this.setSurface(0.5, 0.5, 0)
   }
 }

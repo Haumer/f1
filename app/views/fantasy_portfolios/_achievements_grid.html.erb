@@ -7,7 +7,7 @@
         <% match = earned.find { |a| a.key == key.to_s } %>
         <div class="fantasy-achievement-card <%= match ? "earned tier-#{defn[:tier]}" : 'locked' %>">
             <div class="fantasy-achievement-icon">
-                <i class="fa-solid <%= defn[:icon] %>"></i>
+                <%= ui_icon defn[:glyph] || "star", size: 17 %>
             </div>
             <div class="fantasy-achievement-info">
                 <strong><%= defn[:name] %></strong>

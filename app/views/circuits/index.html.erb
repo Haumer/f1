@@ -1,6 +1,19 @@
 <% content_for(:title) { "All Circuits" } %>
 <% content_for(:description) { "Every F1 circuit — race history, circuit kings, and track records on F1 Elo." } %>
 <div class="homepage-container">
+    <%# Every other Stats Hub destination opens with this hero. Without it this
+        page had no <h1> at all — its first heading was an <h3>, which breaks
+        the document outline for screen readers and leaves the page with no
+        title in search results. %>
+    <div class="page-hero page-hero-compact">
+        <div class="page-hero-bg"></div>
+        <div class="page-hero-content">
+            <span class="page-hero-label">Racing</span>
+            <h1 class="page-hero-title">Circuits</h1>
+            <p class="page-hero-meta">Every track that has hosted a World Championship race, with its history and circuit kings</p>
+        </div>
+    </div>
+
     <%# 1. Current Season Calendar %>
     <% if @calendar_races.any? %>
         <div class="table-header">

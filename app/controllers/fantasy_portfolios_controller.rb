@@ -51,7 +51,18 @@ class FantasyPortfoliosController < ApplicationController
       if latest&.rank
         @leaderboard_rank = latest.rank
         @leaderboard_rank_delta = previous&.rank ? previous.rank - latest.rank : nil
-        @leaderboard_size = FantasySnapshot.where(race_id: latest.race_id).count
+        peers = FantasySnapshot.where(race_id: latest.race_id)
+        @leaderboard_size = peers.count
+
+        # "#3 of 6" says where you are but not whether that's close. The gap to
+        # the rank above (or, if you're leading, to the one below) is what makes
+        # the position mean something.
+        neighbour_rank = @leaderboard_rank > 1 ? @leaderboard_rank - 1 : @leaderboard_rank + 1
+        neighbour = peers.find_by(rank: neighbour_rank)
+        if neighbour
+          @leaderboard_gap = (neighbour.value.to_f - latest.value.to_f).abs.round
+          @leaderboard_gap_direction = @leaderboard_rank > 1 ? :behind : :ahead
+        end
       end
     end
 
@@ -184,6 +195,18 @@ class FantasyPortfoliosController < ApplicationController
     user_ids = @entries.map { |e| e[:portfolio].user_id }
     @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
                           .includes(:constructor).index_by(&:user_id)
+
+    # Season shape per player, for the inline sparkline. A standings table says
+    # who is ahead; it says nothing about who is climbing and who is sliding,
+    # which is the more interesting half of a leaderboard.
+    @sparklines = FantasySnapshot.where(fantasy_portfolio_id: portfolio_ids)
+                    .joins(:race).order("races.date ASC")
+                    .pluck(:fantasy_portfolio_id, :value)
+                    .each_with_object(Hash.new { |h, k| h[k] = [] }) { |(pid, value), acc| acc[pid] << value.to_f }
+    @sparklines.each_value { |vals| vals.unshift(starting.to_f) }
+
+    # Gap to the leader, so mid-table rows read as a race rather than a list.
+    @leader_value = @entries.first&.dig(:value)
 
     render "fantasy_portfolios/combined_leaderboard"
   end

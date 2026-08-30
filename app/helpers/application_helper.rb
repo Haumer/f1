@@ -61,6 +61,14 @@ module ApplicationHelper
         Constructor::COLORS[constructor&.constructor_ref&.to_sym] || "#6c757d"
     end
 
+    # Number of seasons the site has data for. Copy used to hardcode "75 years
+    # of Formula 1" in three places; it was 77 by the time anyone looked, and a
+    # hardcoded count goes stale every January. Cached for the process — the
+    # season list changes once a year.
+    def seasons_covered
+        @seasons_covered ||= Rails.cache.fetch("seasons_covered", expires_in: 12.hours) { Season.count }
+    end
+
     def flag_image(driver_or_country, size: 24)
         country = driver_or_country.respond_to?(:country) ? driver_or_country.country : driver_or_country
         return "" unless country&.respond_to?(:two_letter_country_code)
@@ -143,4 +151,87 @@ module ApplicationHelper
         months < 12 ? "#{months}mo" : "#{days / 365}y"
     end
 
+    # ── Page hero ──────────────────────────────────────────────────────
+    # The one page-title component. Two compositions, chosen by what the page
+    # is for — not by who wrote it:
+    #
+    #   bar: false (default) — centred hero. Browse, editorial, landing pages.
+    #   bar: true            — left-aligned with an actions slot. Pages you
+    #                          operate: portfolio, market, picks, settings.
+    #
+    # Both render the same three parts, so the type ramp and the accent
+    # treatment stay identical across the app.
+    #
+    #   <%= page_hero "Market", label: "Fantasy", meta: "Trade driver shares.",
+    #                 bar: true do %>
+    #     <%= link_to "Portfolio", ..., class: "fantasy-btn fantasy-btn-outline" %>
+    #   <% end %>
+    def page_hero(title, label: nil, meta: nil, bar: false, compact: true, class_name: nil, &block)
+      actions = capture(&block) if block_given?
+
+      classes = ["page-hero"]
+      classes << (bar ? "page-hero-bar" : ("page-hero-compact" if compact))
+      classes << class_name
+      classes = classes.compact.join(" ")
+
+      content = content_tag(:div, class: "page-hero-content") do
+        safe_join([
+          (content_tag(:span, label, class: "page-hero-label") if label.present?),
+          content_tag(:h1, title, class: "page-hero-title"),
+          (content_tag(:p, meta, class: "page-hero-meta") if meta.present?)
+        ].compact)
+      end
+
+      content_tag :div, class: classes do
+        safe_join([
+          content_tag(:div, "", class: "page-hero-bg"),
+          content,
+          (content_tag(:div, actions, class: "page-hero-actions") if actions.present?)
+        ].compact)
+      end
+    end
+
+    # ── Sparkline ──────────────────────────────────────────────────────
+    # Inline SVG season shape. Deliberately hand-rolled rather than pulled from
+    # the charting library: at 72x22 in a table cell there is no room for axes,
+    # ticks or a tooltip, and loading a chart per row would be absurd.
+    #
+    # Draws the trend line plus a baseline at the starting value, so "above
+    # where they started" is readable at a glance without any labels.
+    def sparkline(values, width: 72, height: 22, baseline: nil)
+      values = Array(values).compact.map(&:to_f)
+      return "".html_safe if values.size < 2
+
+      min = values.min
+      max = values.max
+      min = [min, baseline.to_f].min if baseline
+      max = [max, baseline.to_f].max if baseline
+      span = (max - min).abs
+      span = 1.0 if span.zero? # a perfectly flat season would divide by zero
+
+      pad = 2.0
+      usable = height - (pad * 2)
+      step = values.size > 1 ? (width.to_f / (values.size - 1)) : width.to_f
+      y_for = ->(v) { pad + (usable - ((v - min) / span * usable)) }
+
+      points = values.each_with_index.map { |v, i| "#{(i * step).round(2)},#{y_for.call(v).round(2)}" }.join(" ")
+      rising = values.last >= (baseline || values.first)
+      stroke = rising ? "#00d26a" : "#e10600"
+
+      parts = []
+      if baseline
+        by = y_for.call(baseline.to_f).round(2)
+        parts << %(<line x1="0" y1="#{by}" x2="#{width}" y2="#{by}" stroke="rgba(255,255,255,0.14)" stroke-width="1" stroke-dasharray="2 2"/>)
+      end
+      parts << %(<polyline points="#{points}" fill="none" stroke="#{stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>)
+      parts << %(<circle cx="#{((values.size - 1) * step).round(2)}" cy="#{y_for.call(values.last).round(2)}" r="2" fill="#{stroke}"/>)
+
+      content_tag :svg, parts.join.html_safe,
+                  class: "sparkline",
+                  width: width, height: height,
+                  viewBox: "0 0 #{width} #{height}",
+                  fill: "none",
+                  "aria-hidden": "true",
+                  focusable: "false"
+    end
 end

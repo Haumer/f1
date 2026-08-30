@@ -54,7 +54,11 @@ class Graphs::ChampionshipRace
                 lineStyle:   { width: is_champion ? 3 : 1.5 },
                 color:       color || driver.color,
                 emphasis:    { focus: "series" },
-                data:        @races.map { |r| standings.dig(driver.id, r.id) || 0 },
+                # "" — not 0 — for rounds with no standings yet. @races is the
+                # whole calendar, so mid-season every future round would
+                # otherwise plot a literal zero and drop this cumulative line
+                # off a cliff to the axis. echarts renders "" as a gap.
+                data:        @races.map { |r| standings.dig(driver.id, r.id) || "" },
                 z:           is_champion ? 5 : 2,
             }
 

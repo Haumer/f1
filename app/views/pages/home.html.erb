@@ -159,7 +159,7 @@
         <% if current_user && @fantasy_portfolio %>
             <div class="table-header">
                 <%= link_to fantasy_overview_path(@fantasy_portfolio.user.username), class: "table-header-link" do %>
-                    <h3>Fantasy F1 <i class="fa-solid fa-arrow-right"></i></h3>
+                    <h3>Fantasy F1 <%= ui_icon "arrow_right", size: 16 %></h3>
                 <% end %>
             </div>
             <%= render "fantasy_portfolios/portfolio_card",
@@ -167,35 +167,46 @@
                        stock_portfolio: @fantasy_stock_portfolio,
                        support: @fantasy_support,
                        rank: @fantasy_rank %>
-        <% elsif current_user %>
-            <div class="table-header">
-                <h3>Fantasy F1</h3>
-            </div>
-            <div class="fantasy-cta-card">
-                <div class="fantasy-cta-content">
-                    <i class="fa-solid fa-chess-knight"></i>
-                    <div>
-                        <p>Trade driver shares based on Elo performance — go long on your favorites, short the rest, and compete on the leaderboard.</p>
-                    </div>
-                </div>
-                <%= link_to new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" do %>
-                    <i class="fa-solid fa-plus"></i> Start Trading
-                <% end %>
-            </div>
         <% else %>
+            <%# The pitch used to be one sentence about trading, which meant the
+                other three modes were invisible to anyone who hadn't already
+                found them. Lead with what you actually get to do. %>
             <div class="table-header">
                 <h3>Fantasy F1</h3>
+                <%= link_to fantasy_guide_path, class: "table-header-sub" do %>
+                    How it works <%= ui_icon "arrow_right", size: 12 %>
+                <% end %>
             </div>
             <div class="fantasy-cta-card">
-                <div class="fantasy-cta-content">
-                    <i class="fa-solid fa-chess-knight"></i>
-                    <div>
-                        <p>Sign up to trade driver shares based on Elo, compete against other fans, and climb the leaderboard.</p>
-                    </div>
+                <div class="fantasy-pitch">
+                    <% [
+                         ["store", "Trade drivers", "Go long on form, short the rest. Prices track Elo."],
+                         ["list",  "Call the top 10", "Score on how close you get. Nail one exactly, mint a card."],
+                         ["versus", "Rank the grid", "One question at a time, against everyone else's answers."]
+                       ].each do |icon_name, title, blurb| %>
+                        <div class="fantasy-pitch-item">
+                            <span class="fantasy-pitch-icon"><%= ui_icon icon_name, size: 18 %></span>
+                            <div>
+                                <strong><%= title %></strong>
+                                <span><%= blurb %></span>
+                            </div>
+                        </div>
+                    <% end %>
                 </div>
-                <%= link_to new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" do %>
-                    <i class="fa-solid fa-user-plus"></i> Join Fantasy League
-                <% end %>
+                <div class="fantasy-cta-actions">
+                    <% if current_user %>
+                        <%= link_to new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                            <%= ui_icon "plus" %> Start with <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits
+                        <% end %>
+                    <% else %>
+                        <%= link_to new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                            <%= ui_icon "flag" %> Join the league
+                        <% end %>
+                    <% end %>
+                    <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline" do %>
+                        <%= ui_icon "podium" %> See who's winning
+                    <% end %>
+                </div>
             </div>
         <% end %>
 
@@ -203,9 +214,9 @@
         <% if @leaderboard_preview&.any? %>
             <div class="card leaderboard-preview-card">
                 <div class="leaderboard-preview-header">
-                    <h4><i class="fa-solid fa-ranking-star"></i> Fantasy Leaderboard</h4>
+                    <h4><%= ui_icon "podium", size: 15 %> Fantasy Leaderboard</h4>
                     <%= link_to combined_leaderboard_path, class: "last-race-link" do %>
-                        Full Leaderboard <i class="fa-solid fa-arrow-right"></i>
+                        Full Leaderboard <%= ui_icon "arrow_right", size: 13 %>
                     <% end %>
                 </div>
                 <div class="leaderboard-preview-list">
@@ -223,11 +234,11 @@
         <%# 9. Explore Grid (always visible) %>
         <div class="explore-archive">
             <div class="table-header">
-                <h3><i class="fa-solid fa-compass"></i> Explore</h3>
+                <h3>Explore</h3>
             </div>
             <div class="explore-grid">
                 <%= link_to peak_elo_drivers_path, class: "card explore-card" do %>
-                    <div class="explore-icon"><i class="fa-solid fa-ranking-star"></i></div>
+                    <div class="explore-icon"><%= ui_icon "trophy", size: 22 %></div>
                     <div class="explore-info">
                         <span class="explore-name">Peak Elo</span>
                         <span class="explore-desc">All-time highest ratings</span>
@@ -237,7 +248,7 @@
                     </div>
                 <% end %>
                 <%= link_to compare_drivers_path, class: "card explore-card" do %>
-                    <div class="explore-icon"><i class="fa-solid fa-code-compare"></i></div>
+                    <div class="explore-icon"><%= ui_icon "versus", size: 22 %></div>
                     <div class="explore-info">
                         <span class="explore-name">Compare Drivers</span>
                         <span class="explore-desc">Head-to-head Elo history</span>
@@ -247,7 +258,7 @@
                     </div>
                 <% end %>
                 <%= link_to seasons_path, class: "card explore-card" do %>
-                    <div class="explore-icon"><i class="fa-solid fa-calendar"></i></div>
+                    <div class="explore-icon"><%= ui_icon "calendar", size: 22 %></div>
                     <div class="explore-info">
                         <span class="explore-name">All Seasons</span>
                         <span class="explore-desc">Browse every F1 season</span>
@@ -257,7 +268,7 @@
                     </div>
                 <% end %>
                 <%= link_to circuits_path, class: "card explore-card" do %>
-                    <div class="explore-icon"><i class="fa-solid fa-location-dot"></i></div>
+                    <div class="explore-icon"><%= ui_icon "pin", size: 22 %></div>
                     <div class="explore-info">
                         <span class="explore-name">Circuits</span>
                         <span class="explore-desc">Tracks around the world</span>
@@ -269,7 +280,7 @@
                     </div>
                 <% end %>
                 <%= link_to constructors_path, class: "card explore-card" do %>
-                    <div class="explore-icon"><i class="fa-solid fa-warehouse"></i></div>
+                    <div class="explore-icon"><%= ui_icon "shield", size: 22 %></div>
                     <div class="explore-info">
                         <span class="explore-name">Constructors</span>
                         <span class="explore-desc">Team histories & Elo</span>
@@ -279,7 +290,7 @@
                     </div>
                 <% end %>
                 <%= link_to podiums_races_path, class: "card explore-card" do %>
-                    <div class="explore-icon"><i class="fa-solid fa-medal"></i></div>
+                    <div class="explore-icon"><%= ui_icon "podium", size: 22 %></div>
                     <div class="explore-info">
                         <span class="explore-name">Podium Leaders</span>
                         <span class="explore-desc">Most podiums all-time</span>

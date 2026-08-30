@@ -7,11 +7,22 @@
     align-items: center;
     justify-content: space-between;
     gap: $space-lg;
-    background: $card-bg;
-    border: 1px solid $border-subtle;
+    background:
+        radial-gradient(ellipse at 100% 0%, rgba(var(--page-accent-rgb, 225, 6, 0), 0.08) 0%, transparent 58%),
+        $card-bg;
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.16);
     border-radius: $radius-md;
     padding: $space-lg $space-xl;
     margin-bottom: $space-lg;
+
+    // Three modes side by side won't fit next to a button column much below
+    // 900px — stack rather than crush them.
+    @media (max-width: 900px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $space-md;
+        padding: $space-md;
+    }
 
     .fantasy-cta-content {
         display: flex;
@@ -375,4 +386,69 @@
     font-weight: 400;
     color: $text-secondary;
     white-space: nowrap;
+}
+
+
+// ── Home fantasy pitch ──────────────────────────────────────────────
+// The three things you can actually do, instead of one sentence about
+// trading that left picks, cards and head-to-head invisible.
+.fantasy-pitch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    flex: 1;
+    min-width: 0;
+
+    @media (max-width: 900px) { gap: 12px; }
+    @media (max-width: 620px) { grid-template-columns: 1fr; gap: 10px; }
+}
+
+.fantasy-pitch-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    min-width: 0;
+
+    strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 14px;
+        font-weight: $weight-bold;
+        color: $text-primary;
+    }
+
+    span {
+        display: block;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: $text-secondary;
+    }
+}
+
+.fantasy-pitch-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: $radius-sm;
+    background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.1);
+    color: var(--page-accent, $accent-red);
+}
+
+.fantasy-cta-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: none;
+
+    @media (max-width: 900px) {
+        flex-direction: row;
+        > * { flex: 1 1 auto; justify-content: center; }
+    }
+
+    @media (max-width: 520px) {
+        flex-direction: column;
+    }
 }

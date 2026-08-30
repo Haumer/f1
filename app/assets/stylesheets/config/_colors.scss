@@ -48,6 +48,10 @@ $space-2xl: 64px;
 
 // Layout
 $max-page-width: 1100px;
+// Sticky navbar height (row + 1px border). Anything that pins itself below the
+// navbar reads this rather than hard-coding a number that silently goes stale —
+// the fantasy dashboard header was pinned at 49px against a 75px bar.
+$nav-height: 57px;
 
 // Border radius scale
 $radius-sm: 6px;
@@ -84,6 +88,50 @@ $radius-lg: 16px;
         background: linear-gradient(90deg, transparent, $color, transparent);
         width: $width;
         box-shadow: 0 0 12px rgba($color, 0.3);
+    }
+}
+
+// Page-title bar — the shared skeleton behind .page-hero-bar and
+// .fantasy-dashboard-header. Both compose label / title / actions in a row above
+// a hairline with a leading accent segment; keeping the geometry in one mixin
+// stops the two from drifting apart again.
+@mixin page-title-bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    text-align: left;
+    border-bottom: 1px solid $border-color;
+    position: relative;
+}
+
+// The accent segment at the leading edge of that hairline.
+@mixin page-title-bar-tick {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 56px;
+    height: 2px;
+    background: var(--page-accent, $accent-red);
+    box-shadow: 0 0 16px rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+}
+
+// The actions cluster on the right of either bar.
+@mixin page-title-bar-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 2px;
+
+    @media (max-width: 600px) {
+        width: 100%;
+        // Half-width buttons are a poor tap target — let the row own them.
+        > * { flex: 1 1 auto; justify-content: center; }
     }
 }
 

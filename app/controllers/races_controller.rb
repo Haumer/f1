@@ -134,8 +134,20 @@ class RacesController < ApplicationController
 
   def highest_elo
     new_elo_col = Setting.elo_column(:new_elo)
-    @race_results = RaceResult.joins(:race)
-      .where.not(new_elo_col => nil)
+    # One row per driver — their own highest-rated race.
+    #
+    # A plain ORDER BY over every result returns a driver's whole plateau:
+    # Elo moves slowly, so the top 100 was 6 distinct drivers and the first six
+    # rows were all Verstappen in consecutive 2023–24 races. That is a sorted
+    # dump, not the leaderboard the page promises.
+    @race_results = RaceResult
+      .from(
+        RaceResult.joins(:race)
+          .where.not(new_elo_col => nil)
+          .select("DISTINCT ON (race_results.driver_id) race_results.*")
+          .order("race_results.driver_id, race_results.#{new_elo_col} DESC"),
+        :race_results
+      )
       .order(new_elo_col => :desc)
       .limit(100)
       .includes(:driver, :constructor, race: :circuit)

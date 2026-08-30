@@ -45,3 +45,4 @@
 claude_previews.md
 /PREDICTIONS/
 .gstack/
+.playwright-mcp/

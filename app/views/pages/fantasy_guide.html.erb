@@ -1,151 +1,266 @@
 <% content_for(:title) { "How Fantasy Works" } %>
-<% content_for(:description) { "Learn how Fantasy F1 works — trade driver shares, earn dividends, and compete on the leaderboard." } %>
+<% content_for(:description) { "How Fantasy F1 works on F1 Elo — trade driver shares, predict the finishing order, collect driver cards, and rank the grid head-to-head." } %>
 <div class="homepage-container">
-    <div class="table-header"><h3>How Fantasy Works</h3></div>
+    <%= page_hero "How Fantasy Works",
+                  label: "The Guide",
+                  meta: "Five ways to play, one leaderboard. Everything runs off the same Elo ratings that power the rest of the site — no made-up prices, no fantasy points table.",
+                  compact: false %>
 
+    <%# ═══════════════════ The five pillars ═══════════════════ %>
+    <%# The guide used to describe the stock market and nothing else, so picks,
+        cards, head-to-head and allegiance existed with no explanation anywhere.
+        This grid is the map: what each one is, how it pays, and a way in. %>
+    <%
+        signed_in_portfolio = user_signed_in? ? current_user.fantasy_portfolio_for(current_season) : nil
+        signed_in_stocks    = user_signed_in? ? current_user.fantasy_stock_portfolio_for(current_season) : nil
+
+        pillars = [
+            {
+                icon: "store", anchor: "market", title: "The Driver Market",
+                blurb: "Buy shares in drivers whose Elo you think is going up — or short the ones you think are going down.",
+                pays: "Price moves + dividends",
+                path: (signed_in_stocks ? market_fantasy_stock_portfolio_path(signed_in_stocks) : nil),
+                cta: "Open market"
+            },
+            {
+                icon: "list", anchor: "picks", title: "Race Picks",
+                blurb: "Call the top 10 before the lights go out. The closer you are, the more you score.",
+                pays: "Up to #{Fantasy::ScoreRacePicks::POINTS_BY_DISTANCE[0]} pts per position",
+                path: edit_race_picks_path,
+                cta: "Make your picks"
+            },
+            {
+                icon: "card", anchor: "cards", title: "Driver Cards",
+                blurb: "Every exactly-right pick mints a collectible card. Rarer calls mint rarer cards.",
+                pays: "5 tiers, bronze to legendary",
+                path: (user_signed_in? ? driver_cards_path(username: current_user.username) : nil),
+                cta: "Your collection"
+            },
+            {
+                icon: "versus", anchor: "h2h", title: "Head-to-Head",
+                blurb: "Two drivers, one question: who do you rate higher? Your answers build a crowd ranking of the whole grid.",
+                pays: "+#{HeadToHead::AwardCompletionBonus::BONUS_AMOUNT} credits per race",
+                path: head_to_head_path,
+                cta: "Play a round"
+            },
+            {
+                icon: "shield", anchor: "allegiance", title: "Team Allegiance",
+                blurb: "Pick a constructor to back for the season. Your name wears its colours everywhere on the site.",
+                pays: "Bragging rights",
+                path: (signed_in_portfolio ? "#{fantasy_overview_path(current_user.username)}#team-picker" : nil),
+                cta: "Pick your team"
+            }
+        ]
+    %>
+
+    <div class="guide-pillars">
+        <% pillars.each do |p| %>
+            <%= content_tag((p[:path] ? :a : :div), class: "guide-pillar card", href: p[:path]) do %>
+                <span class="guide-pillar-icon"><%= ui_icon p[:icon], size: 22 %></span>
+                <h2 class="guide-pillar-title"><%= p[:title] %></h2>
+                <p class="guide-pillar-blurb"><%= p[:blurb] %></p>
+                <span class="guide-pillar-pays"><%= p[:pays] %></span>
+                <% if p[:path] %>
+                    <span class="guide-pillar-cta"><%= p[:cta] %> <%= ui_icon "arrow_right", size: 13 %></span>
+                <% else %>
+                    <%= link_to "Read the rules", "##{p[:anchor]}", class: "guide-pillar-cta" %>
+                <% end %>
+            <% end %>
+        <% end %>
+    </div>
+
+    <%# ═══════════════════ Market ═══════════════════ %>
+    <div class="table-header" id="market"><h3>The Driver Market</h3></div>
     <div class="elo-explanation">
         <p>
-            Fantasy F1 is a stock market for F1 drivers. Buy and sell driver shares based on
-            their Elo rating performance, earn dividends from top finishes, and compete against other
-            players on the leaderboard.
+            A driver's share price is their Elo rating &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>,
+            nudged by how many other players hold them. Elo moves when a driver beats or loses to the
+            people they actually raced against &mdash; so the market rewards reading form, not reading a points table.
         </p>
-
-        <%# ═══ HOW IT WORKS ═══ %>
-        <div class="table-header"><h3>Getting Started</h3></div>
 
         <div class="elo-worked-example">
             <div class="elo-step-grid">
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">1</div>
                     <div class="elo-step-content">
-                        <strong>Starting Capital</strong>
-                        <span>You receive <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits. This is your budget.</span>
+                        <strong>Starting capital</strong>
+                        <span>You get <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits, once. Everyone starts level.</span>
                     </div>
                 </div>
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">2</div>
                     <div class="elo-step-content">
-                        <strong>Buy Shares</strong>
-                        <span>Head to the Market and buy shares of drivers you believe in. Prices are based on Elo &divide; <%= FantasyStockPortfolio::PRICE_DIVISOR.to_i %>, adjusted by market demand.</span>
+                        <strong>Take positions</strong>
+                        <span>Long a driver you expect to rise, short one you expect to fall. Up to <%= FantasyStockPortfolio::MAX_POSITIONS %> open at a time.</span>
                     </div>
                 </div>
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">3</div>
                     <div class="elo-step-content">
-                        <strong>Race Weekend</strong>
-                        <span>The market closes 1 minute before race start. After the race, driver Elos update, dividends are paid, and your portfolio value changes.</span>
+                        <strong>The market locks</strong>
+                        <span>Trading closes one minute before the race starts. No trading on what you already saw happen.</span>
                     </div>
                 </div>
                 <div class="elo-step">
                     <div class="elo-step-pip" style="background: var(--page-accent, #e10600)">4</div>
                     <div class="elo-step-content">
-                        <strong>Trade &amp; Compete</strong>
-                        <span>Sell shares to lock in profits, open new positions, and climb the leaderboard. Up to <%= FantasyStockPortfolio::MAX_POSITIONS %> positions at a time.</span>
+                        <strong>Settlement</strong>
+                        <span>Elos update, dividends pay out, borrow fees come off, and your portfolio is revalued.</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <%# ═══ LONG & SHORT ═══ %>
-        <div class="table-header"><h3>Long &amp; Short Positions</h3></div>
-
-        <div class="elo-worked-example">
-            <div class="elo-step-grid">
-                <div class="elo-step">
-                    <div class="elo-step-pip" style="background: #52c41a">L</div>
-                    <div class="elo-step-content">
-                        <strong>Long Positions</strong>
-                        <span>Buy shares and profit when a driver's Elo rises. Long positions earn <strong>dividends</strong> for each top-10 finish, scaled by constructor strength (underdogs pay more).</span>
-                    </div>
-                </div>
-                <div class="elo-step">
-                    <div class="elo-step-pip" style="background: #e10600">S</div>
-                    <div class="elo-step-content">
-                        <strong>Short Positions</strong>
-                        <span>Bet against a driver. You profit when their Elo drops. Shorts require collateral (locked credits) and incur a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% per-race borrow fee. Auto-liquidated if losses reach 2&times; entry price.</span>
-                    </div>
-                </div>
+        <div class="guide-split">
+            <div class="guide-side guide-side-long">
+                <span class="guide-side-tag"><%= ui_icon "trend_up", size: 14 %> Long</span>
+                <p>
+                    You profit when the driver's Elo <strong>rises</strong>. Longs also collect
+                    <strong>dividends</strong> for every top-10 finish, scaled by how weak the car is &mdash;
+                    a points finish in a slow car pays far more than the same result in a fast one.
+                </p>
+            </div>
+            <div class="guide-side guide-side-short">
+                <span class="guide-side-tag"><%= ui_icon "trend_down", size: 14 %> Short</span>
+                <p>
+                    You profit when the driver's Elo <strong>falls</strong>. Shorts lock up collateral,
+                    pay a <%= (Fantasy::Stock::SettleRace::BORROW_FEE_RATE * 100).round(2) %>% borrow fee
+                    every race you hold them, and are auto-liquidated if losses reach 2&times; the entry price.
+                    Cheap to be right, expensive to be stubborn.
+                </p>
             </div>
         </div>
+    </div>
 
-        <%# ═══ EARNING CASH ═══ %>
-        <div class="table-header"><h3>Earning Credits</h3></div>
-
-        <div class="elo-results-grid elo-results-grid-3">
-            <div class="elo-result-card">
-                <div class="elo-result-label">Starting Capital</div>
-                <div class="elo-result-value"><%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %></div>
-                <span class="elo-result-sub">Awarded once when you create a portfolio</span>
-            </div>
-            <div class="elo-result-card">
-                <div class="elo-result-label">Dividends</div>
-                <div class="elo-result-value"><%= Fantasy::Stock::SettleRace::DIVIDEND_BASE %> &times; constructor</div>
-                <span class="elo-result-sub">Top-10 finishes pay dividends + surprise bonus for overperformance</span>
-            </div>
-            <div class="elo-result-card">
-                <div class="elo-result-label">Selling Shares</div>
-                <div class="elo-result-value">Buy Low, Sell High</div>
-                <span class="elo-result-sub">Sell long positions when a driver's Elo has risen</span>
-            </div>
-            <div class="elo-result-card">
-                <div class="elo-result-label">Short Profits</div>
-                <div class="elo-result-value">Entry &minus; Current</div>
-                <span class="elo-result-sub">Profit when a shorted driver's Elo drops</span>
-            </div>
-            <div class="elo-result-card">
-                <div class="elo-result-label">Team Allegiance</div>
-                <div class="elo-result-value"><i class="fa-solid fa-shield-halved"></i></div>
-                <span class="elo-result-sub">Pick a team to support &mdash; shown on leaderboards</span>
-            </div>
-        </div>
-
-        <%# ═══ LEADERBOARD ═══ %>
-        <div class="table-header"><h3>Leaderboard</h3></div>
+    <%# ═══════════════════ Race Picks ═══════════════════ %>
+    <div class="table-header" id="picks"><h3>Race Picks</h3></div>
+    <div class="elo-explanation">
         <p>
-            The leaderboard ranks players by <strong>Net P&amp;L</strong> &mdash; the profit or loss
-            generated from your starting capital. Everyone starts with the same capital, so whoever
-            generates the most value wins.
+            Before each race you order the drivers you think will finish in the top
+            <%= Fantasy::ScoreRacePicks::SCORING_TOP_N %>. Picks lock at lights out and are scored
+            on <em>how close</em> each call was, so a near miss is still worth something.
         </p>
 
-        <%# ═══ ACHIEVEMENTS ═══ %>
-        <div class="table-header"><h3>Achievements</h3></div>
-        <p>
-            Earn achievements by hitting milestones in your portfolio. There are three tiers:
-            <span style="color: #cd7f32;">Bronze</span>,
-            <span style="color: #c0c0c0;">Silver</span>, and
-            <span style="color: #ffd700;">Gold</span>.
-            Achievements are checked automatically after each race.
+        <div class="elo-results-grid elo-results-grid-3 guide-picks-grid">
+            <% [[0, "Exact position"], [1, "One place out"], [2, "Two places out"], [3, "Three places out"]].each do |distance, label| %>
+                <div class="elo-result-card">
+                    <div class="elo-result-label"><%= label %></div>
+                    <div class="elo-result-value"><%= Fantasy::ScoreRacePicks::POINTS_BY_DISTANCE[distance] %> pts</div>
+                </div>
+            <% end %>
+            <div class="elo-result-card">
+                <div class="elo-result-label">Perfect podium</div>
+                <div class="elo-result-value">+<%= Fantasy::ScoreRacePicks::PERFECT_PODIUM_BONUS %> pts</div>
+                <span class="elo-result-sub">All three, in the right order</span>
+            </div>
+            <div class="elo-result-card">
+                <div class="elo-result-label">Four or more out</div>
+                <div class="elo-result-value">0 pts</div>
+                <span class="elo-result-sub">No points below that</span>
+            </div>
+        </div>
+
+        <p class="guide-note">
+            <%= ui_icon "info", size: 14 %>
+            <span>No account yet? You can still build a set of picks &mdash; they're held for you and saved to your portfolio the moment you sign up.</span>
         </p>
     </div>
 
-    <%# Get Started %>
-    <div class="about-card card">
-        <div class="about-card-header">
-            <span class="about-card-icon"><i class="fa-solid fa-rocket"></i></span>
-            <h3>Ready to Play?</h3>
+    <%# ═══════════════════ Driver Cards ═══════════════════ %>
+    <div class="table-header" id="cards"><h3>Driver Cards</h3></div>
+    <div class="elo-explanation">
+        <p>
+            Get a position <strong>exactly</strong> right and you mint a collectible card for that driver.
+            Nothing else earns one &mdash; close doesn't count here. How hard the call was decides the tier.
+        </p>
+
+        <div class="guide-tier-ladder">
+            <% [
+                 ["bronze",    "P4–P10 called exactly", "The bread and butter"],
+                 ["silver",    "P2 or P3 called exactly",    "Podium precision"],
+                 ["gold",      "The winner called exactly",  "You saw it coming"],
+                 ["platinum",  "A winner who started outside the top #{DriverCards::ResolveTier::UPSET_GRID_THRESHOLD}", "You saw the upset coming"],
+                 ["legendary", "A #{(DriverCards::ResolveTier::BUMP_PROBABILITY * 100).round}% roll on a platinum", "Very few of these exist"]
+               ].each do |tier, how, note| %>
+                <div class="guide-tier guide-tier-<%= tier %>">
+                    <span class="guide-tier-name"><%= tier %></span>
+                    <span class="guide-tier-how"><%= how %></span>
+                    <span class="guide-tier-note"><%= note %></span>
+                </div>
+            <% end %>
         </div>
-        <div class="about-card-body">
-            <div class="about-links-row">
-                <% if user_signed_in? %>
-                    <% portfolio = current_user.fantasy_portfolio_for(Season.sorted_by_year.first) %>
-                    <% if portfolio %>
-                        <%= link_to fantasy_overview_path(current_user.username), class: "about-link about-link-primary" do %>
-                            <i class="fa-solid fa-briefcase"></i> My Portfolio
-                        <% end %>
-                    <% else %>
-                        <%= link_to new_fantasy_portfolio_path, class: "about-link about-link-primary" do %>
-                            <i class="fa-solid fa-plus"></i> Start Trading
-                        <% end %>
+
+        <p class="guide-note">
+            <%= ui_icon "card", size: 14 %>
+            <span>
+                Every card also rolls a <%= (DriverCards::ResolveTier::BUMP_PROBABILITY * 100).round %>% chance
+                of bumping one tier higher. And <%= DriverCards::Combine::REQUIRED_COUNT %> duplicates of the same
+                driver at the same tier can be combined into a single card one tier up.
+            </span>
+        </p>
+    </div>
+
+    <%# ═══════════════════ Head to Head ═══════════════════ %>
+    <div class="table-header" id="h2h"><h3>Head-to-Head</h3></div>
+    <div class="elo-explanation">
+        <p>
+            A run of one-question matchups: given two drivers, which do you rate higher? It takes a couple
+            of minutes, needs no account, and pays
+            <strong>+<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credits</strong> once per race weekend
+            if you have a portfolio.
+        </p>
+        <p>
+            Your answers aren't just a game. They feed the
+            <%= link_to "crowd ranking", head_to_head_results_path, class: "guide-inline-link" %> &mdash;
+            what the site's players collectively think of the grid, which is worth comparing against
+            <%= link_to "what Elo thinks", current_active_elo_drivers_path, class: "guide-inline-link" %>.
+            The two disagree more often than you'd expect.
+        </p>
+    </div>
+
+    <%# ═══════════════════ Allegiance + scoring ═══════════════════ %>
+    <div class="table-header" id="allegiance"><h3>Allegiance &amp; the leaderboard</h3></div>
+    <div class="elo-explanation">
+        <p>
+            Pick one constructor to back for the season and your name carries its colour on every
+            leaderboard and profile. It's locked until mid-season, so choose like you mean it.
+        </p>
+        <p>
+            The <%= link_to "leaderboard", combined_leaderboard_path, class: "guide-inline-link" %> ranks
+            everyone by <strong>net value</strong> &mdash; what you've made or lost against the same
+            starting capital everyone else got. Achievements are checked automatically after every race
+            across three tiers:
+            <span class="guide-tier-word guide-tier-word-bronze">bronze</span>,
+            <span class="guide-tier-word guide-tier-word-silver">silver</span> and
+            <span class="guide-tier-word guide-tier-word-gold">gold</span>.
+        </p>
+    </div>
+
+    <%# ═══════════════════ CTA ═══════════════════ %>
+    <div class="guide-cta card">
+        <div class="guide-cta-text">
+            <h2>Ready to play?</h2>
+            <p>The season's already running. You start with the same <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits as everyone else.</p>
+        </div>
+        <div class="guide-cta-actions">
+            <% if user_signed_in? %>
+                <% if signed_in_portfolio %>
+                    <%= link_to fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-primary" do %>
+                        <%= ui_icon "briefcase" %> My Portfolio
                     <% end %>
                 <% else %>
-                    <%= link_to new_user_session_path, class: "about-link about-link-primary" do %>
-                        <i class="fa-solid fa-right-to-bracket"></i> Sign In to Play
+                    <%= link_to new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                        <%= ui_icon "plus" %> Start Trading
                     <% end %>
                 <% end %>
-                <%= link_to combined_leaderboard_path, class: "about-link" do %>
-                    <i class="fa-solid fa-ranking-star"></i> Leaderboard
+            <% else %>
+                <%= link_to new_user_session_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                    <%= ui_icon "flag" %> Sign in to play
                 <% end %>
-            </div>
+            <% end %>
+            <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline" do %>
+                <%= ui_icon "podium" %> Leaderboard
+            <% end %>
         </div>
     </div>
 </div>

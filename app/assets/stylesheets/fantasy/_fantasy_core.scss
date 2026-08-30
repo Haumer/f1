@@ -1,24 +1,26 @@
 // Fantasy F1 Styles
 
-// Dashboard header (sticky below navbar)
+// ── Dashboard header ────────────────────────────────────────────────
+// Structurally identical to .page-hero-bar (label / title / actions) — the
+// fantasy pages just came by it via a different class name. Rather than
+// rewriting eight views, the class is restyled onto the shared page-title
+// ramp, so /leaderboard, /market, the portfolio and /settings introduce
+// themselves exactly like /stats and /drivers/grid do.
+//
+// It stays sticky (unlike .page-hero-bar) because these pages scroll long and
+// the header carries the primary actions.
 .fantasy-dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: $space-lg;
-    flex-wrap: wrap;
-    gap: 12px;
+    @include page-title-bar;
     position: sticky;
-    top: 49px; // below sticky navbar
+    top: $nav-height; // pins directly below the sticky navbar
     z-index: 50;
     background: rgba($bg-page, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 12px 0;
-    margin: -12px -16px $space-lg;
-    padding-left: 16px;
-    padding-right: 16px;
-    border-bottom: 1px solid $border-color;
+    margin: -12px -16px 26px;
+    padding: 14px 16px 13px;
+
+    &::after { @include page-title-bar-tick; }
 
     @media (min-width: 769px) {
         margin-left: 0;
@@ -32,16 +34,22 @@
     display: flex;
     align-items: center;
     min-width: 0;
+    flex: 1 1 300px;
 }
 
 .fantasy-dashboard-title {
     min-width: 0;
+    flex: 1 1 300px;
 
     h2 {
         margin: 0;
-        font-weight: $weight-bold;
-        font-size: 22px;
-        line-height: 1.15;
+        font-family: 'Formula1', sans-serif;
+        font-size: $type-page-title;
+        font-weight: 700;
+        letter-spacing: $ls-display;
+        line-height: $lh-tight;
+
+        @media (max-width: 768px) { font-size: 24px; }
     }
 }
 
@@ -53,19 +61,28 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 7px;
     flex-wrap: wrap;
 }
 
+// The season/context line above or below the title — the .page-hero-label slot.
 .fantasy-season {
-    font-size: 12px;
+    font-family: $mono-font;
+    font-size: $type-label;
     color: $text-tertiary;
     text-transform: uppercase;
     letter-spacing: $ls-label;
-    font-weight: $weight-semi;
+    font-weight: $weight-bold;
 
     strong { color: $text-primary; }
 }
+
+.fantasy-visibility-inline-form {
+    display: inline-flex;
+    align-items: center;
+}
+
+.fantasy-header-actions { @include page-title-bar-actions; }
 
 .fantasy-team-chip {
     --team-color: #{$border-color};
@@ -572,4 +589,77 @@
 
     &-sm { padding: 4px 12px; font-size: 12px; }
     &-lg { padding: 12px 28px; font-size: 15px; }
+}
+
+// ═══════════════════════════════════════
+// SEASON LOG
+// Picks / cards / activity / achievements in one tabbed panel instead of four
+// stacked full-width sections. Every label stays visible, so nothing is less
+// discoverable than it was — but the page stops being a 3,500px scroll where
+// March's achievements carry the same weight as this weekend's positions.
+// ═══════════════════════════════════════
+
+.fantasy-log {
+    margin-top: 32px;
+
+    @media (max-width: 600px) { margin-top: 26px; }
+}
+
+.fantasy-log-tabs {
+    // Phones: let the tab row scroll rather than wrap into a ragged block.
+    @media (max-width: 640px) {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        &::-webkit-scrollbar { display: none; }
+
+        .table-tab { white-space: nowrap; flex: none; }
+    }
+}
+
+// The count that rides on a tab label ("8", "15/25").
+.table-tab-count {
+    display: inline-block;
+    margin-left: 7px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    font-family: $mono-font;
+    font-size: 10px;
+    font-weight: $weight-bold;
+    color: $text-tertiary;
+    vertical-align: 1px;
+
+    .table-tab.active & {
+        background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.16);
+        color: var(--page-accent, $accent-red);
+    }
+}
+
+.fantasy-log-panel {
+    padding-top: 4px;
+}
+
+// Light toolbar for the controls that used to live in each section's header
+// (best pick, edit picks, view collection). No title — the tab is the title.
+.fantasy-log-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 14px;
+    min-height: 24px;
+
+    &-end {
+        justify-content: flex-end;
+        margin: 14px 0 0;
+    }
+}
+
+.fantasy-log-toolbar-note {
+    margin-right: auto;
+    font-size: $type-small;
+    color: $text-tertiary;
 }

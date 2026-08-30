@@ -23,7 +23,12 @@
                 </span>
                 <div class="badge-group-info">
                     <h4 class="badge-group-title"><%= group[:label] %></h4>
-                    <span class="badge-group-count"><%= group[:badges].size %> driver<%= group[:badges].size == 1 ? "" : "s" %></span>
+                    <%# Count DRIVERS, not badges. Every other group holds one
+                        badge per driver so the two agree, but Circuit Kings is
+                        merged across circuits — it read "58 drivers" for 58
+                        badges held by 9 people. %>
+                    <% driver_count = group[:badges].map(&:driver_id).uniq.size %>
+                    <span class="badge-group-count"><%= driver_count %> driver<%= driver_count == 1 ? "" : "s" %></span>
                 </div>
             </div>
             <div class="badge-group-list">

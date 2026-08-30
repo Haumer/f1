@@ -94,8 +94,22 @@ class DriversController < ApplicationController
     new_elo_col = Setting.elo_column(:new_elo).to_sym
     threshold = 2450
     @drivers = Driver.where("#{peak_col} > ?", threshold).order(peak_col => :desc)
-    @race_results = Driver.elite.includes(race_results: { race: :circuit, constructor: [] }).map { |driver| driver.race_results.max_by(&new_elo_col) }.compact.sort_by { |rr| -rr.send(new_elo_col) }
-    @peak_race_by_driver = @race_results.index_by(&:driver_id)
+
+    # The race where each listed driver hit their peak, for the Race/Year/logo
+    # columns. This has to be keyed off @drivers — the set the table actually
+    # renders. It used to read Driver.elite, i.e. where(skill: 'elite'), which
+    # matches nothing at all (skill is NULL for every driver), so all three
+    # columns were blank for every row.
+    #
+    # DISTINCT ON picks the single highest-Elo result per driver in one query,
+    # rather than loading every race_result for 50 drivers and max_by-ing in Ruby.
+    @peak_race_by_driver = RaceResult
+      .where(driver_id: @drivers.select(:id))
+      .where.not(new_elo_col => nil)
+      .select("DISTINCT ON (race_results.driver_id) race_results.*")
+      .order("race_results.driver_id, race_results.#{new_elo_col} DESC")
+      .includes(:constructor, race: :circuit)
+      .index_by(&:driver_id)
   end
 
   def current_active_elo

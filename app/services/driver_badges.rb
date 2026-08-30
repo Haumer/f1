@@ -150,17 +150,21 @@ class DriverBadges
       win_count = results.size
       next unless win_count >= 3
 
-      top_winners = RaceResult.joins(:race)
+      # "King" has to mean the most wins here, so only the leader earns it —
+      # ties included, since two drivers genuinely can share the record.
+      # This previously took the top THREE winners (limit(3) + rank < 3), which
+      # crowned up to three Kings of the same circuit and handed the badge to
+      # drivers with fewer wins than another holder — e.g. Vettel was "King"
+      # on 3 wins at a circuit where Hamilton and Verstappen each had 5.
+      most_wins = RaceResult.joins(:race)
         .where(races: { circuit_id: circuit.id }, position_order: 1)
         .where("EXTRACT(YEAR FROM races.date) >= ?", @min_year)
         .group(:driver_id)
-        .order("count_all DESC")
-        .limit(3)
         .count
+        .values
+        .max
 
-      sorted = top_winners.sort_by { |_, count| -count }
-      rank = sorted.index { |did, _| did == @driver.id }
-      next unless rank && rank < 3
+      next unless most_wins && win_count >= most_wins
 
       add_badge(:"circuit_king_#{circuit.id}",
         label: "King of #{circuit.name}", description: "#{win_count} wins at #{circuit.name}",

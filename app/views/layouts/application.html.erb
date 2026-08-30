@@ -69,8 +69,8 @@
         <button class="flash-dismiss" data-action="click->flash#dismiss">&times;</button>
       </div>
     <% end %>
+    <%= render 'components/navbar' %>
     <div class="container py-3">
-      <%= render 'components/navbar' %>
       <main><%= yield %></main>
     </div>
     <footer class="site-footer">
