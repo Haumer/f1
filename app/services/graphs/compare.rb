@@ -49,6 +49,14 @@ class Graphs::Compare
             backgroundColor: 'transparent',
             xAxis: { type: 'category', data: @races.map { |r| race_x_label(r) } },
             yAxis: { type: 'value', min: 1500 },
+            # Room on the right for the endLabels below, which sit 20px past the
+            # last point. Without this the default grid clipped them mid-number
+            # — "M.Verstappen (2" — on the most prominent figure on the page.
+            # left has to clear half the first category label — containLabel
+            # reserves space for the axis but still lets an end label centred on
+            # the first tick spill past the edge ("Zandvoort" rendered as
+            # "ndvoort"). right clears the endLabels, which sit 20px out.
+            grid: { left: 60, right: 150, bottom: 90, containLabel: true },
             series: series,
             legend: { show: true },
             toolbox: { show: true },

@@ -1,4 +1,4 @@
-<% content_for(:title) { "@#{@user.username} — F1 Elo" } %>
+<% content_for(:title) { "@#{@user.username}" } %>
 <% content_for(:description) { "#{@user.username}'s F1 fantasy portfolio, picks, and rankings on F1 Elo." } %>
 
 <div class="homepage-container profile-page" style="<%= "--page-accent: #{@team_color}; --page-accent-rgb: #{@team_color ? hex_to_rgb(@team_color) : '225,6,0'};" if @team_color %>">

@@ -6,7 +6,7 @@
         <div class="page-hero-content">
             <span class="page-hero-label">Explore</span>
             <h1 class="page-hero-title">Stats Hub</h1>
-            <p class="page-hero-meta">Rankings, records, and achievements across 75 years of Formula 1</p>
+            <p class="page-hero-meta">Rankings, records, and achievements across <%= seasons_covered %> seasons of Formula 1</p>
         </div>
     </div>
 
@@ -78,7 +78,7 @@
             <div class="stats-hub-icon"><%= ui_icon "calendar", size: 18 %></div>
             <div class="stats-hub-info">
                 <span class="stats-hub-title">Champion Timeline</span>
-                <span class="stats-hub-desc">75 years of champions and dominance streaks</span>
+                <span class="stats-hub-desc">Every champion since 1950 and their dominance streaks</span>
             </div>
         <% end %>
         <%= link_to title_chase_path, class: "card stats-hub-card" do %>
@@ -139,7 +139,7 @@
             <div class="stats-hub-icon"><%= ui_icon "coins", size: 18 %></div>
             <div class="stats-hub-info">
                 <span class="stats-hub-title">Fan Standings</span>
-                <span class="stats-hub-desc">Constructor support leaderboard</span>
+                <span class="stats-hub-desc">Which drivers and teams the community actually backs</span>
             </div>
         <% end %>
     </div>

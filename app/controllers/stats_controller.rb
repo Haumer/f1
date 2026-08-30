@@ -26,11 +26,19 @@ class StatsController < ApplicationController
                   .limit(10)
                   .includes(:driver, :constructor, race: :circuit)
 
-    # Highest Elo entering a race
-    @highest_entering = RaceResult.where.not(old_elo_col => nil)
-                     .order(old_elo_col => :desc)
-                     .limit(10)
-                     .includes(:driver, :constructor, race: :circuit)
+    # Highest Elo entering a race — one row per driver, their own highest.
+    # Sorting raw results returned Verstappen 8 times out of 10 (rows 1-3 were
+    # three consecutive 2024 races), because Elo barely moves race to race.
+    @highest_entering = RaceResult
+      .from(
+        RaceResult.where.not(old_elo_col => nil)
+          .select("DISTINCT ON (race_results.driver_id) race_results.*")
+          .order("race_results.driver_id, race_results.#{old_elo_col} DESC"),
+        :race_results
+      )
+      .order(old_elo_col => :desc)
+      .limit(10)
+      .includes(:driver, :constructor, race: :circuit)
 
     # Fastest risers: biggest Elo gain in first 20 races
     @fastest_risers = compute_fastest_risers(new_elo_col, old_elo_col)
@@ -143,7 +151,7 @@ class StatsController < ApplicationController
     if circuit_kings.any?
       merged = {
         key: "circuit_king",
-        label: "King of [Circuit]",
+        label: "Circuit Kings",
         icon: "fa-solid fa-crown",
         color: "gold",
         badges: circuit_kings.flat_map { |g| g[:badges] }.sort_by { |b| -b.value.to_i }

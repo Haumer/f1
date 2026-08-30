@@ -61,6 +61,14 @@ module ApplicationHelper
         Constructor::COLORS[constructor&.constructor_ref&.to_sym] || "#6c757d"
     end
 
+    # Number of seasons the site has data for. Copy used to hardcode "75 years
+    # of Formula 1" in three places; it was 77 by the time anyone looked, and a
+    # hardcoded count goes stale every January. Cached for the process — the
+    # season list changes once a year.
+    def seasons_covered
+        @seasons_covered ||= Rails.cache.fetch("seasons_covered", expires_in: 12.hours) { Season.count }
+    end
+
     def flag_image(driver_or_country, size: 24)
         country = driver_or_country.respond_to?(:country) ? driver_or_country.country : driver_or_country
         return "" unless country&.respond_to?(:two_letter_country_code)

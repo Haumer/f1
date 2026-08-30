@@ -2,8 +2,20 @@ module Graphs
   module Base
     private
 
+    # Axis label for a race. Titleizing the ref rather than printing it raw is
+    # the whole point here — this used to emit "red_bull_ring Aug 16, 1981",
+    # a database slug, on the x-axis of every Elo chart in the app while the
+    # tooltip beside it said "Red Bull Ring".
+    #
+    # Deliberately NOT circuit.name: those run to 37 characters ("Autodromo
+    # Enzo e Dino Ferrari") and this is a rotated category label. Every one of
+    # the 78 refs titleizes cleanly, longest 14 chars.
+    #
+    # Callers also use the return value as an echarts category KEY (markPoint
+    # coords, markLine xAxis), so the format has to stay identical across all
+    # of them — change it here, not at a call site.
     def race_x_label(race)
-      "#{race.circuit.circuit_ref} #{race.date.strftime("%b %d, %Y")}"
+      "#{race.circuit.circuit_ref.titleize} #{race.date.strftime("%b %d, %Y")}"
     end
 
     def ordinalize(n)
