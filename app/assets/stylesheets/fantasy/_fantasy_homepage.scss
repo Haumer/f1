@@ -409,19 +409,29 @@
     gap: 11px;
     min-width: 0;
 
-    strong {
-        display: block;
-        margin-bottom: 3px;
-        font-size: 14px;
-        font-weight: $weight-bold;
-        color: $text-primary;
-    }
+    // Scoped to the text column on purpose. A bare `span` here is (0,1,1) and
+    // outranks .fantasy-pitch-icon (0,1,0), so it was styling the icon span
+    // too: display:block killed its flex centering and pinned the glyph to the
+    // tile's top-left corner, and $text-secondary overrode the accent colour —
+    // grey icons on an accent-tinted tile. The icon is a sibling of this div,
+    // so the child combinator keeps them apart.
+    > div {
+        min-width: 0;
 
-    span {
-        display: block;
-        font-size: 12.5px;
-        line-height: 1.5;
-        color: $text-secondary;
+        strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 14px;
+            font-weight: $weight-bold;
+            color: $text-primary;
+        }
+
+        span {
+            display: block;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: $text-secondary;
+        }
     }
 }
 
