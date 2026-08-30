@@ -11,7 +11,7 @@ module Stats
         FALLBACK_SPRINT_WIN = 0
 
         Row = Struct.new(:driver, :position, :current, :max_possible, :behind, :alive, :status, keyword_init: true)
-        MatrixRow = Struct.new(:driver, :need_if_leader_max, :need_if_leader_avg, :need_if_leader_zero, keyword_init: true)
+        MatrixRow = Struct.new(:driver, :best_case, :leader_cap, :leader_max_position, :swing_per_round, keyword_init: true)
 
         def initialize(season:)
             @season = season
@@ -152,33 +152,58 @@ module Stats
             nil
         end
 
-        # For each alive non-leader driver, compute the average points per remaining
-        # race they'd need under three leader scenarios: leader scores 0, leader scores
-        # at their current per-race average, leader scores max for every remaining race.
+        # For each alive challenger: their best possible finish (win every remaining
+        # race and sprint), and — given that — the worst the leader is allowed to
+        # finish, expressed as a position on the actual points ladder.
+        #
+        # This replaces a three-column "average points per race" matrix. That was
+        # unusable for two reasons. Its headline column ("if the leader maxes")
+        # is impossible by construction — if the leader wins out, nobody behind
+        # can catch them, so every cell in it was a target no one could ever hit.
+        # And the remaining cells were decimals like 24.5, while the ladder only
+        # pays 25/18/15/12/10/8/6/4/2/1. There is no finish worth 24.5, so the
+        # number couldn't be turned into anything a reader could picture.
         def build_matrix(rows, leader_standing, remaining_main, remaining_sprint)
             return [] if remaining_main.zero?
-            max_extra = remaining_main * @race_win + remaining_sprint * @sprint_win
-            leader_current = leader_standing.points.to_f
-            completed_main = (@season.races.count - remaining_main).to_f
-            leader_avg_per_race = completed_main.positive? ? leader_current / completed_main : 0.0
 
-            leader_max      = leader_current + max_extra
-            leader_avg_end  = leader_current + leader_avg_per_race * remaining_main
-            leader_zero_end = leader_current
+            race_ladder   = points_ladder(@points&.race_points, @race_win)
+            sprint_ladder = points_ladder(@points&.sprint_points, @sprint_win)
+            leader_current = leader_standing.points.to_i
 
             rows.select { |r| r.status == :alive }.map do |r|
+                # Ceiling for this challenger: P1 in every remaining race AND sprint.
+                best_case = r.current + remaining_main * @race_win + remaining_sprint * @sprint_win
+
+                # Most the leader can still score and lose. Strict — matching the
+                # magic-number convention above, a tie is not an overtake.
+                cap = best_case - leader_current - 1
+
+                # Walk the ladder for the best finish the leader could repeat every
+                # round and still fall short. Sprints count: if the challenger is
+                # winning everything the leader is picking up sprint points too, and
+                # ignoring them would flatter the challenger.
+                position = race_ladder.keys.sort.find do |pos|
+                    (race_ladder[pos] * remaining_main) + (sprint_ladder.fetch(pos, 0) * remaining_sprint) <= cap
+                end
+
                 MatrixRow.new(
-                    driver:               r.driver,
-                    need_if_leader_max:   per_race(leader_max - r.current, remaining_main),
-                    need_if_leader_avg:   per_race(leader_avg_end - r.current, remaining_main),
-                    need_if_leader_zero:  per_race(leader_zero_end - r.current, remaining_main)
+                    driver:              r.driver,
+                    best_case:           best_case,
+                    leader_cap:          cap,
+                    leader_max_position: position,
+                    # Average margin per round the challenger must take out of the
+                    # leader — "finish this far ahead, every round".
+                    swing_per_round:     ((r.behind + 1) / remaining_main.to_f).round(1)
                 )
             end
         end
 
-        def per_race(total_needed, races_left)
-            return 0.0 if races_left.zero?
-            [total_needed.to_f / races_left, 0.0].max.round(1)
+        # Position => points, integer-keyed. PointsSystem stores string keys; a
+        # season with no configured ladder falls back to a winner-takes-all shape
+        # so the caller still gets a usable (if crude) answer rather than nil.
+        def points_ladder(raw, winner_value)
+            return { 1 => winner_value } if raw.blank?
+            raw.to_h { |pos, val| [pos.to_i, val.to_i] }
         end
     end
 end

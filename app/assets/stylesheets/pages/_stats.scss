@@ -165,3 +165,12 @@
 .title-chase-badge-leader     { background: rgba(240, 200, 80, 0.16); color: $gold; }
 .title-chase-badge-alive      { background: rgba(0, 210, 106, 0.16); color: $green; }
 .title-chase-badge-eliminated { background: rgba(138, 138, 154, 0.12); color: $gray; }
+
+// The "leader must average P2 or worse" cell. This is the sentence the table
+// exists to deliver, so it reads as a value rather than body copy — but stays
+// monospace-adjacent in weight so a column of them scans as a gradient.
+.title-chase-need {
+    font-weight: $weight-semi;
+    color: $text-primary;
+    white-space: nowrap;
+}

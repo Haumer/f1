@@ -167,25 +167,34 @@
                     <thead>
                         <tr>
                             <th>Driver</th>
-                            <th class="text-right" title="Pts/race needed if leader maxes every remaining race">If <%= @chase[:leader].surname %> maxes</th>
-                            <th class="text-right d-none d-sm-table-cell" title="Pts/race needed if leader keeps current pace">If leader holds pace</th>
-                            <th class="text-right d-none d-sm-table-cell" title="Pts/race needed if leader scores zero rest of season">If leader scores 0</th>
+                            <th class="text-right" title="Their total if they win every remaining race and sprint">Wins out</th>
+                            <th title="The best <%= @chase[:leader].surname %> could average every round and still be caught">Then <%= @chase[:leader].surname %> must average</th>
+                            <th class="text-right d-none d-sm-table-cell" title="Average points per round the challenger must take out of the leader">Margin needed</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% @chase[:matrix].each do |m| %>
                             <tr>
                                 <td><%= link_to "#{m.driver.forename.first}. #{m.driver.surname}", driver_path(m.driver) %></td>
-                                <td class="text-right"><%= number_with_precision(m.need_if_leader_max, precision: 1) %></td>
-                                <td class="text-right d-none d-sm-table-cell"><%= number_with_precision(m.need_if_leader_avg, precision: 1) %></td>
-                                <td class="text-right d-none d-sm-table-cell"><%= number_with_precision(m.need_if_leader_zero, precision: 1) %></td>
+                                <td class="text-right"><strong><%= number_with_delimiter(m.best_case) %></strong></td>
+                                <td>
+                                    <% if m.leader_max_position %>
+                                        <span class="title-chase-need">P<%= m.leader_max_position %> or worse</span>
+                                    <% else %>
+                                        <span class="title-chase-need">outside the points</span>
+                                    <% end %>
+                                </td>
+                                <td class="text-right d-none d-sm-table-cell">+<%= number_with_precision(m.swing_per_round, precision: 1) %> / round</td>
                             </tr>
                         <% end %>
                     </tbody>
                 </table>
                 </div>
             </div>
-            <span class="data-source">Avg points per remaining race the challenger needs to overtake. Max per race = <%= @chase[:race_win] + @chase[:sprint_win] %>.</span>
+            <span class="data-source">
+                "Wins out" = P1 in all <%= pluralize(@chase[:remaining_races], "remaining round") %><%= ", plus #{pluralize(@chase[:remaining_sprints], 'sprint')}" if @chase[:remaining_sprints].to_i.positive? %>.
+                The position shown is the best <%= @chase[:leader].surname %> could average and still lose the title — sprint points included.
+            </span>
         <% end %>
     <% end %>
 </div>
