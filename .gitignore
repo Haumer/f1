@@ -46,3 +46,6 @@ claude_previews.md
 /PREDICTIONS/
 .gstack/
 .playwright-mcp/
+
+# Walkthrough runs — local-only QA records, never ship to GitHub or prod
+/walkthroughs/
