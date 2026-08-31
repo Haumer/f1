@@ -1,7 +1,22 @@
-# Computes title-race state for a season: leader, "magic number" to clinch,
-# alive/eliminated drivers, max possible points per driver, and a small
-# per-driver pace matrix showing what each alive challenger would need to score
-# under three leader scenarios (zero, current pace, max).
+# Computes title-race state for a season: the leader, how many points the leader
+# still needs to clinch, how much is left on the table, each driver's ceiling,
+# and — for anyone still in it — the worst the leader could finish and still lose.
+#
+# Drivers fall into four states rather than the obvious two:
+#
+#   :leader      — top of the standings
+#   :contention  — can still finish ahead of where the leader's CURRENT scoring
+#                  rate would put them. A live threat on present form.
+#   :alive       — mathematically possible, but only if the leader drops below
+#                  the rate they have managed so far.
+#   :eliminated  — cannot catch the leader even by winning everything left.
+#
+# The middle split exists because alive/eliminated on its own says nothing for
+# most of a season: across 2021, 2024 and 2025 the first mathematical
+# elimination fell on round 14 every time, so the column held one value for
+# 54-59% of the year and then saturated within a few rounds. Comparing against
+# the leader's projected pace separates the field from round 1-5 instead, and
+# costs nothing but arithmetic.
 #
 # For past seasons we detect the round at which the champion mathematically
 # clinched and the margin they had at that moment.
@@ -34,17 +49,39 @@ module Stats
             max_extra = remaining_main * @race_win + remaining_sprint * @sprint_win
 
             leader = standings.first
+
+            # Where the leader lands if they simply carry on at their current
+            # scoring rate. This is what separates "still a threat" from
+            # "needs the leader to fall apart".
+            #
+            # A pure alive/eliminated binary is degenerate for most of a season:
+            # measured across 2021, 2024 and 2025, the first mathematical
+            # elimination landed on round 14 every time, so the column showed a
+            # single value for 54-59% of the year and then saturated. Splitting
+            # "alive" against the leader's projected pace differentiates from
+            # round 1-5 instead, using nothing but arithmetic.
+            completed_main = @season.races.count - remaining_main
+            leader_projected =
+                if completed_main.positive?
+                    leader.points + (leader.points.to_f / completed_main) * remaining_main
+                else
+                    leader.points.to_f
+                end
+
             rows = standings.map do |s|
+                ceiling = s.points + max_extra
                 # Strict ">" — a chaser whose max EQUALS the leader's current can
                 # only tie, never overtake on points alone. Without tiebreakers in
                 # v1 we treat that as eliminated.
                 status =
                     if s.driver_id == leader.driver_id
                         :leader
-                    elsif (s.points + max_extra) > leader.points
-                        :alive
-                    else
+                    elsif ceiling <= leader.points
                         :eliminated
+                    elsif ceiling > leader_projected
+                        :contention   # can still win without the leader dropping off
+                    else
+                        :alive        # only wins if the leader scores below current form
                     end
                 Row.new(
                     driver:       s.driver,
@@ -81,6 +118,12 @@ module Stats
                 remaining_races:  remaining_main,
                 remaining_sprints: remaining_sprint,
                 race_win:         @race_win,
+                # Total still on the table. The page used to show "max per round"
+                # instead, which invited remaining_rounds x that number — 11 x 33
+                # = 363 against a true 291, because only 2 of the 11 rounds carry
+                # a sprint. Publishing the real total removes the trap and gives
+                # the magic number something to be measured against.
+                points_available: max_extra.to_i,
                 sprint_win:       @sprint_win,
                 rows:             rows,
                 matrix:           build_matrix(rows, leader, remaining_main, remaining_sprint),
@@ -91,7 +134,7 @@ module Stats
         private
 
         def blank
-            { season: @season, leader: nil, rows: [], matrix: [],
+            { season: @season, leader: nil, rows: [], matrix: [], points_available: nil,
               magic_number: nil, clinched: false, clinch: nil,
               remaining_races: nil, remaining_sprints: nil, message: nil }
         end
@@ -170,7 +213,10 @@ module Stats
             sprint_ladder = points_ladder(@points&.sprint_points, @sprint_win)
             leader_current = leader_standing.points.to_i
 
-            rows.select { |r| r.status == :alive }.map do |r|
+            # Both live states, not just :alive — :contention was split out of
+            # :alive above, and filtering on :alive alone silently dropped the
+            # only drivers anyone cares about from their own table.
+            rows.select { |r| %i[contention alive].include?(r.status) }.map do |r|
                 # Ceiling for this challenger: P1 in every remaining race AND sprint.
                 best_case = r.current + remaining_main * @race_win + remaining_sprint * @sprint_win
 

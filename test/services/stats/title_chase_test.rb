@@ -84,6 +84,39 @@ module Stats
       assert_equal :eliminated, nor.status
     end
 
+    test "splits live challengers by whether they need the leader to drop off" do
+      # Fixture: 1 round done, 1 to go. VER 25, NOR 18, PIA 12, max extra 25.
+      # Leader is scoring 25/round, so projected final = 50.
+      #   NOR ceiling 43 -> below 50, can only win if VER scores under his rate.
+      # Push LEC above the projection to prove the other branch fires.
+      DriverStanding.find_by(race_id: races(:bahrain_2026).id, driver_id: drivers(:leclerc).id)
+                    .update!(points: 26)
+
+      result = TitleChase.new(season: @season).call
+      by = result[:rows].to_h { |r| [r.driver, r.status] }
+
+      assert_equal :contention, by[drivers(:leclerc)],
+        "ceiling 26+25=51 clears the leader's projected 50 — a threat on current form"
+      assert_equal :alive, by[drivers(:norris)],
+        "ceiling 43 falls short of the projected 50 — only wins if the leader slips"
+      assert_equal :leader, by[drivers(:verstappen)]
+    end
+
+    test "matrix covers both live states, not just the ones needing a slip" do
+      # Regression: :contention was split out of :alive, and build_matrix kept
+      # filtering on :alive alone — which dropped the actual contenders from
+      # the table built for them.
+      DriverStanding.find_by(race_id: races(:bahrain_2026).id, driver_id: drivers(:leclerc).id)
+                    .update!(points: 26)
+
+      result = TitleChase.new(season: @season).call
+      drivers_in_matrix = result[:matrix].map(&:driver)
+
+      assert_includes drivers_in_matrix, drivers(:leclerc), "in-contention driver must appear"
+      assert_includes drivers_in_matrix, drivers(:norris),  "needs-a-slip driver must appear"
+      assert_not_includes drivers_in_matrix, drivers(:verstappen), "the leader is not a challenger"
+    end
+
     test "matrix translates the gap into the worst finish the leader can afford" do
       # A real ladder, so the position lookup has something to walk. Created here
       # rather than as a fixture because the other tests in this file rely on

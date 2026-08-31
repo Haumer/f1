@@ -163,7 +163,11 @@
     letter-spacing: 0.04em;
 }
 .title-chase-badge-leader     { background: rgba(240, 200, 80, 0.16); color: $gold; }
-.title-chase-badge-alive      { background: rgba(0, 210, 106, 0.16); color: $green; }
+// Green = a live threat on current form. Amber = alive only in principle.
+// The old binary painted both of these green, which is why 21 of 21 drivers
+// read as equally dangerous.
+.title-chase-badge-contention { background: rgba(0, 210, 106, 0.16); color: $green; }
+.title-chase-badge-alive      { background: rgba(240, 200, 80, 0.14); color: $gold; }
 .title-chase-badge-eliminated { background: rgba(138, 138, 154, 0.12); color: $gray; }
 
 // The "leader must average P2 or worse" cell. This is the sentence the table
@@ -173,4 +177,22 @@
     font-weight: $weight-semi;
     color: $text-primary;
     white-space: nowrap;
+}
+
+// One-sentence primer under the title. Deliberately quiet — it is scaffolding
+// for a first-time reader, not something a returning visitor should re-read.
+.title-chase-primer {
+    max-width: 620px;
+    margin: 10px auto 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: $text-tertiary;
+    em { color: $text-secondary; font-style: normal; font-weight: $weight-semi; }
+}
+
+// The summary row standing in for challengers who are only alive on paper.
+.title-chase-row-rest td {
+    color: $text-tertiary;
+    font-size: 12.5px;
+    font-style: italic;
 }

@@ -1,5 +1,5 @@
 <% content_for(:title) { "Title Chase — #{@season&.year}" } %>
-<% content_for(:description) { "Magic numbers, alive vs eliminated drivers, and what each challenger needs to overtake the leader in the F1 #{@season&.year} World Drivers' Championship." } %>
+<% content_for(:description) { "Who can still win the F1 #{@season&.year} World Drivers' Championship — points needed to clinch, who is genuinely in contention, and what each challenger needs the leader to do." } %>
 
 <div class="homepage-container">
     <div class="page-back-link">
@@ -15,10 +15,25 @@
             <h1 class="page-hero-title">Title Chase</h1>
             <p class="page-hero-meta">
                 <% if @chase[:remaining_races] %>
-                    <%= @chase[:remaining_races] %> race<%= 's' unless @chase[:remaining_races] == 1 %> remaining
-                    <% if @chase[:remaining_sprints]&.positive? %>· <%= @chase[:remaining_sprints] %> sprint<%= 's' unless @chase[:remaining_sprints] == 1 %><% end %>
+                    <%= pluralize(@chase[:remaining_races], "round") %> remaining
+                    <% if @chase[:remaining_sprints]&.positive? %>
+                        · <%= @chase[:remaining_sprints] %> of them with a sprint
+                    <% end %>
                 <% end %>
             </p>
+            <%# The premise. Everything below is points arithmetic, and a reader
+                who has never followed the sport has no way to know that a
+                championship is decided on accumulated points, nor what a round
+                is worth. One sentence, stated once. %>
+            <% if @chase[:leader] && @chase[:remaining_races]&.positive? %>
+                <p class="title-chase-primer">
+                    The championship goes to whoever has the most points at the end of the season.
+                    A round pays <%= @chase[:race_win] %> for a win down to 1 for
+                    <%= @chase[:race_win] == 25 ? "10th" : "the last points place" %><% if @chase[:sprint_win].positive? %>,
+                    and a <em>sprint</em> is a short extra race held on some weekends, worth up to
+                    <%= @chase[:sprint_win] %> more<% end %>.
+                </p>
+            <% end %>
         </div>
     </div>
 
@@ -72,16 +87,27 @@
                         <div class="title-chase-hero-sub"><%= @chase[:leader_points].to_i %> pts</div>
                     </div>
                     <div>
-                        <div class="title-chase-hero-label">Magic Number</div>
+                        <div class="title-chase-hero-label">To clinch</div>
                         <div class="title-chase-hero-name"><%= @chase[:magic_number] %></div>
-                        <div class="title-chase-hero-sub">net pts to clinch</div>
+                        <%# Anchored against what is actually left, so the number
+                            can be judged. On its own "242" is unreadable — you
+                            cannot tell whether it is a formality or a stretch. %>
+                        <div class="title-chase-hero-sub">
+                            of <%= @chase[:points_available] %> pts <%= @chase[:leader].surname %> can still score
+                        </div>
                     </div>
                     <div>
-                        <div class="title-chase-hero-label">Max per round</div>
-                        <div class="title-chase-hero-name"><%= @chase[:race_win] + @chase[:sprint_win] %></div>
+                        <%# This slot used to hold "max per round: 33", which
+                            invited remaining_rounds x 33 = 363 against a true
+                            291 — only 2 of the 11 rounds carry a sprint. The
+                            291 now anchors the clinch figure beside it, and
+                            this card carries something the page never said:
+                            how many of the field are actually a threat. %>
+                        <% in_play = @chase[:rows].count { |r| r.status == :contention } %>
+                        <div class="title-chase-hero-label">Genuine threats</div>
+                        <div class="title-chase-hero-name"><%= in_play %></div>
                         <div class="title-chase-hero-sub">
-                            <%= @chase[:race_win] %> race
-                            <% if @chase[:sprint_win].positive? %>+ <%= @chase[:sprint_win] %> sprint<% end %>
+                            of <%= @chase[:rows].size - 1 %> challengers, on current form
                         </div>
                     </div>
                 </div>
@@ -116,7 +142,7 @@
 
         <%# Standings: alive vs eliminated %>
         <div class="table-header" style="margin-top: 16px;">
-            <h4><i class="fa-solid fa-list-ol" style="margin-right: 6px;"></i> Standings — alive vs eliminated</h4>
+            <h4><i class="fa-solid fa-list-ol" style="margin-right: 6px;"></i> Standings — who can still win it</h4>
         </div>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
@@ -125,9 +151,9 @@
                     <tr>
                         <th class="text-center">#</th>
                         <th>Driver</th>
-                        <th class="text-right">Pts</th>
-                        <th class="text-right d-none d-sm-table-cell">Max</th>
-                        <th class="text-right d-none d-sm-table-cell">Behind</th>
+                        <th class="text-right" title="Points scored so far this season">Pts</th>
+                        <th class="text-right d-none d-sm-table-cell" title="The most they could possibly finish on — current points plus everything still available">Max</th>
+                        <th class="text-right d-none d-sm-table-cell" title="Points behind the leader right now">Behind</th>
                         <th class="text-center">Status</th>
                     </tr>
                 </thead>
@@ -143,8 +169,10 @@
                                 <% case r.status
                                    when :leader %>
                                     <span class="title-chase-badge title-chase-badge-leader"><%= @chase[:clinched] ? 'Champion' : 'Leader' %></span>
+                                <% when :contention %>
+                                    <span class="title-chase-badge title-chase-badge-contention" title="Can still finish ahead of the leader without the leader dropping below their current scoring rate">In contention</span>
                                 <% when :alive %>
-                                    <span class="title-chase-badge title-chase-badge-alive">Alive</span>
+                                    <span class="title-chase-badge title-chase-badge-alive" title="Still mathematically possible, but only if <%= @chase[:leader].surname %> scores below the rate they have managed so far">Needs a slip</span>
                                 <% when :eliminated %>
                                     <span class="title-chase-badge title-chase-badge-eliminated">Eliminated</span>
                                 <% end %>
@@ -157,7 +185,8 @@
         </div>
 
         <%# Elimination matrix — alive challengers' required pace %>
-        <% if @chase[:matrix].any? %>
+        <% any_contenders = @chase[:rows].any? { |r| r.status == :contention } %>
+        <% if @chase[:matrix].any? && any_contenders %>
             <div class="table-header" style="margin-top: 16px;">
                 <h4><i class="fa-solid fa-route" style="margin-right: 6px;"></i> What each challenger needs</h4>
             </div>
@@ -167,13 +196,20 @@
                     <thead>
                         <tr>
                             <th>Driver</th>
-                            <th class="text-right" title="Their total if they win every remaining race and sprint">Wins out</th>
+                            <th class="text-right" title="Their total if they win every remaining race and sprint">If they win out</th>
                             <th title="The best <%= @chase[:leader].surname %> could average every round and still be caught">Then <%= @chase[:leader].surname %> must average</th>
                             <th class="text-right d-none d-sm-table-cell" title="Average points per round the challenger must take out of the leader">Margin needed</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% @chase[:matrix].each do |m| %>
+                        <%# Only drivers who are a threat on the leader's current
+                            form get a row. Listing every mathematically-alive
+                            driver produced 21 rows of which 11 said "P7 or worse"
+                            — the same answer repeated for people on 0 points. The
+                            rest are summarised in one line below the table. %>
+                        <% contenders = @chase[:rows].select { |r| r.status == :contention }.map(&:driver) %>
+                        <% shown, hidden = @chase[:matrix].partition { |m| contenders.include?(m.driver) } %>
+                        <% shown.each do |m| %>
                             <tr>
                                 <td><%= link_to "#{m.driver.forename.first}. #{m.driver.surname}", driver_path(m.driver) %></td>
                                 <td class="text-right"><strong><%= number_with_delimiter(m.best_case) %></strong></td>
@@ -187,12 +223,21 @@
                                 <td class="text-right d-none d-sm-table-cell">+<%= number_with_precision(m.swing_per_round, precision: 1) %> / round</td>
                             </tr>
                         <% end %>
+                        <% if hidden.any? %>
+                            <tr class="title-chase-row-rest">
+                                <td colspan="4">
+                                    <%= pluralize(hidden.size, "other driver") %> can still catch
+                                    <%= @chase[:leader].surname %> on paper, but only if he scores below
+                                    the rate he has managed so far — they are listed above as "needs a slip".
+                                </td>
+                            </tr>
+                        <% end %>
                     </tbody>
                 </table>
                 </div>
             </div>
             <span class="data-source">
-                "Wins out" = P1 in all <%= pluralize(@chase[:remaining_races], "remaining round") %><%= ", plus #{pluralize(@chase[:remaining_sprints], 'sprint')}" if @chase[:remaining_sprints].to_i.positive? %>.
+                "Win out" = finishing 1st in every one of the <%= pluralize(@chase[:remaining_races], "remaining round") %><%= ", including the #{pluralize(@chase[:remaining_sprints], 'sprint')} among them" if @chase[:remaining_sprints].to_i.positive? %>.
                 The position shown is the best <%= @chase[:leader].surname %> could average and still lose the title — sprint points included.
             </span>
         <% end %>
