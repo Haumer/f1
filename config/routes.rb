@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { registrations: "users/registrations" }
+  devise_for :users, controllers: { registrations: "users/registrations", sessions: "users/sessions" }
   get "users/username_available", to: "users#username_available"
   root to: "pages#home"
 
@@ -86,11 +86,7 @@ Rails.application.routes.draw do
   get  'fantasy/u/:username/picks/:race_id/compare', to: 'race_picks#compare', as: :race_pick_compare
   post 'fantasy/toggle_public',       to: 'fantasy_portfolios#toggle_public', as: :toggle_public_profile
 
-  resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create] do
-    collection do
-      get :leaderboard
-    end
-  end
+  resources :fantasy_portfolios, path: 'fantasy', only: [:new, :create]
 
   resources :fantasy_stock_portfolios, path: 'stocks', only: [] do
     member do
@@ -101,10 +97,17 @@ Rails.application.routes.draw do
       post :short_close
       post :buy_batch
     end
-    collection do
-      get :leaderboard
-    end
   end
+
+  # `/leaderboard` is the canonical standings page. `/fantasy/leaderboard` and
+  # `/stocks/leaderboard` were linked from nowhere in the app yet still rendered
+  # — the first shipped a `<title>` byte-identical to this one, and the second
+  # ranked on stock-only value, so the three pages published different figures
+  # for the same player (codex: +734 here, +721.2 there). Folded into one.
+  # `FantasyPortfoliosController#leaderboard` and
+  # `FantasyStockPortfoliosController#leaderboard` are now unreachable.
+  get 'fantasy/leaderboard', to: redirect('/leaderboard')
+  get 'stocks/leaderboard',  to: redirect('/leaderboard')
 
   get 'leaderboard', to: 'fantasy_portfolios#combined_leaderboard', as: :combined_leaderboard
 

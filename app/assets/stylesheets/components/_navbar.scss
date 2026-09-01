@@ -555,92 +555,61 @@
         &[aria-expanded="true"] i { transform: rotate(180deg); }
       }
 
-      // Full-width dropdown menu on the next line, accordion-style
-      .nav-dropdown-menu {
-        flex-basis: 100%;
-        position: static;
-        box-shadow: none;
-        border: none;
-        border-radius: 0;
-        margin-top: 0;
-        background: transparent;
-        overflow: hidden;
-        max-height: 0;
-        padding: 0;
-        transition: max-height 300ms $ease-out, padding 300ms $ease-out;
+    }
 
-        &.open {
-          display: flex;
-          flex-direction: column;
-          animation: none;
-          max-height: 500px;
-          padding: 0 0 12px 0;
+    // ── Accordion dropdowns on mobile ──
+    // Applies to BOTH `.nav-dropdown` (Fantasy, History) and
+    // `.nav-split-dropdown` (2026 Season). Previously this lived inside
+    // `.nav-split-dropdown`, so Fantasy and History kept the desktop
+    // `position: absolute` — their panels overlapped the auth footer, which
+    // then swallowed the taps (Market opened Profile, Driver Cards signed you
+    // out), and anything past the container's height was clipped dead.
+    .links .nav-dropdown-menu {
+      flex-basis: 100%;
+      position: static;
+      box-shadow: none;
+      border: none;
+      border-radius: 0;
+      margin-top: 0;
+      background: transparent;
+      overflow: hidden;
+      max-height: 0;
+      padding: 0;
+      transition: max-height 300ms $ease-out, padding 300ms $ease-out;
+
+      &.open {
+        display: flex;
+        flex-direction: column;
+        animation: none;
+        // Must clear the tallest menu (History, 17 items ≈ 580px) or the tail
+        // is clipped by `overflow: hidden` and those links become untappable.
+        // `.links` is `max-height: 90vh; overflow-y: auto`, so it scrolls.
+        max-height: 1200px;
+        padding: 0 0 12px 0;
+      }
+
+      a {
+        padding: 10px 0 10px 16px;
+        font-size: 13px;
+        font-weight: $weight-semi;
+        color: $text-secondary;
+        border-left: 2px solid $border-color;
+        white-space: normal;
+
+        &:hover {
+          color: var(--page-accent, $accent-red);
+          border-left-color: var(--page-accent, $accent-red);
+          background: none;
         }
 
-        a {
-          padding: 10px 0 10px 16px;
-          font-size: 13px;
-          font-weight: $weight-semi;
-          color: $text-secondary;
-          border-left: 2px solid $border-color;
-          white-space: normal;
-
-          &:hover {
-            color: var(--page-accent, $accent-red);
-            border-left-color: var(--page-accent, $accent-red);
-            background: none;
-          }
-
-          &.active {
-            color: var(--page-accent, $accent-red);
-            border-left-color: var(--page-accent, $accent-red);
-          }
+        &.active {
+          color: var(--page-accent, $accent-red);
+          border-left-color: var(--page-accent, $accent-red);
         }
       }
 
-      .nav-dropdown-menu {
-        position: static;
-        box-shadow: none;
-        border: none;
-        border-radius: 0;
-        margin-top: 0;
-        background: transparent;
-        overflow: hidden;
-        max-height: 0;
-        padding: 0;
-        transition: max-height 300ms $ease-out, padding 300ms $ease-out;
-
-        &.open {
-          display: flex;
-          flex-direction: column;
-          animation: none;
-          max-height: 500px;
-          padding: 0 0 12px 0;
-        }
-
-        a {
-          padding: 10px 0 10px 16px;
-          font-size: 13px;
-          font-weight: $weight-semi;
-          color: $text-secondary;
-          border-left: 2px solid $border-color;
-          white-space: normal;
-
-          &:hover {
-            color: var(--page-accent, $accent-red);
-            border-left-color: var(--page-accent, $accent-red);
-            background: none;
-          }
-
-          &.active {
-            color: var(--page-accent, $accent-red);
-            border-left-color: var(--page-accent, $accent-red);
-          }
-        }
-
-        .nav-dropdown-divider {
-          margin: 4px 0 4px 16px;
-        }
+      .nav-dropdown-divider {
+        margin: 4px 0 4px 16px;
       }
     }
 
@@ -686,9 +655,12 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+  // Ends on `none`, not `translateY(0)`: the animation is `forwards`, so any
+  // retained transform would leave every nav item a permanent stacking context
+  // and trap the open dropdown's z-index inside it.
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 

@@ -4,6 +4,19 @@ module DriverCardsHelper
     "bronze" => "br", "silver" => "si", "gold" => "go", "platinum" => "pt", "legendary" => "lg"
   }.freeze
 
+  # Two-letter tier code, upper case. Single source of truth: the collection
+  # summary hardcoded "BR SI GO PT LG" while the per-deck pills computed
+  # `tier[0, 2].capitalize` ("Br Si Go Pl Le"), so one page showed two different
+  # abbreviations for the same five tiers.
+  def tier_abbrev(tier)
+    (TIER_BREAKDOWN_CLASS[tier.to_s] || tier.to_s[0, 2]).upcase
+  end
+
+  # Full tier name, for tooltips and anywhere there is room to spell it out.
+  def tier_label(tier)
+    tier.to_s.capitalize
+  end
+
   # CSS team-* class slug. Falls back to "team-default" with a neutral colour.
   def card_team_class(constructor)
     return "team-default" unless constructor&.constructor_ref

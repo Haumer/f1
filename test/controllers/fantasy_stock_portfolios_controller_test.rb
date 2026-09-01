@@ -19,9 +19,12 @@ class FantasyStockPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "leaderboard returns 200" do
+  # /stocks/leaderboard was linked from nowhere and ranked on stock-only value,
+  # so it published different figures from /leaderboard for the same player.
+  # Folded into the canonical standings page.
+  test "legacy stock leaderboard redirects to the combined leaderboard" do
     sign_in @user
-    get leaderboard_fantasy_stock_portfolios_path
-    assert_response :success
+    get "/stocks/leaderboard"
+    assert_redirected_to combined_leaderboard_path
   end
 end

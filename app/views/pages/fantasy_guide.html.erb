@@ -60,10 +60,17 @@
                 <h2 class="guide-pillar-title"><%= p[:title] %></h2>
                 <p class="guide-pillar-blurb"><%= p[:blurb] %></p>
                 <span class="guide-pillar-pays"><%= p[:pays] %></span>
+                <%# Signed out, three of these five have no destination and fall back
+                    to an anchor on this same page. That is fine, but it has to LOOK
+                    different from a real CTA — previously the only difference between
+                    "go somewhere" and "scroll down" was a trailing arrow, and three
+                    cards in a row read "Read the rules" in full CTA styling. %>
                 <% if p[:path] %>
                     <span class="guide-pillar-cta"><%= p[:cta] %> <%= ui_icon "arrow_right", size: 13 %></span>
                 <% else %>
-                    <%= link_to "Read the rules", "##{p[:anchor]}", class: "guide-pillar-cta" %>
+                    <%= link_to "##{p[:anchor]}", class: "guide-pillar-cta guide-pillar-cta-jump" do %>
+                        <i class="fa-solid fa-arrow-down-long"></i> How it works
+                    <% end %>
                 <% end %>
             <% end %>
         <% end %>
@@ -254,9 +261,13 @@
                     <% end %>
                 <% end %>
             <% else %>
-                <%= link_to new_user_session_path, class: "fantasy-btn fantasy-btn-primary" do %>
-                    <%= ui_icon "flag" %> Sign in to play
+                <%# Was "Sign in to play" — but a reader who needed this guide almost
+                    certainly has no account yet. The homepage's equivalent CTA
+                    correctly points at signup. %>
+                <%= link_to new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" do %>
+                    <%= ui_icon "flag" %> Join the league
                 <% end %>
+                <%= link_to "Already have an account? Sign in", new_user_session_path, class: "guide-cta-secondary" %>
             <% end %>
             <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline" do %>
                 <%= ui_icon "podium" %> Leaderboard

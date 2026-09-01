@@ -3,6 +3,12 @@
 <div class="page-container">
     <div class="picks-header">
         <div>
+            <%# Without this the page is a cul-de-sac — it had no in-content links at all. %>
+            <%= link_to(user_signed_in? ? fantasy_overview_path(current_user.username) : fantasy_guide_path,
+                        class: "picks-compact-edit") do %>
+                <i class="fa-solid fa-arrow-left"></i>
+                <%= user_signed_in? ? "Back to portfolio" : "How fantasy works" %>
+            <% end %>
             <h2><i class="fa-solid fa-hand-pointer" style="opacity:0.5; font-size:18px"></i> Your Picks</h2>
             <p class="picks-subtitle">
                 <%= @race.circuit.name %> · Round <%= @race.round %>

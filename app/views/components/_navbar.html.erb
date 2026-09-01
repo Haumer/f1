@@ -96,22 +96,31 @@
             <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') || request.path.start_with?('/head-to-head') || request.path.start_with?('/leaderboard') || current_page?(fan_standings_path) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
                 Fantasy <i class="fa-solid fa-chevron-down"></i>
             </a>
+            <%# Grouped by intent: play / yours / standings / guide. The dividers
+                used to cut across the seams — Head to Head sat with the standings
+                pages while Leaderboard was isolated on its own.
+
+                Market and Race Picks are listed signed OUT too. They are what the
+                homepage and the guide lead with, and hiding them until signup meant
+                the only people who saw them were those who already had them on their
+                portfolio page. Race Picks genuinely works signed out; Market needs a
+                portfolio, so it points at the guide's market section instead. %>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
-                <%= link_to "Leaderboard", combined_leaderboard_path, class: ("active" if request.path.start_with?('/leaderboard')), role: "menuitem" %>
-                <% if current_user %>
-                    <% stock_portfolio = current_user.fantasy_stock_portfolio_for(current_season) %>
-                    <% if stock_portfolio %>
-                        <div class="nav-dropdown-divider"></div>
-                        <%= link_to "Market", market_fantasy_stock_portfolio_path(stock_portfolio), class: ("active" if request.path.include?("/market")), role: "menuitem" %>
-                        <%# Race Picks and Activity had no nav entry at all — you could
-                            only reach them from inside the portfolio page. %>
-                        <%= link_to "Race Picks", edit_race_picks_path, class: ("active" if request.path.start_with?('/picks')), role: "menuitem" %>
-                        <%= link_to "Driver Cards", driver_cards_path(username: current_user.username), class: ("active" if request.path.include?("/cards")), role: "menuitem" %>
-                        <%= link_to "Activity", fantasy_activity_path(username: current_user.username), class: ("active" if request.path.include?("/activity")), role: "menuitem" %>
-                    <% end %>
-                <% end %>
-                <div class="nav-dropdown-divider"></div>
+                <% stock_portfolio = current_user&.fantasy_stock_portfolio_for(current_season) %>
+                <%= link_to "Market",
+                            stock_portfolio ? market_fantasy_stock_portfolio_path(stock_portfolio) : fantasy_guide_path(anchor: "market"),
+                            class: ("active" if request.path.include?("/market")), role: "menuitem" %>
+                <%= link_to "Race Picks", edit_race_picks_path, class: ("active" if request.path.start_with?('/picks')), role: "menuitem" %>
                 <%= link_to "Head to Head", head_to_head_path, class: ("active" if request.path.start_with?('/head-to-head') && !request.path.include?('/results')), role: "menuitem" %>
+
+                <% if stock_portfolio %>
+                    <div class="nav-dropdown-divider"></div>
+                    <%= link_to "Driver Cards", driver_cards_path(username: current_user.username), class: ("active" if request.path.include?("/cards")), role: "menuitem" %>
+                    <%= link_to "Activity", fantasy_activity_path(username: current_user.username), class: ("active" if request.path.include?("/activity")), role: "menuitem" %>
+                <% end %>
+
+                <div class="nav-dropdown-divider"></div>
+                <%= link_to "Leaderboard", combined_leaderboard_path, class: ("active" if request.path.start_with?('/leaderboard')), role: "menuitem" %>
                 <%= link_to "Crowd Rankings", head_to_head_results_path, class: ("active" if request.path.start_with?('/head-to-head') && request.path.include?('/results')), role: "menuitem" %>
                 <%= link_to "Fan Standings", fan_standings_path, class: ("active" if current_page?(fan_standings_path)), role: "menuitem" %>
                 <div class="nav-dropdown-divider"></div>

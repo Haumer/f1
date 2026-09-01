@@ -22,9 +22,11 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "leaderboard returns 200" do
-    get leaderboard_fantasy_portfolios_path
-    assert_response :success
+  # /fantasy/leaderboard was unlinked and shipped a <title> byte-identical to
+  # /leaderboard. Folded into the canonical standings page.
+  test "legacy fantasy leaderboard redirects to the combined leaderboard" do
+    get "/fantasy/leaderboard"
+    assert_redirected_to combined_leaderboard_path
   end
 
   test "combined_leaderboard returns 200" do
