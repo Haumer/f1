@@ -200,7 +200,12 @@ module ApplicationHelper
     # where they started" is readable at a glance without any labels.
     def sparkline(values, width: 72, height: 22, baseline: nil)
       values = Array(values).compact.map(&:to_f)
-      return "".html_safe if values.size < 2
+      # A new player has fewer than two points to plot. An empty cell reads as a
+      # rendering failure, so say "no history yet" the same way the other columns
+      # signal absence — with a muted dash.
+      if values.size < 2
+        return tag.span("—", class: "text-secondary", title: "Not enough history yet")
+      end
 
       min = values.min
       max = values.max

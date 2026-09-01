@@ -189,22 +189,32 @@
                         <dt>Invested</dt>
                         <dd><%= number_with_delimiter(total_invested.round(0)) %></dd>
                     </div>
+                    <%# These counts are the long/short split, not winners and losers.
+                        With `.gain`/`.loss` colouring and trend arrows the old markup
+                        read as "1 up, 1 down" — so the numbers are labelled now. %>
                     <% if @long_count.to_i > 0 || @short_count.to_i > 0 %>
                         <div>
                             <dt>Positions</dt>
                             <dd class="fantasy-pitwall-positions">
                                 <% if @long_count.to_i > 0 %>
-                                    <span class="gain"><%= ui_icon "trend_up", size: 12 %><%= @long_count %></span>
+                                    <span class="gain" title="<%= pluralize(@long_count, 'long position') %>">
+                                        <%= ui_icon "trend_up", size: 12 %><%= @long_count %> long
+                                    </span>
                                 <% end %>
                                 <% if @short_count.to_i > 0 %>
-                                    <span class="loss"><%= ui_icon "trend_down", size: 12 %><%= @short_count %></span>
+                                    <span class="loss" title="<%= pluralize(@short_count, 'short position') %>">
+                                        <%= ui_icon "trend_down", size: 12 %><%= @short_count %> short
+                                    </span>
                                 <% end %>
                             </dd>
                         </div>
                     <% end %>
                     <% if collateral > 0 %>
                         <div>
-                            <dt>Margin locked</dt>
+                            <%# Says "of which" because this figure is already counted
+                                inside Invested — shown side by side they read as two
+                                separate pots of credits. %>
+                            <dt>Of which margin</dt>
                             <dd><%= ui_icon "lock", size: 12 %><%= number_with_delimiter(collateral.round(0)) %></dd>
                         </div>
                     <% end %>

@@ -25,7 +25,10 @@
             Market closed
         <% end %>
         <span class="fantasy-swaps-remaining">
-            Credits: <strong><%= number_with_delimiter(@portfolio.available_cash.round(1)) %></strong>
+            <%# Whole credits, matching the cart panel and the portfolio overview.
+                `.round(1)` rendered "6,639.5" here while the cart 400px away
+                showed "6,639" for the same figure. %>
+            Credits: <strong><%= number_with_delimiter(@portfolio.available_cash.round) %></strong>
             &middot; Positions: <strong><%= @portfolio.position_count %>/<%= FantasyStockPortfolio::MAX_POSITIONS %></strong>
         </span>
     </div>

@@ -2,6 +2,12 @@
 <% content_for(:description) { "Driver cards earned from correctly predicted race finishes." } %>
 
 <div class="homepage-container dc-collection">
+    <%# The populated collection used to have zero links — earning cards removed
+        the empty state's only way out. %>
+    <%= link_to fantasy_overview_path(@user.username), class: "picks-compact-edit" do %>
+        <i class="fa-solid fa-arrow-left"></i>
+        <%= is_owner? ? "Back to portfolio" : "#{@user.display_name}'s portfolio" %>
+    <% end %>
     <h2 class="dc-page-title">
         <%= is_owner? ? "Your Driver Cards" : "#{@user.display_name}'s Driver Cards" %>
     </h2>
@@ -39,12 +45,15 @@
                 <div class="dc-stat">
                     <span class="lbl">By tier</span>
                     <span class="val"><%= @total %></span>
+                    <%# Tier names in full — the two-letter codes were never
+                        expanded anywhere on the page, so "PT"/"LG" were unguessable. %>
                     <span class="breakdown">
-                        <% if (n = @counts_by_tier["bronze"].to_i) > 0 %><span class="b"><%= n %> BR</span><% end %>
-                        <% if (n = @counts_by_tier["silver"].to_i) > 0 %><span class="s"><%= n %> SI</span><% end %>
-                        <% if (n = @counts_by_tier["gold"].to_i) > 0 %><span class="g"><%= n %> GO</span><% end %>
-                        <% if (n = @counts_by_tier["platinum"].to_i) > 0 %><span class="p"><%= n %> PT</span><% end %>
-                        <% if (n = @counts_by_tier["legendary"].to_i) > 0 %><span class="l"><%= n %> LG</span><% end %>
+                        <% { "bronze" => "b", "silver" => "s", "gold" => "g",
+                             "platinum" => "p", "legendary" => "l" }.each do |tier, css| %>
+                            <% if (n = @counts_by_tier[tier].to_i) > 0 %>
+                                <span class="<%= css %>" title="<%= tier_abbrev(tier) %>"><%= n %> <%= tier_label(tier) %></span>
+                            <% end %>
+                        <% end %>
                     </span>
                 </div>
             </div>

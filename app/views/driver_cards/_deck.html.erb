@@ -64,8 +64,9 @@
                         class="dc-tier-pill tier-<%= tier %><%= " is-active" if tier == initial_tier %>"
                         data-card-deck-target="tierPill"
                         data-tier="<%= tier %>"
-                        data-action="click->card-deck#selectTier">
-                    <%= tier[0, 2].capitalize %><span class="dc-tier-pill-count">×<%= group.size %></span>
+                        data-action="click->card-deck#selectTier"
+                        title="<%= tier_label(tier) %>">
+                    <%= tier_abbrev(tier) %><span class="dc-tier-pill-count">×<%= group.size %></span>
                 </button>
             <% end %>
         </div>

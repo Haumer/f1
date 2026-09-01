@@ -84,7 +84,11 @@
                                     <% end %>
                                 </td>
                                 <td class="text-end d-none d-lg-table-cell fantasy-leaderboard-gap">
-                                    <% gap = @leader_value ? (@leader_value - entry[:value]) : nil %>
+                                    <%# Round both sides before subtracting, so the gap
+                                        agrees with the Total Value column the reader can
+                                        see. Subtracting raw values then rounding printed
+                                        "−684" next to totals that differ by 683. %>
+                                    <% gap = @leader_value ? (@leader_value.round(0) - entry[:value].round(0)) : nil %>
                                     <% if gap.nil? || gap <= 0 %>
                                         <span class="fantasy-leaderboard-leader">Leader</span>
                                     <% else %>

@@ -201,10 +201,16 @@
         border-left-color: var(--constructor-color, var(--page-accent, $accent-red));
     }
 
+    // A placed driver still has to be readable — you need to see who you have
+    // already used. At 0.2 the name computed to ~1.9:1 against the card, well
+    // under the 4.5:1 floor. Dim the chrome, keep the text legible, and let the
+    // tick + desaturated photo carry the "done" signal.
     &.pick-placed {
-        opacity: 0.2;
+        opacity: 0.62;
         pointer-events: none;
         transform: scale(0.97);
+
+        .picks-card-photo { filter: grayscale(1); opacity: 0.5; }
     }
 
     @media (max-width: 480px) {
@@ -791,9 +797,20 @@
 
 // ═══════ Submit ═══════
 
+// Sticky so the commit action is always reachable. Unpinned it sat below the
+// full 23-row order list — roughly 1,170px down a 1,700px page — so saving
+// meant scrolling past everything you had just arranged.
 .picks-submit-form {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
     text-align: center;
-    padding: $space-lg 0;
+    padding: $space-md 0;
+    background: linear-gradient(to top, $bg-page 55%, rgba(10, 10, 15, 0));
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: opacity $t-fast $ease-out;
+    }
 }
 
 .picks-submit-btn {

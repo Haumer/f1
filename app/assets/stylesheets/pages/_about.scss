@@ -696,7 +696,12 @@
 // a figure rather than more prose.
 .guide-pillar-pays {
     display: inline-block;
+    // Pinned to the bottom of the card so the chips share a baseline across the
+    // row. Previously only the CTA was bottom-pinned, so the chips floated
+    // straight after variable-length blurbs and landed on five different lines.
+    margin-top: auto;
     margin-bottom: 14px;
+    align-self: flex-start;
     padding: 3px 8px;
     border-radius: $radius-sm;
     background: rgba(255, 255, 255, 0.05);
@@ -710,7 +715,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: auto;
     font-size: $type-small;
     font-weight: $weight-bold;
     text-transform: uppercase;
@@ -718,6 +722,17 @@
     color: var(--page-accent, $accent-red);
 
     .icon { transition: transform $t-fast $ease-out; }
+}
+
+// An in-page jump, not a destination. Muted and down-arrowed so it cannot be
+// mistaken for the accent-coloured CTAs that actually leave the page.
+.guide-pillar-cta-jump {
+    color: $text-tertiary;
+    font-weight: $weight-semi;
+
+    i { font-size: 10px; }
+
+    &:hover { color: $text-secondary; }
 }
 
 // ── Long / short, side by side ──
@@ -890,6 +905,16 @@ $guide-tiers: (
         > * { flex: 1 1 auto; justify-content: center; }
     }
 }
+
+// Secondary "already have an account" line under the signup CTA.
+.guide-cta-secondary {
+    align-self: center;
+    font-size: $type-small;
+    color: $text-tertiary;
+
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
 
 // Six scoring figures read as two clean rows of three; the shared results grid
 // fits five across at this width and orphans the sixth.
