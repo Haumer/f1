@@ -128,13 +128,28 @@ class WikipediaRaceResultFetcher
     results = []
 
     rows.each do |row|
-      # A result row must have a scope="row" cell (the position cell)
-      next unless row.include?('scope="row"')
-
+      # A result row is one whose position cell is a header cell (`!`). Do NOT
+      # additionally require `scope="row"` — that attribute is optional on
+      # Wikipedia and editors are inconsistent about it. The 2026 Belgian GP
+      # table carries it on all 22 rows; the Hungarian, Dutch and Italian tables
+      # write bare `!1` and carry it zero times. Requiring it silently discarded
+      # every row of those tables, so a fully-published classification reported
+      # as "no results available from any source". `parse_row` already does the
+      # real validation (needs a `!` cell plus >= 7 data cells), which is what
+      # rejects the header row and any stray layout rows.
       parsed = parse_row(row)
       next unless parsed
 
       results << parsed
+    end
+
+    # A section we could fetch but not parse is a parser bug, not an absent
+    # source — say so rather than letting the caller report "no results yet".
+    if results.empty?
+      Rails.logger.warn(
+        "[WikipediaRaceResultFetcher] Race classification section found for " \
+        "#{@race.url} but 0 rows parsed from #{wikitext.length} chars of wikitext"
+      )
     end
 
     # Fix position_order: use table row order for any entry without a data-sort-value
