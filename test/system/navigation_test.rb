@@ -8,7 +8,7 @@ class NavigationTest < ApplicationSystemTestCase
     wait_for_stimulus "navbar", ".navbar"
     page.execute_script("arguments[0].click()", find(".menu-toggle"))
     assert_selector ".navbar.menu-open"
-    page.execute_script("arguments[0].click()", find(".nav-dropdown-toggle", text: "FANTASY"))
+    page.execute_script("arguments[0].click()", find("button[aria-label='More fantasy pages']"))
     page.execute_script(
       "arguments[0].click()",
       find("a[href='#{driver_cards_path(username: users(:codex).username)}']")

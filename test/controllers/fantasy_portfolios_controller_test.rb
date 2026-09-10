@@ -20,6 +20,16 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
     @user.update_columns(public_profile: true)
     get fantasy_overview_path(@user.username)
     assert_response :success
+    assert_select ".fantasy-public-challenge"
+    assert_select "a[href=?]", new_user_registration_path, text: "Play free"
+  end
+
+  test "owner overview does not render the public challenge" do
+    sign_in @user
+    get fantasy_overview_path(@user.username)
+
+    assert_response :success
+    assert_select ".fantasy-public-challenge", count: 0
   end
 
   # /fantasy/leaderboard was unlinked and shipped a <title> byte-identical to

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Fantasy F1 on F1 Elo</title>
+  <desc id="description">Predict races, trade driver form, and climb the live leaderboard.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#15151f"/>
+      <stop offset="1" stop-color="#08080d"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e10600"/>
+      <stop offset="1" stop-color="#ff493f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="24%" cy="42%" r="66%">
+      <stop offset="0" stop-color="#e10600" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#e10600" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <path d="M0 5h1200" stroke="url(#red)" stroke-width="10"/>
+
+  <g transform="translate(72 84)" font-family="system-ui, -apple-system, sans-serif">
+    <g transform="translate(0 2)">
+      <circle cx="7" cy="7" r="7" fill="#00d26a"/>
+      <circle cx="7" cy="7" r="13" fill="none" stroke="#00d26a" stroke-opacity=".18" stroke-width="5"/>
+      <text x="28" y="13" fill="#8a8a9a" font-size="17" font-weight="700" letter-spacing="2.2">CHAMPIONSHIP LIVE</text>
+    </g>
+    <text x="0" y="122" fill="#f4f4f6" font-size="70" font-weight="800" letter-spacing="-3">BACK YOUR READ</text>
+    <text x="0" y="200" fill="#f4f4f6" font-size="70" font-weight="800" letter-spacing="-3">OF THE <tspan fill="#e10600">GRID.</tspan></text>
+    <text x="4" y="250" fill="#a0a0ae" font-size="23">Predict races. Trade driver form. Climb one live table.</text>
+
+    <g transform="translate(0 306)" font-size="15" font-weight="700" letter-spacing="1.3">
+      <g>
+        <rect width="150" height="48" rx="9" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/>
+        <text x="75" y="30" text-anchor="middle" fill="#f0c850">PREDICT</text>
+      </g>
+      <g transform="translate(164)">
+        <rect width="150" height="48" rx="9" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/>
+        <text x="75" y="30" text-anchor="middle" fill="#00d26a">TRADE</text>
+      </g>
+      <g transform="translate(328)">
+        <rect width="150" height="48" rx="9" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/>
+        <text x="75" y="30" text-anchor="middle" fill="#ff493f">CLIMB</text>
+      </g>
+    </g>
+
+    <text x="3" y="444" fill="#ededf1" font-size="20" font-weight="700" letter-spacing="1.7">F1ELO.COM/FANTASY</text>
+    <text x="3" y="476" fill="#656576" font-size="16">FREE TO PLAY · EQUAL STARTING CREDITS</text>
+  </g>
+
+  <g transform="translate(680 74)" filter="url(#shadow)" font-family="system-ui, -apple-system, sans-serif">
+    <rect width="448" height="480" rx="22" fill="#111119" stroke="#fff" stroke-opacity=".12"/>
+    <path d="M0 54h448M0 142h448M18 242h412M18 332h412M0 414h448" stroke="#fff" stroke-opacity=".07"/>
+    <text x="22" y="33" fill="#00d26a" font-size="13" font-weight="700" letter-spacing="1.5">● LIVE STANDINGS</text>
+    <text x="426" y="33" text-anchor="end" fill="#626273" font-size="12" font-weight="700">FANTASY F1</text>
+    <text x="22" y="92" fill="#626273" font-size="13" letter-spacing="1">SEASON LEADERBOARD</text>
+    <text x="22" y="123" fill="#ececf0" font-size="24" font-weight="700">NET VALUE</text>
+    <text x="425" y="123" text-anchor="end" fill="#fff" fill-opacity=".08" font-size="30" font-weight="800">SEASON</text>
+
+    <g transform="translate(22 165)">
+      <text x="0" y="30" fill="#f0c850" font-size="15" font-weight="800">P1</text>
+      <rect x="42" y="7" width="34" height="34" rx="8" fill="#e64848" fill-opacity=".25" stroke="#e64848" stroke-opacity=".7"/>
+      <text x="59" y="30" text-anchor="middle" fill="#fff" font-size="14" font-weight="800">R</text>
+      <text x="91" y="25" fill="#e8e8ed" font-size="17" font-weight="700">racecraft</text>
+      <rect x="91" y="38" width="200" height="4" rx="2" fill="#fff" fill-opacity=".06"/>
+      <rect x="91" y="38" width="200" height="4" rx="2" fill="#e64848"/>
+      <text x="404" y="29" text-anchor="end" fill="#00d26a" font-size="17" font-weight="800">+816</text>
+    </g>
+    <g transform="translate(22 255)">
+      <text x="0" y="30" fill="#a0a0b0" font-size="15" font-weight="800">P2</text>
+      <rect x="42" y="7" width="34" height="34" rx="8" fill="#3498db" fill-opacity=".25" stroke="#3498db" stroke-opacity=".7"/>
+      <text x="59" y="30" text-anchor="middle" fill="#fff" font-size="14" font-weight="800">A</text>
+      <text x="91" y="25" fill="#e8e8ed" font-size="17" font-weight="700">apex</text>
+      <rect x="91" y="38" width="200" height="4" rx="2" fill="#fff" fill-opacity=".06"/>
+      <rect x="91" y="38" width="184" height="4" rx="2" fill="#3498db"/>
+      <text x="404" y="29" text-anchor="end" fill="#00d26a" font-size="17" font-weight="800">+752</text>
+    </g>
+    <g transform="translate(22 345)">
+      <text x="0" y="30" fill="#d4844a" font-size="15" font-weight="800">P3</text>
+      <rect x="42" y="7" width="34" height="34" rx="8" fill="#f39c12" fill-opacity=".25" stroke="#f39c12" stroke-opacity=".7"/>
+      <text x="59" y="30" text-anchor="middle" fill="#fff" font-size="14" font-weight="800">Y</text>
+      <text x="91" y="25" fill="#e8e8ed" font-size="17" font-weight="700">you</text>
+      <rect x="91" y="38" width="200" height="4" rx="2" fill="#fff" fill-opacity=".06"/>
+      <rect x="91" y="38" width="135" height="4" rx="2" fill="#f39c12"/>
+      <text x="404" y="29" text-anchor="end" fill="#00d26a" font-size="17" font-weight="800">+552</text>
+    </g>
+
+    <rect y="414" width="448" height="66" rx="0 0 22 22" fill="#e10600" fill-opacity=".06"/>
+    <text x="22" y="453" fill="#ff493f" font-size="13" font-weight="800">NEXT · RACE WEEKEND</text>
+    <text x="426" y="453" text-anchor="end" fill="#e8e8ed" font-size="15" font-weight="700">PICKS OPEN</text>
+  </g>
+  <path d="M0 625h1200" stroke="url(#red)" stroke-width="10"/>
+</svg>

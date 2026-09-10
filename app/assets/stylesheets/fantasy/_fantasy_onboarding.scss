@@ -55,6 +55,16 @@
     }
 }
 
+.fantasy-onboard-guide-link {
+    display: inline-block;
+    margin-top: 16px;
+    color: $text-secondary;
+    font-size: 12px;
+    font-weight: $weight-semi;
+
+    &:hover { color: var(--page-accent, $accent-red); }
+}
+
 .fantasy-rule-card {
     padding: $space-md;
     border: 1px solid $border-color;

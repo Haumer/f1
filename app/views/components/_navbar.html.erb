@@ -91,11 +91,20 @@
             </div>
         </div>
 
-        <%# ── Fantasy ▾ — the game & community layer ── %>
-        <div class="nav-dropdown mobile-nav-item" data-controller="dropdown" role="none">
-            <a href="#" class="nav-dropdown-toggle <%= 'active' if request.path.start_with?('/fantasy') || request.path.start_with?('/stocks') || request.path.start_with?('/head-to-head') || request.path.start_with?('/leaderboard') || current_page?(fan_standings_path) %>" data-action="click->dropdown#toggle keydown->dropdown#keydown" role="menuitem" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">
-                Fantasy <i class="fa-solid fa-chevron-down"></i>
-            </a>
+        <%# ── Fantasy split-button — public front door + game menu ── %>
+        <% fantasy_home_active = current_page?(fantasy_home_path) %>
+        <% fantasy_menu_active = request.path.start_with?('/fantasy/') || request.path.start_with?('/stocks') || request.path.start_with?('/head-to-head') || request.path.start_with?('/leaderboard') || current_page?(fan_standings_path) %>
+        <div class="nav-dropdown nav-split-dropdown mobile-nav-item" data-controller="dropdown" role="none">
+            <%= link_to "Fantasy", fantasy_home_path,
+                        class: "nav-split-primary #{'active' if fantasy_home_active}",
+                        role: "menuitem" %>
+            <button type="button" class="nav-split-caret <%= 'active' if fantasy_menu_active %>"
+                    data-action="click->dropdown#toggle keydown->dropdown#keydown"
+                    data-dropdown-target="trigger"
+                    aria-haspopup="true" aria-expanded="false"
+                    aria-label="More fantasy pages">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
             <%# Grouped by intent: play / yours / standings / guide. The dividers
                 used to cut across the seams — Head to Head sat with the standings
                 pages while Leaderboard was isolated on its own.
@@ -107,6 +116,9 @@
                 portfolio, so it points at the guide's market section instead. %>
             <div class="nav-dropdown-menu" data-dropdown-target="menu" role="menu">
                 <% stock_portfolio = current_user&.fantasy_stock_portfolio_for(current_season) %>
+                <%= link_to "Fantasy Home", fantasy_home_path,
+                            class: ("active" if fantasy_home_active), role: "menuitem" %>
+                <div class="nav-dropdown-divider"></div>
                 <%= link_to "Market",
                             stock_portfolio ? market_fantasy_stock_portfolio_path(stock_portfolio) : fantasy_guide_path(anchor: "market"),
                             class: ("active" if request.path.include?("/market")), role: "menuitem" %>

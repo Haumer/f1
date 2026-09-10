@@ -13,6 +13,8 @@ class SitemapsControllerTest < ActionDispatch::IntegrationTest
     locations = document.xpath("//xmlns:url/xmlns:loc").map(&:text)
     assert_includes locations, PublicSite.url("/")
     assert_includes locations, PublicSite.url("/elo")
+    assert_includes locations, PublicSite.url("/fantasy")
+    assert_includes locations, PublicSite.url("/fantasy/how-it-works")
     assert locations.any? { |location| location.start_with?(PublicSite.url("/drivers/")) }
     assert_equal locations.uniq, locations
     refute locations.any? { |location| location.include?("/admin") || location.include?("/users/") }

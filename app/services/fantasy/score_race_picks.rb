@@ -54,7 +54,8 @@ module Fantasy
     #
     # Returns { rows:, podium_bonus:, total:, exact: }.
     def self.breakdown(placed, finish_by_driver, scoring_limit: nil)
-      rows = placed.map do |p|
+      placements = unique_placements(placed)
+      rows = placements.map do |p|
         actual = finish_by_driver[p["driver_id"]]
         out_of_zone = scoring_limit && p["position"] > scoring_limit
         points = if out_of_zone || actual.nil?
@@ -65,7 +66,7 @@ module Fantasy
         Row.new(driver_id: p["driver_id"], predicted: p["position"], actual: actual,
                 points: points, out_of_zone: !!out_of_zone)
       end
-      podium_bonus = perfect_podium?(placed, finish_by_driver) ? PERFECT_PODIUM_BONUS : 0
+      podium_bonus = perfect_podium?(placements, finish_by_driver) ? PERFECT_PODIUM_BONUS : 0
 
       {
         rows: rows,
@@ -76,11 +77,39 @@ module Fantasy
     end
 
     def self.perfect_podium?(placed, finish_by_driver)
-      podium = placed.select { |p| p["position"] <= 3 }
+      podium = unique_placements(placed).select { |p| p["position"] <= 3 }
       return false if podium.size < 3
 
       podium.all? { |p| finish_by_driver[p["driver_id"]] == p["position"] }
     end
+
+    # Scoring is defensive as well as submission-time validation. This protects
+    # any legacy/imported rows that predate RacePickPayload from multiplying a
+    # reward through a repeated driver ID. New submissions also reject repeated
+    # positions; old rows retain their historical breakdown shape.
+    def self.unique_placements(placed)
+      seen_drivers = Set.new
+
+      Array(placed).filter_map do |pick|
+        picked_driver_id = pick.respond_to?(:[]) ? (pick["driver_id"] || pick[:driver_id]) : nil
+        placement = pick.respond_to?(:[]) ? (pick["position"] || pick[:position]) : nil
+        driver_id = integer_or_nil(picked_driver_id)
+        position = integer_or_nil(placement)
+        next unless driver_id&.positive? && position&.positive?
+        next if seen_drivers.include?(driver_id)
+
+        seen_drivers << driver_id
+        { "driver_id" => driver_id, "position" => position }
+      end
+    end
+    private_class_method :unique_placements
+
+    def self.integer_or_nil(value)
+      Integer(value)
+    rescue TypeError, ArgumentError
+      nil
+    end
+    private_class_method :integer_or_nil
 
     def initialize(race:)
       @race = race

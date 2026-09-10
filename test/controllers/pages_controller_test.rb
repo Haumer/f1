@@ -59,6 +59,23 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "fantasy landing presents the game to signed-out visitors" do
+    get fantasy_home_path
+
+    assert_response :success
+    assert_select "h1", text: /Back your read/i
+    assert_select "a[href=?]", new_user_registration_path, minimum: 1
+    assert_select "a[href=?]", edit_race_picks_path, minimum: 1
+    assert_select "meta[property='og:image'][content=?]", PublicSite.url("/fantasy-og.png")
+    assert_select ".fantasy-console-row", minimum: 1
+  end
+
+  test "legacy fantasy guide URL redirects to its readable URL" do
+    get "/fantasy_guide"
+
+    assert_redirected_to fantasy_guide_path
+  end
+
   test "elo returns 200" do
     get elo_path
     assert_response :success

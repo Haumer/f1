@@ -32,7 +32,7 @@ class RacePicksTest < ApplicationSystemTestCase
     fill_in "Email", with: "pickstarter@example.com"
     fill_in "Password", with: "password123"
     check "user_terms_accepted"
-    click_button "Create Account"
+    click_button "Join F1 Elo"
 
     assert_current_path fantasy_overview_path("pickstarter")
     assert_text "Your picks for #{@race.circuit.name} have been saved!"

@@ -1,0 +1,236 @@
+<% content_for(:title) { "Fantasy F1 — Predict, Trade, Compete" } %>
+<% content_for(:description) { "A free Formula 1 fantasy game powered by Elo. Predict each race, trade driver form, collect cards, and climb one live leaderboard." } %>
+<% content_for(:og_image) { PublicSite.url("/fantasy-og.png") } %>
+
+<%
+  signed_in_portfolio = user_signed_in? ? current_user.fantasy_portfolio_for(@season) : nil
+  signed_in_stocks = user_signed_in? ? current_user.fantasy_stock_portfolio_for(@season) : nil
+  primary_path = if signed_in_portfolio
+                   fantasy_overview_path(current_user.username)
+                 elsif user_signed_in?
+                   new_fantasy_portfolio_path
+                 else
+                   new_user_registration_path
+                 end
+  primary_label = signed_in_portfolio ? "Open my portfolio" : "Play free"
+  top_value = @fantasy_entries.first&.dig(:net).to_f
+%>
+
+<div class="fantasy-landing">
+  <section class="fantasy-landing-hero" id="fantasy-top">
+    <div class="fantasy-landing-hero-copy">
+      <span class="fantasy-landing-kicker">
+        <span class="fantasy-live-dot"></span>
+        <%= @season.year %> championship live
+      </span>
+      <h1>Back your read<br>of the <em>grid.</em></h1>
+      <p class="fantasy-landing-lede">
+        Predict the top ten. Trade drivers as their Elo moves. Every smart call
+        grows the same portfolio and moves you up one season-long table.
+      </p>
+      <div class="fantasy-landing-actions">
+        <%= link_to primary_path, class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" do %>
+          <%= ui_icon(signed_in_portfolio ? "briefcase" : "flag", size: 16) %>
+          <%= primary_label %>
+        <% end %>
+        <% if @next_race&.picks_open? %>
+          <%= link_to edit_race_picks_path, class: "fantasy-btn fantasy-btn-outline fantasy-btn-lg" do %>
+            Try race picks <%= ui_icon "arrow_right", size: 14 %>
+          <% end %>
+        <% else %>
+          <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline fantasy-btn-lg" do %>
+            View standings <%= ui_icon "arrow_right", size: 14 %>
+          <% end %>
+        <% end %>
+      </div>
+      <div class="fantasy-landing-assurances" aria-label="Game details">
+        <span><%= ui_icon "check", size: 12 %> Free to play</span>
+        <span><%= ui_icon "coins", size: 12 %> <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> equal starting credits</span>
+        <span><%= ui_icon "calendar", size: 12 %> One season, every race</span>
+      </div>
+    </div>
+
+    <div class="fantasy-landing-console" aria-label="Current fantasy standings preview">
+      <div class="fantasy-console-topline">
+        <span><span class="fantasy-live-dot"></span> Live standings</span>
+        <span><%= @fantasy_player_count %> <%= "player".pluralize(@fantasy_player_count) %></span>
+      </div>
+      <div class="fantasy-console-title">
+        <div>
+          <span>Season leaderboard</span>
+          <strong>Net value</strong>
+        </div>
+        <span class="fantasy-console-season"><%= @season.year %></span>
+      </div>
+      <div class="fantasy-console-standings">
+        <% @fantasy_entries.each_with_index do |entry, index| %>
+          <% user = entry[:portfolio].user %>
+          <% width = top_value.positive? ? (entry[:net].to_f / top_value * 100).clamp(4, 100) : 100 %>
+          <%= content_tag(user.public_profile? ? :a : :div,
+                          class: "fantasy-console-row fantasy-console-p#{index + 1}",
+                          href: (fantasy_overview_path(user.username) if user.public_profile?)) do %>
+            <span class="fantasy-console-rank">P<%= index + 1 %></span>
+            <span class="fantasy-console-avatar" style="--player-color: <%= user_chip_color(user.username) %>"><%= user_chip_initial(user.username) %></span>
+            <span class="fantasy-console-player">
+              <strong><%= user.display_name %></strong>
+              <span class="fantasy-console-bar"><i style="width: <%= width.round(1) %>%; --player-color: <%= user_chip_color(user.username) %>"></i></span>
+            </span>
+            <span class="fantasy-console-value <%= entry[:net] >= 0 ? 'is-up' : 'is-down' %>">
+              <%= entry[:net] >= 0 ? "+" : "" %><%= number_with_delimiter(entry[:net].round) %>
+            </span>
+          <% end %>
+        <% end %>
+        <% if @fantasy_entries.empty? %>
+          <div class="fantasy-console-empty">The grid is open. Take the first spot.</div>
+        <% end %>
+      </div>
+      <% if @next_race %>
+        <div class="fantasy-console-next">
+          <span class="fantasy-console-round">Next · R<%= @next_race.round %></span>
+          <span class="fantasy-console-race"><%= @next_race.circuit.name %></span>
+          <% if @next_race.starts_at && @next_race.starts_at > Time.current %>
+            <span class="fantasy-console-countdown"
+                  data-controller="countdown"
+                  data-countdown-target-value="<%= @next_race.starts_at.iso8601 %>">
+              Locks <span data-countdown-target="display">—</span>
+            </span>
+          <% elsif @next_race.picks_open? %>
+            <span class="fantasy-console-countdown">Picks open</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="fantasy-landing-loop" aria-labelledby="fantasy-loop-title">
+    <div class="fantasy-landing-section-heading">
+      <span class="fantasy-landing-overline">One championship</span>
+      <h2 id="fantasy-loop-title">Three decisions that matter.</h2>
+      <p>No weekly reset. Your judgement compounds across the season.</p>
+    </div>
+    <div class="fantasy-loop-grid">
+      <article class="fantasy-loop-card fantasy-loop-predict">
+        <span class="fantasy-loop-number">01</span>
+        <span class="fantasy-loop-icon"><%= ui_icon "list", size: 21 %></span>
+        <h3>Predict the race</h3>
+        <p>Put the top ten in order before lights out. Near misses pay; exact calls pay most.</p>
+        <div class="fantasy-loop-proof">
+          <span><strong>+50</strong> exact</span>
+          <span><strong>+30</strong> one off</span>
+          <span><strong>+50</strong> perfect podium</span>
+        </div>
+      </article>
+      <article class="fantasy-loop-card fantasy-loop-trade">
+        <span class="fantasy-loop-number">02</span>
+        <span class="fantasy-loop-icon"><%= ui_icon "trend_up", size: 21 %></span>
+        <h3>Trade your conviction</h3>
+        <p>Go long on rising form or short a driver you think is overrated. Prices track Elo, not hype.</p>
+        <div class="fantasy-loop-tape" aria-hidden="true">
+          <span class="is-up">LONG <i></i> +8.4</span>
+          <span class="is-down">SHORT <i></i> −5.1</span>
+        </div>
+      </article>
+      <article class="fantasy-loop-card fantasy-loop-climb">
+        <span class="fantasy-loop-number">03</span>
+        <span class="fantasy-loop-icon"><%= ui_icon "podium", size: 21 %></span>
+        <h3>Climb the table</h3>
+        <p>Picks become credits. Trades change value. Both feed one number everyone can understand.</p>
+        <div class="fantasy-loop-position">
+          <span>P8</span><%= ui_icon "arrow_right", size: 14 %><strong>P3</strong>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="fantasy-landing-weekend">
+    <div class="fantasy-weekend-copy">
+      <span class="fantasy-landing-overline">Every race weekend</span>
+      <% if @next_race %>
+        <h2>Your next call is <%= @next_race.circuit.name %>.</h2>
+        <p>
+          Rank the grid before the race starts. You can try the picker without an account;
+          sign up only when you want to save your call.
+        </p>
+        <div class="fantasy-weekend-meta">
+          <span>Round <strong><%= @next_race.round %></strong></span>
+          <span><%= @next_race.date.strftime("%d %b") %></span>
+          <span><%= @next_race.starts_at&.strftime("%H:%M UTC") || "Time TBC" %></span>
+        </div>
+        <% if @next_race.picks_open? %>
+          <%= link_to edit_race_picks_path, class: "fantasy-btn fantasy-btn-primary" do %>
+            Make your picks <%= ui_icon "arrow_right", size: 14 %>
+          <% end %>
+        <% end %>
+      <% else %>
+        <h2>The season is decided. The table remains.</h2>
+        <p>See who read the grid best, then come back when the next championship opens.</p>
+        <%= link_to "View final standings", combined_leaderboard_path, class: "fantasy-btn fantasy-btn-primary" %>
+      <% end %>
+    </div>
+    <div class="fantasy-picks-slip" aria-label="Race picks example">
+      <div class="fantasy-picks-slip-head">
+        <span>Race picks</span>
+        <span>Top 10</span>
+      </div>
+      <% [[1, "Your winner", "50 pts"], [2, "One place out", "30 pts"], [3, "Exact podium", "50 pts"], [4, "Two places out", "20 pts"]].each do |position, label, score| %>
+        <div class="fantasy-picks-slip-row">
+          <span class="place-<%= position %>">P<%= position %></span>
+          <strong><%= label %></strong>
+          <em><%= score %></em>
+        </div>
+      <% end %>
+      <div class="fantasy-picks-slip-cut"><span></span>Score zone<span></span></div>
+      <div class="fantasy-picks-slip-row is-muted">
+        <span>P10</span><strong>Every point counts</strong><em>10 pts</em>
+      </div>
+    </div>
+  </section>
+
+  <% if @featured_card %>
+    <section class="fantasy-landing-reward">
+      <div class="fantasy-reward-card-wrap">
+        <%= link_to driver_card_path(username: @featured_card.user.username, id: @featured_card),
+                    class: "fantasy-featured-card",
+                    aria: { label: "View #{@featured_card.user.display_name}'s #{@featured_card.tier} #{@featured_card.driver.fullname} card" } do %>
+          <%= render "driver_cards/card", card: @featured_card %>
+        <% end %>
+        <span class="fantasy-card-owner">Earned by <strong><%= @featured_card.user.display_name %></strong></span>
+      </div>
+      <div class="fantasy-reward-copy">
+        <span class="fantasy-landing-overline">Make the exact call</span>
+        <h2>Good picks leave a mark.</h2>
+        <p>
+          Call a driver's finishing position exactly and you earn their card.
+          Upsets create rarer cards; duplicates can be combined into higher tiers.
+        </p>
+        <div class="fantasy-tier-line" aria-label="Card rarity tiers">
+          <% DriverCard::TIERS.each do |tier| %>
+            <span class="tier-<%= tier %>"><%= tier %></span>
+          <% end %>
+        </div>
+        <%= link_to fantasy_guide_path(anchor: "cards"), class: "fantasy-landing-text-link" do %>
+          See how cards and scoring work <%= ui_icon "arrow_right", size: 13 %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @public_activity.any? %>
+    <section class="fantasy-landing-activity" aria-label="Recent fantasy activity">
+      <span class="fantasy-landing-activity-label"><span class="fantasy-live-dot"></span> On the grid</span>
+      <%= render "pages/activity_ticker", entries: @public_activity %>
+    </section>
+  <% end %>
+
+  <section class="fantasy-landing-final">
+    <span class="fantasy-final-lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+    <h2>Think you read the grid better?</h2>
+    <p>Start level. Make your calls. Let the season settle it.</p>
+    <div class="fantasy-landing-actions">
+      <%= link_to primary_path, class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" do %>
+        <%= primary_label %> <%= ui_icon "arrow_right", size: 14 %>
+      <% end %>
+      <%= link_to "Read the rules", fantasy_guide_path, class: "fantasy-btn fantasy-btn-outline fantasy-btn-lg" %>
+    </div>
+  </section>
+</div>

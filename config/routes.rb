@@ -21,7 +21,9 @@ Rails.application.routes.draw do
   get 'about', to: 'pages#about', as: :about
   get 'terms', to: 'pages#terms', as: :terms
   get 'impressum', to: 'pages#impressum', as: :impressum
-  get 'fantasy_guide', to: 'pages#fantasy_guide', as: :fantasy_guide
+  get 'fantasy', to: 'pages#fantasy', as: :fantasy_home
+  get 'fantasy/how-it-works', to: 'pages#fantasy_guide', as: :fantasy_guide
+  get 'fantasy_guide', to: redirect('/fantasy/how-it-works')
 
   # Head-to-Head: pairwise driver-preference game, playable without an account.
   get  'head-to-head',                to: 'head_to_head#show',    as: :head_to_head

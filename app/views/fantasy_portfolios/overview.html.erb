@@ -46,6 +46,28 @@
         </div>
     </div>
 
+    <%# Public portfolios are product proof. Give a visitor enough context to
+        understand what they are seeing and one clean way into the same game. %>
+    <% unless @is_owner %>
+        <section class="fantasy-public-challenge">
+            <div class="fantasy-public-challenge-copy">
+                <span class="fantasy-public-challenge-kicker"><%= ui_icon "flag", size: 13 %> Public portfolio</span>
+                <strong>Think you can beat <%= @user.display_name %>?</strong>
+                <span>Everyone starts with the same <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits.</span>
+            </div>
+            <div class="fantasy-public-challenge-actions">
+                <% if current_user&.fantasy_portfolio_for(@season) %>
+                    <%= link_to "Open my portfolio", fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-primary" %>
+                <% elsif current_user %>
+                    <%= link_to "Start my season", new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" %>
+                <% else %>
+                    <%= link_to "Play free", new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" %>
+                <% end %>
+                <%= link_to "How the game works", fantasy_home_path, class: "fantasy-public-challenge-link" %>
+            </div>
+        </section>
+    <% end %>
+
     <%# ═══════════════════ Pit Wall ═══════════════════ %>
     <%# One panel where the value hero, the account-summary chips and the
         weekend checklist used to be three stacked full-width bands. They all

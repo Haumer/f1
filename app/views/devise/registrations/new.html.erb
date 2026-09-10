@@ -2,7 +2,7 @@
     <div class="devise-card">
         <div class="devise-header">
             <h2>Create Account</h2>
-            <p class="devise-subtitle">Join the F1 Elo community</p>
+            <p class="devise-subtitle">Join the grid with <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> fantasy credits</p>
         </div>
 
         <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
@@ -35,7 +35,7 @@
                 </div>
 
                 <div class="devise-actions">
-                    <%= f.submit "Create Account", class: "devise-btn devise-btn-primary" %>
+                    <%= f.submit "Join F1 Elo", class: "devise-btn devise-btn-primary" %>
                 </div>
             </div>
         <% end %>

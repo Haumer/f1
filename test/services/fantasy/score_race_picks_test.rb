@@ -114,6 +114,19 @@ module Fantasy
       assert_equal 0, b[:total]
     end
 
+    test "breakdown never scores the same driver twice" do
+      driver_id = drivers(:verstappen).id
+      placed = [
+        { "driver_id" => driver_id, "position" => 1 },
+        { "driver_id" => driver_id, "position" => 1 }
+      ]
+
+      b = Fantasy::ScoreRacePicks.breakdown(placed, { driver_id => 1 })
+
+      assert_equal 1, b[:rows].size
+      assert_equal 50, b[:total]
+    end
+
     # ── scoring cutoff (P11+ zeros when scoring_limit is set) ──
 
     test "breakdown with scoring_limit zeros points for picks outside the top N" do

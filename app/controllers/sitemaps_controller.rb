@@ -15,6 +15,8 @@ class SitemapsController < ApplicationController
       ['/',                            'weekly',  '1.0'],
       ['/elo',                         'weekly',  '0.9'],
       ['/about',                       'monthly', '0.5'],
+      ['/fantasy',                     'weekly',  '0.9'],
+      ['/fantasy/how-it-works',        'monthly', '0.7'],
       ['/head-to-head',                'weekly',  '0.8'],
       ['/drivers',                     'weekly',  '0.9'],
       ['/drivers/peak_elo',            'weekly',  '0.9'],

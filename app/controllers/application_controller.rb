@@ -25,18 +25,26 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(resource)
     if session[:pending_picks].present? && session[:pending_picks_race_id].present?
       race = Race.find_by(id: session[:pending_picks_race_id])
+      picks_restored = false
       if race
-        raw_picks = JSON.parse(session[:pending_picks]) rescue []
-        pick = RacePick.find_or_initialize_by(user: resource, race: race)
-        unless pick.locked?
-          pick.picks = raw_picks
-          pick.locked_at = race.starts_at
-          pick.save!
+        payload = Fantasy::RacePickPayload.new(raw: session[:pending_picks], race: race).call
+        if payload.success? && race.picks_open?
+          pick = RacePick.find_or_initialize_by(user: resource, race: race)
+          unless pick.locked?
+            pick.picks = payload.picks
+            pick.locked_at = race.starts_at
+            pick.save!
+            picks_restored = true
+          end
         end
       end
       session.delete(:pending_picks)
       session.delete(:pending_picks_race_id)
-      flash[:notice] = "Your picks for #{race&.circuit&.name || 'the race'} have been saved!"
+      if picks_restored
+        flash[:notice] = "Your picks for #{race.circuit.name} have been saved!"
+      else
+        flash[:alert] = "Your account is ready, but those picks could not be saved."
+      end
       return fantasy_overview_path(resource.username)
     end
 

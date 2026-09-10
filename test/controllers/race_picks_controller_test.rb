@@ -248,6 +248,28 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
     assert_equal [], pick.picks
   end
 
+  test "update rejects a forged duplicate pick payload" do
+    sign_in @user
+    picks_data = [
+      { driver_id: drivers(:verstappen).id, position: 1, source: "manual" },
+      { driver_id: drivers(:verstappen).id, position: 2, source: "manual" }
+    ].to_json
+
+    assert_no_difference "RacePick.count" do
+      patch race_picks_path, params: { picks: picks_data }
+    end
+
+    assert_redirected_to edit_race_picks_path
+    assert_match(/driver.*once/i, flash[:alert])
+  end
+
+  test "stash rejects malformed JSON" do
+    post stash_race_picks_path, params: { picks: "{not-json" }
+
+    assert_redirected_to edit_race_picks_path
+    assert_match(/could not be read/i, flash[:alert])
+  end
+
   test "update does not modify locked pick data" do
     sign_in @user
     original_picks = [

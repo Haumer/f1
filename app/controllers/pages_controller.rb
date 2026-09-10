@@ -26,6 +26,22 @@ class PagesController < ApplicationController
     set_current_champion_accent
   end
 
+  def fantasy
+    set_current_champion_accent
+    @season = current_season
+    return unless @season
+
+    @next_race = @season.next_race || Race.where("date >= ?", Setting.effective_today).order(:date).includes(:circuit).first
+    @fantasy_entries = Fantasy::Leaderboard.new(season: @season).call.first(3)
+    @fantasy_player_count = FantasyPortfolio.where(season: @season).count
+    @featured_card = DriverCard.joins(:user, :race)
+                               .where(users: { public_profile: true }, races: { season_id: @season.id })
+                               .includes(:user, :driver, race: :season)
+                               .order(earned_at: :desc)
+                               .first
+    @public_activity = Fantasy::PublicActivityFeed.recent(season: @season, limit: 12)
+  end
+
   def fantasy_guide
     set_current_champion_accent
   end

@@ -17,7 +17,13 @@ class RacePicksController < ApplicationController
 
   # Guest user: stash picks in session, redirect to signup
   def stash
-    session[:pending_picks] = params[:picks]
+    payload = Fantasy::RacePickPayload.new(raw: params[:picks], race: @race).call
+    unless payload.success?
+      redirect_to edit_race_picks_path, alert: payload.error
+      return
+    end
+
+    session[:pending_picks] = payload.picks.to_json
     session[:pending_picks_race_id] = @race.id
     redirect_to new_user_registration_path, notice: "Create an account to save your picks!"
   end
@@ -28,8 +34,13 @@ class RacePicksController < ApplicationController
       return
     end
 
-    raw_picks = params[:picks].present? ? JSON.parse(params[:picks]) : []
-    @race_pick.picks = raw_picks
+    payload = Fantasy::RacePickPayload.new(raw: params[:picks].presence || [], race: @race).call
+    unless payload.success?
+      redirect_to edit_race_picks_path, alert: payload.error
+      return
+    end
+
+    @race_pick.picks = payload.picks
     @race_pick.locked_at = @race.starts_at
 
     if @race_pick.save

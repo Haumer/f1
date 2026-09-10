@@ -945,6 +945,7 @@ table.race-results {
 }
 .footer-links-grid {
     display: flex;
+    flex-wrap: wrap;
     gap: 48px;
     @media (max-width: 768px) {
         gap: 32px;

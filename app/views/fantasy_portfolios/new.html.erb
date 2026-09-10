@@ -7,7 +7,7 @@
         <div class="page-hero-content">
             <span class="page-hero-label">Fantasy F1</span>
             <h1 class="page-hero-title">Build Your Grid</h1>
-            <p class="page-hero-meta">Trade driver stocks at their Elo rating. Track performance. Grow your portfolio.</p>
+            <p class="page-hero-meta">Predict races, trade driver form, and climb one season-long leaderboard.</p>
         </div>
     </div>
 
@@ -20,24 +20,24 @@
 
         <div class="fantasy-rules-grid">
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-chart-line"></i></div>
-                <strong>Buy & Sell Shares</strong>
-                <span>Go long on drivers you believe in</span>
+                <div class="fantasy-rule-icon"><%= ui_icon "list", size: 16 %></div>
+                <strong>Predict</strong>
+                <span>Rank the top ten before every race</span>
             </div>
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
-                <strong>Short Selling</strong>
-                <span>Bet against drivers you think will fall</span>
+                <div class="fantasy-rule-icon"><%= ui_icon "trend_up", size: 16 %></div>
+                <strong>Trade</strong>
+                <span>Go long or short as driver Elo moves</span>
             </div>
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-coins"></i></div>
-                <strong>Dividends</strong>
-                <span>Earn dividends when your drivers finish in the top 10</span>
+                <div class="fantasy-rule-icon"><%= ui_icon "card", size: 16 %></div>
+                <strong>Collect</strong>
+                <span>Exact calls earn driver cards</span>
             </div>
             <div class="fantasy-rule-card">
-                <div class="fantasy-rule-icon"><i class="fa-solid fa-chart-line"></i></div>
-                <strong>Portfolio Value</strong>
-                <span>Credits + current value of your positions</span>
+                <div class="fantasy-rule-icon"><%= ui_icon "podium", size: 16 %></div>
+                <strong>Compete</strong>
+                <span>Every result feeds one live leaderboard</span>
             </div>
         </div>
 
@@ -45,5 +45,6 @@
             <%= hidden_field_tag :season_id, @season.id %>
             <%= submit_tag "Start #{@season.year} Fantasy Season", class: "fantasy-btn fantasy-btn-primary fantasy-btn-lg" %>
         <% end %>
+        <%= link_to "See exactly how scoring works", fantasy_guide_path, class: "fantasy-onboard-guide-link" %>
     </div>
 </div>
