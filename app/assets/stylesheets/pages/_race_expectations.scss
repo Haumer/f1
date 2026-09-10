@@ -16,6 +16,46 @@
   strong { color: #bdbdcc; font-weight: 500; }
   .race-expectations-notice { color: #d4bf8a; }
 }
+.race-expectations-leaders { padding: 0 24px 22px; }
+.race-expectations-leader-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.race-expectations-leaderboard {
+  min-width: 0;
+  border: 1px solid $border-accent;
+  border-top: 2px solid var(--analysis-tone);
+  border-radius: 8px;
+  background: linear-gradient(145deg, $bg-card, $bg-surface);
+  header { display: flex; align-items: baseline; gap: 12px; padding: 18px 18px 8px; }
+  h4 { font-size: 23px; color: var(--analysis-tone); font-weight: 650; }
+  header > span { color: $text-secondary; font-size: 11px; }
+  ol { list-style: none; padding: 0 18px; margin: 0; }
+  li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 18px 0; }
+  li + li { border-top: 1px solid $border-color; }
+  .race-expectations-leader-empty { padding: 18px; }
+}
+.race-expectations-leader-rank { color: var(--analysis-tone); font: 18px $mono-font; }
+.race-expectations-leader-driver {
+  a { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+  small { display: block; color: $text-secondary; font-size: 10px; margin: 5px 0 8px; }
+  p { font-size: 10px; strong { color: #d4d4de; font: 11px $mono-font; } }
+}
+.race-expectations-leader-gap {
+  text-align: right; color: var(--analysis-tone);
+  strong { font: 25px $mono-font; }
+  small { display: block; color: $text-secondary; font-size: 9px; margin-top: 4px; }
+}
+.race-expectations-leaders .race-expectations-leaders-note { margin-top: 14px; font-size: 10px; strong { color: #bdbdcc; font-weight: 500; } }
+.race-analysis-share {
+  margin: -6px 0 22px;
+  summary { width: fit-content; color: $gold; font-size: 12px; cursor: pointer; }
+  .race-analysis-share-tools { max-width: 680px; padding: 16px; margin-top: 12px; background: $bg-surface; border: 1px solid $border-accent; border-radius: 8px; }
+  label { display: block; font-size: 11px; color: $text-secondary; margin-bottom: 8px; }
+  input { width: 100%; min-width: 0; padding: 10px; font: 12px $mono-font; color: $text-primary; background: $bg-card; border: 1px solid $border-accent; border-radius: 4px; }
+  .race-analysis-share-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 12px; }
+  button { background: $bg-card-elevated; border: 1px solid $border-accent; border-radius: 5px; padding: 8px 12px; color: $text-primary; font: 12px $body-font; }
+  a { font-size: 12px; }
+  button:focus-visible, input:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+  [role="status"] { display: block; color: $text-secondary; font-size: 11px; margin-top: 10px; }
+}
 .race-expectations-toolbar {
   display: flex;
   align-items: center;
@@ -82,6 +122,10 @@
   .race-expectations-plot-cell { width: 13%; }
 }
 @media (max-width: 700px) {
+  .race-expectations-leaders { padding-inline: 18px; }
+  .race-expectations-leader-grid { grid-template-columns: minmax(0, 1fr); }
+  .race-expectations-leaderboard li { grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; }
+  .race-expectations-leader-gap strong { font-size: 22px; }
   .race-expectations-heading { padding: 20px 18px 16px; flex-direction: column; gap: 10px; }
   .race-expectations-context, .race-expectations-toolbar, .race-expectations-validation { padding-inline: 18px; }
   .race-expectations-table {

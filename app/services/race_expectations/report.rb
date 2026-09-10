@@ -40,6 +40,23 @@ module RaceExpectations
       assessments.count { |assessment| assessment.expected }
     end
 
+    def assessed_count
+      assessments.count { |assessment| assessment.difference }
+    end
+
+    # Rank the signed gap, not grid gains or the range verdict. Ignore changes
+    # that round to zero at the UI's precision; never fill a list with the other
+    # sign just to reach three. Driver ID makes exact ties deterministic.
+    def top_three
+      assessments.select { |assessment| assessment.difference&.round(1)&.positive? }
+                 .sort_by { |assessment| [-assessment.difference, assessment.driver.id] }.first(3)
+    end
+
+    def flop_three
+      assessments.select { |assessment| assessment.difference&.round(1)&.negative? }
+                 .sort_by { |assessment| [assessment.difference, assessment.driver.id] }.first(3)
+    end
+
     private
 
     def assess(row, qualifying, size)

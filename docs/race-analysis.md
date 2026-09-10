@@ -16,6 +16,9 @@ corrections invalidate the cache even if an Elo replay did not touch timestamps.
 
 The report contains:
 
+- Top 3 / Flop 3: the largest signed expectation gaps among assessable classified
+  finishers, with Elo rank, qualifying, estimated finish and actual finish on each
+  card. These are model comparisons, not driver-skill or blame rankings.
 - A sortable **entire-grid** table: pre-race Elo rank/value, qualifying, estimated
   finish with empirical error range, actual result and places above/below estimate.
   Grid differences are flagged alongside qualifying, not used as a replacement.
@@ -43,6 +46,36 @@ Grid values of zero or null are excluded from grid gains. Only finished/lapped
 results enter place-gain comparisons; retirements, DNS, DNQ and DSQ remain status
 labels. Elo itself still uses the stored result order, including retirements.
 Nothing here measures overtaking, car-adjusted skill, strategy quality or blame.
+
+## Top 3 / Flop 3 and sharing
+
+Both leaderboards use the same `expected - actual` gap as the full-grid table.
+Top 3 selects positive gaps, largest first; Flop 3 selects negative gaps, most
+negative first. Exclude DNFs, missing estimates/orders and gaps rounding to 0.0
+at the displayed one-decimal precision. Never pad a list to three using drivers
+from the other side. Exact ties use driver ID for stable ordering. These are not
+significance rankings: a listed driver can still be inside the usual error band.
+
+The race page's **Share this debrief** panel provides a public, canonical deep
+link, clipboard copying with a selectable-link fallback, native sharing where
+supported, and a preview-card link. It works without an account and shares no
+user-specific data or incoming tracking parameters. With JavaScript disabled,
+the details panel and manual link still work. Nothing is automatically posted.
+
+Race-specific Open Graph/Twitter metadata points to a 1200×630 PNG at
+`/races/:id/analysis/og.png`. Its payload comes from the same leaderboard methods
+as the page. Cards include assessment coverage and the experimental-model caveat;
+missing-data races explicitly show unavailable rankings. Upcoming races keep the
+default preview metadata and have no debrief PNG.
+
+Rendering uses the existing prediction-image runtime dependency, ImageMagick
+(`magick`, or `convert` on older installs). No new API, browser process, subscription
+or image-generation service is involved. The PNG bytes are cached for one day
+under a content fingerprint, with a five-minute public HTTP cache and conditional
+ETags. The metadata URL is versioned by the payload. Corrected results, names or
+model estimates refresh it even when `Race#updated_at` is unchanged. Bump
+`RaceAnalysisShare::VERSION` for rendering-only changes. Platform-side preview
+caches may take longer to refresh after deployment.
 
 ## Elo + qualifying model (v1)
 
@@ -133,6 +166,41 @@ about either drive.
   race forecast needs a separate reliability treatment and evaluation target.
 
 ## Coverage findings and the first repair
+
+The debrief layout works for every race with results, but expectation rankings
+require valid qualifying per entrant, a complete seedable pre-race Elo field,
+and at least 20 earlier eligible races / 200 classified finishes within ten years.
+The error range additionally needs five earlier checked races / 100 finishes;
+its absence does not prevent point estimates or Top/Flop rankings.
+
+No manual precomputation or Elo rerun is needed. Model fitting/backtesting is
+on-demand and cached; leaderboards are a small sort of that report. The gap is
+data availability, not a missing computation job. Backfilling qualifying updates
+affected reports automatically. It also improves training inputs for later races,
+so their estimates can legitimately change after an archive correction.
+
+Read-only, repeatable prerequisite audit (does not fit every historical model):
+
+```sh
+AS_OF=2026-09-10 bundle exec rails f1:expectations_coverage
+AS_OF=2026-09-10 YEAR=2026 DETAILS=1 bundle exec rails f1:expectations_coverage
+```
+
+Local snapshot on 2026-09-10; these are stored races, not verified production
+coverage. Missing-prerequisite categories in the task overlap.
+
+| Scope | Races with results | Full-grid estimates | Partial estimates | No estimates |
+| --- | ---: | ---: | ---: | ---: |
+| Entire local archive | 1,162 | 92 | 9 | 1,061 |
+| 2026 to September 10 | 13 | 1 | 1 | 11 |
+
+In 2026, round 1 supports estimates for 19/22 entries (14 assessable finishers),
+round 2 supports 22/22 (15 assessable finishers), and rounds 3–13 lack usable
+qualifying inputs. All 13 already have the Elo field and enough earlier history.
+Across the archive, 1,054 races lack at least some usable qualifying and 617 lack
+enough earlier eligible history; those are overlapping counts. Current qualifying
+coverage is sparse, so availability is not guaranteed merely by choosing a year
+after the first recorded qualifying session. No backfill was run in this pass.
 
 The latest five stored races each have 22 main-race results and all 22 before/after
 driver Elo snapshots, but **zero qualifying rows**. The latest has 20 positive grid

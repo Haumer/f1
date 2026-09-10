@@ -1,5 +1,10 @@
 <% content_for(:title) { "#{@race.circuit.name} #{@race.season.year}" } %>
-<% content_for(:description) { "#{@race.circuit.name} #{@race.season.year} — #{@analysis.available? ? 'Elo + qualifying expectations versus actual finishes, across the full grid' : 'session schedule, qualifying and race preview'} on F1 Elo." } %>
+<% content_for(:description) { @analysis_share ? @analysis_share.description : "#{@race.circuit.name} #{@race.season.year} — session schedule, qualifying and race preview on F1 Elo." } %>
+<% if @analysis_share %>
+  <% content_for(:social_title) { @analysis_share.title } %>
+  <% content_for(:og_image) { PublicSite.url(analysis_og_image_race_path(@race, v: @analysis_share.fingerprint)) } %>
+  <% content_for(:og_image_alt) { "#{@analysis_share.title}: Top 3 and Flop 3 versus the Elo + qualifying estimate. #{@analysis_share.payload[:assessed]}/#{@analysis_share.payload[:entrants]} entrants assessed." } %>
+<% end %>
 <div class="homepage-container">
     <div class="page-hero race-hero">
         <div class="page-hero-bg"></div>

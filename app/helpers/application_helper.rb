@@ -9,6 +9,8 @@ module ApplicationHelper
     end
 
     def social_title
+      return content_for(:social_title).to_s if content_for?(:social_title)
+
       content_for?(:title) ? content_for(:title).to_s : DEFAULT_PAGE_TITLE
     end
 
@@ -22,6 +24,10 @@ module ApplicationHelper
 
     def social_image_url
       content_for?(:og_image) ? content_for(:og_image).to_s : PublicSite.url("/og-image.png")
+    end
+
+    def social_image_alt
+      content_for?(:og_image_alt) ? content_for(:og_image_alt).to_s : "F1 Elo driver ratings and fantasy Formula 1"
     end
 
     def website_structured_data

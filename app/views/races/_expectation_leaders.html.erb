@@ -1,0 +1,27 @@
+<section class="race-expectations-leaders" aria-label="Top 3 and Flop 3 versus expectation">
+  <div class="race-expectations-leader-grid">
+    <% [["Top 3", "Beat the estimate", report.top_three, "positive"], ["Flop 3", "Below the estimate", report.flop_three, "negative"]].each do |title, subtitle, entries, tone| %>
+      <article class="race-expectations-leaderboard race-analysis-<%= tone %>" aria-label="<%= title %>">
+        <header><h4><%= title %></h4><span><%= subtitle %></span></header>
+        <% if entries.any? %>
+          <ol>
+            <% entries.each_with_index do |assessment, index| %>
+              <li>
+                <span class="race-expectations-leader-rank" aria-hidden="true"><%= index + 1 %></span>
+                <div class="race-expectations-leader-driver">
+                  <%= link_to assessment.driver.fullname, driver_path(assessment.driver) %>
+                  <small><%= assessment.row.constructor.name %> · Elo #<%= analysis_seed(assessment.seed) %> · Q<%= assessment.qualifying %></small>
+                  <p>Expected <strong>P<%= number_with_precision(assessment.expected, precision: 1) %></strong> <span aria-hidden="true">→</span> Finished <strong>P<%= assessment.result.position_order %></strong></p>
+                </div>
+                <div class="race-expectations-leader-gap"><strong><%= analysis_signed(assessment.difference, precision: 1) %></strong><small>places</small></div>
+              </li>
+            <% end %>
+          </ol>
+        <% else %>
+          <p class="race-expectations-leader-empty"><%= report.assessed_count.zero? ? "No comparable estimates available for this race yet." : "No classified finishers on this side of the estimate." %></p>
+        <% end %>
+      </article>
+    <% end %>
+  </div>
+  <p class="race-expectations-leaders-note"><strong><%= report.assessed_count %>/<%= report.assessments.size %> entrants assessed.</strong> Up to three per side, ranked by expected minus actual finish. DNFs, missing estimates and gaps rounding to 0.0 are excluded. “Flop” means below the model's estimate—not poor driving. A ranked gap can still be inside the usual error range.</p>
+</section>

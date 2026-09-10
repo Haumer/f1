@@ -72,6 +72,44 @@ class RaceExpectations::ReportTest < ActiveSupport::TestCase
     end
   end
 
+  test "top and flop rank only signed classified gaps and never pad to three" do
+    report = build_report
+    winner, second, third, retired = report.assessments
+    winner.expected = 3.0 # +2
+    second.expected = 3.0 # +1
+    third.expected = 1.0 # -2
+    retired.expected = 1.0 # DNF, not a flop
+
+    assert_equal [winner, second], report.top_three
+    assert_equal [third], report.flop_three
+    assert_equal 3, report.assessed_count
+  end
+
+  test "zero and missing gaps are excluded and exact ties have stable order" do
+    report = build_report
+    first, second, third = report.assessments
+    first.expected = 2.0
+    second.expected = 3.0
+    third.expected = third.result.position_order - 0.01
+    assert_equal [first, second].sort_by { |assessment| assessment.driver.id }, report.top_three
+    assert_empty report.flop_three
+    second.expected = nil
+    assert_equal [first], report.top_three
+    assert_empty build_report(history: []).top_three
+    assert_empty build_report(history: []).flop_three
+  end
+
+  test "leaderboards stop at three and put largest gaps first" do
+    report = build_report
+    row = report.assessments.first.row
+    entries = [1, 4, 2, 3, -1, -4, -2, -3].map do |gap|
+      RaceExpectations::Report::Assessment.new(row: row, expected: row.result.position_order + gap, field_size: 4)
+    end
+    report.assessments.replace(entries)
+    assert_equal [4, 3, 2], report.top_three.map(&:difference)
+    assert_equal [-4, -3, -2], report.flop_three.map(&:difference)
+  end
+
   private
 
   def build_report(history: expectation_history)

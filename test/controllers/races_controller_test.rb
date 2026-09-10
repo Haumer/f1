@@ -48,6 +48,14 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-expectations-errors", text: /Elo \+ qualifying/
     assert_select ".race-expectations-reading", text: /DNF/
     assert_select ".race-expectations-context", text: /45 races/
+    assert_select ".race-expectations-leaderboard[aria-label='Top 3'] li", minimum: 1
+    assert_select ".race-expectations-leaderboard[aria-label='Flop 3'] li", minimum: 1
+    assert_select ".race-expectations-leaders-note", text: /3\/4 entrants assessed/
+    assert_select ".race-expectations-leaderboard", text: /Piastri/, count: 0
+    assert_select "meta[property='og:title'][content*='Race debrief']"
+    assert_select "meta[property='og:image'][content^='#{PublicSite.url(analysis_og_image_race_path(races(:bahrain_2026)))}?v=']"
+    assert_select "meta[property='og:image:alt'][content*='Top 3 and Flop 3']"
+    assert_select "input#race-analysis-share-url[value='#{PublicSite.url(race_path(races(:bahrain_2026), anchor: 'race-analysis'))}']"
   end
 
   test "calendar returns 200" do

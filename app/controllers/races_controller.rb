@@ -8,6 +8,7 @@ class RacesController < ApplicationController
     @previous_race = @race.previous_race
     @next_race = @race.next_race
     @analysis = RaceAnalysis.new(race: @race)
+    @analysis_share = RaceAnalysisShare.new(@analysis) if @analysis.available?
     set_race_winner_accent(@race)
 
     results = @race.race_results.to_a
