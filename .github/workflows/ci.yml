@@ -41,5 +41,17 @@ jobs:
       - name: Set up database
         run: bin/rails db:schema:load
 
-      - name: Run tests
+      - name: Check autoloading
+        run: bin/rails zeitwerk:check
+
+      - name: Precompile production assets
+        env:
+          RAILS_ENV: production
+          SECRET_KEY_BASE_DUMMY: "1"
+        run: bin/rails assets:precompile
+
+      - name: Run application tests
         run: bin/rails test
+
+      - name: Run browser tests
+        run: bin/rails test:system
