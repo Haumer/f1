@@ -13,6 +13,7 @@ F1 Elo applies the [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_
 - **Driver Elo Rankings** — Peak Elo, active Elo, historical progression charts
 - **Constructor Elo** — Team ratings with family lineages (e.g. Toleman → Benetton → Renault → Lotus → Alpine)
 - **Race Explorer** — Every race since 1950 with Elo changes, qualifying times, and podium data
+- **Race Debriefs** — Snapshot-based Elo movers, Elo-order comparisons, teammate results, championship context and explicit data coverage on each completed race page
 - **Qualifying Results** — Q1/Q2/Q3 lap times with tabbed Race/Qualifying view (data from 1996+)
 - **Season Standings** — Championship standings with Elo overlays
 - **Driver Comparison** — Side-by-side Elo charts for any two drivers
@@ -118,3 +119,6 @@ fonts, images, logos, names, and trademarks are not relicensed; see [Third-Party
 
 See the [zero-budget launch checklist](docs/public-launch.md) for search indexing, GitHub discovery,
 community outreach, and measurement.
+
+See [race debriefs and the data expansion plan](docs/race-analysis.md) for the report's
+methodology, qualifying coverage gaps, and verified lap/pit/tyre data options.

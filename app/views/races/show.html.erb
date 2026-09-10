@@ -1,5 +1,5 @@
 <% content_for(:title) { "#{@race.circuit.name} #{@race.season.year}" } %>
-<% content_for(:description) { "#{@race.circuit.name} #{@race.season.year} — race results, Elo changes, and podium finishers on F1 Elo." } %>
+<% content_for(:description) { "#{@race.circuit.name} #{@race.season.year} — #{@analysis.available? ? 'race debrief, Elo changes, teammate results and championship context' : 'session schedule, qualifying and race preview'} on F1 Elo." } %>
 <div class="homepage-container">
     <div class="page-hero race-hero">
         <div class="page-hero-bg"></div>
@@ -32,28 +32,25 @@
     <% has_results = @race.race_results.any? %>
 
     <% if has_results %>
+      <nav class="race-section-nav" aria-label="Race sections">
+        <a href="#race-analysis">Race debrief</a>
+        <a href="#race-classification">Results & qualifying</a>
+        <a href="#race-elo-changes">Elo changes</a>
+      </nav>
+      <%= render "analysis", analysis: @analysis %>
+    <% end %>
+
+    <% if has_results %>
         <%# ── Post-race stats ── %>
         <div class="race-stats-row">
             <div class="race-stat-card">
                 <div class="race-stat-value"><%= @grid_size %></div>
-                <div class="race-stat-label">Grid Size</div>
+                <div class="race-stat-label">Result Entries</div>
             </div>
             <div class="race-stat-card">
                 <div class="race-stat-value"><%= elo_link(@race.average_elos) %></div>
                 <div class="race-stat-label">Avg Elo</div>
             </div>
-            <% if @biggest_gainer %>
-                <div class="race-stat-card">
-                    <div class="race-stat-value text-green">+<%= @biggest_gainer.display_elo_diff.round(1) %></div>
-                    <div class="race-stat-label"><%= @biggest_gainer.driver.forename.first %>.<%= @biggest_gainer.driver.surname %></div>
-                </div>
-            <% end %>
-            <% if @biggest_loser %>
-                <div class="race-stat-card">
-                    <div class="race-stat-value text-red"><%= @biggest_loser.display_elo_diff.round(1) %></div>
-                    <div class="race-stat-label"><%= @biggest_loser.driver.forename.first %>.<%= @biggest_loser.driver.surname %></div>
-                </div>
-            <% end %>
             <% if @highest_elo_rr %>
                 <div class="race-stat-card">
                     <div class="race-stat-value"><%= elo_link(@highest_elo_rr.display_new_elo) %></div>
@@ -63,7 +60,7 @@
             <% if @dnf_count > 0 %>
                 <div class="race-stat-card">
                     <div class="race-stat-value"><%= @dnf_count %></div>
-                    <div class="race-stat-label">DNFs</div>
+                    <div class="race-stat-label">Non-finishes</div>
                 </div>
             <% end %>
         </div>
@@ -93,7 +90,7 @@
     <% default_tab = auto_tab if default_tab == "qualifying" && !has_quali %>
     <% default_tab = auto_tab if default_tab == "sprint" && !has_sprint %>
 
-    <div class="card card-flush" data-controller="tab-table">
+    <div class="card card-flush" id="race-classification" data-controller="tab-table">
         <div class="table-header table-header-tabs">
             <h3 class="table-tab <%= 'active' if default_tab == 'race' %>"
                 data-tab="race" data-tab-table-target="tab" data-action="click->tab-table#switch">Race</h3>
@@ -151,7 +148,7 @@
                                 </td>
                                 <td class="text-center col-data d-none d-sm-table-cell"><%= race_result.grid %></td>
                                 <td class="text-center col-data d-none d-sm-table-cell">
-                                    <% if race_result.grid && race_result.grid > 0 %>
+                                    <% if race_result.grid.to_i.positive? && race_result.position_order.to_i.positive? && race_result.classified? %>
                                         <% positions_changed = race_result.grid - race_result.position_order %>
                                         <% if positions_changed > 0 %>
                                             <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= positions_changed %></span>
@@ -167,7 +164,9 @@
                                 <td class="text-center col-data d-none d-lg-table-cell"><%= format_points(standing&.points) %></td>
                                 <td class="text-center col-data d-none d-lg-table-cell"><%= standing&.position ? "P#{standing.position}" : "—" %></td>
                                 <td class="text-center col-elo">
-                                    <% if race_result.display_gained_elo? %>
+                                    <% if !race_result.old_elo_v2&.finite? || !race_result.new_elo_v2&.finite? %>
+                                        <span class="text-muted">—</span>
+                                    <% elsif race_result.display_gained_elo? %>
                                         <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
                                     <% else %>
                                         <span class="text-red"><i class="fa-solid fa-caret-down"></i> <%= race_result.display_elo_diff.round(1) %></span>
@@ -364,17 +363,24 @@
                 </div>
                 <span class="data-source">Data: Jolpica (Ergast) API</span>
             <% else %>
-                <p class="text-muted text-center" style="padding: 40px 0;">Qualifying has not started yet.</p>
+                <p class="text-muted text-center" style="padding: 40px 0;"><%= has_results ? "Qualifying results are not available for this race." : "Qualifying results are not available yet." %></p>
             <% end %>
         </div>
     </div>
 
     <% if has_results %>
-    <div class="card">
+    <div class="card" id="race-elo-changes">
         <div class="chart-header">
             <h4>Elo Changes</h4>
         </div>
-        <%= custom_chart Graphs::RaceEloChanges.new(race: @race).data %>
+        <% if @analysis.coverage[:elo].positive? %>
+            <%= custom_chart Graphs::RaceEloChanges.new(race: @race).data %>
+            <% if @analysis.coverage[:elo] < @analysis.coverage[:results] %>
+                <p class="data-source">Only entrants with both Elo snapshots are shown.</p>
+            <% end %>
+        <% else %>
+            <p class="text-muted">Elo snapshots are not available for this race.</p>
+        <% end %>
     </div>
     <% end %>
 

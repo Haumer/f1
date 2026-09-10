@@ -3,7 +3,9 @@ class Graphs::RaceEloChanges
 
     def initialize(race:)
         @race = race
-        @race_results = race.race_results.includes(:driver).sort_by { |rr| rr.display_elo_diff }.reverse
+        @race_results = race.race_results.includes(:driver)
+                            .select { |rr| rr.old_elo_v2&.finite? && rr.new_elo_v2&.finite? }
+                            .sort_by { |rr| rr.display_elo_diff }.reverse
     end
 
     def data

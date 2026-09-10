@@ -7,14 +7,13 @@ class RacesController < ApplicationController
     ).find(params[:id])
     @previous_race = @race.previous_race
     @next_race = @race.next_race
+    @analysis = RaceAnalysis.new(race: @race)
     set_race_winner_accent(@race)
 
     results = @race.race_results.to_a
     @grid_size = results.size
-    @biggest_gainer = results.max_by(&:display_elo_diff)
-    @biggest_loser = results.min_by(&:display_elo_diff)
     new_elo_col = Setting.elo_column(:new_elo).to_sym
-    @highest_elo_rr = results.max_by { |rr| rr.send(new_elo_col) || 0 }
+    @highest_elo_rr = results.select { |rr| rr.send(new_elo_col)&.finite? }.max_by { |rr| rr.send(new_elo_col) }
     @dnf_count = results.count { |rr| rr.status&.status_type.present? && rr.status.status_type != "Finished" && !rr.status.status_type.match?(/\A\+\d+ Laps?\z/i) }
 
     # Pre-index driver standings to avoid N+1 in view
