@@ -1,5 +1,44 @@
 module ApplicationHelper
 
+    SITE_NAME = "F1 Elo"
+    DEFAULT_PAGE_TITLE = "F1 Elo — Rating Every F1 Driver Since 1950"
+    DEFAULT_META_DESCRIPTION = "Elo ratings for every Formula 1 driver since 1950. Compare drivers across eras, track constructor performance, and play Fantasy F1."
+
+    def document_title
+      content_for?(:title) ? "#{content_for(:title)} — #{SITE_NAME}" : DEFAULT_PAGE_TITLE
+    end
+
+    def social_title
+      content_for?(:title) ? content_for(:title).to_s : DEFAULT_PAGE_TITLE
+    end
+
+    def meta_description
+      content_for?(:description) ? content_for(:description).to_s : DEFAULT_META_DESCRIPTION
+    end
+
+    def canonical_url
+      PublicSite.url(request.path)
+    end
+
+    def social_image_url
+      content_for?(:og_image) ? content_for(:og_image).to_s : PublicSite.url("/og-image.png")
+    end
+
+    def website_structured_data
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE_NAME,
+        alternateName: ["f1elo.com"],
+        url: PublicSite.url("/")
+      }
+    end
+
+    def google_analytics_id(configured_id: ENV["GOOGLE_ANALYTICS_ID"])
+      measurement_id = configured_id.to_s.strip
+      measurement_id if measurement_id.match?(/\AG-[A-Z0-9]+\z/)
+    end
+
     # Deterministic hue derived from a stable string — used for the colored
     # initial chip on the fantasy leaderboard so each user has a recognizable,
     # consistent color without a stored preference.

@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
 
   after_action :track_action
 
+  before_action :redirect_to_canonical_host
   before_action :set_current_champion_accent
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -44,6 +45,13 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def redirect_to_canonical_host
+    return unless Rails.env.production?
+    return if request.host == PublicSite.host
+
+    redirect_to PublicSite.url(request.fullpath), status: :moved_permanently, allow_other_host: true
+  end
+
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: [:username, :terms_accepted])
     devise_parameter_sanitizer.permit(:account_update, keys: [:username])
@@ -60,6 +68,6 @@ class ApplicationController < ActionController::Base
     return if request.path == "/users/username_available"
     return if request.path == "/drivers/search"
 
-    ahoy.track "Page View", request.path_parameters.merge(url: request.url)
+    ahoy.track "Page View", request.path_parameters.merge(url: request.path)
   end
 end

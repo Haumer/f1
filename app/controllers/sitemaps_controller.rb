@@ -2,9 +2,6 @@ class SitemapsController < ApplicationController
   def index
     expires_in 6.hours, public: true
 
-    host = ENV.fetch("APP_HOST", "f1elo.com")
-    base = "https://#{host}"
-
     driver_ids = Driver.where(id: RaceResult.select(:driver_id).distinct).pluck(:id, :updated_at)
     seasons    = Season.pluck(:year, :updated_at)
     circuits   = Circuit.pluck(:circuit_ref, :updated_at)
@@ -42,27 +39,27 @@ class SitemapsController < ApplicationController
       ['/stats/race_wins',             'monthly', '0.6'],
       ['/stats/fan_standings',         'weekly',  '0.5'],
       ['/leaderboard',                 'weekly',  '0.5']
-    ].each { |path, freq, prio| urls << { loc: "#{base}#{path}", changefreq: freq, priority: prio } }
+    ].each { |path, freq, prio| urls << { loc: PublicSite.url(path), changefreq: freq, priority: prio } }
 
     driver_ids.each do |id, updated|
-      urls << { loc: "#{base}/drivers/#{id}", lastmod: updated&.iso8601, changefreq: 'weekly', priority: '0.7' }
+      urls << { loc: PublicSite.url("/drivers/#{id}"), lastmod: updated&.iso8601, changefreq: 'weekly', priority: '0.7' }
     end
 
     seasons.each do |year, updated|
-      urls << { loc: "#{base}/seasons/#{year}", lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.6' }
-      urls << { loc: "#{base}/head-to-head/#{year}", changefreq: 'monthly', priority: '0.5' }
+      urls << { loc: PublicSite.url("/seasons/#{year}"), lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.6' }
+      urls << { loc: PublicSite.url("/head-to-head/#{year}"), changefreq: 'monthly', priority: '0.5' }
     end
 
     constructors.each do |ref, updated|
-      urls << { loc: "#{base}/constructors/#{ref}", lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.6' }
+      urls << { loc: PublicSite.url("/constructors/#{ref}"), lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.6' }
     end
 
     circuits.each do |ref, updated|
-      urls << { loc: "#{base}/circuits/#{ref}", lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.5' }
+      urls << { loc: PublicSite.url("/circuits/#{ref}"), lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.5' }
     end
 
     races.each do |id, updated|
-      urls << { loc: "#{base}/races/#{id}", lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.6' }
+      urls << { loc: PublicSite.url("/races/#{id}"), lastmod: updated&.iso8601, changefreq: 'monthly', priority: '0.6' }
     end
 
     @urls = urls

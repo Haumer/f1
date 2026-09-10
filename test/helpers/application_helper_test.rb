@@ -1,6 +1,13 @@
 require "test_helper"
 
 class ApplicationHelperTest < ActionView::TestCase
+  test "google analytics id requires an explicit valid measurement id" do
+    assert_equal "G-TEST123", google_analytics_id(configured_id: "G-TEST123")
+    assert_nil google_analytics_id(configured_id: nil)
+    assert_nil google_analytics_id(configured_id: "UA-OLD-FORMAT")
+    assert_nil google_analytics_id(configured_id: "not-an-id\" onload=\"alert(1)")
+  end
+
   test "elo_tier returns nil for nil input" do
     assert_nil elo_tier(nil)
   end
