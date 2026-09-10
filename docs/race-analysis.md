@@ -56,6 +56,19 @@ results enter place-gain comparisons; retirements, DNS, DNQ and DSQ remain statu
 labels. Elo itself still uses the stored result order, including retirements.
 Nothing here measures overtaking, car-adjusted skill, strategy quality or blame.
 
+## Display and explanations
+
+The debrief uses the app's shared dark surfaces, typography and gain/loss colors;
+constructor accents follow the rest of the race page. The share PNG mirrors the
+same palette. Keep its Ruby color constants aligned with `config/_colors.scss`.
+
+Long model, training-data and ranking explanations live in closed-by-default
+**Model & data** and **How we rank** disclosures. These native HTML controls work
+with touch, keyboard and JavaScript disabled, expanding in the document flow so
+they cannot cover the rankings. Assessment counts, the DNF exclusion and missing
+estimate warnings stay visible. Neither collapsing the notes nor restyling the
+cards changes estimates, leaderboard selection or the full-grid comparison.
+
 ## Top 3 / Flop 3 and sharing
 
 Both leaderboards use the same `expected - actual` gap as the full-grid table.

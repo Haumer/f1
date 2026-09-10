@@ -104,4 +104,57 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
     assert_nil page.evaluate_script("window.unwantedCopy")
     assert_no_text "Link copied."
   end
+
+  test "model and ranking prose starts collapsed and is keyboard accessible" do
+    RaceExpectations::Dataset.stub(:before, @history) do
+      visit race_path(races(:bahrain_2026), anchor: "race-analysis")
+      assert_no_text "A strong driver recovering from a poor qualifying"
+      assert_no_text "Fit on"
+      assert_no_text "not poor driving"
+      assert_selector ".race-expectations-leaders-note", text: "3/4 entrants assessed. DNFs excluded."
+
+      model_summary = find("#race-expectations-info summary")
+      model_summary.send_keys(:enter)
+      assert_selector "#race-expectations-info[open]"
+      assert_text "Fit on"
+      assert_selector ".race-analysis-coverage", text: "qualifying results"
+      model_summary.send_keys(:enter)
+      assert_no_selector "#race-expectations-info[open]"
+      assert_no_text "Fit on"
+
+      ranking_summary = find(".race-expectations-ranking-info summary")
+      ranking_summary.send_keys(:space)
+      assert_text "not poor driving"
+      ranking_summary.send_keys(:space)
+      assert_no_text "not poor driving"
+    end
+  end
+
+  test "phone model info expands in flow without covering the rankings" do
+    RaceExpectations::Dataset.stub(:before, @history) do
+      page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: 390, height: 844, deviceScaleFactor: 1, mobile: true)
+      visit race_path(races(:bahrain_2026), anchor: "race-analysis")
+      assert_no_text "A strong driver recovering"
+      find("#race-expectations-info summary").click
+      assert_text "A strong driver recovering"
+      info_bottom = page.evaluate_script("document.querySelector('#race-expectations-info').getBoundingClientRect().bottom")
+      cards_top = page.evaluate_script("document.querySelector('.race-expectations-leader-grid').getBoundingClientRect().top")
+      assert_operator cards_top, :>=, info_bottom
+      assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, 390
+      find("#race-expectations-info summary").click
+      assert_no_text "A strong driver recovering"
+    end
+  end
+
+  test "debrief uses shared palette and brings the grid closer to the heading" do
+    RaceExpectations::Dataset.stub(:before, @history) do
+      visit race_path(races(:bahrain_2026), anchor: "race-analysis")
+      assert_equal "rgb(0, 210, 106)", page.evaluate_script("getComputedStyle(document.querySelector('.race-analysis-positive .race-expectations-leader-gap')).color")
+      assert_equal "rgb(225, 6, 0)", page.evaluate_script("getComputedStyle(document.querySelector('.race-analysis-negative .race-expectations-leader-gap')).color")
+      assert_equal "22px", page.evaluate_script("getComputedStyle(document.querySelector('#race-analysis-title')).fontSize")
+      heading_top = page.evaluate_script("document.querySelector('#race-analysis-title').getBoundingClientRect().top")
+      grid_top = page.evaluate_script("document.querySelector('.race-expectations-table').getBoundingClientRect().top")
+      assert_operator grid_top - heading_top, :<, 580
+    end
+  end
 end

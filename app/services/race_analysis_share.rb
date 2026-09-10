@@ -4,7 +4,7 @@ require "digest"
 # is included. Fingerprinting the rendered data also catches corrected results
 # and training data, even when the Race itself hasn't been touched.
 class RaceAnalysisShare
-  VERSION = "race-debrief-card-v2"
+  VERSION = "race-debrief-card-v3"
 
   attr_reader :analysis
 

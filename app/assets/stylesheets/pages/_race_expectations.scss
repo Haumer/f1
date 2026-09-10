@@ -3,57 +3,80 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
-  padding: 26px 24px 18px;
-  background: linear-gradient(120deg, rgba($gold, 0.055), transparent);
-  h3 { margin: 9px 0; font-size: clamp(21px, 3vw, 29px); font-weight: 650; letter-spacing: -0.5px; }
-  p { max-width: 690px; font-size: 13px; }
+  gap: $space-md;
+  padding: $space-md $space-lg 0;
+  h3 { margin-top: $space-sm; font-size: $type-card-title; font-weight: $weight-semi; letter-spacing: $ls-display; }
 }
-.race-expectations-badge { color: $gold; font: 10px $mono-font; white-space: nowrap; padding: 7px 9px; border: 1px solid rgba($gold, 0.25); border-radius: 20px; }
-.race-expectations-context {
-  padding: 0 24px 18px;
-  p + p { margin-top: 8px; }
-  strong { color: #bdbdcc; font-weight: 500; }
-  .race-expectations-notice { color: #d4bf8a; }
+.race-expectations-badge { color: $text-secondary; font: 10px $mono-font; white-space: nowrap; padding: 5px 8px; border: 1px solid $border-accent; border-radius: $radius-sm; }
+.race-analysis-info {
+  > summary { display: flex; align-items: center; gap: 6px; width: fit-content; min-height: 36px; color: $text-secondary; font-size: $type-label; cursor: pointer; list-style: none; }
+  > summary::-webkit-details-marker { display: none; }
+  > summary::marker { content: ""; }
+  > summary:hover, &[open] > summary { color: $text-primary; }
+  > summary i { color: var(--page-accent, #{$accent-red}); }
+  > summary:focus-visible { outline: 2px solid var(--page-accent, #{$accent-red}); outline-offset: 2px; border-radius: $radius-sm; }
 }
-.race-expectations-leaders { padding: 0 24px 22px; }
-.race-expectations-leader-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.race-analysis-info-content {
+  padding: $space-md;
+  margin-bottom: $space-sm;
+  background: $bg-inset;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  p + p { margin-top: $space-sm; }
+  strong { color: $text-primary; font-weight: $weight-medium; }
+}
+.race-expectations-info { margin: 4px $space-lg $space-sm; }
+.race-analysis .race-expectations-notice {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px;
+  margin: 0 $space-lg $space-md; font-size: $type-label;
+  strong { color: $text-primary; font-weight: $weight-medium; }
+  i { color: var(--page-accent, #{$accent-red}); }
+}
+.race-expectations-leaders { padding: 0 $space-lg $space-sm; }
+.race-expectations-leader-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: $space-md; }
 .race-expectations-leaderboard {
   min-width: 0;
-  border: 1px solid $border-accent;
+  border: 1px solid $border-color;
   border-top: 2px solid var(--analysis-tone);
-  border-radius: 8px;
-  background: linear-gradient(145deg, $bg-card, $bg-surface);
-  header { display: flex; align-items: baseline; gap: 12px; padding: 18px 18px 8px; }
-  h4 { font-size: 23px; color: var(--analysis-tone); font-weight: 650; }
+  border-radius: $radius-md;
+  background: $bg-card;
+  header { display: flex; align-items: baseline; gap: 10px; padding: $space-md $space-md $space-xs; }
+  h4 { font-size: $type-card-title; color: $text-primary; font-weight: $weight-semi; }
   header > span { color: $text-secondary; font-size: 11px; }
-  ol { list-style: none; padding: 0 18px; margin: 0; }
-  li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 18px 0; }
+  ol { list-style: none; padding: 0 $space-md; margin: 0; }
+  li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: $space-sm; align-items: start; padding: 12px 0; }
   li + li { border-top: 1px solid $border-color; }
   .race-expectations-leader-empty { padding: 18px; }
 }
-.race-expectations-leader-rank { color: var(--analysis-tone); font: 18px $mono-font; }
+.race-expectations-leader-rank { color: $text-secondary; font: 13px $mono-font; padding-top: 3px; }
 .race-expectations-leader-driver {
   a { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
-  small { display: block; color: $text-secondary; font-size: 10px; margin: 5px 0 8px; }
-  p { font-size: 10px; strong { color: #d4d4de; font: 11px $mono-font; } }
+  small { display: block; color: $text-secondary; font-size: 10px; margin: $space-xs 0; }
+  p { font-size: 10px; strong { color: $text-primary; font: 11px $mono-font; } }
 }
 .race-expectations-leader-gap {
   text-align: right; color: var(--analysis-tone);
-  strong { font: 25px $mono-font; }
+  strong { font: 24px $mono-font; }
   small { display: block; color: $text-secondary; font-size: 9px; margin-top: 4px; }
 }
-.race-expectations-leaders .race-expectations-leaders-note { margin-top: 14px; font-size: 10px; strong { color: #bdbdcc; font-weight: 500; } }
+.race-expectations-ranking-info {
+  margin-top: $space-xs;
+  > summary { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: $space-xs $space-md; }
+  .race-expectations-leaders-note { font-size: 10px; strong { color: $text-primary; font-weight: $weight-medium; } }
+  .race-analysis-info-label { white-space: nowrap; font-size: $type-label; }
+}
 .race-analysis-share {
-  margin: -6px 0 22px;
-  summary { width: fit-content; color: $gold; font-size: 12px; cursor: pointer; }
-  .race-analysis-share-tools { max-width: 680px; padding: 16px; margin-top: 12px; background: $bg-surface; border: 1px solid $border-accent; border-radius: 8px; }
+  margin-left: auto; max-width: 100%;
+  &[open] { flex-basis: 100%; }
+  summary { width: fit-content; margin-left: auto; padding: 8px 12px; border: 1px solid $border-accent; border-radius: $radius-sm; color: $text-primary; font-size: 12px; cursor: pointer; }
+  summary:hover, &[open] > summary { border-color: var(--page-accent, #{$accent-red}); }
+  .race-analysis-share-tools { max-width: 680px; margin-left: auto; padding: 16px; margin-top: 12px; background: $bg-surface; border: 1px solid $border-accent; border-radius: $radius-md; }
   label { display: block; font-size: 11px; color: $text-secondary; margin-bottom: 8px; }
   input { width: 100%; min-width: 0; padding: 10px; font: 12px $mono-font; color: $text-primary; background: $bg-card; border: 1px solid $border-accent; border-radius: 4px; }
   .race-analysis-share-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 12px; }
   button { background: $bg-card-elevated; border: 1px solid $border-accent; border-radius: 5px; padding: 8px 12px; color: $text-primary; font: 12px $body-font; }
   a { font-size: 12px; }
-  button:focus-visible, input:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--page-accent, #{$accent-red}); outline-offset: 2px; }
   [role="status"] { display: block; color: $text-secondary; font-size: 11px; margin-top: 10px; }
 }
 .race-expectations-toolbar {
@@ -67,7 +90,7 @@
   .race-analysis-legend { margin: 0; gap: 14px; }
   label { display: flex; align-items: center; gap: 8px; font-size: 11px; color: $text-secondary; }
   select { color: $text-primary; background: $bg-card; border: 1px solid $border-accent; border-radius: 5px; padding: 8px; font-size: 11px; }
-  select:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+  select:focus-visible { outline: 2px solid var(--page-accent, #{$accent-red}); outline-offset: 2px; }
 }
 .race-expectations-table {
   width: 100%;
@@ -81,10 +104,16 @@
   tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
   strong { font-family: $mono-font; font-weight: 500; white-space: nowrap; }
   small { display: block; margin-top: 4px; color: $text-secondary; font-size: 10px; font-weight: 400; line-height: 1.5; }
-  .race-expectations-grid-note { color: #d4bf8a; }
+  .race-expectations-grid-note { color: $text-primary; }
   .race-expectations-verdict { font-family: $body-font; font-size: 11px; }
 }
 .race-expectations-difference { color: var(--analysis-tone); }
+// Keep small negative values legible on the shared dark cards; the red borders
+// and large deltas retain the app's unmodified loss color.
+.race-analysis-negative .race-expectations-difference,
+.race-analysis-ledger .race-analysis-negative strong,
+.race-analysis-standing-movement.race-analysis-negative,
+.race-analysis-team-result > .race-analysis-negative { color: mix($text-primary, $accent-red, 40%); }
 .race-expectations-plot-cell { width: 20%; }
 .race-expectations-lane {
   position: relative;
@@ -92,13 +121,13 @@
   margin: 0 8px;
   background: $border-accent;
   .race-expectations-band { position: absolute; height: 8px; top: -3px; left: var(--range-left); width: var(--range-width); border-radius: 2px; background: rgba($silver, 0.25); }
-  .race-expectations-estimate { position: absolute; height: 8px; width: 8px; top: -3px; left: var(--expected); border: 1px solid $gold; background: $bg-surface; transform: translateX(-50%) rotate(45deg); }
+  .race-expectations-estimate { position: absolute; height: 8px; width: 8px; top: -3px; left: var(--expected); border: 1px solid var(--page-accent, #{$accent-red}); background: $bg-surface; transform: translateX(-50%) rotate(45deg); }
   .race-expectations-finish { position: absolute; height: 8px; width: 8px; top: -3px; left: var(--finish); background: var(--analysis-tone); border-radius: 50%; transform: translateX(-50%); }
 }
 .race-expectations-reading { width: 125px; }
 .race-expectations-validation {
   padding: 20px 24px;
-  summary { cursor: pointer; color: #bdbdcc; font-size: 12px; }
+  summary { cursor: pointer; color: $text-secondary; font-size: 12px; }
   p { margin-top: 16px; }
 }
 .race-expectations-errors {
@@ -109,7 +138,7 @@
   div { background: $bg-card; border-radius: 6px; padding: 14px; }
   dt { font-size: 11px; color: $text-secondary; font-weight: 400; }
   dd { font: 24px $mono-font; margin: 8px 0 0; small { display: block; font-size: 10px; color: $text-secondary; } }
-  div:first-child dd { color: $gold; }
+  div:first-child dd { color: $text-primary; }
 }
 .race-analysis-ledger {
   padding: 0 22px 18px;
@@ -125,9 +154,11 @@
   .race-expectations-leaders { padding-inline: 18px; }
   .race-expectations-leader-grid { grid-template-columns: minmax(0, 1fr); }
   .race-expectations-leaderboard li { grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; }
-  .race-expectations-leader-gap strong { font-size: 22px; }
-  .race-expectations-heading { padding: 20px 18px 16px; flex-direction: column; gap: 10px; }
-  .race-expectations-context, .race-expectations-toolbar, .race-expectations-validation { padding-inline: 18px; }
+  .race-expectations-heading { padding: $space-md $space-md 0; flex-wrap: wrap; gap: $space-sm; }
+  .race-expectations-info { margin-inline: $space-md; }
+  .race-analysis .race-expectations-notice { margin-inline: $space-md; }
+  .race-analysis-info > summary { min-height: 44px; }
+  .race-expectations-toolbar, .race-expectations-validation { padding-inline: $space-md; }
   .race-expectations-table {
     display: block;
     thead { display: none; }

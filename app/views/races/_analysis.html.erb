@@ -1,33 +1,21 @@
 <section class="race-analysis" id="race-analysis" aria-labelledby="race-analysis-title">
   <header class="race-analysis-heading">
-    <div>
-      <span class="race-analysis-eyebrow">The race, in perspective</span>
-      <h2 id="race-analysis-title">Race debrief</h2>
-      <p>What did we expect after qualifying—and who beat it?</p>
-    </div>
-    <span class="race-analysis-round">R<%= analysis.race.round.to_s.rjust(2, "0") %><small><%= analysis.race.year %></small></span>
-  </header>
+    <h2 id="race-analysis-title">Race debrief</h2>
 
-  <details class="race-analysis-share" data-controller="race-analysis-share" data-race-analysis-share-title-value="<%= @analysis_share.title %>" data-race-analysis-share-text-value="<%= @analysis_share.description %>">
-    <summary>Share this debrief <span aria-hidden="true">↗</span></summary>
-    <div class="race-analysis-share-tools">
-      <label for="race-analysis-share-url">Public link · no account needed</label>
-      <input id="race-analysis-share-url" type="url" readonly value="<%= @analysis_share.url %>" data-race-analysis-share-target="url" data-action="click->race-analysis-share#select">
-      <div class="race-analysis-share-actions">
-        <button type="button" data-action="race-analysis-share#copy">Copy link</button>
-        <button type="button" hidden data-race-analysis-share-target="native" data-action="race-analysis-share#share">Share…</button>
-        <%= link_to "Preview share card ↗", analysis_og_image_race_path(analysis.race, v: @analysis_share.fingerprint), target: "_blank", rel: "noopener" %>
+    <details class="race-analysis-share" data-controller="race-analysis-share" data-race-analysis-share-title-value="<%= @analysis_share.title %>" data-race-analysis-share-text-value="<%= @analysis_share.description %>">
+      <summary>Share this debrief <span aria-hidden="true">↗</span></summary>
+      <div class="race-analysis-share-tools">
+        <label for="race-analysis-share-url">Public link · no account needed</label>
+        <input id="race-analysis-share-url" type="url" readonly value="<%= @analysis_share.url %>" data-race-analysis-share-target="url" data-action="click->race-analysis-share#select">
+        <div class="race-analysis-share-actions">
+          <button type="button" data-action="race-analysis-share#copy">Copy link</button>
+          <button type="button" hidden data-race-analysis-share-target="native" data-action="race-analysis-share#share">Share…</button>
+          <%= link_to "Preview share card ↗", analysis_og_image_race_path(analysis.race, v: @analysis_share.fingerprint), target: "_blank", rel: "noopener" %>
+        </div>
+        <span role="status" aria-live="polite" data-race-analysis-share-target="status"></span>
       </div>
-      <span role="status" aria-live="polite" data-race-analysis-share-target="status"></span>
-    </div>
-  </details>
-
-  <div class="race-analysis-coverage" aria-label="Available analysis data">
-    <span><strong><%= analysis.coverage[:results] %></strong> stored results</span>
-    <span><strong><%= analysis.coverage[:elo] %>/<%= analysis.coverage[:results] %></strong> Elo snapshots</span>
-    <span><strong><%= analysis.coverage[:grid] %>/<%= analysis.coverage[:results] %></strong> numbered grid slots</span>
-    <span><strong><%= analysis.coverage[:qualifying] %>/<%= analysis.coverage[:results] %></strong> qualifying results</span>
-  </div>
+    </details>
+  </header>
 
   <%= render "races/expectations", analysis: analysis %>
 

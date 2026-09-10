@@ -48,6 +48,9 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-expectations-errors", text: /Elo \+ qualifying/
     assert_select ".race-expectations-reading", text: /DNF/
     assert_select ".race-expectations-context", text: /45 races/
+    assert_select "details#race-expectations-info:not([open]) .race-expectations-context", text: /No results from this race/
+    assert_select "details.race-expectations-ranking-info:not([open])", text: /not poor driving/
+    assert_select ".race-expectations-heading p", count: 0
     assert_select ".race-expectations-leaderboard[aria-label='Top 3'] li", minimum: 1
     assert_select ".race-expectations-leaderboard[aria-label='Flop 3'] li", minimum: 1
     assert_select ".race-expectations-leaders-note", text: /3\/4 entrants assessed/
@@ -56,6 +59,13 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:image'][content^='#{PublicSite.url(analysis_og_image_race_path(races(:bahrain_2026)))}?v=']"
     assert_select "meta[property='og:image:alt'][content*='Top 3 and Flop 3']"
     assert_select "input#race-analysis-share-url[value='#{PublicSite.url(race_path(races(:bahrain_2026), anchor: 'race-analysis'))}']"
+  end
+
+  test "missing history stays visible outside collapsed model notes" do
+    get race_path(races(:bahrain_2026))
+    assert_select ".race-expectations > .race-expectations-notice", text: /0\/4 entrants have an estimate.*Not enough earlier history/m
+    assert_select ".race-expectations-leaders-note", text: /DNFs excluded/
+    assert_select "details#race-expectations-info:not([open])", count: 1
   end
 
   test "calendar returns 200" do
