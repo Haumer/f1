@@ -13,6 +13,7 @@ class Fantasy::LeaderboardTest < ActiveSupport::TestCase
     assert entry.key?(:portfolio)
     assert entry.key?(:value)
     assert entry.key?(:net)
+    assert entry.key?(:stock_portfolio_id)
   end
 
   test "sorted by net profit descending" do
@@ -28,8 +29,17 @@ class Fantasy::LeaderboardTest < ActiveSupport::TestCase
 
   test "net equals total return (portfolio value minus starting capital)" do
     result = Fantasy::Leaderboard.new(season: seasons(:season_2026)).call
-    entry = result.first
-    expected_net = entry[:portfolio].total_return
-    assert_in_delta expected_net, entry[:net], 0.01
+
+    result.each do |entry|
+      assert_in_delta entry[:portfolio].total_return, entry[:net], 0.01
+    end
+  end
+
+  test "uses the stock portfolio belonging to the same user and season" do
+    result = Fantasy::Leaderboard.new(season: seasons(:season_2026)).call
+    entry = result.find { |candidate| candidate[:portfolio] == fantasy_portfolios(:codex_2026) }
+
+    assert_equal fantasy_stock_portfolios(:codex_stock_2026).id, entry[:stock_portfolio_id]
+    assert_in_delta entry[:portfolio].portfolio_value, entry[:value], 0.01
   end
 end
