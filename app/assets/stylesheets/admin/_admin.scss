@@ -38,7 +38,7 @@ $admin-sidebar-width: 240px;
   padding: 20px 16px;
   border-bottom: 1px solid rgba($text-on-dark, 0.1);
   a {
-    font-family: 'Formula1', sans-serif;
+    font-family: $display-font;
     font-size: 18px;
     color: $text-on-dark;
     text-decoration: none;

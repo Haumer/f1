@@ -34,7 +34,7 @@
     }
 
     .page-hero-title {
-        font-family: 'Formula1', sans-serif;
+        font-family: $display-font;
         font-size: $type-page-title-lg;
         font-weight: 700;
         margin: 0 0 8px;
@@ -200,7 +200,7 @@
 // Season hero
 .season-hero {
     .season-hero-watermark {
-        font-family: 'Formula1', sans-serif;
+        font-family: $display-font;
         font-size: 200px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.02);

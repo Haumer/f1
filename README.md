@@ -28,7 +28,7 @@ F1 Elo applies the [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_
 - **Database:** PostgreSQL
 - **Frontend:** Bootstrap 5, SCSS, Hotwire (Turbo + Stimulus)
 - **Charts:** ECharts via `rails_charts` gem
-- **Fonts:** Formula1 display font family
+- **Fonts:** IBM Plex Sans and IBM Plex Mono with system fallbacks
 - **Search:** pg_search for driver autocomplete
 - **Background Jobs:** Solid Queue
 - **Auth:** Devise
@@ -53,20 +53,27 @@ bin/dev
 
 Requires PostgreSQL running locally. Configure `config/database.yml` as needed.
 
+`APP_HOST` defaults to `f1elo.com` for canonical URLs and the sitemap. Set it to the deployed host for
+another installation. Google Analytics is disabled unless a valid `GOOGLE_ANALYTICS_ID` (for example,
+`G-XXXXXXXXXX`) is configured, and its browser script loads only after visitor consent.
+
 ### Import Data
 
 ```bash
 # Sync a single season
-rake f1:sync YEAR=2025
+rake f1:sync YEAR=2026
 
 # Sync a range of seasons
-rake f1:sync_range YEARS=1950-2025
+rake f1:sync_range YEARS=1950-2026
 
 # Run Elo simulation
 rake f1:elo_v2_simulate
 
+# Recalculate constructor Elo after changing its scoring method
+rake f1:constructor_elo_simulate
+
 # Fetch qualifying data (1996+)
-rake f1:qualifying START=1996 END=2025
+rake f1:qualifying START=1996 END=2026
 
 # Compute driver badges
 rake f1:badges
@@ -86,6 +93,16 @@ Each driver starts at a baseline rating of 2000. After every race, all finishers
 
 The system produces meaningful separation between tiers — from developing drivers (~2000) through elite all-time greats (2600+).
 
+Constructor ratings use the same pairwise calculation. A constructor's score for a race is the average
+classified finishing position of all its entries, which keeps teams comparable when historical entry counts differ.
+After changing constructor scoring code, recalculate the full history before processing another race. Production
+supports a no-write preview and requires an explicit confirmation before persisting:
+
+```bash
+RAILS_ENV=production DRY_RUN=1 bin/rails f1:constructor_elo_simulate
+RAILS_ENV=production CONFIRM_CONSTRUCTOR_ELO=1 bin/rails f1:constructor_elo_simulate
+```
+
 ## Fantasy Mode
 
 A stock market game built on top of the Elo system:
@@ -94,4 +111,10 @@ A stock market game built on top of the Elo system:
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+Original project code is available under the [MIT License](LICENSE). Third-party dependencies, data,
+fonts, images, logos, names, and trademarks are not relicensed; see [Third-Party Notices](THIRD_PARTY_NOTICES.md).
+
+## Public Launch
+
+See the [zero-budget launch checklist](docs/public-launch.md) for search indexing, GitHub discovery,
+community outreach, and measurement.

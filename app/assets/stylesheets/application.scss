@@ -17,18 +17,6 @@
 @import "fantasy/fantasy";
 @import "cards/index";
 
-// Formula 1 fonts
-@font-face {
-    font-family: "Formula1";
-    src: url("fonts/Formula1-Regular-1.ttf") format("truetype");
-    font-weight: 400;
-}
-@font-face {
-    font-family: "Formula1";
-    src: url("fonts/Formula1-Bold-4.ttf") format("truetype");
-    font-weight: 700;
-}
-
 // Turbo progress bar
 .turbo-progress-bar {
     background: linear-gradient(90deg, var(--page-accent, $accent-red), color-mix(in srgb, var(--page-accent, $accent-red) 60%, white));
@@ -434,7 +422,7 @@ th[data-sort] {
     }
 
     h1 {
-        font-family: 'Formula1', sans-serif;
+        font-family: $display-font;
         font-size: $type-display;
         margin: 0 0 10px;
         letter-spacing: $ls-display;
@@ -461,7 +449,7 @@ th[data-sort] {
 
     // Season year as an oversized faded background element
     .hero-season-year {
-        font-family: 'Formula1', sans-serif;
+        font-family: $display-font;
         font-size: 220px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.02);
@@ -1083,4 +1071,4 @@ table.race-results {
 
 // Font utility
 .font-mono { font-family: $mono-font; font-variant-numeric: tabular-nums; }
-.font-display { font-family: 'Formula1', sans-serif; }
+.font-display { font-family: $display-font; }
