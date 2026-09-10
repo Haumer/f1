@@ -38,6 +38,17 @@
             With 20 drivers on the grid, that's 19 head-to-head matchups per race.
         </p>
 
+        <h4>Constructor Elo</h4>
+        <p>
+            Constructors use the same pairwise Elo calculation, but each team's race result is its
+            <strong><%= ConstructorEloV2::SCORING_METHOD %></strong> across all classified entries.
+            A lower average ranks ahead of a higher one; equal averages are treated as a tie.
+        </p>
+        <p>
+            Using an average keeps teams comparable in seasons where constructors entered different
+            numbers of cars. A team is not automatically penalized simply because it fielded more entries.
+        </p>
+
         <h4>Why Elo for F1?</h4>
         <p>
             Unlike championship points, Elo ratings account for the <strong>strength of the field</strong>.

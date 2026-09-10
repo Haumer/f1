@@ -2,10 +2,12 @@ class ConstructorEloV2
   STARTING_ELO = 2000.0
   BASE_K = 32
   REFERENCE_RACES = 12.0
+  SCORING_METHOD = "average finishing position"
 
   # Run full historical simulation from scratch.
-  # Ranks constructors by combined position_order of all their drivers (lower = better).
-  def self.simulate_all!
+  # Ranks constructors by average finishing position (lower = better), so teams
+  # with different entry counts are compared on the same scale.
+  def self.simulate_all!(persist: true)
     races = Race.includes(race_results: :constructor).order(:date, :round).to_a
     races_per_year = Race.group(:year).count
 
@@ -19,12 +21,14 @@ class ConstructorEloV2
       results = race.race_results.select { |rr| rr.position_order.present? }
       next if results.empty?
 
-      by_constructor = results.group_by(&:constructor_id)
-      scores = by_constructor.map { |cid, rrs| [cid, rrs.sum(&:position_order), rrs] }
+      scores = constructor_scores(results)
       next if scores.size < 2
 
       season_races = races_per_year[race.year] || REFERENCE_RACES.to_i
-      scores.each { |cid, _, _| elo[cid] ||= STARTING_ELO }
+      scores.each do |cid, _, _|
+        elo[cid] ||= STARTING_ELO
+        peak[cid] ||= STARTING_ELO
+      end
 
       participants = scores.map { |cid, score, _| { id: cid, elo: elo[cid], score: score } }
       k_pair = EloMath.compute_k_pair(BASE_K, REFERENCE_RACES, season_races, scores.size)
@@ -39,8 +43,17 @@ class ConstructorEloV2
       end
     end
 
+    result = { constructors_updated: constructor_updates.size, race_results_updated: race_result_updates.size }
+    return result unless persist
+
     # Batch persist
     ActiveRecord::Base.transaction do
+      # A full simulation is also the repair path after a scoring change. Clear
+      # derived values first so cancelled/unclassified races and constructors
+      # with no valid result cannot retain ratings from the previous formula.
+      RaceResult.update_all(old_constructor_elo_v2: nil, new_constructor_elo_v2: nil)
+      Constructor.update_all(elo_v2: nil, peak_elo_v2: nil)
+
       race_result_updates.each_slice(500) do |batch|
         batch.each do |update|
           RaceResult.where(id: update[:id]).update_all(
@@ -54,7 +67,7 @@ class ConstructorEloV2
       end
     end
 
-    { constructors_updated: constructor_updates.size, race_results_updated: race_result_updates.size }
+    result
   end
 
   # Process a single race (for incremental updates after sync)
@@ -66,8 +79,7 @@ class ConstructorEloV2
     # Skip if already processed
     return if results.first.old_constructor_elo_v2.present?
 
-    by_constructor = results.group_by(&:constructor_id)
-    scores = by_constructor.map { |cid, rrs| [cid, rrs.sum(&:position_order), rrs] }
+    scores = constructor_scores(results)
     return if scores.size < 2
 
     season_races = race.season&.races&.count || Race.where(year: race.year).count
@@ -82,11 +94,21 @@ class ConstructorEloV2
         constructor = all_constructors[cid]
         old_elo = constructor.elo_v2 || STARTING_ELO
         new_elo = old_elo + (adjustments[cid] || 0)
-        new_peak = [constructor.peak_elo_v2 || 0, new_elo].max
+        new_peak = [constructor.peak_elo_v2 || old_elo, old_elo, new_elo].max
 
         constructor.update!(elo_v2: new_elo, peak_elo_v2: new_peak)
         rrs.each { |rr| rr.update!(old_constructor_elo_v2: old_elo, new_constructor_elo_v2: new_elo) }
       end
     end
   end
+
+  def self.constructor_scores(results)
+    results.group_by(&:constructor_id).filter_map do |constructor_id, constructor_results|
+      next unless constructor_id
+
+      average_finish = constructor_results.sum(&:position_order).fdiv(constructor_results.size)
+      [constructor_id, average_finish, constructor_results]
+    end
+  end
+  private_class_method :constructor_scores
 end

@@ -12,6 +12,7 @@ class ConstructorEloV2Test < ActiveSupport::TestCase
     assert_equal 2000.0, ConstructorEloV2::STARTING_ELO
     assert_equal 32, ConstructorEloV2::BASE_K
     assert_equal 12.0, ConstructorEloV2::REFERENCE_RACES
+    assert_equal "average finishing position", ConstructorEloV2::SCORING_METHOD
   end
 
   test "process_race updates constructor elo" do
@@ -72,5 +73,56 @@ class ConstructorEloV2Test < ActiveSupport::TestCase
       (rr.new_constructor_elo_v2 || 0) - (rr.old_constructor_elo_v2 || 0)
     end
     assert_in_delta 0.0, total_change, 0.01, "Constructor Elo changes must be zero-sum"
+  end
+
+  test "uses average finish so constructors with different entry counts are comparable" do
+    constructors(:red_bull).update_columns(elo_v2: 2000.0, peak_elo_v2: 2000.0)
+    constructors(:mclaren).update_columns(elo_v2: 2000.0, peak_elo_v2: 2000.0)
+    constructors(:ferrari).update_columns(elo_v2: 2000.0, peak_elo_v2: 2000.0)
+
+    # McLaren finishes P2 and P4 (average P3); Ferrari has one entry at P3.
+    # They should tie even though McLaren has twice as many classified cars.
+    ConstructorEloV2.process_race(races(:bahrain_2026))
+
+    assert_in_delta constructors(:mclaren).reload.elo_v2,
+                    constructors(:ferrari).reload.elo_v2,
+                    0.001
+  end
+
+  test "initial rating remains the peak when a constructor loses on debut" do
+    constructors(:red_bull).update_columns(elo_v2: nil, peak_elo_v2: nil)
+    constructors(:mclaren).update_columns(elo_v2: nil, peak_elo_v2: nil)
+    constructors(:ferrari).update_columns(elo_v2: nil, peak_elo_v2: nil)
+
+    ConstructorEloV2.process_race(races(:bahrain_2026))
+
+    assert_equal ConstructorEloV2::STARTING_ELO, constructors(:ferrari).reload.peak_elo_v2
+  end
+
+  test "full simulation clears stale ratings that are outside valid race history" do
+    inactive = Constructor.create!(
+      constructor_ref: "never_started",
+      name: "Never Started Racing",
+      nationality: "Austrian",
+      elo_v2: 2400.0,
+      peak_elo_v2: 2500.0
+    )
+
+    ConstructorEloV2.simulate_all!
+
+    assert_nil inactive.reload.elo_v2
+    assert_nil inactive.peak_elo_v2
+  end
+
+  test "dry-run simulation calculates its scope without changing ratings" do
+    constructor = constructors(:red_bull)
+    constructor.update_columns(elo_v2: 2345.0, peak_elo_v2: 2456.0)
+
+    result = ConstructorEloV2.simulate_all!(persist: false)
+
+    assert_operator result[:constructors_updated], :>, 0
+    assert_operator result[:race_results_updated], :>, 0
+    assert_equal 2345.0, constructor.reload.elo_v2
+    assert_equal 2456.0, constructor.peak_elo_v2
   end
 end

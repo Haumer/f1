@@ -41,13 +41,22 @@ namespace :f1 do
 
   desc "Run Constructor Elo full historical simulation"
   task constructor_elo_simulate: :environment do
-    puts "Running Constructor Elo simulation (K=#{ConstructorEloV2::BASE_K}, ref_races=#{ConstructorEloV2::REFERENCE_RACES.to_i}, start=#{ConstructorEloV2::STARTING_ELO})..."
-    result = ConstructorEloV2.simulate_all!
-    puts "Done. #{result[:constructors_updated]} constructors, #{result[:race_results_updated]} race results updated."
+    dry_run = ENV["DRY_RUN"] == "1"
+    if Rails.env.production? && !dry_run && ENV["CONFIRM_CONSTRUCTOR_ELO"] != "1"
+      abort "This rewrites all historical constructor ratings. Re-run with CONFIRM_CONSTRUCTOR_ELO=1."
+    end
 
-    puts "\nTop 10 All-Time Peak Constructor Elo:"
-    Constructor.where.not(peak_elo_v2: nil).order(peak_elo_v2: :desc).limit(10).each_with_index do |c, i|
-      puts "  ##{i+1} #{c.name.ljust(25)} Peak: #{c.peak_elo_v2.round}  Current: #{c.elo_v2.round}"
+    mode = dry_run ? "dry run" : "write"
+    puts "Running Constructor Elo simulation (mode=#{mode}, score=#{ConstructorEloV2::SCORING_METHOD}, K=#{ConstructorEloV2::BASE_K}, ref_races=#{ConstructorEloV2::REFERENCE_RACES.to_i}, start=#{ConstructorEloV2::STARTING_ELO})..."
+    result = ConstructorEloV2.simulate_all!(persist: !dry_run)
+    verb = dry_run ? "would be updated" : "updated"
+    puts "Done. #{result[:constructors_updated]} constructors, #{result[:race_results_updated]} race results #{verb}."
+
+    unless dry_run
+      puts "\nTop 10 All-Time Peak Constructor Elo:"
+      Constructor.where.not(peak_elo_v2: nil).order(peak_elo_v2: :desc).limit(10).each_with_index do |c, i|
+        puts "  ##{i+1} #{c.name.ljust(25)} Peak: #{c.peak_elo_v2.round}  Current: #{c.elo_v2.round}"
+      end
     end
   end
 
