@@ -3,7 +3,7 @@
     <div>
       <span class="race-analysis-eyebrow">The race, in perspective</span>
       <h2 id="race-analysis-title">Race debrief</h2>
-      <p>What the result changed. Where it departed from the ratings.</p>
+      <p>What did we expect after qualifying—and who beat it?</p>
     </div>
     <span class="race-analysis-round">R<%= analysis.race.round.to_s.rjust(2, "0") %><small><%= analysis.race.year %></small></span>
   </header>
@@ -15,55 +15,26 @@
     <span><strong><%= analysis.coverage[:qualifying] %>/<%= analysis.coverage[:results] %></strong> qualifying results</span>
   </div>
 
-  <% if analysis.highlights.any? %>
-    <div class="race-analysis-highlights">
-      <% analysis.highlights.each do |highlight| %>
-        <article class="race-analysis-highlight race-analysis-<%= highlight[:tone] %>">
-          <span class="race-analysis-label"><%= highlight[:label] %></span>
-          <div class="race-analysis-value"><%= analysis_signed(highlight[:value], precision: highlight[:unit] == "Elo" ? 1 : 0) %><small><%= highlight[:unit] %></small></div>
-          <h3><%= link_to highlight[:row].driver.surname, driver_path(highlight[:row].driver) %></h3>
-          <p><%= highlight[:detail] %></p>
-        </article>
-      <% end %>
-    </div>
-  <% end %>
+  <%= render "races/expectations", analysis: analysis %>
 
   <div class="race-analysis-columns">
-    <section class="race-analysis-panel" aria-labelledby="race-analysis-order-title">
+    <section class="race-analysis-panel" aria-labelledby="race-analysis-movers-title">
       <div class="race-analysis-panel-heading">
-        <span class="race-analysis-label">Form meets the result</span>
-        <h3 id="race-analysis-order-title">Elo order vs finish</h3>
-        <p>The largest differences among classified finishers. An Elo seed is a driver's pre-race rating rank in this field—not a predicted finishing position.</p>
+        <span class="race-analysis-label">The rating ledger</span>
+        <h3 id="race-analysis-movers-title">What changed in Elo?</h3>
+        <p>These are actual rating changes. The expectation model above does not change Elo or fantasy scoring.</p>
       </div>
-      <% if analysis.seeded? && analysis.comparison_rows.any? %>
-        <div class="race-analysis-legend" aria-hidden="true"><span>○ Elo seed</span><span>● Finish</span><span>Better ← → Worse</span></div>
-        <table class="race-analysis-comparison">
-          <caption class="visually-hidden">Up to eight largest differences from pre-race Elo order; positive changes mean finishing ahead of the seed.</caption>
-          <thead><tr><th scope="col">Driver</th><th scope="col">Seed</th><th scope="col" class="race-analysis-lane-cell"><span class="visually-hidden">Position change chart</span></th><th scope="col">Finish</th><th scope="col">Change</th></tr></thead>
-          <tbody>
-            <% analysis.comparison_rows.each do |row| %>
-              <tr class="race-analysis-<%= analysis_tone(row.seed_change) %>">
-                <th scope="row"><%= link_to row.driver.surname, driver_path(row.driver) %></th>
-                <td><%= analysis_seed(row.seed) %></td>
-                <td class="race-analysis-lane-cell"><div class="race-analysis-lane" style="<%= analysis_lane_style(row, analysis.rows.size) %>" aria-hidden="true"><span class="race-analysis-trace"></span><span class="race-analysis-seed"></span><span class="race-analysis-finish"></span></div></td>
-                <td><%= row.display_position %></td>
-                <td class="race-analysis-change"><%= analysis_signed(row.seed_change, precision: row.seed_change == row.seed_change.to_i ? 0 : 1) %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <p class="race-analysis-empty">A comparison needs a pre-race Elo snapshot and result order for every stored entrant, plus a classified finisher. Missing ratings are not treated as zero.</p>
-      <% end %>
-      <% non_finishers = analysis.rows.reject(&:classified?) %>
-      <% if non_finishers.any? %>
-        <div class="race-analysis-statuses">
-          <span class="race-analysis-label">Outside finishing comparisons</span>
-          <% non_finishers.each do |row| %>
-            <span title="<%= row.result.status&.status_type %>"><%= row.driver.surname %> <strong><%= row.display_position %></strong></span>
+      <% if analysis.highlights.any? %>
+        <div class="race-analysis-ledger">
+          <% analysis.highlights.each do |highlight| %>
+            <article class="race-analysis-highlight race-analysis-<%= highlight[:tone] %>">
+              <span class="race-analysis-label"><%= highlight[:label] %></span>
+              <h4><%= link_to highlight[:row].driver.surname, driver_path(highlight[:row].driver) %><strong><%= analysis_signed(highlight[:value], precision: highlight[:unit] == "Elo" ? 1 : 0) %> <small><%= highlight[:unit] %></small></strong></h4>
+            </article>
           <% end %>
-          <p>Retirements and other non-finishes still affect Elo. Their statuses are not treated as places lost here.</p>
         </div>
+      <% else %>
+        <p class="race-analysis-empty">No rating or grid-gain highlights are available from the stored results.</p>
       <% end %>
     </section>
 
@@ -120,7 +91,7 @@
   <details class="race-analysis-method" id="race-analysis-method">
     <summary>What this analysis can—and cannot—tell you</summary>
     <div>
-      <p>This debrief is calculated from the results and rating snapshots stored for this race. Source corrections are reflected on the next page load; it is not a separately reviewed race report.</p>
+      <p>This debrief is calculated from stored results and rating snapshots. The experimental expectation model learns from earlier races only, using Elo rank and qualifying together; it never feeds back into Elo. It is not a separately reviewed race report.</p>
       <p>Elo uses the result order, including retirements. It does not isolate driver skill from the car, reliability, penalties or strategy. Elo seed comparisons use pre-race ratings, never today's ratings. Equal ratings share the midpoint of their rank range (for example, tied first and second become seed 1.5).</p>
       <p>Grid gains use numbered starting slots and classified finishes only. Zero or missing grid values are excluded; a position gained is not necessarily an overtake. Qualifying gaps use the latest segment both teammates have a valid time for, never Q1 against Q3.</p>
       <p>Lap-by-lap pace, tyre stints, pit-stop execution and safety-car effects are not available in this report. Missing data is omitted, not inferred.</p>

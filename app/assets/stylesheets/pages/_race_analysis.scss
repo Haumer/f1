@@ -74,13 +74,6 @@
   strong { font-family: $mono-font; color: $text-primary; }
 }
 
-.race-analysis-highlights {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
 .race-analysis-highlight {
   padding: 22px;
   border: 1px solid $border-accent;
@@ -88,16 +81,6 @@
   border-radius: 0 0 $radius-md $radius-md;
   background: linear-gradient(145deg, $bg-card, $bg-surface);
   h3 { font-size: 20px; font-weight: 600; margin: 8px 0; overflow-wrap: anywhere; }
-}
-
-.race-analysis-value {
-  margin-top: 18px;
-  color: var(--analysis-tone);
-  font-family: $mono-font;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.2;
-  small { margin-left: 7px; font-size: 12px; font-weight: 400; }
 }
 
 .race-analysis-columns { display: grid; grid-template-columns: 1.45fr 1fr; gap: 20px; margin-bottom: 20px; }
@@ -108,36 +91,6 @@
 }
 
 .race-analysis-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 22px 12px; color: #a8a8bb; font-size: 10px; }
-.race-analysis-comparison {
-  width: calc(100% - 32px);
-  margin: 0 16px 16px;
-  border-collapse: collapse;
-  font-size: 12px;
-  th, td { padding: 10px 5px; border-bottom: 1px solid $border-color; text-align: right; }
-  th:first-child { text-align: left; overflow-wrap: anywhere; }
-  thead th { color: $text-secondary; font-size: 10px; font-weight: 400; }
-  tbody th { font-weight: 500; }
-  td { font-family: $mono-font; }
-  .race-analysis-change { color: var(--analysis-tone); font-weight: 600; }
-}
-.race-analysis-lane-cell { width: 32%; }
-.race-analysis-lane {
-  position: relative;
-  margin: 0 8px;
-  height: 2px;
-  background: $border-accent;
-  .race-analysis-trace { position: absolute; left: var(--left); width: var(--distance); height: 2px; background: var(--analysis-tone); }
-  .race-analysis-seed, .race-analysis-finish { position: absolute; top: -3px; width: 8px; height: 8px; border-radius: 50%; transform: translateX(-50%); }
-  .race-analysis-seed { left: var(--seed); background: $bg-surface; border: 1px solid #a8a8bb; }
-  .race-analysis-finish { left: var(--finish); background: var(--analysis-tone); }
-}
-
-.race-analysis-statuses {
-  padding: 4px 22px 20px;
-  > span:not(.race-analysis-label) { display: inline-block; margin: 8px 8px 4px 0; font-size: 11px; color: #a8a8bb; }
-  strong { margin-left: 3px; color: $text-primary; font-size: 10px; }
-  p { margin-top: 6px; }
-}
 .race-analysis-empty, .race-analysis-footnote { padding: 4px 22px 20px; }
 .race-analysis-text-link { display: inline-block; margin: 0 22px 20px; font-size: 12px; color: $text-primary; }
 
@@ -198,13 +151,11 @@
   .race-analysis-team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
-  .race-analysis-highlights, .race-analysis-team-grid { grid-template-columns: 1fr; }
+  .race-analysis-team-grid { grid-template-columns: 1fr; }
   .race-analysis-heading { gap: 12px; }
   .race-analysis-round { font-size: 30px; }
   .race-analysis-highlight { padding: 18px; }
   .race-analysis-panel-heading { padding: 18px 16px 14px; }
-  .race-analysis-comparison { font-size: 11px; }
-  .race-analysis-lane-cell { width: 22%; }
   .race-analysis-fantasy { align-items: flex-start; flex-direction: column; padding: 20px; }
   .race-section-nav a { font-size: 11px; padding: 10px 12px; }
 }

@@ -1,0 +1,102 @@
+.race-expectations { margin-bottom: 24px; }
+.race-expectations-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 24px 18px;
+  background: linear-gradient(120deg, rgba($gold, 0.055), transparent);
+  h3 { margin: 9px 0; font-size: clamp(21px, 3vw, 29px); font-weight: 650; letter-spacing: -0.5px; }
+  p { max-width: 690px; font-size: 13px; }
+}
+.race-expectations-badge { color: $gold; font: 10px $mono-font; white-space: nowrap; padding: 7px 9px; border: 1px solid rgba($gold, 0.25); border-radius: 20px; }
+.race-expectations-context {
+  padding: 0 24px 18px;
+  p + p { margin-top: 8px; }
+  strong { color: #bdbdcc; font-weight: 500; }
+  .race-expectations-notice { color: #d4bf8a; }
+}
+.race-expectations-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 24px;
+  border-block: 1px solid $border-accent;
+  .race-analysis-legend { margin: 0; gap: 14px; }
+  label { display: flex; align-items: center; gap: 8px; font-size: 11px; color: $text-secondary; }
+  select { color: $text-primary; background: $bg-card; border: 1px solid $border-accent; border-radius: 5px; padding: 8px; font-size: 11px; }
+  select:focus-visible { outline: 2px solid $gold; outline-offset: 2px; }
+}
+.race-expectations-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  th, td { padding: 13px 10px; border-bottom: 1px solid $border-color; text-align: right; vertical-align: middle; }
+  th:first-child { padding-left: 24px; text-align: left; }
+  td:last-child, th:last-child { padding-right: 24px; text-align: left; }
+  thead th { color: $text-secondary; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  tbody th { font-weight: 600; }
+  tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+  strong { font-family: $mono-font; font-weight: 500; white-space: nowrap; }
+  small { display: block; margin-top: 4px; color: $text-secondary; font-size: 10px; font-weight: 400; line-height: 1.5; }
+  .race-expectations-grid-note { color: #d4bf8a; }
+  .race-expectations-verdict { font-family: $body-font; font-size: 11px; }
+}
+.race-expectations-difference { color: var(--analysis-tone); }
+.race-expectations-plot-cell { width: 20%; }
+.race-expectations-lane {
+  position: relative;
+  height: 2px;
+  margin: 0 8px;
+  background: $border-accent;
+  .race-expectations-band { position: absolute; height: 8px; top: -3px; left: var(--range-left); width: var(--range-width); border-radius: 2px; background: rgba($silver, 0.25); }
+  .race-expectations-estimate { position: absolute; height: 8px; width: 8px; top: -3px; left: var(--expected); border: 1px solid $gold; background: $bg-surface; transform: translateX(-50%) rotate(45deg); }
+  .race-expectations-finish { position: absolute; height: 8px; width: 8px; top: -3px; left: var(--finish); background: var(--analysis-tone); border-radius: 50%; transform: translateX(-50%); }
+}
+.race-expectations-reading { width: 125px; }
+.race-expectations-validation {
+  padding: 20px 24px;
+  summary { cursor: pointer; color: #bdbdcc; font-size: 12px; }
+  p { margin-top: 16px; }
+}
+.race-expectations-errors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 18px 0 0;
+  div { background: $bg-card; border-radius: 6px; padding: 14px; }
+  dt { font-size: 11px; color: $text-secondary; font-weight: 400; }
+  dd { font: 24px $mono-font; margin: 8px 0 0; small { display: block; font-size: 10px; color: $text-secondary; } }
+  div:first-child dd { color: $gold; }
+}
+.race-analysis-ledger {
+  padding: 0 22px 18px;
+  .race-analysis-highlight { background: transparent; border: 0; border-radius: 0; padding: 16px 0; border-top: 1px solid $border-color; }
+  h4 { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 15px; }
+  strong { color: var(--analysis-tone); font: 16px $mono-font; small { font-size: 10px; } }
+}
+@media (max-width: 1000px) {
+  .race-expectations-table th, .race-expectations-table td { padding-inline: 7px; }
+  .race-expectations-plot-cell { width: 13%; }
+}
+@media (max-width: 700px) {
+  .race-expectations-heading { padding: 20px 18px 16px; flex-direction: column; gap: 10px; }
+  .race-expectations-context, .race-expectations-toolbar, .race-expectations-validation { padding-inline: 18px; }
+  .race-expectations-table {
+    display: block;
+    thead { display: none; }
+    tbody { display: block; }
+    tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 8px; padding: 18px; border-bottom: 1px solid $border-accent; }
+    th, td, th:first-child, td:last-child { display: block; width: auto; padding: 0; border: 0; text-align: left; min-width: 0; }
+    th { grid-column: 1 / -1; font-size: 15px; }
+    th small { display: inline; margin-left: 8px; }
+    td::before { content: attr(data-label); display: block; margin-bottom: 5px; color: $text-secondary; font-family: $body-font; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td strong { font-size: 13px; }
+    td small { font-size: 9px; }
+    .race-expectations-plot-cell { display: none; }
+    .race-expectations-verdict { white-space: normal; font-size: 12px; }
+  }
+  .race-expectations-errors { gap: 8px; div { padding: 10px; } dt { font-size: 10px; } dd { font-size: 19px; } }
+}

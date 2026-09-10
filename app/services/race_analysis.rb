@@ -1,9 +1,16 @@
-# A read-only debrief of the stored race, not a new rating or prediction model.
+# A read-only debrief of the stored race. The expectation model is separate from
+# the Elo ratings and never changes their calculation or fantasy settlement.
 # Always use this race's snapshots: today's Driver#elo_v2 would leak future form
 # into old reports. No requests, writes, or Elo replays happen when viewing it.
 class RaceAnalysis
   Row = Struct.new(:result, :seed, keyword_init: true) do
-    delegate :driver, :constructor, :display_position, to: :result
+    delegate :driver, :constructor, to: :result
+
+    def display_position
+      return "—" if result.classified? && !result.position_order.to_i.positive?
+
+      result.display_position
+    end
 
     def classified?
       result.classified? && result.position_order.to_i.positive?
@@ -11,10 +18,6 @@ class RaceAnalysis
 
     def grid_change
       result.grid - result.position_order if classified? && result.grid.to_i.positive?
-    end
-
-    def seed_change
-      seed - result.position_order if classified? && seed
     end
 
     def elo_change
@@ -51,9 +54,8 @@ class RaceAnalysis
     }
   end
 
-  def comparison_rows
-    rows.select { |row| row.seed_change }
-        .sort_by { |row| [-row.seed_change.abs, row.result.position_order, row.result.driver_id] }.first(8)
+  def expectations
+    @expectations ||= RaceExpectations::Report.new(race: race, rows: rows, qualifying: qualifying_by_driver)
   end
 
   def highlights
@@ -126,7 +128,7 @@ class RaceAnalysis
 
   def assign_seeds
     return if rows.size < 2
-    return unless rows.all? { |row| row.result.old_elo_v2&.finite? && row.result.position_order.to_i.positive? }
+    return unless rows.all? { |row| row.result.old_elo_v2&.finite? }
     return unless rows.map { |row| row.result.driver_id }.uniq.size == rows.size
 
     # Ties take their rank range's midpoint. Ranking an equal-rated opening field

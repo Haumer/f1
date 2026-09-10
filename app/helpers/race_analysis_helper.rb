@@ -19,11 +19,14 @@ module RaceAnalysisHelper
     number_with_precision(value, precision: 1, strip_insignificant_zeros: true)
   end
 
-  # Visual lane is decorative; the exact seed, result and change remain text.
-  def analysis_lane_style(row, field_size)
-    start = (row.seed - 1) * 100.0 / [field_size - 1, 1].max
-    finish = (row.result.position_order - 1) * 100.0 / [field_size - 1, 1].max
-    "--seed: #{start.clamp(0, 100)}%; --finish: #{finish.clamp(0, 100)}%; " \
-      "--left: #{[start, finish].min.clamp(0, 100)}%; --distance: #{(start - finish).abs.clamp(0, 100)}%;"
+  # Decorative only: precise expected/actual positions and bounds remain text.
+  def expectation_lane_style(assessment, field_size)
+    scale = 100.0 / [field_size - 1, 1].max
+    expected = (assessment.expected - 1) * scale
+    finish = (assessment.result.position_order.to_i - 1) * scale
+    left = ((assessment.low || assessment.expected) - 1) * scale
+    width = ((assessment.high || assessment.expected) - (assessment.low || assessment.expected)) * scale
+    "--expected: #{expected.clamp(0, 100)}%; --finish: #{finish.clamp(0, 100)}%; " \
+      "--range-left: #{left.clamp(0, 100)}%; --range-width: #{width.clamp(0, 100)}%;"
   end
 end

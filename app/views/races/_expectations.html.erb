@@ -1,0 +1,88 @@
+<% report = analysis.expectations %>
+<% check = report.profile[:check] %>
+<section class="race-analysis-panel race-expectations" aria-labelledby="race-expectations-title" data-controller="race-expectations">
+  <div class="race-expectations-heading">
+    <div>
+      <span class="race-analysis-eyebrow">Elo × qualifying → race result</span>
+      <h3 id="race-expectations-title">Did they beat the expectation?</h3>
+      <p>A strong driver recovering from a poor qualifying position isn't automatically a surprise. This model estimates a finish from <strong>both</strong> inputs, then compares it with what happened.</p>
+    </div>
+    <span class="race-expectations-badge">Experimental · v1</span>
+  </div>
+
+  <div class="race-expectations-context">
+    <p><strong>Expected finish assumes a classified finish.</strong> DNFs stay in the full grid but receive no performance verdict. Qualifying is not the starting grid; grid differences are flagged, not silently substituted.</p>
+    <% if report.profile[:model] %>
+      <p>Fit on <strong><%= report.profile[:finishes] %> earlier finishes</strong> across <%= report.profile[:races] %> races, <%= report.profile[:first_date].year %>–<%= report.profile[:last_date].year %>. No results from this race enter its expectation.</p>
+    <% else %>
+      <p class="race-expectations-notice">This race has insufficient earlier history: <%= report.profile[:races] %>/<%= RaceExpectations::Backtest::MIN_RACES %> races and <%= report.profile[:finishes] %>/<%= RaceExpectations::Backtest::MIN_FINISHES %> classified finishes with Elo and qualifying. Estimates are withheld.</p>
+    <% end %>
+    <% if report.predicted_count < analysis.rows.size %>
+      <p class="race-expectations-notice"><%= report.predicted_count %>/<%= analysis.rows.size %> entrants have an estimate. Missing Elo or qualifying stays visible below; a grid position is not used as a qualifying result.</p>
+    <% end %>
+  </div>
+
+  <div class="race-expectations-toolbar">
+    <div class="race-analysis-legend" aria-hidden="true"><span>◇ Expected</span><span>● Finish</span><span>━ Typical error range</span></div>
+    <label>Order by
+      <select id="race-expectations-sort" data-action="change->race-expectations#sort" aria-label="Order full grid comparison">
+        <option value="finish">Race result</option>
+        <option value="difference">Above expectation</option>
+        <option value="qualifying">Qualifying</option>
+        <option value="expected">Expected finish</option>
+      </select>
+    </label>
+  </div>
+
+  <table class="race-expectations-table">
+    <caption class="visually-hidden">Full grid: pre-race Elo rank, qualifying position, estimated finish, actual result and difference from expectation. Positive differences mean finishing ahead of the estimate.</caption>
+    <thead>
+      <tr><th scope="col">Driver</th><th scope="col">Pre-race Elo</th><th scope="col">Qualifying</th><th scope="col">Expected</th><th scope="col">Result</th><th scope="col" class="race-expectations-plot-cell">P1 ← position → P<%= analysis.rows.size %></th><th scope="col">vs expected</th><th scope="col">Reading</th></tr>
+    </thead>
+    <tbody data-race-expectations-target="body">
+      <% report.assessments.each do |assessment| %>
+        <% row = assessment.row %>
+        <tr class="race-analysis-<%= analysis_tone(assessment.difference&.round(1)) %>" data-finish="<%= row.result.position_order %>" data-qualifying="<%= assessment.qualifying %>" data-expected="<%= assessment.expected %>" data-difference="<%= assessment.difference %>">
+          <th scope="row"><%= link_to "#{row.driver.forename.first}. #{row.driver.surname}", driver_path(row.driver) %><small><%= row.constructor.name %></small></th>
+          <td data-label="Elo rank"><strong><%= row.seed ? "##{analysis_seed(row.seed)}" : "—" %></strong><small><%= row.result.old_elo_v2&.finite? ? number_with_precision(row.result.old_elo_v2, precision: 0) : "Unavailable" %></small></td>
+          <td data-label="Qualifying"><strong><%= assessment.qualifying ? "P#{assessment.qualifying}" : "—" %></strong>
+            <% if assessment.qualifying && row.result.grid.to_i.positive? && row.result.grid != assessment.qualifying %>
+              <small class="race-expectations-grid-note">Grid P<%= row.result.grid %></small>
+            <% elsif !row.result.grid.to_i.positive? %>
+              <small>Grid unnumbered</small>
+            <% end %>
+          </td>
+          <td data-label="Expected"><strong><%= assessment.expected ? "P#{number_with_precision(assessment.expected, precision: 1)}" : "—" %></strong><small><%= assessment.low ? "P#{assessment.low}–P#{assessment.high}" : "No error range" %></small></td>
+          <td data-label="Result"><strong title="<%= row.result.status&.status_type %>"><%= row.display_position %></strong><small><%= row.result.status&.status_type unless row.classified? %></small></td>
+          <td class="race-expectations-plot-cell">
+            <% if assessment.expected %>
+              <div class="race-expectations-lane" style="<%= expectation_lane_style(assessment, analysis.rows.size) %>" aria-hidden="true">
+                <% if assessment.low %><span class="race-expectations-band"></span><% end %>
+                <span class="race-expectations-estimate"></span>
+                <% if assessment.difference %><span class="race-expectations-finish"></span><% end %>
+              </div>
+            <% end %>
+          </td>
+          <td data-label="vs expected" class="race-expectations-difference"><strong><%= analysis_signed(assessment.difference, precision: 1) %></strong><small><%= "places" if assessment.difference %></small></td>
+          <td data-label="Reading" class="race-expectations-reading"><strong class="race-expectations-verdict"><%= assessment.verdict %></strong><small><%= assessment.reason %></small></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <details class="race-expectations-validation">
+    <summary>How useful is the model? See the historical check</summary>
+    <% if check[:finishes].positive? %>
+      <p>Average absolute error on <strong><%= check[:finishes] %> classified finishes in <%= check[:races] %> earlier races</strong> within the last ten years. Each race was held out and predicted using only older races; all three models use the same samples.</p>
+      <dl class="race-expectations-errors">
+        <div><dt>Elo + qualifying</dt><dd><%= number_with_precision(check[:mae][:combined], precision: 2) %><small>places</small></dd></div>
+        <div><dt>Qualifying only</dt><dd><%= number_with_precision(check[:mae][:qualifying], precision: 2) %><small>places</small></dd></div>
+        <div><dt>Elo only</dt><dd><%= number_with_precision(check[:mae][:elo], precision: 2) %><small>places</small></dd></div>
+      </dl>
+    <% else %>
+      <p>There is not enough earlier history for a rolling hold-out check yet.</p>
+    <% end %>
+    <p>The range scales the 80th percentile of earlier held-out absolute errors to this field size, rounding outward. It is an empirical error guide, <strong>not a guaranteed 80% chance</strong> for a particular driver. We require at least five checked races and 100 checked finishes before showing it.</p>
+    <p>Inputs are field-normalised Elo rank and qualifying position. The target is position among all race entries, trained only on classified finishers. Estimates are averages, not a unique predicted finishing order. Penalties, the circuit, weather, incidents and strategy aren't model inputs. Historical qualifying coverage is patchy; this is an exploratory backtest on corrected records, not proof of live forecasting accuracy.</p>
+  </details>
+</section>

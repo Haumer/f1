@@ -8,18 +8,21 @@ the **local development database**, not an audit of production.
 Every race page with stored main-race results renders a debrief at
 `/races/:id#race-analysis`. Upcoming races retain the existing preview.
 
-`RaceAnalysis` is a read-only service, not a new Elo model or an AI-generated
-article. It reads stored race snapshots on each request; no migrations, external
-API requests, background generation, paid services or Elo recalculation are
-required. Corrected inputs appear on the next page load.
+`RaceAnalysis` is a read-only service. Its separate `RaceExpectations` model learns
+from earlier races; it never changes Elo or fantasy settlement. No migrations,
+external API requests, paid services or Elo recalculation are required. Derived
+model profiles are cached by a digest of their actual input data, so source
+corrections invalidate the cache even if an Elo replay did not touch timestamps.
 
 The report contains:
 
-- Largest positive/negative Elo changes and largest valid grid-to-finish gain.
-- A comparison of pre-race Elo order with finishing position, showing up to eight
-  largest absolute departures among classified finishers. Equal ratings share the
-  midpoint of their rank range. This is an ordinal baseline, **not a calibrated
-  finishing prediction**.
+- A sortable **entire-grid** table: pre-race Elo rank/value, qualifying, estimated
+  finish with empirical error range, actual result and places above/below estimate.
+  Grid differences are flagged alongside qualifying, not used as a replacement.
+- An exploratory historical check comparing Elo + qualifying with separately
+  fitted Elo-only and qualifying-only baselines on identical held-out races.
+- Largest positive/negative Elo changes and largest valid grid-to-finish gain,
+  as supporting context beneath the expectation comparison.
 - Race-specific two-driver constructor comparisons, with retirement context.
 - Qualifying gaps from the latest segment for which both teammates have valid
   times; never a Q1-to-Q3 comparison.
@@ -30,14 +33,104 @@ The report contains:
 - Coverage counts and a visible explanation of limitations.
 
 No pre-race rating is substituted with a driver's current rating. Missing ratings
-are not zero. If any stored entrant lacks a valid pre-race rating or result order,
-the Elo-order comparison is withheld. Available individual Elo changes can still
-be shown, explicitly limited to the stored rated results.
+are not zero. If any stored entrant lacks a valid pre-race rating, field Elo ranks
+are withheld. Missing qualifying prevents that driver's estimate, not their table
+row. Actual results never enter the expectation calculation, even as a fallback.
+Missing actual order prevents a performance verdict but not an otherwise valid
+estimate. Available individual Elo changes can still be shown.
 
 Grid values of zero or null are excluded from grid gains. Only finished/lapped
 results enter place-gain comparisons; retirements, DNS, DNQ and DSQ remain status
 labels. Elo itself still uses the stored result order, including retirements.
 Nothing here measures overtaking, car-adjusted skill, strategy quality or blame.
+
+## Elo + qualifying model (v1)
+
+For a field of `N` stored entrants, calculate:
+
+```text
+E = (pre-race Elo rank - 1) / (N - 1)
+Q = (qualifying position - 1) / (N - 1)
+F = (actual finishing position - 1) / (N - 1)
+
+estimated F = intercept + elo_weight × E + qualifying_weight × Q
+expected finish = 1 + clamp(estimated F, 0, 1) × (N - 1)
+above expectation = expected finish - actual finish
+```
+
+Ranks tied on Elo share the midpoint of their rank range. The rank is calculated
+over the whole stored field, not just eventual finishers. The fitted coefficients
+are learned, not a manually selected 50/50 blend. Slopes are constrained to be
+non-negative, and estimates stay within the field. Estimates are conditional
+averages, not unique positions assigned to a predicted complete finishing order.
+
+Training uses only races on strictly earlier dates within a rolling ten-year
+window, with at least 20 races and 200 paired classified finishes. The target
+is **finish position conditional on that driver finishing/classifying**, including
+lapped finishers. DNFs, DNS, DNQ and DSQ are excluded as training targets, retained
+in the displayed grid, and receive no performance verdict. Other drivers' normal
+historical attrition is still reflected in the learned finishing positions.
+
+`Dataset` pairs actual qualifying with race entries and stored pre-race Elo.
+`Regression` fits the two-input model and the one-input comparison models.
+`Backtest` holds out entire races in chronological order; each fit sees only older
+events. `Report` projects those pre-race expectations onto all current entries.
+This follows the rolling-origin evaluation principle of never learning from the
+held-out race or its future. [Forecasting: Principles and Practice](https://otexts.com/fpp3/tscv.html)
+
+The error guide is the 80th percentile of absolute, field-normalised errors on
+earlier held-out races from the last ten years. Scale it to the target field,
+then round bounds outward and clip to P1–PN. Display it only after at least five
+checked races and 100 checked finishes. "In range" means the actual position lies
+inside those displayed bounds; otherwise use "Above range" or "Below range".
+This is **not a calibrated 80% probability for a particular driver**. It pools
+different drivers and races, omits coefficient uncertainty, and needs more data
+before more specific conditional intervals are defensible.
+
+### Reproducible local check
+
+No writes or imports:
+
+```sh
+AS_OF=2026-09-10 bundle exec rails f1:expectations_backtest
+```
+
+Observed on 2026-09-10, using the local archive:
+
+| Earlier-race rolling check | Races | Classified finishes | Combined MAE | Qualifying-only MAE | Elo-only MAE |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| All eligible historical checks after the minimum training period | 101 | 1,600 | 2.319 | 2.483 | 2.833 |
+| Checks in the most recent ten-year window | 39 | 650 | 2.213 | 2.386 | 2.715 |
+
+MAE is average absolute error in finishing places. These are exploratory results
+on patchy, retrospectively corrected local records, not a guarantee of live
+forecasting accuracy. Model/window choices were investigated on this archive;
+there is no separate pristine final test set. The app recomputes the figures
+using only data earlier than each displayed race, so page figures can differ.
+
+The current ten-year fit has 39 races / 650 classified finishes and coefficients
+approximately `0.0462 + 0.2974 × E + 0.4739 × Q`. For Elo rank 5 and qualifying P10
+in a 22-car field, it estimates P7.4: a P6 finish is about 1.4 places ahead, within
+its broad empirical range—not automatically an exceptional recovery.
+
+For a concrete stored race, Abu Dhabi 2025 (`/races/1125#race-analysis`), a model
+fit strictly before that race estimates Hamilton at P10.6 after qualifying P16;
+P8 is inside the P7–P14 error range. Hülkenberg's P9 from Q18 beats his P14.3
+estimate and P11–P18 range. These are local-data calculations, not causal claims
+about either drive.
+
+### Limits and next model improvements
+
+- Qualifying position, not actual starting grid, is an input. Grid penalties or
+  unnumbered starts can materially change expectations and are visibly flagged.
+- Elo rank loses rating-gap magnitude; test field-relative Elo strength as an
+  additional predictor before changing this version.
+- No circuit, tyre, weather, safety-car, penalty or strategy adjustment is fitted.
+- Historical qualifying is sparse. More paired recent races, event identity
+  checks, and a live frozen pre-race validation set come before more model
+  complexity. Fit circuit effects or local error bands only with enough support.
+- This model does not predict retirement probabilities. A future unconditional
+  race forecast needs a separate reliability treatment and evaluation target.
 
 ## Coverage findings and the first repair
 

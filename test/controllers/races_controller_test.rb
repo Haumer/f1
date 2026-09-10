@@ -1,6 +1,8 @@
 require "test_helper"
+require_relative "../support/race_expectation_history"
 
 class RacesControllerTest < ActionDispatch::IntegrationTest
+  include RaceExpectationHistory
   test "index returns 200" do
     get races_path
     assert_response :success
@@ -11,7 +13,8 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#race-analysis h2", "Race debrief"
     assert_select ".race-analysis-highlight", count: 3
-    assert_select ".race-analysis-comparison tbody tr", count: 3
+    assert_select ".race-expectations-table tbody tr", count: 4
+    assert_select ".race-expectations-heading", text: /Did they beat the expectation/
     assert_select "a[href='#race-classification']", "Results & qualifying"
     assert_select "#race-analysis-method", text: /not isolate driver skill/
   end
@@ -30,10 +33,21 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".race-analysis-coverage", text: %r{0/4.*Elo snapshots.*0/4.*qualifying}m
-    assert_select ".race-analysis-comparison", count: 0
-    assert_select ".race-analysis-empty", text: /Missing ratings are not treated as zero/
+    assert_select ".race-expectations-table tbody tr", count: 4
+    assert_select ".race-expectations-table", text: /Pre-race Elo unavailable/
     assert_select ".race-analysis-highlight", count: 1
     assert_select "p", text: "Qualifying results are not available for this race."
+  end
+
+  test "full grid estimates render both qualifying and model provenance" do
+    RaceExpectations::Dataset.stub(:before, expectation_history) do
+      get race_path(races(:bahrain_2026))
+    end
+    assert_response :success
+    assert_select ".race-expectations-table tbody tr[data-expected]:not([data-expected=''])", count: 4
+    assert_select ".race-expectations-errors", text: /Elo \+ qualifying/
+    assert_select ".race-expectations-reading", text: /DNF/
+    assert_select ".race-expectations-context", text: /45 races/
   end
 
   test "calendar returns 200" do

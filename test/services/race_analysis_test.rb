@@ -32,8 +32,6 @@ class RaceAnalysisTest < ActiveSupport::TestCase
     @race.race_results.update_all(old_elo_v2: 2000)
     report = RaceAnalysis.new(race: @race)
     assert report.rows.all? { |row| row.seed == 2.5 }
-    assert_equal 1.5, row_for(report, :verstappen).seed_change
-    assert_equal(-0.5, row_for(report, :leclerc).seed_change)
   end
 
   test "missing snapshots are not zero and disable full field seeding" do
@@ -43,7 +41,7 @@ class RaceAnalysisTest < ActiveSupport::TestCase
     assert_equal 3, report.coverage[:elo]
     assert_nil row_for(report, :norris).elo_change
     assert_not report.seeded?
-    assert_empty report.comparison_rows
+    assert report.rows.all? { |row| row.seed.nil? }
     assert_equal 3, report.highlights.size
   end
 
@@ -58,9 +56,7 @@ class RaceAnalysisTest < ActiveSupport::TestCase
     piastri = row_for(report, :piastri)
     assert_equal "DNF", piastri.display_position
     assert_nil piastri.grid_change
-    assert_nil piastri.seed_change
     assert_equal(-10, piastri.elo_change)
-    assert_not_includes report.comparison_rows, piastri
     assert_nil report.teammates.first[:gap]
     assert_match "Retired", report.highlights.find { |card| card[:label] == "Largest Elo loss" }[:detail]
   end
@@ -72,15 +68,15 @@ class RaceAnalysisTest < ActiveSupport::TestCase
 
     assert_equal 2, report.coverage[:grid]
     assert row_for(report, :norris).classified?
-    assert_equal 0, row_for(report, :norris).seed_change
     assert_nil row_for(report, :norris).grid_change
     assert_nil row_for(report, :leclerc).grid_change
   end
 
-  test "missing result order cannot produce a seeded comparison" do
+  test "missing result order does not change the pre-race ranking" do
     race_results(:bahrain_2026_norris).update!(position_order: nil)
     report = RaceAnalysis.new(race: @race)
-    assert_not report.seeded?
+    assert report.seeded?
+    assert_equal "—", row_for(report, :norris).display_position
     assert_nil row_for(report, :norris).grid_change
   end
 
