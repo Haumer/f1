@@ -1,8 +1,10 @@
 module RaceExpectations
   class Dataset
     def self.before(date)
+      # Explicit preloads keep the qualifying filter from turning all three
+      # associations into one eager-load join (qualifying × results per race).
       Race.where("date < ?", date).joins(:qualifying_results).distinct
-          .includes(:qualifying_results, race_results: :status).order(:date, :id).filter_map do |race|
+          .preload(:qualifying_results, race_results: :status).order(:date, :id).filter_map do |race|
         event(race)
       end
     end

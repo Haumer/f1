@@ -4,7 +4,7 @@ module RaceExpectations
   class Coverage
     def self.call(before:, year: nil)
       races = Race.where("date < ?", before).joins(:race_results).distinct
-                  .includes(:qualifying_results, race_results: :status).order(:date, :id).to_a
+                  .preload(:qualifying_results, race_results: :status).order(:date, :id).to_a
       events = races.filter_map { |race| Dataset.event(race) }
       entries = races.select { |race| year.nil? || race.year.to_i == year.to_i }.map do |race|
         results = race.race_results.to_a

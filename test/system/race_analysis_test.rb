@@ -22,7 +22,9 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
     page.save_screenshot(Rails.root.join("tmp/screenshots/race-analysis-desktop.png"))
     click_link "Results & qualifying"
     assert_selector "#race-classification table"
-    assert_equal "race-classification", URI.parse(current_url).fragment
+    assert_current_path race_path(races(:bahrain_2026)) do |uri|
+      uri.fragment == "race-classification"
+    end
   end
 
   test "debrief fits a phone and keeps exact comparison values readable" do
