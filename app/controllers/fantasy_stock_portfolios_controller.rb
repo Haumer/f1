@@ -106,16 +106,6 @@ class FantasyStockPortfoliosController < ApplicationController
     end
   end
 
-  def leaderboard
-    @season = current_season
-    portfolios = FantasyStockPortfolio.where(season: @season)
-                                       .includes(:user, :snapshots, holdings: :driver).to_a
-    driver_ids = portfolios.flat_map { |p| p.holdings.select(&:active).map(&:driver_id) }.uniq
-    prices = Fantasy::Pricing.prices_for_season(driver_ids, @season)
-    @entries = portfolios.sort_by { |p| -p.profit_loss(prices) }
-                          .map.with_index(1) { |p, i| { rank: i, portfolio: p, user: p.user, value: p.portfolio_value(prices), net: p.profit_loss(prices) } }
-  end
-
   private
 
   def set_portfolio

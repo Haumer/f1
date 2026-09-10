@@ -104,8 +104,8 @@ Rails.application.routes.draw do
   # — the first shipped a `<title>` byte-identical to this one, and the second
   # ranked on stock-only value, so the three pages published different figures
   # for the same player (codex: +734 here, +721.2 there). Folded into one.
-  # `FantasyPortfoliosController#leaderboard` and
-  # `FantasyStockPortfoliosController#leaderboard` are now unreachable.
+  # Keep redirects for old inbound links; the superseded actions and views have
+  # been removed.
   get 'fantasy/leaderboard', to: redirect('/leaderboard')
   get 'stocks/leaderboard',  to: redirect('/leaderboard')
 

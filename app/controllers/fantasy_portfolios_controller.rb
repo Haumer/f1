@@ -1,6 +1,6 @@
 class FantasyPortfoliosController < ApplicationController
   include FantasyPortfolioData
-  before_action :authenticate_user!, except: [:combined_leaderboard, :overview, :leaderboard]
+  before_action :authenticate_user!, except: [:combined_leaderboard, :overview]
 
   # ═══════════════════════════════════════
   # Username-based pages
@@ -171,17 +171,6 @@ class FantasyPortfoliosController < ApplicationController
   # ═══════════════════════════════════════
   # Leaderboards
   # ═══════════════════════════════════════
-
-  def leaderboard
-    @season = current_season
-    @entries = Fantasy::Leaderboard.new(season: @season).call
-    starting = Fantasy::CreatePortfolio::STARTING_CAPITAL
-    roster_starts = @entries.each_with_object({}) { |e, h| h[e[:portfolio].id] = starting }
-    @roster_deltas = last_race_deltas(FantasySnapshot, :fantasy_portfolio_id, @entries.map { |e| e[:portfolio].id }, starting_values: roster_starts)
-    user_ids = @entries.map { |e| e[:portfolio].user_id }
-    @supports_by_user = ConstructorSupport.where(user_id: user_ids, season: @season, active: true)
-                          .includes(:constructor).index_by(&:user_id)
-  end
 
   def combined_leaderboard
     @season = current_season
