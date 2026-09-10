@@ -252,7 +252,7 @@
                         <tbody>
                             <% results.each do |race_result| %>
                                 <tr>
-                                    <td class="text-center"><%= race_result.position_order %></td>
+                                    <td class="text-center" title="<%= race_result.status&.status_type %>"><%= race_result.display_position %></td>
                                     <td class="text-center">
                                         <% if race_result.display_gained_elo? %>
                                             <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>

@@ -88,7 +88,7 @@ CSV.foreach("db/archive/results.csv", headers: :first_row) do |csv|
         position: csv['position'].to_i != 0 ? csv['position'].to_i : nil,
         position_order: csv['positionOrder'].to_i != 0 ? csv['positionOrder'].to_i : nil,
         grid: csv['grid'].to_i,
-        points: csv['points'].to_i,
+        points: csv['points'].to_d,
         laps: csv['laps'],
         time: csv['time'],
         milliseconds: csv['milliseconds'] != '\\N' ? csv['milliseconds'] : nil,

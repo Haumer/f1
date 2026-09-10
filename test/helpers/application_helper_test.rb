@@ -77,6 +77,24 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "225, 6, 0", hex_to_rgb("")
   end
 
+  test "flag_image falls back to the driver's nationality" do
+    html = flag_image(drivers(:verstappen), size: 16)
+
+    assert_includes html, "🇳🇱"
+    assert_includes html, "Dutch flag"
+    refute_includes html, "flagsapi.com"
+  end
+
+  test "flag_image accepts a nationality name" do
+    assert_includes flag_image("British"), "🇬🇧"
+  end
+
+  test "format_points retains half points without noisy zeroes" do
+    assert_equal "25", format_points(25)
+    assert_equal "2.5", format_points(2.5)
+    assert_equal "0", format_points(nil)
+  end
+
   # Dense rows (leaderboard activity, recent picks) were cut mid-value by
   # `time_ago_in_words` strings like "about 16 hours ago" on a phone.
   test "compact_time_ago abbreviates to a single unit" do

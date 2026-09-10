@@ -29,7 +29,9 @@ class CircuitsController < ApplicationController
     # Circuit stats
     @first_race_year = @races.last&.season&.year
     @latest_race_year = @races.first&.season&.year
-    @highest_avg_elo_race = @races.select { |r| r.average_elo.present? }.max_by(&:average_elo)
+    @average_elos_by_race_id = @races.to_h { |race| [race.id, race.average_elos] }
+    @highest_avg_elo_race = @races.select { |race| @average_elos_by_race_id[race.id].present? }
+                                  .max_by { |race| @average_elos_by_race_id[race.id] }
 
     # Most successful driver (most wins at this circuit)
     all_results = @races.flat_map(&:race_results)

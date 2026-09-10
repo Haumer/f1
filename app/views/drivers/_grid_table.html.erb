@@ -1,3 +1,5 @@
+<% standings = local_assigns[:grid_standings] || {} %>
+<% finish_breakdown_available = standings.values.compact.any? { |standing| standing.second_places.present? || standing.third_places.present? } %>
 <table class="current-driver-standings compact" data-controller="sortable-table">
     <thead>
         <tr>
@@ -6,15 +8,16 @@
             <th data-sort="text" class="d-none d-md-table-cell">Team</th>
             <th class="text-center" data-sort="num">Pts</th>
             <th class="text-center d-none d-sm-table-cell" data-sort="num"><i class="fa-solid fa-trophy place-1"></i></th>
-            <th class="text-center d-none d-md-table-cell" data-sort="num"><span class="place-2">2nd</span></th>
-            <th class="text-center d-none d-md-table-cell" data-sort="num"><span class="place-3">3rd</span></th>
+            <% if finish_breakdown_available %>
+                <th class="text-center d-none d-md-table-cell" data-sort="num"><span class="place-2">2nd</span></th>
+                <th class="text-center d-none d-md-table-cell" data-sort="num"><span class="place-3">3rd</span></th>
+            <% end %>
             <th class="text-center d-none d-sm-table-cell" data-sort="num">+/-</th>
             <th class="text-center" data-sort="num">Elo</th>
             <th class="text-center d-none d-lg-table-cell" data-sort="num">Peak</th>
         </tr>
     </thead>
     <tbody>
-        <% standings = local_assigns[:grid_standings] || {} %>
         <% extras = local_assigns[:standings_extras] || {} %>
         <% season_drivers.each_with_index do |sd, idx| %>
             <% driver = sd.driver %>
@@ -36,10 +39,12 @@
                     <% end %>
                     <%= link_to constructor.name, constructor_path(constructor), class: "text-secondary" %>
                 </td>
-                <td class="text-center"><%= ds ? ds.points&.round : 0 %></td>
+                <td class="text-center"><%= format_points(ds&.points) %></td>
                 <td class="text-center d-none d-sm-table-cell"><%= ds && ds.wins.to_i > 0 ? ds.wins : '—' %></td>
-                <td class="text-center d-none d-md-table-cell"><%= ds && ds.second_places.to_i > 0 ? ds.second_places : '—' %></td>
-                <td class="text-center d-none d-md-table-cell"><%= ds && ds.third_places.to_i > 0 ? ds.third_places : '—' %></td>
+                <% if finish_breakdown_available %>
+                    <td class="text-center d-none d-md-table-cell"><%= ds && ds.second_places.to_i > 0 ? ds.second_places : '—' %></td>
+                    <td class="text-center d-none d-md-table-cell"><%= ds && ds.third_places.to_i > 0 ? ds.third_places : '—' %></td>
+                <% end %>
                 <td class="text-center d-none d-sm-table-cell">
                     <% if elo_diff %>
                         <span class="<%= elo_diff >= 0 ? 'text-green' : 'text-red' %>"><%= elo_diff >= 0 ? "+#{elo_diff}" : elo_diff %></span>

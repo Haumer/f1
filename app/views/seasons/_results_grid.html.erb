@@ -5,7 +5,10 @@
   # season_race_results: { [driver_id, race_id] => RaceResult }
 %>
 <% if sorted_races.any? %>
-    <div class="table-header"><h3>Driver Results</h3></div>
+    <div class="table-header season-anchor" id="race-finishes">
+        <h3>Race Finishes</h3>
+        <span class="data-source">Position shown · hover for status and points</span>
+    </div>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">
             <table class="season-results-grid compact">
@@ -37,31 +40,25 @@
                                 <span class="srg-color-dot" style="background: <%= color %>"></span>
                                 <%= link_to driver.surname, driver_path(driver) %>
                             </td>
-                            <td class="text-center srg-pts"><%= ds ? ds.points&.round : 0 %></td>
+                            <td class="text-center srg-pts"><%= format_points(ds&.points) %></td>
                             <% sorted_races.each do |race| %>
                                 <% if race.has_results? %>
                                     <% rr = season_race_results[[driver.id, race.id]] %>
                                     <% if rr %>
                                         <% pos = rr.position_order %>
                                         <% status = rr.status&.status_type %>
-                                        <% finished = status == "Finished" || status&.match?(/Lap/) %>
-                                        <% dnf = !finished %>
+                                        <% classified = rr.classified? %>
                                         <% css =
                                             if pos == 1 then "srg-p1"
                                             elsif pos == 2 then "srg-p2"
                                             elsif pos == 3 then "srg-p3"
-                                            elsif pos <= 10 && finished then "srg-points"
-                                            elsif dnf then "srg-dnf"
+                                            elsif pos <= 10 && classified then "srg-points"
+                                            elsif !classified then "srg-dnf"
                                             else "srg-outside"
                                             end
                                         %>
-                                        <% pts = rr.points&.to_i || 0 %>
-                                        <td class="text-center srg-round <%= css %>" title="<%= race.circuit.name %> — P<%= pos %><%= dnf ? " (#{status})" : '' %>">
-                                            <% if dnf && pos > 20 %>
-                                                <span class="srg-label">DNF</span>
-                                            <% elsif pts > 0 %>
-                                                <%= pts %>
-                                            <% end %>
+                                        <td class="text-center srg-round <%= css %>" title="<%= race.circuit.name %> — <%= status %> — <%= format_points(rr.points) %> pts">
+                                            <span class="srg-label"><%= rr.display_position %></span>
                                         </td>
                                     <% else %>
                                         <td class="text-center srg-round srg-empty"></td>

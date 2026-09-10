@@ -21,10 +21,11 @@ module Seasons
       @points_system = @season.points_system
       @next_season = @season.next_season
       @previous_season = @season.previous_season
-      @sorted_races = @season.races.order(round: :asc).includes(:circuit)
+      @sorted_races = @season.races.order(round: :asc).includes(:circuit, race_results: :status)
 
       race_ids = @sorted_races.pluck(:id)
       all_standings = DriverStanding.where(race_id: race_ids)
+                                    .joins(:race).order("races.round ASC")
                                     .includes(driver: [:countries, :season_drivers])
       @driver_driver_standings = all_standings.group_by(&:driver_id).values
         .reject(&:blank?).sort_by { |ds| -ds.last.points }
@@ -65,73 +66,22 @@ module Seasons
     end
 
     def build_constructor_standings
-      stats = Hash.new { |h, k| h[k] = { points: 0, wins: 0, seconds: 0, thirds: 0 } }
-      @latest_standings.each do |ds|
-        c = @sd_index[ds.driver_id]&.constructor
-        next unless c
-        s = stats[c.id]
-        s[:points] += ds.points || 0
-        s[:wins] += ds.wins || 0
-        s[:seconds] += ds.second_places || 0
-        s[:thirds] += ds.third_places || 0
-      end
-      return if stats.empty?
+      @constructor_standings_full = Standings::ConstructorTable.new(season: @season).call
+      leader = @constructor_standings_full.find { |row| row[:position] == 1 }
+      return unless leader
 
-      leader_id = stats.max_by { |_, s| s[:points] }.first
-      leader_constructor = Constructor.find(leader_id)
       @constructor_leader = OpenStruct.new(
-        constructor: leader_constructor,
-        points: stats[leader_id][:points],
-        wins: stats[leader_id][:wins]
+        constructor: leader[:constructor],
+        points: leader[:points],
+        wins: leader[:wins]
       )
-
-      constructors_by_id = Constructor.where(id: stats.keys).index_by(&:id)
-      constructor_elo_diffs = build_constructor_elo_diffs
-      constructor_season_elos = build_constructor_season_elos
-
-      @constructor_standings_full = stats.map do |cid, s|
-        c = constructors_by_id[cid]
-        season_elo = constructor_season_elos[cid]
-        s.merge(constructor: c,
-                elo: season_elo || c&.display_elo&.round,
-                peak_elo: c&.display_peak_elo&.round,
-                elo_diff: constructor_elo_diffs[cid])
-      end.sort_by { |e| -e[:points] }
-
-      @_constructor_pts = stats.transform_values { |s| s[:points] }
-      @_constructor_wins_map = stats.transform_values { |s| s[:wins] }
-    end
-
-    def build_constructor_season_elos
-      return {} unless @season.latest_race
-
-      new_col = Setting.elo_column(:new_constructor_elo)
-      elos = {}
-      RaceResult.where(race: @season.latest_race).where.not(new_col => nil).each do |rr|
-        next unless rr.constructor_id
-        elos[rr.constructor_id] ||= rr.send(new_col)&.round
-      end
-      elos
-    end
-
-    def build_constructor_elo_diffs
-      return {} unless @season.latest_race
-
-      new_col = Setting.elo_column(:new_constructor_elo)
-      old_col = Setting.elo_column(:old_constructor_elo)
-      diffs = {}
-      RaceResult.where(race: @season.latest_race).where.not(new_col => nil, old_col => nil).each do |rr|
-        next unless rr.constructor_id
-        diffs[rr.constructor_id] ||= ((rr.send(new_col) || 0) - (rr.send(old_col) || 0)).round
-      end
-      diffs
     end
 
     def build_grid_data
       @season_drivers = @latest_standings.filter_map { |ds| @sd_index[ds.driver_id] }
       @grid_standings = @latest_standings.index_by(&:driver_id)
 
-      @season_race_results = RaceResult.where(race_id: @race_ids).includes(:status)
+      @season_race_results = @sorted_races.flat_map(&:race_results)
         .each_with_object({}) { |rr, h| h[[rr.driver_id, rr.race_id]] = rr }
 
       @team_grid = @sd_index.values.map(&:constructor).uniq.sort_by(&:name).filter_map do |constructor|
@@ -169,11 +119,7 @@ module Seasons
 
       @season_top3 = @latest_standings.first(3)
       @season_top3_constructors = @season_top3.each_with_object({}) { |ds, h| h[ds.driver_id] = @sd_index[ds.driver_id]&.constructor }
-      constructor_points = @_constructor_pts || {}
-      constructor_wins = @_constructor_wins_map || {}
-      top_ids = constructor_points.sort_by { |_, pts| -pts }.first(3).map(&:first)
-      constructors = Constructor.where(id: top_ids).index_by(&:id)
-      @constructor_top3 = top_ids.map { |cid| { constructor: constructors[cid], points: constructor_points[cid], wins: constructor_wins[cid] || 0 } }
+      @constructor_top3 = (@constructor_standings_full || []).select { |row| row[:position].to_i <= 3 }
     end
 
     def build_pre_season_data

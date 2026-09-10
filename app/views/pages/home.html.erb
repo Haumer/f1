@@ -89,7 +89,7 @@
                                  style="--constructor-color: <%= constructor_color(constructor) %>">
                                 <span class="podium-position place-<%= ds.position %>">P<%= ds.position %></span>
                                 <span class="podium-driver"><%= link_to "#{ds.driver.forename&.first}.#{ds.driver.surname}", driver_path(ds.driver) %></span>
-                                <span class="stat-detail"><%= ds.points&.round %> pts · <%= ds.wins || 0 %> wins</span>
+                                <span class="stat-detail"><%= format_points(ds.points) %> pts · <%= ds.wins || 0 %> wins</span>
                                 <%= constructor_logo_or_name(constructor) %>
                             </div>
                         <% end %>
@@ -104,7 +104,7 @@
                     </div>
                     <div class="podium-display">
                         <% @constructor_top3.each_with_index do |entry, idx| %>
-                            <% pos = idx + 1 %>
+                            <% pos = entry[:position] || idx + 1 %>
                             <% constructor = entry[:constructor] %>
                             <% color = constructor_color(constructor) %>
                             <div class="podium-item podium-p<%= pos %>"
@@ -113,7 +113,7 @@
                                 <span class="podium-driver">
                                     <%= link_to constructor.name, constructor_path(constructor) %>
                                 </span>
-                                <span class="stat-detail"><%= entry[:points]&.round %> pts · <%= entry[:wins] %> wins</span>
+                                <span class="stat-detail"><%= format_points(entry[:points]) %> pts · <%= entry[:wins] %> wins</span>
                                 <%= constructor_logo_or_name(constructor) %>
                             </div>
                         <% end %>

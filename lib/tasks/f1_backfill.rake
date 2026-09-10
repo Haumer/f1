@@ -167,7 +167,7 @@ def load_results(archive)
       rr.grid = row['grid'].to_i
       rr.position = null_safe(row['position'])&.to_i
       rr.position_order = null_safe(row['positionOrder'])&.to_i
-      rr.points = row['points'].to_i
+      rr.points = row['points'].to_d
       rr.laps = row['laps']
       rr.time = null_safe(row['time'])
       rr.milliseconds = null_safe(row['milliseconds'])

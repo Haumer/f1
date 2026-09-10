@@ -161,7 +161,7 @@
                     <span class="review-icon"><i class="fa-solid fa-trophy"></i></span>
                     <span class="review-label">World Champion</span>
                     <span class="review-value"><%= @prev_champion.forename %> <%= @prev_champion.surname %></span>
-                    <span class="review-detail"><%= @prev_champion_standing.points&.round %> pts
+                    <span class="review-detail"><%= format_points(@prev_champion_standing.points) %> pts
                         <% if @prev_champion_standing.wins.to_i > 0 %> · <%= @prev_champion_standing.wins %> wins<% end %>
                     </span>
                     <%= link_to driver_path(@prev_champion), class: "review-cta" do %>
@@ -190,4 +190,3 @@
         </div>
     </div>
 <% end %>
-

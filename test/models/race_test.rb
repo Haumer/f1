@@ -73,6 +73,18 @@ class RaceTest < ActiveSupport::TestCase
     assert_in_delta expected, races(:bahrain_2026).average_elos, 0.1
   end
 
+  test "average_elos ignores missing ratings" do
+    race = races(:bahrain_2026)
+    race_results(:bahrain_2026_piastri).update!(new_elo_v2: nil)
+
+    expected = [2400.0, 2200.0, 2150.0].sum / 3.0
+    assert_in_delta expected, race.average_elos, 0.1
+  end
+
+  test "average_elos is nil without rated results" do
+    assert_nil races(:melbourne_2026).average_elos
+  end
+
   test "has_results? is true when results exist" do
     assert races(:bahrain_2026).has_results?
   end

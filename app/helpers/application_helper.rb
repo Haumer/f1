@@ -108,14 +108,44 @@ module ApplicationHelper
         @seasons_covered ||= Rails.cache.fetch("seasons_covered", expires_in: 12.hours) { Season.count }
     end
 
+    NATIONALITY_COUNTRY_CODES = {
+      "American" => "US", "American-Italian" => "US",
+      "Argentine" => "AR", "Argentine-Italian" => "AR",
+      "Australian" => "AU", "Austrian" => "AT", "Belgian" => "BE",
+      "Brazilian" => "BR", "British" => "GB", "Canadian" => "CA",
+      "Chilean" => "CL", "Chinese" => "CN", "Colombian" => "CO",
+      "Czech" => "CZ", "Danish" => "DK", "Dutch" => "NL",
+      "East German" => "DE", "Finnish" => "FI", "French" => "FR",
+      "German" => "DE", "Hungarian" => "HU", "Indian" => "IN",
+      "Indonesian" => "ID", "Irish" => "IE", "Italian" => "IT",
+      "Japanese" => "JP", "Liechtensteiner" => "LI", "Malaysian" => "MY",
+      "Mexican" => "MX", "Monegasque" => "MC", "New Zealander" => "NZ",
+      "Polish" => "PL", "Portuguese" => "PT", "Rhodesian" => "ZW",
+      "Russian" => "RU", "South African" => "ZA", "Spanish" => "ES",
+      "Swedish" => "SE", "Swiss" => "CH", "Thai" => "TH",
+      "Uruguayan" => "UY", "Venezuelan" => "VE"
+    }.freeze
+
     def flag_image(driver_or_country, size: 24)
         country = driver_or_country.respond_to?(:country) ? driver_or_country.country : driver_or_country
-        return "" unless country&.respond_to?(:two_letter_country_code)
-        code = country.two_letter_country_code
+        code = country.two_letter_country_code if country&.respond_to?(:two_letter_country_code)
+        nationality = if driver_or_country.respond_to?(:nationality)
+                        driver_or_country.nationality
+                      elsif driver_or_country.is_a?(String)
+                        driver_or_country
+                      end
+        code = NATIONALITY_COUNTRY_CODES[nationality] if code.blank?
         return "" if code.blank?
-        tag.img(src: "https://flagsapi.com/#{code}/shiny/#{size}.png",
-                alt: "", loading: "lazy", width: size, height: size,
-                onerror: "this.style.display='none'")
+
+        emoji = code.upcase.each_char.map { |character| (127397 + character.ord).chr(Encoding::UTF_8) }.join
+        label = nationality.presence || country&.try(:name) || code.upcase
+        tag.span(emoji, class: "nationality-flag", role: "img",
+                 aria: { label: "#{label} flag" }, title: label,
+                 style: "font-size: #{size}px")
+    end
+
+    def format_points(value)
+        number_with_precision(value || 0, precision: 2, strip_insignificant_zeros: true)
     end
 
     # Inline SVG line chart for stock price history. `points` is an array of

@@ -37,4 +37,19 @@ class RaceResult < ApplicationRecord
   def display_gained_elo?
     gained_elo?
   end
+
+  def classified?
+    status&.finished? || status&.lapped?
+  end
+
+  def display_position
+    status_type = status&.status_type
+    return "P#{position_order}" if classified? && position_order
+    return "DSQ" if status&.disqualified? || status_type.in?(["Excluded", "Underweight"])
+    return "DNQ" if status_type.in?(["Did not qualify", "Did not prequalify", "107% Rule"])
+    return "DNS" if status&.did_not_start? || status_type == "Withdrew"
+    return "NC" if status_type == "Not classified"
+
+    "DNF"
+  end
 end

@@ -167,27 +167,10 @@ class PagesController < ApplicationController
     last_race = @standings_season.races.order(:round).last
     return unless last_race
 
-    race_ids = @standings_season.races.pluck(:id)
-    rr_points = RaceResult.where(race_id: race_ids).where.not(constructor_id: nil)
-                  .group(:driver_id, :constructor_id).sum(:points)
-    ds_totals = DriverStanding.where(race: last_race).pluck(:driver_id, :points, :wins)
-                  .to_h { |did, pts, w| [did, { points: pts || 0, wins: w || 0 }] }
-
-    constructor_points = Hash.new(0.0)
-    rr_points.each do |(driver_id, constructor_id), rr_pts|
-      ds = ds_totals[driver_id]
-      next unless ds
-      driver_rr_total = rr_points.select { |(did, _), _| did == driver_id }.values.sum
-      if driver_rr_total > 0
-        constructor_points[constructor_id] += ds[:points] * (rr_pts.to_f / driver_rr_total)
-      end
-    end
-    constructor_wins = RaceResult.where(race_id: race_ids, position_order: 1)
-                         .where.not(constructor_id: nil).group(:constructor_id).count
-
-    top_ids = constructor_points.sort_by { |_, pts| -pts }.first(3).map(&:first)
-    constructors = Constructor.where(id: top_ids).index_by(&:id)
-    @constructor_top3 = top_ids.map { |cid| { constructor: constructors[cid], points: constructor_points[cid].round, wins: constructor_wins[cid] || 0 } }
+    @constructor_top3 = Standings::ConstructorTable.new(
+      season: @standings_season,
+      race: last_race
+    ).call.select { |row| row[:position].to_i <= 3 }
   end
 
   def load_homepage_phase_data

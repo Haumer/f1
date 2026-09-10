@@ -14,7 +14,7 @@
         </div>
 
         <div class="table-header">
-            <h3><%= @selected_nationality %></h3>
+            <h3><%= flag_image(@selected_nationality, size: 22) %> <%= @selected_nationality %></h3>
         </div>
 
         <div class="card card-flush">
@@ -64,6 +64,7 @@
     <div class="nationality-grid">
         <% @nationalities.each do |nat| %>
             <%= link_to by_nationality_drivers_path(nationality: nat[:nationality]), class: "nationality-card card" do %>
+                <%= flag_image(nat[:nationality], size: 28) %>
                 <div class="nationality-info">
                     <strong><%= nat[:nationality] %></strong>
                     <span class="nationality-count"><%= nat[:count] %> driver<%= nat[:count] == 1 ? '' : 's' %></span>

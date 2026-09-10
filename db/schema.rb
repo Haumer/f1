@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_28_132229) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_10_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -585,7 +585,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_28_132229) do
     t.integer "number"
     t.integer "grid"
     t.integer "position"
-    t.integer "points"
+    t.decimal "points", precision: 8, scale: 2
     t.integer "position_order"
     t.string "time"
     t.string "milliseconds"

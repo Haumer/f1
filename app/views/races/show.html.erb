@@ -39,7 +39,7 @@
                 <div class="race-stat-label">Grid Size</div>
             </div>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= elo_link(@race.average_elo) %></div>
+                <div class="race-stat-value"><%= elo_link(@race.average_elos) %></div>
                 <div class="race-stat-label">Avg Elo</div>
             </div>
             <% if @biggest_gainer %>
@@ -128,7 +128,7 @@
                     <% if has_results %>
                         <% @race.race_results.sort_by { |rr| rr.position_order || 999 }.each do |race_result| %>
                             <tr>
-                                <td class="text-center col-pos"><%= race_result.position_order %></td>
+                                <td class="text-center col-pos" title="<%= race_result.status&.status_type %>"><%= race_result.display_position %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
                                     <%= flag_image(race_result.driver, size: 24) %>
                                 </td>
@@ -162,10 +162,10 @@
                                         <% end %>
                                     <% end %>
                                 </td>
-                                <td class="text-center col-data d-none d-md-table-cell"><%= race_result.points.to_i.zero? ? race_result.points.to_i : "+#{race_result.points.to_i}" %></td>
+                                <td class="text-center col-data d-none d-md-table-cell"><%= race_result.points.to_d.positive? ? "+#{format_points(race_result.points)}" : "0" %></td>
                                 <% standing = @standings_by_driver[race_result.driver_id] %>
-                                <td class="text-center col-data d-none d-lg-table-cell"><%= standing&.points %></td>
-                                <td class="text-center col-data d-none d-lg-table-cell"><%= standing&.position %></td>
+                                <td class="text-center col-data d-none d-lg-table-cell"><%= format_points(standing&.points) %></td>
+                                <td class="text-center col-data d-none d-lg-table-cell"><%= standing&.position ? "P#{standing.position}" : "—" %></td>
                                 <td class="text-center col-elo">
                                     <% if race_result.display_gained_elo? %>
                                         <span class="text-green"><i class="fa-solid fa-caret-up"></i> +<%= race_result.display_elo_diff.round(1) %></span>
@@ -241,7 +241,7 @@
                     <tbody>
                         <% @sprint_results.each do |sr| %>
                             <tr>
-                                <td class="text-center col-pos"><%= sr.position_order %></td>
+                                <td class="text-center col-pos" title="<%= sr.status&.status_type %>"><%= sr.display_position %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
                                     <%= flag_image(sr.driver, size: 24) %>
                                 </td>
@@ -275,7 +275,7 @@
                                         <% end %>
                                     <% end %>
                                 </td>
-                                <td class="text-center col-data d-none d-md-table-cell"><%= sr.points.to_i.zero? ? sr.points.to_i : "+#{sr.points.to_i}" %></td>
+                                <td class="text-center col-data d-none d-md-table-cell"><%= sr.points.to_d.positive? ? "+#{format_points(sr.points)}" : "0" %></td>
                                 <td class="col-data d-none d-lg-table-cell"></td>
                                 <td class="col-data d-none d-lg-table-cell"></td>
                                 <td class="text-center col-elo">

@@ -29,6 +29,22 @@
         </div>
     </div>
 
+    <nav class="season-section-nav" aria-label="Season sections">
+        <% if @has_standings %>
+            <a href="#driver-standings">Drivers</a>
+            <a href="#race-finishes">Finishes</a>
+            <a href="#constructor-standings">Constructors</a>
+            <a href="#season-calendar">Calendar</a>
+            <a href="#season-teams">Teams</a>
+            <a href="#season-elo">Elo</a>
+        <% else %>
+            <a href="#driver-standings">Drivers</a>
+            <a href="#constructor-standings">Constructors</a>
+            <a href="#season-teams">Teams</a>
+            <a href="#season-calendar">Calendar</a>
+        <% end %>
+    </nav>
+
     <% if @has_standings %>
         <%# ═══ Season Champions (completed seasons only) ═══ %>
         <% if @champion && @season_top3&.any? %>
@@ -43,7 +59,7 @@
                                 <div class="champion-entry champion-p<%= ds.position %>" style="--constructor-color: <%= color %>">
                                     <span class="champion-pos place-<%= ds.position %>">P<%= ds.position %></span>
                                     <span class="champion-name"><%= link_to "#{ds.driver.forename&.first}.#{ds.driver.surname}", driver_path(ds.driver) %></span>
-                                    <span class="champion-stat"><%= ds.points&.round %> pts</span>
+                                    <span class="champion-stat"><%= format_points(ds.points) %> pts</span>
                                 </div>
                             <% end %>
                         </div>
@@ -53,13 +69,13 @@
                             <span class="champions-label">Constructors' Champion</span>
                             <div class="champions-podium">
                                 <% @constructor_top3.each_with_index do |entry, idx| %>
-                                    <% pos = idx + 1 %>
+                                    <% pos = entry[:position] || idx + 1 %>
                                     <% constructor = entry[:constructor] %>
                                     <% color = constructor_color(constructor) %>
                                     <div class="champion-entry champion-p<%= pos %>" style="--constructor-color: <%= color %>">
                                         <span class="champion-pos place-<%= pos %>">P<%= pos %></span>
                                         <span class="champion-name"><%= link_to constructor.name, constructor_path(constructor) %></span>
-                                        <span class="champion-stat"><%= entry[:points]&.round %> pts</span>
+                                        <span class="champion-stat"><%= format_points(entry[:points]) %> pts</span>
                                     </div>
                                 <% end %>
                             </div>
@@ -80,7 +96,7 @@
                     <div class="stat-card">
                         <span class="stat-label">Leader</span>
                         <span class="stat-value"><%= link_to "#{@leader_standing.driver.forename&.first}.#{@leader_standing.driver.surname}", driver_path(@leader_standing.driver) %></span>
-                        <span class="stat-detail"><%= @leader_standing.points&.round %> pts</span>
+                        <span class="stat-detail"><%= format_points(@leader_standing.points) %> pts</span>
                     </div>
                 <% end %>
                 <% if @most_wins_drivers.any? %>
@@ -105,14 +121,14 @@
                             <% end %>
                             <%= link_to @constructor_leader.constructor.name, constructor_path(@constructor_leader.constructor) %>
                         </span>
-                        <span class="stat-detail"><%= @constructor_leader.points&.round %> pts</span>
+                        <span class="stat-detail"><%= format_points(@constructor_leader.points) %> pts</span>
                     </div>
                 <% end %>
             </div>
         <% end %>
 
         <%# ═══ 1) Driver Standings Table ═══ %>
-        <div class="table-header">
+        <div class="table-header season-anchor" id="driver-standings">
             <h3>Driver Standings</h3>
             <% if @points_system %>
                 <a href="#points-system" class="points-system-link"><i class="fa-solid fa-circle-info"></i> Points System</a>
@@ -146,11 +162,12 @@
 
         <%# ═══ 3) Constructor Standings Table ═══ %>
         <% if @constructor_standings_full&.any? %>
-            <div class="table-header"><h3>Constructor Standings</h3></div>
+            <div class="table-header season-anchor" id="constructor-standings"><h3>Constructor Standings</h3></div>
             <div class="card card-flush">
                 <div class="table-scroll-wrapper">
                     <%= render 'seasons/constructor_standings_table', constructor_standings: @constructor_standings_full %>
                 </div>
+                <p class="data-source"><%= @constructor_standings_full.first[:source] == :official ? "Official championship standings from the historical archive." : "Calculated from race and sprint results through the latest completed round." %></p>
             </div>
 
             <%# ═══ 4) Constructor Standings Graph ═══ %>
@@ -161,7 +178,7 @@
         <% end %>
 
         <%# ═══ 5) Calendar ═══ %>
-        <div class="table-header"><h3>Calendar</h3></div>
+        <div class="table-header season-anchor" id="season-calendar"><h3>Calendar</h3></div>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact">
@@ -206,7 +223,7 @@
 
         <%# ═══ 6) Teams ═══ %>
         <% if @team_grid&.any? %>
-            <div class="table-header"><h3>Teams</h3></div>
+            <div class="table-header season-anchor" id="season-teams"><h3>Teams</h3></div>
             <div class="season-team-grid">
                 <% @team_grid.each do |entry| %>
                     <% constructor = entry[:constructor] %>
@@ -267,7 +284,7 @@
         <%= render 'seasons/points_system', points_system: @points_system if @points_system %>
 
         <%# ═══ Elo Section ═══ %>
-        <div class="season-section-divider">
+        <div class="season-section-divider season-anchor" id="season-elo">
             <span class="season-section-line"></span>
             <span class="season-section-label">Elo Ratings</span>
             <span class="season-section-line"></span>
@@ -343,7 +360,7 @@
         <%# ═══ Pre-season: standings, constructors, team grid + calendar ═══ %>
 
         <% if @season_drivers&.any? %>
-            <div class="table-header"><h3>Driver Standings</h3></div>
+            <div class="table-header season-anchor" id="driver-standings"><h3>Driver Standings</h3></div>
             <div class="card card-flush">
                 <div class="table-scroll-wrapper">
                     <div data-controller="expandable-table" data-expandable-table-limit-value="10">
@@ -359,7 +376,7 @@
         <% end %>
 
         <% if @constructor_rankings&.any? %>
-            <div class="table-header"><h3>Constructor Standings</h3></div>
+            <div class="table-header season-anchor" id="constructor-standings"><h3>Constructor Standings</h3></div>
             <div class="card card-flush">
                 <div class="table-scroll-wrapper">
                     <%= render 'seasons/constructor_standings_table', constructor_standings: @constructor_rankings %>
@@ -368,7 +385,7 @@
         <% end %>
 
         <% if @team_grid&.any? %>
-            <div class="table-header"><h3>Teams</h3></div>
+            <div class="table-header season-anchor" id="season-teams"><h3>Teams</h3></div>
             <div class="season-team-grid">
                 <% @team_grid.each do |entry| %>
                     <% constructor = entry[:constructor] %>
@@ -396,7 +413,7 @@
             </div>
         <% end %>
 
-        <div class="table-header"><h3>Calendar</h3></div>
+        <div class="table-header season-anchor" id="season-calendar"><h3>Calendar</h3></div>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
                 <table class="current-driver-standings compact">

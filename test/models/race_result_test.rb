@@ -55,4 +55,22 @@ class RaceResultTest < ActiveSupport::TestCase
     assert_equal rr.elo_diff, rr.display_elo_diff
     assert_equal rr.gained_elo?, rr.display_gained_elo?
   end
+
+  test "display_position distinguishes classified and non-classified results" do
+    assert_equal "P1", race_results(:bahrain_2026_verstappen).display_position
+    assert_equal "DNF", race_results(:bahrain_2026_piastri).display_position
+
+    result = race_results(:bahrain_2026_piastri)
+    result.status = statuses(:did_not_qualify)
+    assert_equal "DNQ", result.display_position
+    result.status = statuses(:disqualified)
+    assert_equal "DSQ", result.display_position
+  end
+
+  test "preserves fractional points" do
+    result = race_results(:bahrain_2026_verstappen)
+    result.update!(points: 2.5)
+
+    assert_equal 2.5.to_d, result.reload.points
+  end
 end

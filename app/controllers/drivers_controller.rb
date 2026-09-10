@@ -26,8 +26,8 @@ class DriversController < ApplicationController
 
     # Stock price history — last ~24 race snapshots so the chart fits a single season.
     @stock_price_history = StockPriceSnapshot.where(driver: @driver)
-                            .joins(:race).order("races.date ASC").limit(24)
-                            .pluck("races.date", "stock_price_snapshots.price")
+                            .joins(:race).order("races.date DESC").limit(24)
+                            .pluck("races.date", "stock_price_snapshots.price").reverse
 
     # Constructor history: group race results by constructor, ordered chronologically
     constructor_stints = @driver.race_results.includes(:constructor, race: :season)
@@ -74,11 +74,12 @@ class DriversController < ApplicationController
 
   def index
     peak_col = Setting.elo_column(:peak_elo)
-    base = Driver.select("drivers.*, (SELECT COUNT(*) FROM race_results WHERE race_results.driver_id = drivers.id) AS race_count")
+    race_count_sql = "(SELECT COUNT(*) FROM race_results WHERE race_results.driver_id = drivers.id AND race_results.result_type = 'race') AS race_count"
+    base = Driver.select("drivers.*, #{race_count_sql}")
            .includes(:countries, season_drivers: [:constructor, :season])
     if params[:search].present? && params[:search][:query].to_s.length > 1
       @drivers = Driver.name_and_constructor_search(params[:search][:query])
-               .select("drivers.*, (SELECT COUNT(*) FROM race_results WHERE race_results.driver_id = drivers.id) AS race_count")
+               .select("drivers.*, #{race_count_sql}")
                .includes(:countries, season_drivers: [:constructor, :season])
     else
       @drivers = base.where.not(peak_col => nil).order(wins: :desc, podiums: :desc, peak_col => :desc).limit(100)

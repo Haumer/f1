@@ -141,34 +141,14 @@ class Graphs::Ranking
     end
 
     def season_constructor_standings_data
-        # Reuse @constructor_by_driver from the initializer instead of re-querying.
-        sd_index = @constructor_by_driver
+        standings_by_race = @races.each_with_object({}) do |race, standings|
+            next unless @completed_race_ids.include?(race.id)
 
-        # For each race, sum driver points by constructor to get constructor positions
-        constructor_points_by_race = {}
-        @races.each do |race|
-            constructor_pts = Hash.new(0)
-            @standings_lookup.each do |(rid, did), standings|
-                next unless rid == race.id
-                constructor = sd_index[did]
-                next unless constructor
-                ds = standings.first
-                constructor_pts[constructor.id] += (ds&.points || 0)
-            end
-
-            # Also accumulate from previous races (standings are cumulative already)
-            constructor_points_by_race[race.id] = constructor_pts
+            standings[race.id] = Standings::ConstructorTable.new(season: @season, race: race).call
         end
-
-        # Build position rankings per race
-        constructors = sd_index.values.uniq
-        constructor_positions = {}
-        @races.each do |race|
-            pts = constructor_points_by_race[race.id] || {}
-            sorted = pts.sort_by { |_, p| -p }
-            sorted.each_with_index do |(cid, _), idx|
-                constructor_positions[[race.id, cid]] = idx + 1
-            end
+        constructors = standings_by_race.values.flatten.map { |row| row[:constructor] }.uniq
+        constructor_positions = standings_by_race.each_with_object({}) do |(race_id, rows), positions|
+            rows.each { |row| positions[[race_id, row[:constructor].id]] = row[:position] }
         end
 
         max_position = constructors.size

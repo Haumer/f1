@@ -48,7 +48,7 @@
         <% end %>
         <% if @highest_avg_elo_race %>
             <div class="race-stat-card">
-                <div class="race-stat-value"><%= elo_link(@highest_avg_elo_race.average_elo) %></div>
+                <div class="race-stat-value"><%= elo_link(@average_elos_by_race_id[@highest_avg_elo_race.id]) %></div>
                 <div class="race-stat-label">Highest Avg Elo (<%= @highest_avg_elo_race.season&.year %>)</div>
             </div>
         <% end %>
@@ -139,7 +139,7 @@
                                 <%= link_to "#{p3.driver.forename&.first}.#{p3.driver.surname}", driver_path(p3.driver) %>
                             <% end %>
                         </td>
-                        <td class="text-center"><%= race.average_elo&.round %></td>
+                        <td class="text-center"><%= @average_elos_by_race_id[race.id]&.round || "—" %></td>
                     </tr>
                 <% end %>
             </tbody>

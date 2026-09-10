@@ -7,7 +7,7 @@
     <div class="champion-details">
         <%= constructor_logo_or_name(@champion_constructor) %>
         <span class="champion-stats">
-            <%= @champion_standing.points&.round %> pts
+            <%= format_points(@champion_standing.points) %> pts
             <% if @champion_standing.wins.to_i > 0 %> · <%= @champion_standing.wins %> wins<% end %>
             <% if @champion.display_peak_elo %> · Peak Elo <%= elo_link(@champion.display_peak_elo) %><% end %>
         </span>

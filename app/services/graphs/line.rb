@@ -6,8 +6,8 @@ class Graphs::Line
         @new_elo_col = :new_elo_v2
         date_range = @driver.first_race_date..@driver.last_race_date
         @races = Race.where(date: date_range).sorted.includes(:circuit)
-        @seasons = @driver.seasons.where.not(year: Date.current.year.to_s)
-                         .includes(races: :circuit)
+        @seasons = @driver.seasons.distinct.where.not(year: Date.current.year.to_s)
+                         .order(:year).includes(races: :circuit)
         @race_results_by_race = @driver.race_results.where(race: @races)
                                        .includes(race: :circuit)
                                        .index_by(&:race_id)
@@ -71,14 +71,15 @@ class Graphs::Line
             },
             yAxis: {
                 type: 'value',
-                min: [(@driver.display_lowest_elo || 800).round - 50, 1500].min,
-                max: (@driver.display_peak_elo || 1200).round + 50
+                # Let ECharts fit the currently zoomed portion of the career.
+                # A fixed 1500 floor made modern drivers' changes look flat.
+                scale: true
             },
             series: @series_data,
             legend: { show: true },
             toolbox: { show: true },
             tooltip: single_line_tooltip,
-            height: "700px",
+            height: "540px",
             # Reserve right padding so the "Antonelli (2437)" endLabel doesn't
             # clip against the chart edge.
             grid: { right: '140px', containLabel: false },
@@ -162,19 +163,6 @@ class Graphs::Line
             }
         end
 
-        @driver.race_results.where(position_order: 1..3).includes(race: :circuit).each do |race_result|
-            elo_point = race_result.send(@new_elo_col)
-            next unless elo_point
-            position = race_result.position_order
-            style = {
-                color: Race::PODIUM_COLORS[position],
-                borderWidth: 1,
-                borderColor: 'black'
-            }
-            style[:shadowBlur] = 3
-            style[:shadowColor] = Race::PODIUM_COLORS[position] if position == 1
-            points[:data] << podium_point(race_result, elo_point, position, style)
-        end
         points
     end
 

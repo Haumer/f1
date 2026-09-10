@@ -31,9 +31,14 @@ class Race < ApplicationRecord
   end
 
   def average_elos
-    return 0 if race_results.count.zero?
+    values = if race_results.loaded?
+               race_results.filter_map(&:new_elo_v2)
+             else
+               race_results.where.not(new_elo_v2: nil).pluck(:new_elo_v2)
+             end
+    return nil if values.empty?
 
-    race_results.pluck(:new_elo_v2).compact.sum.to_f / race_results.count
+    values.sum.to_f / values.size
   end
 
   def previous_race

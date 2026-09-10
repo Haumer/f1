@@ -8,25 +8,25 @@ class ConstructorsController < ApplicationController
                        .includes(:constructor, driver: :countries)
     sd_by_constructor = season_drivers.group_by(&:constructor_id)
 
-    # Constructor standings from latest race
-    latest_standings = @season.latest_driver_standings
-    sd_index = season_drivers.index_by(&:driver_id)
-    constructor_stats = compute_constructor_stats(latest_standings, sd_index)
+    constructor_stats = Standings::ConstructorTable.new(season: @season).call.index_by do |row|
+      row[:constructor].id
+    end
 
     active_constructors = Constructor.where(active: true).index_by(&:id)
     @team_standings = active_constructors.values.filter_map do |constructor|
       drivers = (sd_by_constructor[constructor.id] || []).map(&:driver).uniq
-      stats = constructor_stats[constructor.id] || { points: 0, wins: 0, podiums: 0 }
+      stats = constructor_stats[constructor.id] || { points: 0, wins: 0, seconds: 0, thirds: 0 }
       {
         constructor: constructor,
         drivers: drivers,
         points: stats[:points],
         wins: stats[:wins],
-        podiums: stats[:podiums],
-        elo: constructor.display_elo&.round,
+        podiums: stats[:wins].to_i + stats[:seconds].to_i + stats[:thirds].to_i,
+        position: stats[:position],
+        elo: stats[:elo] || constructor.display_elo&.round,
         peak_elo: constructor.display_peak_elo&.round
       }
-    end.sort_by { |e| [-e[:points], -(e[:elo] || 0)] }
+    end.sort_by { |entry| [entry[:position] || Float::INFINITY, -(entry[:elo] || 0)] }
 
     # Championship history (all-time)
     season_end_race_ids = Race.where(season_end: true).pluck(:id)
@@ -62,11 +62,9 @@ class ConstructorsController < ApplicationController
     season_drivers = SeasonDriver.where(season: lineup_season, standin: [false, nil])
                        .includes(:constructor, driver: :countries)
     sd_by_constructor = season_drivers.group_by(&:constructor_id)
-    sd_index = season_drivers.index_by(&:driver_id)
-
-    # Constructor standings
-    latest_standings = @season.latest_driver_standings
-    constructor_stats = compute_constructor_stats(latest_standings, sd_index)
+    constructor_stats = Standings::ConstructorTable.new(season: @season).call.index_by do |row|
+      row[:constructor].id
+    end
 
     # Recent form per driver (last 5 results)
     all_driver_ids = season_drivers.map(&:driver_id)
@@ -79,16 +77,17 @@ class ConstructorsController < ApplicationController
     @team_grid = Constructor.where(active: true).filter_map do |constructor|
       drivers = (sd_by_constructor[constructor.id] || []).map(&:driver).uniq
       next if drivers.empty?
-      stats = constructor_stats[constructor.id] || { points: 0, wins: 0, podiums: 0 }
+      stats = constructor_stats[constructor.id] || { points: 0, wins: 0, seconds: 0, thirds: 0 }
       {
         constructor: constructor,
         drivers: drivers,
         points: stats[:points],
         wins: stats[:wins],
-        podiums: stats[:podiums],
-        elo: constructor.display_elo&.round
+        podiums: stats[:wins].to_i + stats[:seconds].to_i + stats[:thirds].to_i,
+        position: stats[:position],
+        elo: stats[:elo] || constructor.display_elo&.round
       }
-    end.sort_by { |e| [-e[:points], -(e[:elo] || 0)] }
+    end.sort_by { |entry| [entry[:position] || Float::INFINITY, -(entry[:elo] || 0)] }
   end
 
   def show
@@ -164,18 +163,4 @@ class ConstructorsController < ApplicationController
     @constructors_by_ref = Constructor.where(constructor_ref: all_refs).index_by(&:constructor_ref)
   end
 
-  private
-
-  def compute_constructor_stats(standings, sd_index)
-    stats = Hash.new { |h, k| h[k] = { points: 0, wins: 0, podiums: 0 } }
-    standings.each do |ds|
-      c = sd_index[ds.driver_id]&.constructor
-      next unless c
-      s = stats[c.id]
-      s[:points] += ds.points || 0
-      s[:wins] += ds.wins || 0
-      s[:podiums] += (ds.second_places || 0) + (ds.third_places || 0) + (ds.wins || 0)
-    end
-    stats
-  end
 end

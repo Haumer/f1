@@ -15,9 +15,10 @@
     <tbody>
         <% constructor_standings.each_with_index do |entry, idx| %>
             <% constructor = entry[:constructor] %>
+            <% position = entry[:position] || idx + 1 %>
             <% color = constructor_color(constructor) %>
-            <tr class="<%= 'podium-row podium-p' + (idx + 1).to_s if idx < 3 %>">
-                <td class="text-center position-cell"><%= idx + 1 %></td>
+            <tr class="<%= "podium-row podium-p#{position}" if position.to_i.between?(1, 3) %>">
+                <td class="text-center position-cell"><%= position %></td>
                 <td class="name-cell">
                     <span style="display: inline-block; width: 3px; height: 12px; background: <%= color %>; border-radius: 1px; vertical-align: middle; margin-right: 6px;"></span>
                     <% if constructor.logo_url.present? %>
@@ -25,7 +26,7 @@
                     <% end %>
                     <%= link_to constructor.name, constructor_path(constructor) %>
                 </td>
-                <td class="text-center"><%= entry[:points]&.round || 0 %></td>
+                <td class="text-center"><%= format_points(entry[:points]) %></td>
                 <td class="text-center d-none d-sm-table-cell"><%= entry[:wins].to_i > 0 ? entry[:wins] : '—' %></td>
                 <td class="text-center d-none d-md-table-cell"><%= entry[:seconds].to_i > 0 ? entry[:seconds] : '—' %></td>
                 <td class="text-center d-none d-md-table-cell"><%= entry[:thirds].to_i > 0 ? entry[:thirds] : '—' %></td>

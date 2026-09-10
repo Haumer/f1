@@ -1,3 +1,43 @@
+// Compact table of contents for a long, data-heavy season page.
+.season-section-nav {
+    display: flex;
+    gap: 6px;
+    margin: -8px 0 24px;
+    padding: 7px;
+    overflow-x: auto;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-surface;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
+
+    a {
+        flex: 1 0 auto;
+        padding: 7px 12px;
+        border-radius: $radius-sm;
+        color: $text-secondary;
+        font-size: 12px;
+        font-weight: $weight-semi;
+        text-align: center;
+        text-decoration: none;
+        transition: color $t-fast, background $t-fast;
+
+        &:hover {
+            color: $text-primary;
+            background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.08);
+        }
+    }
+}
+
+.season-anchor { scroll-margin-top: 24px; }
+
+.card > .data-source {
+    margin: 0;
+    padding: 8px 16px 10px;
+    border-top: 1px solid $border-color;
+}
+
 // Season section divider
 .season-section-divider {
     display: flex;

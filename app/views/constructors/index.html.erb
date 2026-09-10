@@ -53,7 +53,7 @@
                                         <%= link_to driver.surname, driver_path(driver) %><%= ', ' unless di == entry[:drivers].size - 1 %>
                                     <% end %>
                                 </td>
-                                <td class="text-center"><strong><%= entry[:points].round %></strong></td>
+                                <td class="text-center"><strong><%= format_points(entry[:points]) %></strong></td>
                                 <td class="text-center"><%= entry[:wins] %></td>
                                 <td class="text-center"><%= entry[:podiums] %></td>
                                 <td class="text-center">
