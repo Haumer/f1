@@ -163,6 +163,20 @@ class Graphs::Line
             }
         end
 
+        @driver.race_results.where(position_order: 1..3).includes(race: :circuit).each do |race_result|
+            elo_point = race_result.send(@new_elo_col)
+            next unless elo_point
+            position = race_result.position_order
+            style = {
+                color: Race::PODIUM_COLORS[position],
+                borderWidth: 1,
+                borderColor: 'black'
+            }
+            style[:shadowBlur] = 3
+            style[:shadowColor] = Race::PODIUM_COLORS[position] if position == 1
+            points[:data] << podium_point(race_result, elo_point, position, style)
+        end
+
         points
     end
 
