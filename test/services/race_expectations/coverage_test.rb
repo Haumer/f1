@@ -36,4 +36,20 @@ class RaceExpectations::CoverageTest < ActiveSupport::TestCase
       assert_not events_seen.any? { |event| event[:date] >= race.date }
     end
   end
+
+  test "coverage keeps qualifying and result loads separate" do
+    queries = []
+    subscriber = ->(event) do
+      payload = event.payload
+      queries << payload[:sql] unless payload[:name] == "SCHEMA" || payload[:cached]
+    end
+    ActiveRecord::Base.uncached do
+      ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+        RaceExpectations::Coverage.call(before: Date.new(2026, 4, 1))
+      end
+    end
+    assert_operator queries.size, :<=, 4
+    assert queries.any? { |sql| sql.match?(/FROM "qualifying_results"/) }
+    assert_not queries.any? { |sql| sql.match?(/JOIN "qualifying_results"/) && sql.match?(/JOIN "race_results"/) }
+  end
 end

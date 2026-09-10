@@ -14,6 +14,15 @@ external API requests, paid services or Elo recalculation are required. Derived
 model profiles are cached by a digest of their actual input data, so source
 corrections invalidate the cache even if an Elo replay did not touch timestamps.
 
+History and coverage queries explicitly preload qualifying, race results and
+statuses in separate bounded queries. Using `includes` alongside the filtering
+join caused a qualifying × results cross-product: about 53,000 joined rows for
+the local Abu Dhabi sample. The separate loader preserves model inputs while
+reducing local history loading from about 4,000 ms to 155–177 ms. Repeat local
+debrief responses fell from about four seconds to 0.3 seconds with development
+caching still disabled. The model cache does not skip history loading; production
+latency must be checked after deployment before deciding on a persisted report.
+
 The report contains:
 
 - Top 3 / Flop 3: the largest signed expectation gaps among assessable classified

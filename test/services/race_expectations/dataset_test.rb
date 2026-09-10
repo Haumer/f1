@@ -28,4 +28,28 @@ class RaceExpectations::DatasetTest < ActiveSupport::TestCase
     race_results(:bahrain_2026_piastri).update!(old_elo_v2: nil)
     assert_nil RaceExpectations::Dataset.event(races(:bahrain_2026))
   end
+
+  test "history loads bounded separate queries instead of multiplying qualifying and result rows" do
+    race = races(:bahrain_2026)
+    expected = RaceExpectations::Dataset.event(race)
+    queries = []
+    subscriber = ->(event) do
+      payload = event.payload
+      queries << payload[:sql] unless payload[:name] == "SCHEMA" || payload[:cached]
+    end
+
+    events = nil
+    ActiveRecord::Base.uncached do
+      ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+        events = RaceExpectations::Dataset.before(race.date + 1)
+      end
+    end
+
+    assert_equal [expected], events
+    assert_operator queries.size, :<=, 4, "History should load races, qualifying, results and statuses once each"
+    assert queries.any? { |sql| sql.match?(/FROM "qualifying_results"/) }, "Qualifying should be preloaded separately"
+    assert queries.any? { |sql| sql.match?(/FROM "race_results"/) }, "Results should be preloaded separately"
+    assert_not queries.any? { |sql| sql.match?(/JOIN "qualifying_results"/) && sql.match?(/JOIN "race_results"/) },
+               "Do not recreate the qualifying × results eager-load join"
+  end
 end
