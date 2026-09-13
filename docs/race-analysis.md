@@ -176,6 +176,28 @@ earned time and lucky upgrade, with any false upset tier corrected; invalid card
 are removed and newly valid ones awarded. A no-change rerun is a no-op. This task
 is never invoked by a page request or an automatic sync.
 
+### Approved production repair (2026-09-13)
+
+After user approval, an in-Heroku backup (`b197`) and a successful rollback-only
+rehearsal, race 1139 was repaired on release `v256` using the official Formula 1
+Spanish result and starting-grid pages. Formula 1 marked the classification
+provisional at the time. Traffic and workers were briefly paused and restored.
+The 22 result records retained their IDs, import timestamps and pre-race ratings;
+driver/constructor Elo, standings, career statistics and fantasy settlement were
+recomputed. The pick score changed from 210 to 190. Two incorrectly earned cards
+were removed; the remaining card retained its identity and its tier was corrected.
+The backup can recover the pre-repair state if needed.
+
+Independent before/after fingerprints matched for all earlier race results and
+standings, Spanish qualifying, season user trades and holdings, and pre-race Elo.
+Snapshot counts remained 9 wallet, 9 stock-portfolio and 16 stock-price snapshots.
+A repeated repair returned `unchanged`. No production database was exported locally.
+
+Browser verification also exposed a pre-existing team-logo mismatch: classification
+rows preferred the season roster over the constructor actually recorded for the
+event. Race and sprint rows now prefer the result's constructor, with the roster
+only as a fallback. This display fix does not modify season membership or results.
+
 ## Elo + qualifying model (v1)
 
 For a field of `N` stored entrants, calculate:

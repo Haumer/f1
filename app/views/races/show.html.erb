@@ -129,7 +129,7 @@
                                     <%= flag_image(race_result.driver, size: 24) %>
                                 </td>
                                 <td class="d-none d-md-table-cell col-logo">
-                                    <% constructor = @constructor_by_driver[race_result.driver_id] || race_result.constructor %>
+                                    <% constructor = race_result.constructor || @constructor_by_driver[race_result.driver_id] %>
                                     <% if constructor %>
                                         <%= link_to constructor_path(constructor) do %>
                                             <% if constructor.logo_url.present? %>
@@ -244,7 +244,7 @@
                                     <%= flag_image(sr.driver, size: 24) %>
                                 </td>
                                 <td class="d-none d-md-table-cell col-logo">
-                                    <% constructor = @constructor_by_driver[sr.driver_id] || sr.constructor %>
+                                    <% constructor = sr.constructor || @constructor_by_driver[sr.driver_id] %>
                                     <% if constructor %>
                                         <%= link_to constructor_path(constructor) do %>
                                             <% if constructor.logo_url.present? %>

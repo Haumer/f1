@@ -33,6 +33,24 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     Rails.cache.delete('current_champion_accent')
   end
 
+  test "classification uses the event constructor when the season roster disagrees" do
+    race = races(:bahrain_2026)
+    race.update!(sprint_time: '13:00:00Z')
+    result = race.race_results.find_by!(driver: drivers(:verstappen))
+    result.update!(constructor: constructors(:ferrari))
+    sprint = result.dup
+    sprint.result_type = 'sprint'
+    sprint.save!
+    get race_path(race)
+
+    %w[race sprint].each do |panel|
+      assert_select "[data-tab-table-target='panel'][data-tab='#{panel}'] tbody tr:first-child" do
+        assert_select "td.col-logo a[href='#{constructor_path(constructors(:ferrari))}']", count: 1
+        assert_select "td.col-logo a[href='#{constructor_path(constructors(:red_bull))}']", count: 0
+      end
+    end
+  end
+
   test "show returns 200 for race without results" do
     get race_path(races(:melbourne_2026))
     assert_response :success
