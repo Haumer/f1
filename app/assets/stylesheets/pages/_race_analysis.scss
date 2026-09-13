@@ -16,6 +16,36 @@
 
 #race-analysis, #race-classification, #race-elo-changes { scroll-margin-top: 80px; }
 
+.race-debrief-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-sm $space-md;
+  margin-bottom: $space-lg;
+  padding-bottom: $space-md;
+  border-bottom: 1px solid $border-color;
+
+  h1 { font-size: $type-section; font-weight: $weight-bold; margin: $space-sm 0 $space-xs; }
+  p { margin: 0; font-size: $type-label; color: $text-secondary; }
+}
+
+.race-debrief-results-link {
+  display: inline-block;
+  padding: 12px 0;
+  color: $text-primary;
+  font-size: $type-label;
+  &:hover { color: var(--page-accent, #{$accent-red}); }
+  &:focus-visible { outline: 2px solid var(--page-accent, #{$accent-red}); outline-offset: 4px; }
+}
+
+.race-debrief-pending {
+  padding: $space-lg;
+  h2 { font-size: $type-card-title; }
+  p { color: $text-secondary; font-size: $type-label; margin: $space-md 0; }
+  a { font-size: $type-label; color: $text-primary; }
+}
+
 .race-analysis {
   margin-bottom: 40px;
   --analysis-positive: #{$green};

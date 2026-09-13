@@ -74,7 +74,7 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
     page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { window.copiedDebrief = text } } })")
     click_button "Copy link"
     assert_selector ".race-analysis-share [role='status']", text: "Link copied."
-    assert_equal PublicSite.url(race_path(races(:bahrain_2026), anchor: "race-analysis")), page.evaluate_script("window.copiedDebrief")
+    assert_equal PublicSite.url(debrief_race_path(races(:bahrain_2026))), page.evaluate_script("window.copiedDebrief")
     assert_selector "a[href*='/analysis/og.png']", text: "Preview share card"
   end
 
@@ -100,7 +100,7 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
       window.Stimulus.getControllerForElementAndIdentifier(document.querySelector('.race-analysis-share'), 'race-analysis-share').connect();
     JS
     click_button "Share…"
-    assert_equal PublicSite.url(race_path(races(:bahrain_2026), anchor: "race-analysis")), page.evaluate_script("window.sharedDebrief.url")
+    assert_equal PublicSite.url(debrief_race_path(races(:bahrain_2026))), page.evaluate_script("window.sharedDebrief.url")
     assert_nil page.evaluate_script("window.unwantedCopy")
     assert_no_text "Link copied."
   end
@@ -128,6 +128,50 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
       ranking_summary.send_keys(:space)
       assert_no_text "not poor driving"
     end
+  end
+
+  test "sharing opens a dedicated debrief and keeps the normal race page reachable" do
+    RaceExpectations::Dataset.stub(:before, @history) do
+      visit race_path(races(:bahrain_2026), tab: "qualifying")
+      find(".race-analysis-share summary").click
+      click_link "Open debrief page"
+      assert_current_path debrief_race_path(races(:bahrain_2026))
+      assert_selector ".race-debrief-identity h1", text: races(:bahrain_2026).circuit.name
+      assert_selector ".race-expectations-leaderboard", count: 2
+      assert_no_selector "[data-controller='tab-table']"
+      click_link "Results & qualifying →"
+      assert_current_path race_path(races(:bahrain_2026)) do |uri|
+        uri.fragment == "race-classification"
+      end
+      assert_selector "#race-classification table"
+    end
+  end
+
+  test "shared debrief shows the rankings on the first phone screen" do
+    RaceExpectations::Dataset.stub(:before, @history) do
+      page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: 390, height: 844, deviceScaleFactor: 1, mobile: true)
+      visit debrief_race_path(races(:bahrain_2026))
+      assert_selector ".race-expectations-leaderboard", count: 2
+      assert_operator page.evaluate_script("document.querySelector('.race-expectations-leader-grid').getBoundingClientRect().top"), :<, 650
+      assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, 390
+      assert_equal "", page.evaluate_script("window.location.hash")
+    end
+  end
+
+  test "dedicated debrief and info controls work without JavaScript" do
+    RaceExpectations::Dataset.stub(:before, @history) do
+      page.driver.browser.execute_cdp("Emulation.setScriptExecutionDisabled", value: true)
+      visit debrief_race_path(races(:bahrain_2026))
+      assert_selector ".race-expectations-leaderboard", count: 2
+      assert_selector ".race-expectations-table tbody tr", count: 4
+      assert_no_text "Fit on"
+      find("#race-expectations-info summary").click
+      assert_text "Fit on"
+      find(".race-analysis-share summary").click
+      assert_equal PublicSite.url(debrief_race_path(races(:bahrain_2026))), find("#race-analysis-share-url").value
+    end
+  ensure
+    page.driver.browser.execute_cdp("Emulation.setScriptExecutionDisabled", value: false)
   end
 
   test "phone model info expands in flow without covering the rankings" do

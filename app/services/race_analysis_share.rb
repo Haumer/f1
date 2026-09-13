@@ -26,7 +26,7 @@ class RaceAnalysisShare
   end
 
   def url
-    PublicSite.url(Rails.application.routes.url_helpers.race_path(analysis.race, anchor: "race-analysis"))
+    PublicSite.url(Rails.application.routes.url_helpers.debrief_race_path(analysis.race))
   end
 
   def payload

@@ -6,7 +6,12 @@ the **local development database**, not an audit of production.
 ## What is available now
 
 Every race page with stored main-race results renders a debrief at
-`/races/:id#race-analysis`. Upcoming races retain the existing preview.
+`/races/:id#race-analysis`. Shared links now use `/races/:id/debrief`: a dedicated,
+server-rendered page with a compact race identity, the debrief first and a link
+back to results/qualifying. It needs no tab selection, scroll fragment or
+JavaScript. Existing anchor links still work. Upcoming races retain the existing
+preview; their dedicated debrief URL shows an explicit pending state and never
+substitutes another race.
 
 `RaceAnalysis` is a read-only service. Its separate `RaceExpectations` model learns
 from earlier races; it never changes Elo or fantasy settlement. No migrations,
@@ -79,8 +84,9 @@ from the other side. Exact ties use driver ID for stable ordering. These are not
 significance rankings: a listed driver can still be inside the usual error band.
 
 The race page's **Share this debrief** panel provides a public, canonical deep
-link, clipboard copying with a selectable-link fallback, native sharing where
-supported, and a preview-card link. It works without an account and shares no
+link to the dedicated debrief page, clipboard copying with a selectable-link
+fallback, native sharing where supported, and links to open the debrief or
+preview card. It works without an account and shares no
 user-specific data or incoming tracking parameters. With JavaScript disabled,
 the details panel and manual link still work. Nothing is automatically posted.
 
@@ -98,6 +104,32 @@ ETags. The metadata URL is versioned by the payload. Corrected results, names or
 model estimates refresh it even when `Race#updated_at` is unchanged. Bump
 `RaceAnalysisShare::VERSION` for rendering-only changes. Platform-side preview
 caches may take longer to refresh after deployment.
+
+### Spanish GP source-data incident (2026-09-13)
+
+Read-only checks around 15:54–15:57 UTC found that production's Spanish race
+(`/races/1139`, Madring, round 14) contained the preceding Italian race's
+classification, not a link or tab pointing to Italy. Both pages showed Antonelli
+winning from grid 19 ahead of Russell and Verstappen. Spain's stored standings
+and Elo already reflected another race being processed (e.g. Antonelli's points
+rose from 267 after Monza to 292 on Spain's page).
+
+At that time, [Jolpica's round-14 result endpoint](https://api.jolpi.ca/ergast/f1/2026/14/results.json)
+returned an empty race list. The race-classification section of
+[Wikipedia's Spanish GP article](https://en.wikipedia.org/wiki/2026_Spanish_Grand_Prix)
+contained the Italian classification, including 53 laps, Antonelli's 1:34:23.754
+and the same grid/finish order. This matches the unguarded Wikipedia fallback in
+`UpdateRaceResult#update_all`; the debrief reads those stored results and does
+not choose or import another race itself. Source content may change after this
+observation. No production imports, deletions, Elo replays or fantasy settlement
+changes were performed during this investigation.
+
+Repair requires a separately approved data operation: first prevent acceptance
+of copied/placeholder classifications (validate event identity and suspicious
+matches against prior races), then audit and correct the affected result set and
+its derived Elo, standings, picks and fantasy settlement. A UI-only change or a
+page-cache clear cannot repair already-stored classifications. Do not blindly
+run the broad sync/replay while the fallback source is still wrong.
 
 ## Elo + qualifying model (v1)
 

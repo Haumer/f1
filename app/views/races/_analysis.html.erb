@@ -10,6 +10,7 @@
         <div class="race-analysis-share-actions">
           <button type="button" data-action="race-analysis-share#copy">Copy link</button>
           <button type="button" hidden data-race-analysis-share-target="native" data-action="race-analysis-share#share">Share…</button>
+          <%= link_to "Open debrief page", debrief_race_path(analysis.race) %>
           <%= link_to "Preview share card ↗", analysis_og_image_race_path(analysis.race, v: @analysis_share.fingerprint), target: "_blank", rel: "noopener" %>
         </div>
         <span role="status" aria-live="polite" data-race-analysis-share-target="status"></span>

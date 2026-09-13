@@ -50,6 +50,7 @@ Rails.application.routes.draw do
   end
   resources :races, only: [:index, :show] do
     member do
+      get 'debrief', to: 'race_debriefs#show'
       get 'analysis/og.png', to: 'race_analysis_images#show', as: :analysis_og_image
       get 'preview/:username', to: 'predictions#show', as: :preview
       get 'preview/:username/og.png', to: 'predictions#og_image', as: :preview_og_image

@@ -58,7 +58,7 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:title'][content*='Race debrief']"
     assert_select "meta[property='og:image'][content^='#{PublicSite.url(analysis_og_image_race_path(races(:bahrain_2026)))}?v=']"
     assert_select "meta[property='og:image:alt'][content*='Top 3 and Flop 3']"
-    assert_select "input#race-analysis-share-url[value='#{PublicSite.url(race_path(races(:bahrain_2026), anchor: 'race-analysis'))}']"
+    assert_select "input#race-analysis-share-url[value='#{PublicSite.url(debrief_race_path(races(:bahrain_2026)))}']"
   end
 
   test "missing history stays visible outside collapsed model notes" do
