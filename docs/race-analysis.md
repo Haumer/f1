@@ -13,6 +13,11 @@ JavaScript. Existing anchor links still work. Upcoming races retain the existing
 preview; their dedicated debrief URL shows an explicit pending state and never
 substitutes another race.
 
+Normal `/races/:id` visits put the existing results/qualifying table before the
+debrief. Both pages inherit `ApplicationController`'s reigning world champion
+accent (including its configured override), rather than overriding it with the
+winner of the displayed race.
+
 `RaceAnalysis` is a read-only service. Its separate `RaceExpectations` model learns
 from earlier races; it never changes Elo or fantasy settlement. No migrations,
 external API requests, paid services or Elo recalculation are required. Derived
@@ -64,7 +69,7 @@ Nothing here measures overtaking, car-adjusted skill, strategy quality or blame.
 ## Display and explanations
 
 The debrief uses the app's shared dark surfaces, typography and gain/loss colors;
-constructor accents follow the rest of the race page. The share PNG mirrors the
+the page accent follows the reigning world champion, as on the homepage. The share PNG mirrors the
 same palette. Keep its Ruby color constants aligned with `config/_colors.scss`.
 
 Long model, training-data and ranking explanations live in closed-by-default
@@ -130,6 +135,46 @@ matches against prior races), then audit and correct the affected result set and
 its derived Elo, standings, picks and fantasy settlement. A UI-only change or a
 page-cache clear cannot repair already-stored classifications. Do not blindly
 run the broad sync/replay while the fallback source is still wrong.
+
+### Import protection and explicit repair
+
+`RaceResults::ImportGuard` checks Jolpica's season, round, event date and circuit
+before accepting results or invoking a reset. Both Jolpica and Wikipedia imports
+reject duplicate driver identities and classifications with at least eight rows
+and 80% matching driver/finish/lap combinations from one of the preceding three
+races in that season. This is a conservative copied-table alarm, not proof that
+any arbitrary source is correct. A rejected payload leaves stored results and
+their derived state untouched. Wikipedia redirects to another event title are
+also refused.
+
+`RaceResults::OfficialClassification` is an operator-only repair input. It reads
+an explicit Formula 1 result URL plus its starting grid, checks event date and
+circuit, matches driver identity against the stored field, and requires complete,
+unique fields. It does not create drivers or guess missing times/retirement causes.
+Official `DNF` entries use the existing generic `Retired` status. It is not an
+automatic replacement data provider.
+
+`f1:repair_latest_race` defaults to executing and rolling back the entire repair:
+
+```sh
+RACE_ID=1139 SOURCE_URL=https://www.formula1.com/en/results/2026/races/1294/spain/race-result \
+  bundle exec rails f1:repair_latest_race
+```
+
+Applying requires `APPLY=1`, `CONFIRM_RACE` matching the exact ID, and a verified
+`BACKUP_ID`. Stop background workers and prevent new trades during the operation;
+restore the previous worker formation and normal site access immediately after
+verification. Do not use this tool for older races, sprint weekends, races with
+post-import trades, liquidations, newly earned achievements or combined cards:
+those cases stop for a separate dependency audit.
+
+The transaction retains result IDs and import timestamps, restores pre-race
+ratings, recalculates driver/constructor Elo and standings, then rebuilds the
+race's payouts, pick scores and snapshots. User trade records are fingerprinted
+and must remain byte-for-byte unchanged. Existing valid cards keep their IDs,
+earned time and lucky upgrade, with any false upset tier corrected; invalid cards
+are removed and newly valid ones awarded. A no-change rerun is a no-op. This task
+is never invoked by a page request or an automatic sync.
 
 ## Elo + qualifying model (v1)
 

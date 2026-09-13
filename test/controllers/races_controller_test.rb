@@ -17,6 +17,20 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-expectations-heading", text: /Did they beat the expectation/
     assert_select "a[href='#race-classification']", "Results & qualifying"
     assert_select "#race-analysis-method", text: /not isolate driver skill/
+    assert_operator response.body.index('id="race-classification"'), :<, response.body.index('id="race-analysis"')
+  end
+
+  test "normal race and shared debrief retain the global champion accent instead of the race winner" do
+    championship = driver_standings(:melbourne_2025_verstappen)
+    RaceResult.create!(race: championship.race, driver: championship.driver, constructor: constructors(:ferrari),
+                       status: statuses(:finished), position: 1, position_order: 1, points: 25)
+    Rails.cache.delete('current_champion_accent')
+    [race_path(races(:bahrain_2026)), debrief_race_path(races(:bahrain_2026))].each do |url|
+      get url
+      assert_select "body[style*='--page-accent: #{Constructor::COLORS[:ferrari]}']", count: 1
+    end
+  ensure
+    Rails.cache.delete('current_champion_accent')
   end
 
   test "show returns 200 for race without results" do

@@ -100,6 +100,9 @@ class WikipediaRaceResultFetcher
     data = fetch_json(uri)
     return nil unless data
 
+    expected_title = URI.decode_www_form_component(title).tr('_', ' ')
+    return nil unless data.dig('parse', 'title') == expected_title
+
     sections = data.dig("parse", "sections") || []
     section = sections.find { |s| s["line"] =~ /race classification/i }
     section ||= sections.find { |s| s["line"] =~ /classification/i && s["line"] !~ /qualifying|sprint/i }

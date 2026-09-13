@@ -33,11 +33,10 @@
 
     <% if has_results %>
       <nav class="race-section-nav" aria-label="Race sections">
-        <a href="#race-analysis">Race debrief</a>
         <a href="#race-classification">Results & qualifying</a>
+        <a href="#race-analysis">Race debrief</a>
         <a href="#race-elo-changes">Elo changes</a>
       </nav>
-      <%= render "analysis", analysis: @analysis %>
     <% end %>
 
     <% if has_results %>
@@ -369,6 +368,8 @@
     </div>
 
     <% if has_results %>
+    <%= render "analysis", analysis: @analysis %>
+
     <div class="card" id="race-elo-changes">
         <div class="chart-header">
             <h4>Elo Changes</h4>
