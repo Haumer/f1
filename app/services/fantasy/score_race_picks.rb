@@ -111,8 +111,9 @@ module Fantasy
     end
     private_class_method :integer_or_nil
 
-    def initialize(race:)
+    def initialize(race:, card_rng: Random.new)
       @race = race
+      @card_rng = card_rng
     end
 
     def call
@@ -137,7 +138,7 @@ module Fantasy
       # position matches the actual finish earn a DriverCard. AwardForRace is
       # idempotent (unique index on user+driver+race), so re-running
       # ScoreRacePicks doesn't re-award.
-      DriverCards::AwardForRace.new(race: @race).call
+      DriverCards::AwardForRace.new(race: @race, rng: @card_rng).call
     end
 
     private

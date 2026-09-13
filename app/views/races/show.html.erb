@@ -1,10 +1,5 @@
 <% content_for(:title) { "#{@race.circuit.name} #{@race.season.year}" } %>
-<% content_for(:description) { @analysis_share ? @analysis_share.description : "#{@race.circuit.name} #{@race.season.year} — session schedule, qualifying and race preview on F1 Elo." } %>
-<% if @analysis_share %>
-  <% content_for(:social_title) { @analysis_share.title } %>
-  <% content_for(:og_image) { PublicSite.url(analysis_og_image_race_path(@race, v: @analysis_share.fingerprint)) } %>
-  <% content_for(:og_image_alt) { "#{@analysis_share.title}: Top 3 and Flop 3 versus the Elo + qualifying estimate. #{@analysis_share.payload[:assessed]}/#{@analysis_share.payload[:entrants]} entrants assessed." } %>
-<% end %>
+<%= render "races/social_metadata" %>
 <div class="homepage-container">
     <div class="page-hero race-hero">
         <div class="page-hero-bg"></div>
@@ -38,11 +33,10 @@
 
     <% if has_results %>
       <nav class="race-section-nav" aria-label="Race sections">
-        <a href="#race-analysis">Race debrief</a>
         <a href="#race-classification">Results & qualifying</a>
+        <a href="#race-analysis">Race debrief</a>
         <a href="#race-elo-changes">Elo changes</a>
       </nav>
-      <%= render "analysis", analysis: @analysis %>
     <% end %>
 
     <% if has_results %>
@@ -374,6 +368,8 @@
     </div>
 
     <% if has_results %>
+    <%= render "analysis", analysis: @analysis %>
+
     <div class="card" id="race-elo-changes">
         <div class="chart-header">
             <h4>Elo Changes</h4>

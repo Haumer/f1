@@ -5,22 +5,18 @@
     <div>
       <span class="race-analysis-eyebrow">Elo × qualifying → race result</span>
       <h3 id="race-expectations-title">Did they beat the expectation?</h3>
-      <p>A strong driver recovering from a poor qualifying position isn't automatically a surprise. This model estimates a finish from <strong>both</strong> inputs, then compares it with what happened.</p>
     </div>
     <span class="race-expectations-badge">Experimental · v1</span>
   </div>
 
-  <div class="race-expectations-context">
-    <p><strong>Expected finish assumes a classified finish.</strong> DNFs stay in the full grid but receive no performance verdict. Qualifying is not the starting grid; grid differences are flagged, not silently substituted.</p>
-    <% if report.profile[:model] %>
-      <p>Fit on <strong><%= report.profile[:finishes] %> earlier finishes</strong> across <%= report.profile[:races] %> races, <%= report.profile[:first_date].year %>–<%= report.profile[:last_date].year %>. No results from this race enter its expectation.</p>
-    <% else %>
-      <p class="race-expectations-notice">This race has insufficient earlier history: <%= report.profile[:races] %>/<%= RaceExpectations::Backtest::MIN_RACES %> races and <%= report.profile[:finishes] %>/<%= RaceExpectations::Backtest::MIN_FINISHES %> classified finishes with Elo and qualifying. Estimates are withheld.</p>
-    <% end %>
-    <% if report.predicted_count < analysis.rows.size %>
-      <p class="race-expectations-notice"><%= report.predicted_count %>/<%= analysis.rows.size %> entrants have an estimate. Missing Elo or qualifying stays visible below; a grid position is not used as a qualifying result.</p>
-    <% end %>
-  </div>
+  <%= render "races/expectation_info", analysis: analysis, report: report %>
+
+  <% if !report.profile[:model] || report.predicted_count < analysis.rows.size %>
+    <p class="race-expectations-notice"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <strong><%= report.predicted_count %>/<%= analysis.rows.size %> entrants have an estimate.</strong>
+      <%= report.profile[:model] ? "Missing Elo or qualifying; see the full grid below." : "Not enough earlier history to estimate this race." %>
+    </p>
+  <% end %>
 
   <%= render "races/expectation_leaders", report: report %>
 

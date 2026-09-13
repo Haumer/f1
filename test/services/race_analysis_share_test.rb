@@ -11,7 +11,7 @@ class RaceAnalysisShareTest < ActiveSupport::TestCase
       assert_equal analysis.expectations.top_three.map { |entry| entry.driver.fullname }, card.payload[:top].pluck(:name)
       assert_equal analysis.expectations.flop_three.map { |entry| entry.driver.fullname }, card.payload[:flop].pluck(:name)
       assert_equal 3, card.payload[:assessed]
-      assert_equal PublicSite.url("/races/#{analysis.race.id}#race-analysis"), card.url
+      assert_equal PublicSite.url("/races/#{analysis.race.id}/debrief"), card.url
       assert_includes card.description, "3/4 entrants assessed"
       assert_not_includes card.payload.to_json, drivers(:piastri).fullname
     end

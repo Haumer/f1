@@ -22,6 +22,15 @@ class UpdateRaceResult
 
     def update_all
         if has_jolpica_results?
+            event = @results_data.dig('MRData', 'RaceTable', 'Races').first
+            guard = RaceResults::ImportGuard.new(race: @race)
+            guard.validate_event!(event)
+            driver_ids = Driver.where(driver_ref: event['Results'].map { |row| row.dig('Driver', 'driverId') }).pluck(:driver_ref, :id).to_h
+            # New drivers use source identifiers here; validation creates no records.
+            guard.validate_rows!(event['Results'].map do |row|
+              { driver_id: driver_ids[row.dig('Driver', 'driverId')] || row.dig('Driver', 'driverId'),
+                position_order: row['positionOrder'] || row['position'], laps: row['laps'] }
+            end)
             puts "Using Jolpica API for #{@race.year}/#{@race.round}"
             maybe_reset_for_resync
             self.results
@@ -37,6 +46,9 @@ class UpdateRaceResult
             puts "Jolpica has no results, trying Wikipedia for #{@race.year}/#{@race.round}..."
             wiki_results = WikipediaRaceResultFetcher.new(race: @race).call
             if wiki_results&.any?
+                RaceResults::ImportGuard.new(race: @race).validate_rows!(wiki_results.map do |row|
+                  row.slice(:position_order, :laps).merge(driver_id: row[:driver]&.id)
+                end)
                 puts "Found #{wiki_results.size} results from Wikipedia"
                 create_results_from_wikipedia(wiki_results)
                 # Sync sprint results before standings so sprint points are included
@@ -54,6 +66,9 @@ class UpdateRaceResult
 
         EloRatingV2.process_race(@race)
         ConstructorEloV2.process_race(@race)
+    rescue RaceResults::ImportGuard::Rejected => e
+        Rails.logger.error("[UpdateRaceResult] Rejected #{@race.year}/#{@race.round}: #{e.message}")
+        nil
     end
 
     def results

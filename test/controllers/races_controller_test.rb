@@ -17,6 +17,20 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-expectations-heading", text: /Did they beat the expectation/
     assert_select "a[href='#race-classification']", "Results & qualifying"
     assert_select "#race-analysis-method", text: /not isolate driver skill/
+    assert_operator response.body.index('id="race-classification"'), :<, response.body.index('id="race-analysis"')
+  end
+
+  test "normal race and shared debrief retain the global champion accent instead of the race winner" do
+    championship = driver_standings(:melbourne_2025_verstappen)
+    RaceResult.create!(race: championship.race, driver: championship.driver, constructor: constructors(:ferrari),
+                       status: statuses(:finished), position: 1, position_order: 1, points: 25)
+    Rails.cache.delete('current_champion_accent')
+    [race_path(races(:bahrain_2026)), debrief_race_path(races(:bahrain_2026))].each do |url|
+      get url
+      assert_select "body[style*='--page-accent: #{Constructor::COLORS[:ferrari]}']", count: 1
+    end
+  ensure
+    Rails.cache.delete('current_champion_accent')
   end
 
   test "show returns 200 for race without results" do
@@ -48,6 +62,9 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-expectations-errors", text: /Elo \+ qualifying/
     assert_select ".race-expectations-reading", text: /DNF/
     assert_select ".race-expectations-context", text: /45 races/
+    assert_select "details#race-expectations-info:not([open]) .race-expectations-context", text: /No results from this race/
+    assert_select "details.race-expectations-ranking-info:not([open])", text: /not poor driving/
+    assert_select ".race-expectations-heading p", count: 0
     assert_select ".race-expectations-leaderboard[aria-label='Top 3'] li", minimum: 1
     assert_select ".race-expectations-leaderboard[aria-label='Flop 3'] li", minimum: 1
     assert_select ".race-expectations-leaders-note", text: /3\/4 entrants assessed/
@@ -55,7 +72,14 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:title'][content*='Race debrief']"
     assert_select "meta[property='og:image'][content^='#{PublicSite.url(analysis_og_image_race_path(races(:bahrain_2026)))}?v=']"
     assert_select "meta[property='og:image:alt'][content*='Top 3 and Flop 3']"
-    assert_select "input#race-analysis-share-url[value='#{PublicSite.url(race_path(races(:bahrain_2026), anchor: 'race-analysis'))}']"
+    assert_select "input#race-analysis-share-url[value='#{PublicSite.url(debrief_race_path(races(:bahrain_2026)))}']"
+  end
+
+  test "missing history stays visible outside collapsed model notes" do
+    get race_path(races(:bahrain_2026))
+    assert_select ".race-expectations > .race-expectations-notice", text: /0\/4 entrants have an estimate.*Not enough earlier history/m
+    assert_select ".race-expectations-leaders-note", text: /DNFs excluded/
+    assert_select "details#race-expectations-info:not([open])", count: 1
   end
 
   test "calendar returns 200" do

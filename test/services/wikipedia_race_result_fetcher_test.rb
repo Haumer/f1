@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 # Regression cover for the 2026 Italian GP outage: the parser required every
 # result row to carry `scope="row"`, but that attribute is optional on Wikipedia
@@ -89,5 +90,13 @@ class WikipediaRaceResultFetcherTest < ActiveSupport::TestCase
 
   test "returns empty for a table with no parseable rows" do
     assert_equal [], @fetcher.send(:parse_classification_table, "=== Race classification ===\n{|\n|}\n")
+  end
+
+  test 'a redirect to a different race article is rejected' do
+    @fetcher.stub(:fetch_json, { 'parse' => { 'title' => '2026 Italian Grand Prix',
+      'sections' => [{ 'line' => 'Race classification', 'index' => '9' }] } }) do
+      assert_nil @fetcher.send(:find_race_classification_section, '2026_Spanish_Grand_Prix')
+      assert_equal '9', @fetcher.send(:find_race_classification_section, '2026_Italian_Grand_Prix')
+    end
   end
 end

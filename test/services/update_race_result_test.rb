@@ -9,14 +9,16 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
     @norris = drivers(:norris)
   end
 
-  def jolpica_payload(results)
+  def jolpica_payload(results, race: @race)
     {
       "MRData" => {
         "RaceTable" => {
           "Races" => [
             {
-              "season" => @race.year.to_s,
-              "round"  => @race.round.to_s,
+              "season" => race.year.to_s,
+              "round"  => race.round.to_s,
+              "date" => race.date.iso8601,
+              "Circuit" => { "circuitId" => race.circuit.circuit_ref },
               "Results" => results
             }
           ]
@@ -110,9 +112,7 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
       result_entry(driver: @verstappen, constructor_ref: "red_bull", position: 1, points: 25),
       result_entry(driver: @norris,     constructor_ref: "mclaren",  position: 2, points: 18),
       result_entry(driver: drivers(:leclerc), constructor_ref: "ferrari", position: 3, points: 15)
-    ])
-    # Swap race so the payload matches bahrain
-    payload = payload.sub(@race.year.to_s, bahrain.year.to_s).sub(/"round"\s*=>\s*"#{@race.round}"/, %("round" => "#{bahrain.round}"))
+    ], race: bahrain)
 
     reset_calls = 0
     ResetRaceState.stub_any_instance(:call, -> { reset_calls += 1 }) do
@@ -138,7 +138,7 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
         points: r.points.to_f,
         status: r.status&.status_type || "Finished"
       )
-    })
+    }, race: bahrain)
 
     reset_calls = 0
     ResetRaceState.stub_any_instance(:call, -> { reset_calls += 1 }) do
@@ -169,7 +169,7 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
         points: r.points.to_f,
         status: r.status&.status_type || "Finished"
       )
-    })
+    }, race: bahrain)
 
     reset_calls = 0
     ResetRaceState.stub_any_instance(:call, -> { reset_calls += 1 }) do
@@ -179,6 +179,18 @@ class UpdateRaceResultTest < ActiveSupport::TestCase
     end
 
     assert_equal 1, reset_calls, "ResetRaceState should run on position swaps even when row count matches"
+  end
+
+  test "wrong event identity cannot reset existing results or ratings" do
+    race = races(:bahrain_2026)
+    before = race.race_results.order(:id).map(&:attributes)
+    payload = jolpica_payload([result_entry(driver: @verstappen, constructor_ref: 'red_bull', position: 1, points: 25)])
+    with_jolpica(payload) do
+      ResetRaceState.stub_any_instance(:call, -> { flunk 'Wrong event must never reset stored state' }) do
+        UpdateRaceResult.new(race: race).update_all
+      end
+    end
+    assert_equal before, race.race_results.reload.order(:id).map(&:attributes)
   end
 end
 

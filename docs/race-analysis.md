@@ -6,7 +6,17 @@ the **local development database**, not an audit of production.
 ## What is available now
 
 Every race page with stored main-race results renders a debrief at
-`/races/:id#race-analysis`. Upcoming races retain the existing preview.
+`/races/:id#race-analysis`. Shared links now use `/races/:id/debrief`: a dedicated,
+server-rendered page with a compact race identity, the debrief first and a link
+back to results/qualifying. It needs no tab selection, scroll fragment or
+JavaScript. Existing anchor links still work. Upcoming races retain the existing
+preview; their dedicated debrief URL shows an explicit pending state and never
+substitutes another race.
+
+Normal `/races/:id` visits put the existing results/qualifying table before the
+debrief. Both pages inherit `ApplicationController`'s reigning world champion
+accent (including its configured override), rather than overriding it with the
+winner of the displayed race.
 
 `RaceAnalysis` is a read-only service. Its separate `RaceExpectations` model learns
 from earlier races; it never changes Elo or fantasy settlement. No migrations,
@@ -56,6 +66,19 @@ results enter place-gain comparisons; retirements, DNS, DNQ and DSQ remain statu
 labels. Elo itself still uses the stored result order, including retirements.
 Nothing here measures overtaking, car-adjusted skill, strategy quality or blame.
 
+## Display and explanations
+
+The debrief uses the app's shared dark surfaces, typography and gain/loss colors;
+the page accent follows the reigning world champion, as on the homepage. The share PNG mirrors the
+same palette. Keep its Ruby color constants aligned with `config/_colors.scss`.
+
+Long model, training-data and ranking explanations live in closed-by-default
+**Model & data** and **How we rank** disclosures. These native HTML controls work
+with touch, keyboard and JavaScript disabled, expanding in the document flow so
+they cannot cover the rankings. Assessment counts, the DNF exclusion and missing
+estimate warnings stay visible. Neither collapsing the notes nor restyling the
+cards changes estimates, leaderboard selection or the full-grid comparison.
+
 ## Top 3 / Flop 3 and sharing
 
 Both leaderboards use the same `expected - actual` gap as the full-grid table.
@@ -66,8 +89,9 @@ from the other side. Exact ties use driver ID for stable ordering. These are not
 significance rankings: a listed driver can still be inside the usual error band.
 
 The race page's **Share this debrief** panel provides a public, canonical deep
-link, clipboard copying with a selectable-link fallback, native sharing where
-supported, and a preview-card link. It works without an account and shares no
+link to the dedicated debrief page, clipboard copying with a selectable-link
+fallback, native sharing where supported, and links to open the debrief or
+preview card. It works without an account and shares no
 user-specific data or incoming tracking parameters. With JavaScript disabled,
 the details panel and manual link still work. Nothing is automatically posted.
 
@@ -85,6 +109,72 @@ ETags. The metadata URL is versioned by the payload. Corrected results, names or
 model estimates refresh it even when `Race#updated_at` is unchanged. Bump
 `RaceAnalysisShare::VERSION` for rendering-only changes. Platform-side preview
 caches may take longer to refresh after deployment.
+
+### Spanish GP source-data incident (2026-09-13)
+
+Read-only checks around 15:54–15:57 UTC found that production's Spanish race
+(`/races/1139`, Madring, round 14) contained the preceding Italian race's
+classification, not a link or tab pointing to Italy. Both pages showed Antonelli
+winning from grid 19 ahead of Russell and Verstappen. Spain's stored standings
+and Elo already reflected another race being processed (e.g. Antonelli's points
+rose from 267 after Monza to 292 on Spain's page).
+
+At that time, [Jolpica's round-14 result endpoint](https://api.jolpi.ca/ergast/f1/2026/14/results.json)
+returned an empty race list. The race-classification section of
+[Wikipedia's Spanish GP article](https://en.wikipedia.org/wiki/2026_Spanish_Grand_Prix)
+contained the Italian classification, including 53 laps, Antonelli's 1:34:23.754
+and the same grid/finish order. This matches the unguarded Wikipedia fallback in
+`UpdateRaceResult#update_all`; the debrief reads those stored results and does
+not choose or import another race itself. Source content may change after this
+observation. No production imports, deletions, Elo replays or fantasy settlement
+changes were performed during this investigation.
+
+Repair requires a separately approved data operation: first prevent acceptance
+of copied/placeholder classifications (validate event identity and suspicious
+matches against prior races), then audit and correct the affected result set and
+its derived Elo, standings, picks and fantasy settlement. A UI-only change or a
+page-cache clear cannot repair already-stored classifications. Do not blindly
+run the broad sync/replay while the fallback source is still wrong.
+
+### Import protection and explicit repair
+
+`RaceResults::ImportGuard` checks Jolpica's season, round, event date and circuit
+before accepting results or invoking a reset. Both Jolpica and Wikipedia imports
+reject duplicate driver identities and classifications with at least eight rows
+and 80% matching driver/finish/lap combinations from one of the preceding three
+races in that season. This is a conservative copied-table alarm, not proof that
+any arbitrary source is correct. A rejected payload leaves stored results and
+their derived state untouched. Wikipedia redirects to another event title are
+also refused.
+
+`RaceResults::OfficialClassification` is an operator-only repair input. It reads
+an explicit Formula 1 result URL plus its starting grid, checks event date and
+circuit, matches driver identity against the stored field, and requires complete,
+unique fields. It does not create drivers or guess missing times/retirement causes.
+Official `DNF` entries use the existing generic `Retired` status. It is not an
+automatic replacement data provider.
+
+`f1:repair_latest_race` defaults to executing and rolling back the entire repair:
+
+```sh
+RACE_ID=1139 SOURCE_URL=https://www.formula1.com/en/results/2026/races/1294/spain/race-result \
+  bundle exec rails f1:repair_latest_race
+```
+
+Applying requires `APPLY=1`, `CONFIRM_RACE` matching the exact ID, and a verified
+`BACKUP_ID`. Stop background workers and prevent new trades during the operation;
+restore the previous worker formation and normal site access immediately after
+verification. Do not use this tool for older races, sprint weekends, races with
+post-import trades, liquidations, newly earned achievements or combined cards:
+those cases stop for a separate dependency audit.
+
+The transaction retains result IDs and import timestamps, restores pre-race
+ratings, recalculates driver/constructor Elo and standings, then rebuilds the
+race's payouts, pick scores and snapshots. User trade records are fingerprinted
+and must remain byte-for-byte unchanged. Existing valid cards keep their IDs,
+earned time and lucky upgrade, with any false upset tier corrected; invalid cards
+are removed and newly valid ones awarded. A no-change rerun is a no-op. This task
+is never invoked by a page request or an automatic sync.
 
 ## Elo + qualifying model (v1)
 

@@ -1,0 +1,19 @@
+<details class="race-analysis-info race-expectations-info" id="race-expectations-info">
+  <summary><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Model & data</summary>
+  <div class="race-analysis-info-content race-expectations-context">
+    <p>A strong driver recovering from a poor qualifying position isn't automatically a surprise. This model estimates a finish from <strong>both pre-race Elo and qualifying</strong>, then compares it with what happened.</p>
+    <p><strong>Expected finish assumes a classified finish.</strong> DNFs stay in the full grid but receive no performance verdict. Qualifying is not the starting grid; grid differences are flagged, not silently substituted.</p>
+    <% if report.profile[:model] %>
+      <p>Fit on <strong><%= report.profile[:finishes] %> earlier finishes</strong> across <%= report.profile[:races] %> races, <%= report.profile[:first_date].year %>–<%= report.profile[:last_date].year %>. No results from this race enter its expectation.</p>
+    <% else %>
+      <p>This race has insufficient earlier history: <%= report.profile[:races] %>/<%= RaceExpectations::Backtest::MIN_RACES %> races and <%= report.profile[:finishes] %>/<%= RaceExpectations::Backtest::MIN_FINISHES %> classified finishes with Elo and qualifying. Estimates are withheld.</p>
+    <% end %>
+    <div class="race-analysis-coverage" aria-label="Available analysis data">
+      <span><strong><%= analysis.coverage[:results] %></strong> stored results</span>
+      <span><strong><%= analysis.coverage[:elo] %>/<%= analysis.coverage[:results] %></strong> Elo snapshots</span>
+      <span><strong><%= analysis.coverage[:grid] %>/<%= analysis.coverage[:results] %></strong> numbered grid slots</span>
+      <span><strong><%= analysis.coverage[:qualifying] %>/<%= analysis.coverage[:results] %></strong> qualifying results</span>
+    </div>
+    <p>Missing Elo or qualifying stays visible in the full grid. A grid position is not used as a qualifying result.</p>
+  </div>
+</details>

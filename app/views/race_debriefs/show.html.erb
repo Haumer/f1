@@ -1,0 +1,22 @@
+<% content_for(:title) { "#{@race.circuit.name} #{@race.year} · Race debrief" } %>
+<%= render "races/social_metadata" %>
+<div class="homepage-container race-debrief-page">
+  <header class="race-debrief-identity">
+    <div>
+      <span class="race-analysis-label">Round <%= @race.round %> · <%= @race.year %> · <%= @race.date.strftime("%-d %b") %></span>
+      <h1><%= @race.circuit.name %></h1>
+      <p><%= @race.circuit.location %>, <%= @race.circuit.country %></p>
+    </div>
+    <%= link_to "Results & qualifying →", race_path(@race, anchor: "race-classification"), class: "race-debrief-results-link" %>
+  </header>
+
+  <% if @analysis.available? %>
+    <%= render "races/analysis", analysis: @analysis %>
+  <% else %>
+    <section class="race-analysis-panel race-debrief-pending" aria-labelledby="race-debrief-pending-title">
+      <h2 id="race-debrief-pending-title">Debrief not available yet</h2>
+      <p>Race results have not been imported for this event. Its debrief will appear here once results are available.</p>
+      <%= link_to "View this race's schedule and qualifying →", race_path(@race) %>
+    </section>
+  <% end %>
+</div>

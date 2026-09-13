@@ -23,5 +23,13 @@
       </article>
     <% end %>
   </div>
-  <p class="race-expectations-leaders-note"><strong><%= report.assessed_count %>/<%= report.assessments.size %> entrants assessed.</strong> Up to three per side, ranked by expected minus actual finish. DNFs, missing estimates and gaps rounding to 0.0 are excluded. “Flop” means below the model's estimate—not poor driving. A ranked gap can still be inside the usual error range.</p>
+  <details class="race-analysis-info race-expectations-ranking-info">
+    <summary>
+      <span class="race-expectations-leaders-note"><strong><%= report.assessed_count %>/<%= report.assessments.size %> entrants assessed.</strong> DNFs excluded.</span>
+      <span class="race-analysis-info-label"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> How we rank</span>
+    </summary>
+    <div class="race-analysis-info-content">
+      <p>Up to three per side, ranked by expected minus actual finish. DNFs, missing estimates and gaps rounding to 0.0 are excluded. “Flop” means below the model's estimate—not poor driving. A ranked gap can still be inside the usual error range.</p>
+    </div>
+  </details>
 </section>
