@@ -30,6 +30,63 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".fantasy-public-challenge", count: 0
+    assert_select ".fantasy-header-actions a[href=?]", market_fantasy_stock_portfolio_path(fantasy_stock_portfolios(:codex_stock_2026)), text: /Market/
+    assert_select "form[action=?]", toggle_public_profile_path, count: 1
+    assert_select ".fantasy-header-actions a", text: "My portfolio", count: 0
+  end
+
+  test "signed-in member viewing another portfolio sees a compact return link without the public pitch" do
+    @user.update!(public_profile: true)
+    viewer = users(:latejoin)
+    sign_in viewer
+
+    get fantasy_overview_path(@user.username)
+
+    assert_response :success
+    assert_select ".fantasy-dashboard-name", text: @user.display_name
+    assert_select ".fantasy-public-challenge", count: 0
+    assert_select ".fantasy-dashboard-meta", text: /Public portfolio/
+    assert_select ".fantasy-header-actions a[href=?]", fantasy_overview_path(viewer.username), text: "My portfolio"
+    assert_select ".fantasy-header-actions a[href=?]", market_fantasy_stock_portfolio_path(fantasy_stock_portfolios(:codex_stock_2026)), count: 0
+    assert_select "form[action=?]", toggle_public_profile_path, count: 0
+    assert_select ".fantasy-pitwall-weekend", count: 0
+    assert_select ".fantasy-activity-table", count: 0
+  end
+
+  test "signed-in visitor without a portfolio can start their season from the header" do
+    @user.update!(public_profile: true)
+    viewer = User.create!(email: "viewer@example.com", password: "password123", username: "viewer", terms_accepted: "1")
+    sign_in viewer
+
+    get fantasy_overview_path(@user.username)
+
+    assert_response :success
+    assert_select ".fantasy-public-challenge", count: 0
+    assert_select ".fantasy-header-actions a[href=?]", new_fantasy_portfolio_path, text: "Start my season"
+    assert_select "a[href=?]", new_user_registration_path, count: 0
+    assert_select "form[action=?]", toggle_public_profile_path, count: 0
+  end
+
+  test "being signed in does not grant access to someone else's private portfolio" do
+    @user.update!(public_profile: false)
+    sign_in users(:latejoin)
+
+    get fantasy_overview_path(@user.username)
+
+    assert_redirected_to combined_leaderboard_path
+    assert_equal "This profile is private.", flash[:alert]
+  end
+
+  test "private portfolio owner keeps their dashboard controls" do
+    @user.update!(public_profile: false)
+    sign_in @user
+
+    get fantasy_overview_path(@user.username)
+
+    assert_response :success
+    assert_select ".fantasy-public-challenge", count: 0
+    assert_select ".fantasy-header-actions a[href=?]", market_fantasy_stock_portfolio_path(fantasy_stock_portfolios(:codex_stock_2026)), text: /Market/
+    assert_select "form[action=?]", toggle_public_profile_path, count: 1
   end
 
   # /fantasy/leaderboard was unlinked and shipped a <title> byte-identical to
