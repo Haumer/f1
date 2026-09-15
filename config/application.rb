@@ -5,6 +5,7 @@ require "rails/all"
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
+require_relative '../lib/transactional_email'
 
 module F1
   class Application < Rails::Application
@@ -16,6 +17,7 @@ module F1
 
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
+    config.action_mailer.default_options = { from: TransactionalEmail.sender }
 
     # Configuration for the application, engines, and railties goes here.
     #
