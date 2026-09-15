@@ -15,6 +15,9 @@
                 </h2>
                 <div class="fantasy-dashboard-meta">
                     <span class="fantasy-season"><%= @season.year %> Fantasy</span>
+                    <% if current_user && !@is_owner %>
+                        <span class="fantasy-season">· Public portfolio</span>
+                    <% end %>
                     <% if support %>
                         <%= link_to constructor_path(sc), class: "fantasy-team-chip", style: "--team-color: #{team_color}", title: sc.name do %>
                             <% if sc.logo_url.present? %>
@@ -39,6 +42,12 @@
                 <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
                     <i class="fa-solid fa-store"></i> Market
                 <% end %>
+            <% elsif current_user && !@is_owner %>
+                <% if current_user.fantasy_portfolio_for(@season) %>
+                    <%= link_to "My portfolio", fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-outline" %>
+                <% else %>
+                    <%= link_to "Start my season", new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" %>
+                <% end %>
             <% end %>
             <%= link_to combined_leaderboard_path, class: "fantasy-btn fantasy-btn-outline" do %>
                 <i class="fa-solid fa-ranking-star"></i> Leaderboard
@@ -46,9 +55,9 @@
         </div>
     </div>
 
-    <%# Public portfolios are product proof. Give a visitor enough context to
-        understand what they are seeing and one clean way into the same game. %>
-    <% unless @is_owner %>
+    <%# Only signed-out visitors need the introductory pitch. Members viewing
+        another player's public portfolio use the compact header navigation. %>
+    <% unless current_user %>
         <section class="fantasy-public-challenge">
             <div class="fantasy-public-challenge-copy">
                 <span class="fantasy-public-challenge-kicker"><%= ui_icon "flag", size: 13 %> Public portfolio</span>
@@ -56,13 +65,7 @@
                 <span>Everyone starts with the same <%= number_with_delimiter(Fantasy::CreatePortfolio::STARTING_CAPITAL.to_i) %> credits.</span>
             </div>
             <div class="fantasy-public-challenge-actions">
-                <% if current_user&.fantasy_portfolio_for(@season) %>
-                    <%= link_to "Open my portfolio", fantasy_overview_path(current_user.username), class: "fantasy-btn fantasy-btn-primary" %>
-                <% elsif current_user %>
-                    <%= link_to "Start my season", new_fantasy_portfolio_path, class: "fantasy-btn fantasy-btn-primary" %>
-                <% else %>
-                    <%= link_to "Play free", new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" %>
-                <% end %>
+                <%= link_to "Play free", new_user_registration_path, class: "fantasy-btn fantasy-btn-primary" %>
                 <%= link_to "How the game works", fantasy_home_path, class: "fantasy-public-challenge-link" %>
             </div>
         </section>
