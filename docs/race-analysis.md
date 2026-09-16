@@ -3,18 +3,27 @@
 Implemented and investigated on 2026-09-10. Coverage observations below are from
 the **local development database**, not an audit of production.
 
+**Priority update (2026-09-16):** polish the existing app before further data or
+modelling expansion. The tyre, pit-strategy and pace-model discussion is bookmarked
+in [deferred product ideas](deferred-ideas.md); expansion proposals below are not
+an active implementation commitment.
+
 ## What is available now
 
 Every race page with stored main-race results renders a debrief at
 `/races/:id#race-analysis`. Shared links now use `/races/:id/debrief`: a dedicated,
 server-rendered page with a compact race identity, the debrief first and a link
 back to results/qualifying. It needs no tab selection, scroll fragment or
-JavaScript. Existing anchor links still work. Upcoming races retain the existing
+JavaScript. Existing anchor links still work when JavaScript is enabled. Upcoming races retain the existing
 preview; their dedicated debrief URL shows an explicit pending state and never
 substitutes another race.
 
-Normal `/races/:id` visits put the existing results/qualifying table before the
-debrief. Both pages inherit `ApplicationController`'s reigning world champion
+Normal `/races/:id` visits default to results/qualifying. A single tab row now
+contains Race, Qualifying, Debrief and Elo (plus Sprint when applicable), replacing
+the separate section-jump pills. `?tab=debrief` and `?tab=elo` select those panels;
+legacy section anchors select the corresponding tab with JavaScript. Shared
+`/debrief` links still show the report directly without JavaScript. Both pages
+inherit `ApplicationController`'s reigning world champion
 accent (including its configured override), rather than overriding it with the
 winner of the displayed race.
 

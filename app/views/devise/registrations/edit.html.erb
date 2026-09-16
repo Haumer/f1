@@ -24,12 +24,12 @@
 
                 <div class="devise-field">
                     <label for="user_password">New password</label>
-                    <%= f.password_field :password, autocomplete: "new-password", placeholder: "Leave blank to keep current", class: "devise-input" %>
+                    <%= render "devise/shared/password_field", form: f, attribute: :password, autocomplete: "new-password", placeholder: "Leave blank to keep current" %>
                 </div>
 
                 <div class="devise-field">
                     <label for="user_current_password">Current password <span class="devise-required">*</span></label>
-                    <%= f.password_field :current_password, autocomplete: "current-password", placeholder: "Required to save changes", class: "devise-input" %>
+                    <%= render "devise/shared/password_field", form: f, attribute: :current_password, autocomplete: "current-password", placeholder: "Required to save changes" %>
                 </div>
 
                 <div class="devise-actions">

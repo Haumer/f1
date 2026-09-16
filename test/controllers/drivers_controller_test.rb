@@ -6,6 +6,18 @@ class DriversControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "search query is restored in the labelled input and can be cleared" do
+    get drivers_path(search: { query: "Verstappen" })
+    assert_response :success
+    assert_select "label[for='search_query']", text: "Search drivers"
+    assert_select "input[type='search'][value='Verstappen']"
+    assert_select ".driver-search-status a[href='#{drivers_path}']", text: "Clear search"
+
+    get drivers_path(search: { query: "V" })
+    assert_select ".driver-search-status", text: /Type at least two characters/
+    assert_select "input[type='search'][required]", count: 0
+  end
+
   test "show returns 200" do
     get driver_path(drivers(:verstappen))
     assert_response :success

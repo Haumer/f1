@@ -528,14 +528,14 @@
     %>
 
     <% if log_tabs.any? %>
-        <section class="fantasy-log" data-controller="tab-table">
-            <div class="table-header table-header-tabs fantasy-log-tabs">
+        <section class="fantasy-log" id="portfolio-log" data-controller="tab-table" data-tab-table-param-value="view">
+            <div class="table-header table-header-tabs fantasy-log-tabs" role="tablist" aria-label="Portfolio details">
                 <% log_tabs.each do |t| %>
-                    <h3 class="table-tab <%= 'active' if t[:key] == default_log_tab %>"
+                    <button type="button" class="table-tab <%= 'active' if t[:key] == default_log_tab %>"
                         data-tab="<%= t[:key] %>" data-tab-table-target="tab"
                         data-action="click->tab-table#switch">
                         <%= t[:label] %><% if t[:count] %><span class="table-tab-count"><%= t[:count] %></span><% end %>
-                    </h3>
+                    </button>
                 <% end %>
             </div>
 

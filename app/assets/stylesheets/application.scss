@@ -564,6 +564,17 @@ th[data-sort] {
     h3::before, h4::before { display: none; }
 
     .table-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        font-family: $headers-font;
+        font-size: $type-section;
+        font-weight: $weight-bold;
+        letter-spacing: $ls-heading;
+        line-height: $lh-heading;
         cursor: pointer;
         padding: 4px 16px 8px;
         margin-bottom: -9px;
@@ -1073,3 +1084,7 @@ table.race-results {
 // Font utility
 .font-mono { font-family: $mono-font; font-variant-numeric: tabular-nums; }
 .font-display { font-family: $display-font; }
+
+// Shared interaction refinements come last so mobile overrides don't change
+// the established desktop components.
+@import "components/mobile_ux";

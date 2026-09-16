@@ -1,3 +1,15 @@
+<% if params.dig(:search, :query).present? %>
+    <div class="driver-search-status" role="status">
+        <span>
+            <% if params.dig(:search, :query).to_s.length > 1 %>
+                Results for “<%= params.dig(:search, :query) %>”
+            <% else %>
+                Type at least two characters to search.
+            <% end %>
+        </span>
+        <%= link_to "Clear search", drivers_path, class: "race-filter-clear", data: { turbo_frame: "_top" } %>
+    </div>
+<% end %>
 <% if drivers.any? %>
     <div class="card card-flush">
         <div class="table-scroll-wrapper">

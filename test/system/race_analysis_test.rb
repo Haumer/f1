@@ -5,6 +5,7 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
   include RaceExpectationHistory
 
   setup do
+    FileUtils.mkdir_p(Rails.root.join("tmp/screenshots/mobile-polish"))
     # Supply enough synthetic earlier races to exercise predictions in the UI.
     @history = expectation_history
   end
@@ -14,17 +15,19 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
 
   test "reader can explore the debrief and jump to the existing results" do
     visit race_path(races(:bahrain_2026))
+    assert_no_selector "#race-analysis-title"
+    wait_for_stimulus "tab-table", "#race-classification"
+    click_button "Debrief"
     assert_selector "#race-analysis-title", text: "Race debrief"
     assert_text "Did they beat the expectation?"
     find("#race-analysis-method summary").click
     assert_text "Equal ratings share the midpoint"
     find("#race-analysis-title").scroll_to(:top)
     page.save_screenshot(Rails.root.join("tmp/screenshots/race-analysis-desktop.png"))
-    click_link "Results & qualifying"
+    click_button "Race", exact: true
     assert_selector "#race-classification table"
-    assert_current_path race_path(races(:bahrain_2026)) do |uri|
-      uri.fragment == "race-classification"
-    end
+    assert_selector "button[aria-selected='true']", text: "Race", exact_text: true
+    assert_no_selector "#race-analysis-title"
   end
 
   test "debrief fits a phone and keeps exact comparison values readable" do
@@ -68,7 +71,7 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
   end
 
   test "share copies a public deep link without account or query parameters" do
-    visit race_path(races(:bahrain_2026), tracking: "private-value")
+    visit race_path(races(:bahrain_2026), tracking: "private-value", tab: "debrief")
     wait_for_stimulus("race-analysis-share", ".race-analysis-share")
     find(".race-analysis-share summary").click
     page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { window.copiedDebrief = text } } })")
@@ -79,7 +82,7 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
   end
 
   test "blocked clipboard leaves a selectable manual link" do
-    visit race_path(races(:bahrain_2026))
+    visit race_path(races(:bahrain_2026), tab: "debrief")
     wait_for_stimulus("race-analysis-share", ".race-analysis-share")
     find(".race-analysis-share summary").click
     page.execute_script("Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('Denied') } } })")
@@ -91,7 +94,7 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
   end
 
   test "native sharing uses the same public link and cancellation does not copy it" do
-    visit race_path(races(:bahrain_2026))
+    visit race_path(races(:bahrain_2026), tab: "debrief")
     wait_for_stimulus("race-analysis-share", ".race-analysis-share")
     find(".race-analysis-share summary").click
     page.execute_script(<<~JS)
@@ -133,6 +136,8 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
   test "sharing opens a dedicated debrief and keeps the normal race page reachable" do
     RaceExpectations::Dataset.stub(:before, @history) do
       visit race_path(races(:bahrain_2026), tab: "qualifying")
+      wait_for_stimulus "tab-table", "#race-classification"
+      click_button "Debrief"
       find(".race-analysis-share summary").click
       click_link "Open debrief page"
       assert_current_path debrief_race_path(races(:bahrain_2026))
@@ -199,6 +204,55 @@ class RaceAnalysisSystemTest < ApplicationSystemTestCase
       heading_top = page.evaluate_script("document.querySelector('#race-analysis-title').getBoundingClientRect().top")
       grid_top = page.evaluate_script("document.querySelector('.race-expectations-table').getBoundingClientRect().top")
       assert_operator grid_top - heading_top, :<, 580
+    end
+  end
+
+  test "race tabs work on phones and desktop and resize the hidden Elo chart" do
+    [320, 390, 1400].each do |width|
+      page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: width, height: 844, deviceScaleFactor: 1, mobile: width < 769)
+      visit race_path(races(:bahrain_2026))
+      wait_for_stimulus "tab-table", "#race-classification"
+      assert_no_selector ".race-section-nav"
+      assert_selector "button[aria-selected='true']", text: "Race", exact_text: true
+      assert_no_selector "#race-analysis"
+      assert_no_selector "#race-elo-changes"
+      assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, width
+      page.save_screenshot(Rails.root.join("tmp/screenshots/mobile-polish/race-tabs-#{width}.png"))
+
+      click_button "Debrief"
+      assert_selector "#race-analysis-title", text: "Race debrief"
+      assert_no_selector "#race-classification-race-panel"
+      assert_equal "debrief", page.evaluate_script("new URL(location.href).searchParams.get('tab')")
+      page.refresh
+      assert_selector "button[aria-selected='true']", text: "Debrief"
+      click_button "Elo", exact: true
+      assert_selector "#race-elo-changes canvas"
+      Selenium::WebDriver::Wait.new(timeout: 5).until do
+        page.evaluate_script(<<~JS)
+          (() => {
+            const el = document.querySelector('#race-elo-changes [_echarts_instance_]')
+            const chart = el && window.echarts?.getInstanceByDom(el)
+            return chart && chart.getWidth() > 200 && Math.abs(chart.getWidth() - el.clientWidth) < 2
+          })()
+        JS
+      end
+      page.save_screenshot(Rails.root.join("tmp/screenshots/mobile-polish/race-elo-tab-#{width}.png"))
+      click_button "Race", exact: true
+      assert_selector "#race-classification-race-panel"
+      assert_no_selector "#race-elo-changes"
+    end
+  end
+
+  test "legacy section links select the right tab and do not force it after switching" do
+    { "race-analysis" => "Debrief", "race-elo-changes" => "Elo" }.each do |anchor, label|
+      visit race_path(races(:bahrain_2026), anchor: anchor)
+      assert_selector "button[aria-selected='true']", text: label, exact_text: true
+      assert_selector "##{anchor}"
+      click_button "Race", exact: true
+      assert_selector "#race-classification-race-panel"
+      assert_equal "#race-classification", page.evaluate_script("location.hash")
+      page.refresh
+      assert_selector "button[aria-selected='true']", text: "Race", exact_text: true
     end
   end
 end

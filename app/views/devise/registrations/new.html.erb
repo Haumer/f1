@@ -23,7 +23,7 @@
 
                 <div class="devise-field">
                     <label for="user_password">Password</label>
-                    <%= f.password_field :password, autocomplete: "new-password", placeholder: "Min. #{@minimum_password_length} characters", class: "devise-input" %>
+                    <%= render "devise/shared/password_field", form: f, attribute: :password, autocomplete: "new-password", placeholder: "Min. #{@minimum_password_length} characters" %>
                     <span class="devise-hint"><%= @minimum_password_length %> characters minimum</span>
                 </div>
 

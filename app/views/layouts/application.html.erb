@@ -65,6 +65,7 @@
       style="--page-accent: <%= @page_accent %>; --page-accent-rgb: <%= hex_to_rgb(@page_accent) %>;"
     <% end %>
   >
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <% if analytics_id %>
       <aside class="analytics-consent"
              data-analytics-consent-target="banner"
@@ -88,18 +89,18 @@
     <% if notice.present? %>
       <div class="flash flash-notice" data-controller="flash">
         <span><%= notice %></span>
-        <button class="flash-dismiss" data-action="click->flash#dismiss">&times;</button>
+        <button class="flash-dismiss" aria-label="Dismiss notification" data-action="click->flash#dismiss">&times;</button>
       </div>
     <% end %>
     <% if alert.present? %>
       <div class="flash flash-alert" data-controller="flash">
         <span><%= alert %></span>
-        <button class="flash-dismiss" data-action="click->flash#dismiss">&times;</button>
+        <button class="flash-dismiss" aria-label="Dismiss notification" data-action="click->flash#dismiss">&times;</button>
       </div>
     <% end %>
     <%= render 'components/navbar' %>
     <div class="container py-3">
-      <main><%= yield %></main>
+      <main id="main-content" tabindex="-1"><%= yield %></main>
     </div>
     <footer class="site-footer">
       <div class="site-footer-inner">

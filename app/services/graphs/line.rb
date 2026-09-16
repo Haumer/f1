@@ -39,11 +39,7 @@ class Graphs::Line
                 name: @driver.surname,
                 color: @driver.color,
                 smooth: true,
-                endLabel: {
-                    show: true,
-                    formatter: js_function("function(p) { return p.seriesName + ' (' + p.value + ')'; }"),
-                    distance: 20
-                },
+                endLabel: { show: false },
                 markLine: mark_peak_elo,
                 markPoint: notable_events
             }
@@ -76,13 +72,14 @@ class Graphs::Line
                 scale: true
             },
             series: @series_data,
-            legend: { show: true },
+            legend: { show: false },
             toolbox: { show: true },
             tooltip: single_line_tooltip,
             height: "540px",
-            # Reserve right padding so the "Antonelli (2437)" endLabel doesn't
-            # clip against the chart edge.
-            grid: { right: '140px', containLabel: false },
+            # The profile already identifies this single driver. Keep the plot
+            # wide on phones instead of reserving a gutter for a repeated name,
+            # while leaving enough room on the left for four-digit Elo ticks.
+            grid: { left: 48, right: 16, containLabel: false },
             dataZoom: data_zoom_slider(start: zoom_start),
             smoothMonotone: 'y'
         }

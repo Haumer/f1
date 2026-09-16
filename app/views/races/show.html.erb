@@ -1,17 +1,17 @@
 <% content_for(:title) { "#{@race.circuit.name} #{@race.season.year}" } %>
 <%= render "races/social_metadata" %>
-<div class="homepage-container">
+<div class="homepage-container race-page">
     <div class="page-hero race-hero">
         <div class="page-hero-bg"></div>
         <div class="page-hero-content">
             <div class="race-nav">
                 <% if @previous_race %>
-                    <%= link_to race_path(@previous_race), class: "race-nav-btn" do %>
+                    <%= link_to race_path(@previous_race), class: "race-nav-btn", aria: { label: "Previous race: #{@previous_race.circuit.name}" }, title: "Previous race: #{@previous_race.circuit.name}" do %>
                         <i class="fa-solid fa-chevron-left"></i>
                     <% end %>
                 <% end %>
                 <% if @next_race %>
-                    <%= link_to race_path(@next_race), class: "race-nav-btn" do %>
+                    <%= link_to race_path(@next_race), class: "race-nav-btn", aria: { label: "Next race: #{@next_race.circuit.name}" }, title: "Next race: #{@next_race.circuit.name}" do %>
                         <i class="fa-solid fa-chevron-right"></i>
                     <% end %>
                 <% end %>
@@ -32,16 +32,8 @@
     <% has_results = @race.race_results.any? %>
 
     <% if has_results %>
-      <nav class="race-section-nav" aria-label="Race sections">
-        <a href="#race-classification">Results & qualifying</a>
-        <a href="#race-analysis">Race debrief</a>
-        <a href="#race-elo-changes">Elo changes</a>
-      </nav>
-    <% end %>
-
-    <% if has_results %>
         <%# ── Post-race stats ── %>
-        <div class="race-stats-row">
+        <div class="race-stats-row race-stats-row--results">
             <div class="race-stat-card">
                 <div class="race-stat-value"><%= @grid_size %></div>
                 <div class="race-stat-label">Result Entries</div>
@@ -53,13 +45,7 @@
             <% if @highest_elo_rr %>
                 <div class="race-stat-card">
                     <div class="race-stat-value"><%= elo_link(@highest_elo_rr.display_new_elo) %></div>
-                    <div class="race-stat-label">Highest Elo (<%= @highest_elo_rr.driver.surname %>)</div>
-                </div>
-            <% end %>
-            <% if @dnf_count > 0 %>
-                <div class="race-stat-card">
-                    <div class="race-stat-value"><%= @dnf_count %></div>
-                    <div class="race-stat-label">Non-finishes</div>
+                    <div class="race-stat-label">Highest Elo <span class="race-stat-driver"><%= @highest_elo_rr.driver.surname %></span></div>
                 </div>
             <% end %>
         </div>
@@ -82,27 +68,34 @@
         </div>
     <% end %>
 
-    <%# ── Race / Sprint / Qualifying tabs ── %>
+    <%# ── One navigation row for sessions, debrief and Elo ── %>
     <% has_sprint = @sprint_results&.any? %>
     <% auto_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
-    <% default_tab = %w[race sprint qualifying].include?(params[:tab]) ? params[:tab] : auto_tab %>
+    <% default_tab = %w[race sprint qualifying debrief elo].include?(params[:tab]) ? params[:tab] : auto_tab %>
     <% default_tab = auto_tab if default_tab == "qualifying" && !has_quali %>
     <% default_tab = auto_tab if default_tab == "sprint" && !has_sprint %>
+    <% default_tab = auto_tab if %w[debrief elo].include?(default_tab) && !has_results %>
 
-    <div class="card card-flush" id="race-classification" data-controller="tab-table">
-        <div class="table-header table-header-tabs">
-            <h3 class="table-tab <%= 'active' if default_tab == 'race' %>"
-                data-tab="race" data-tab-table-target="tab" data-action="click->tab-table#switch">Race</h3>
+    <div class="race-tabs" id="race-classification" data-controller="tab-table" data-tab-table-param-value="tab" data-tab-table-anchors-value="true">
+        <div class="table-header table-header-tabs race-tabs-nav" role="tablist" aria-label="Race views">
+            <button type="button" class="table-tab <%= 'active' if default_tab == 'race' %>"
+                data-tab="race" data-tab-table-target="tab" data-action="click->tab-table#switch">Race</button>
             <% if @race.sprint? %>
-                <h3 class="table-tab <%= 'active' if default_tab == 'sprint' %> <%= 'table-tab--disabled' unless has_sprint %>"
-                    data-tab="sprint" data-tab-table-target="tab" data-action="click->tab-table#switch">Sprint</h3>
+                <button type="button" class="table-tab <%= 'active' if default_tab == 'sprint' %> <%= 'table-tab--disabled' unless has_sprint %>"
+                    <%= 'disabled' unless has_sprint %> data-tab="sprint" data-tab-table-target="tab" data-action="click->tab-table#switch">Sprint</button>
             <% end %>
-            <h3 class="table-tab <%= 'active' if default_tab == 'qualifying' %> <%= 'table-tab--disabled' unless has_quali %>"
-                data-tab="qualifying" data-tab-table-target="tab" data-action="click->tab-table#switch">Qualifying</h3>
+            <button type="button" class="table-tab <%= 'active' if default_tab == 'qualifying' %> <%= 'table-tab--disabled' unless has_quali %>"
+                <%= 'disabled' unless has_quali %> data-tab="qualifying" data-tab-table-target="tab" data-action="click->tab-table#switch">Qualifying</button>
+            <% if has_results %>
+                <button type="button" class="table-tab <%= 'active' if default_tab == 'debrief' %>"
+                    data-tab="debrief" data-tab-table-target="tab" data-action="click->tab-table#switch">Debrief</button>
+                <button type="button" class="table-tab <%= 'active' if default_tab == 'elo' %>" title="Elo changes"
+                    data-tab="elo" data-tab-table-target="tab" data-action="click->tab-table#switch">Elo</button>
+            <% end %>
         </div>
 
         <%# ── Race Results Panel ── %>
-        <div data-tab="race" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'race' %>">
+        <div class="card card-flush" data-tab="race" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'race' %>">
             <div class="table-scroll-wrapper">
             <table class="race-results race-results--tabbed" data-controller="sortable-table">
                 <thead>
@@ -217,7 +210,7 @@
 
         <%# ── Sprint Panel ── %>
         <% if @race.sprint? %>
-        <div data-tab="sprint" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'sprint' %>">
+        <div class="card card-flush" data-tab="sprint" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'sprint' %>">
             <% if has_sprint %>
                 <div class="table-scroll-wrapper">
                 <table class="race-results race-results--tabbed" data-controller="sortable-table">
@@ -297,7 +290,7 @@
         <% end %>
 
         <%# ── Qualifying Panel ── %>
-        <div data-tab="qualifying" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'qualifying' %>">
+        <div class="card card-flush" data-tab="qualifying" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'qualifying' %>">
             <% if has_quali %>
                 <div class="table-scroll-wrapper">
                 <table class="race-results race-results--tabbed" data-controller="sortable-table">
@@ -365,25 +358,27 @@
                 <p class="text-muted text-center" style="padding: 40px 0;"><%= has_results ? "Qualifying results are not available for this race." : "Qualifying results are not available yet." %></p>
             <% end %>
         </div>
-    </div>
-
-    <% if has_results %>
-    <%= render "analysis", analysis: @analysis %>
-
-    <div class="card" id="race-elo-changes">
-        <div class="chart-header">
-            <h4>Elo Changes</h4>
+        <% if has_results %>
+        <div class="race-tab-content" data-tab="debrief" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'debrief' %>">
+            <%= render "analysis", analysis: @analysis %>
         </div>
-        <% if @analysis.coverage[:elo].positive? %>
-            <%= custom_chart Graphs::RaceEloChanges.new(race: @race).data %>
-            <% if @analysis.coverage[:elo] < @analysis.coverage[:results] %>
-                <p class="data-source">Only entrants with both Elo snapshots are shown.</p>
-            <% end %>
-        <% else %>
-            <p class="text-muted">Elo snapshots are not available for this race.</p>
+        <div class="race-tab-content" data-tab="elo" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'elo' %>">
+            <div class="card" id="race-elo-changes">
+                <div class="chart-header">
+                    <h4>Elo Changes</h4>
+                </div>
+                <% if @analysis.coverage[:elo].positive? %>
+                    <%= custom_chart Graphs::RaceEloChanges.new(race: @race).data %>
+                    <% if @analysis.coverage[:elo] < @analysis.coverage[:results] %>
+                        <p class="data-source">Only entrants with both Elo snapshots are shown.</p>
+                    <% end %>
+                <% else %>
+                    <p class="text-muted">Elo snapshots are not available for this race.</p>
+                <% end %>
+            </div>
+        </div>
         <% end %>
     </div>
-    <% end %>
 
     <% if @predictions.any? %>
     <div class="table-header">

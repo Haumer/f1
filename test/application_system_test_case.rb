@@ -1,7 +1,13 @@
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome, screen_size: [1400, 1400]
+  driven_by :selenium, using: :headless_chrome, screen_size: [1400, 1400] do |options|
+    # Fixture passwords must not open Chrome's password-manager/leak-warning UI,
+    # which can swallow native clicks without appearing in page screenshots.
+    options.add_preference("credentials_enable_service", false)
+    options.add_preference("profile.password_manager_enabled", false)
+    options.add_preference("profile.password_manager_leak_detection", false)
+  end
 
   setup do
     page.current_window.resize_to(1400, 1400)

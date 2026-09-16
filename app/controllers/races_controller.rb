@@ -14,7 +14,6 @@ class RacesController < ApplicationController
     @grid_size = results.size
     new_elo_col = Setting.elo_column(:new_elo).to_sym
     @highest_elo_rr = results.select { |rr| rr.send(new_elo_col)&.finite? }.max_by { |rr| rr.send(new_elo_col) }
-    @dnf_count = results.count { |rr| rr.status&.status_type.present? && rr.status.status_type != "Finished" && !rr.status.status_type.match?(/\A\+\d+ Laps?\z/i) }
 
     # Pre-index driver standings to avoid N+1 in view
     @standings_by_driver = @race.driver_standings.index_by(&:driver_id)

@@ -122,3 +122,9 @@ community outreach, and measurement.
 
 See [race debriefs and the data expansion plan](docs/race-analysis.md) for the report's
 methodology, qualifying coverage gaps, and verified lap/pit/tyre data options.
+
+See [deferred product ideas](docs/deferred-ideas.md) for tyre reports, predictions,
+strategy analysis and pace modelling. Current priority: polish the existing app first.
+
+See [mobile-first UX journeys](docs/mobile-ux.md) for the polish guardrails,
+covered user flows and follow-up work.
