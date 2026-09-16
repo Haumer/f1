@@ -15,9 +15,28 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-analysis-highlight", count: 3
     assert_select ".race-expectations-table tbody tr", count: 4
     assert_select ".race-expectations-heading", text: /Did they beat the expectation/
-    assert_select "a[href='#race-classification']", "Results & qualifying"
+    assert_select ".race-section-nav", count: 0
+    assert_select "button.table-tab.active[data-tab='race']", text: "Race"
+    assert_select "button[data-tab='debrief']", text: "Debrief"
+    assert_select "button[data-tab='elo']", text: "Elo"
+    assert_select "[data-tab-table-target='panel'][data-tab='debrief'][style='display:none']"
     assert_select "#race-analysis-method", text: /not isolate driver skill/
     assert_operator response.body.index('id="race-classification"'), :<, response.body.index('id="race-analysis"')
+  end
+
+  test "debrief and Elo tabs can be linked directly and only show after results" do
+    %w[debrief elo].each do |tab|
+      get race_path(races(:bahrain_2026), tab: tab)
+      assert_response :success
+      assert_select "button.table-tab.active[data-tab='#{tab}']"
+      assert_select "[data-tab-table-target='panel'][data-tab='#{tab}'][style='']"
+      assert_select "[data-tab-table-target='panel'][data-tab='race'][style='display:none']"
+
+      get race_path(races(:melbourne_2026), tab: tab)
+      assert_response :success
+      assert_select "button[data-tab='#{tab}']", count: 0
+      assert_select "button.table-tab.active[data-tab='race']"
+    end
   end
 
   test "normal race and shared debrief retain the global champion accent instead of the race winner" do

@@ -1,17 +1,28 @@
-.race-section-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 $space-lg;
+.race-tabs {
+  > .race-tabs-nav {
+    position: sticky;
+    top: $nav-height;
+    z-index: 5;
+    margin: 0;
+    padding: 0;
+    background: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: $radius-md $radius-md 0 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
 
-  a {
-    padding: 10px 16px;
-    border: 1px solid $border-accent;
-    border-radius: 24px;
-    color: $text-primary;
-    font-size: 12px;
-    &:hover, &:focus-visible { background: $bg-card-elevated; }
+    .table-tab {
+      flex: none;
+      white-space: nowrap;
+      margin: 0;
+      padding: 12px 16px;
+      outline-offset: -4px;
+    }
   }
+
+  > .card { border-top: 0; border-radius: 0 0 $radius-md $radius-md; }
+  > .race-tab-content { padding-top: $space-md; }
+  #race-analysis, #race-elo-changes { scroll-margin-top: $nav-height + 72px; }
 }
 
 #race-analysis, #race-classification, #race-elo-changes { scroll-margin-top: 80px; }
@@ -176,5 +187,4 @@
   .race-analysis-highlight { padding: 18px; }
   .race-analysis-panel-heading { padding: 18px 16px 14px; }
   .race-analysis-fantasy { align-items: flex-start; flex-direction: column; padding: 20px; }
-  .race-section-nav a { font-size: 11px; padding: 10px 12px; }
 }

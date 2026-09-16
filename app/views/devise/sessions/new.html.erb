@@ -14,7 +14,7 @@
 
                 <div class="devise-field">
                     <label for="user_password">Password</label>
-                    <%= f.password_field :password, autocomplete: "current-password", placeholder: "Your password", class: "devise-input" %>
+                    <%= render "devise/shared/password_field", form: f, attribute: :password, autocomplete: "current-password", placeholder: "Your password" %>
                 </div>
 
                 <% if devise_mapping.rememberable? %>

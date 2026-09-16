@@ -11,7 +11,7 @@
             <div class="devise-form">
                 <div class="devise-field">
                     <label for="user_password">New password</label>
-                    <%= f.password_field :password, autofocus: true, autocomplete: "new-password", placeholder: "Min. #{@minimum_password_length} characters", class: "devise-input" %>
+                    <%= render "devise/shared/password_field", form: f, attribute: :password, autocomplete: "new-password", placeholder: "Min. #{@minimum_password_length} characters", autofocus: true %>
                     <span class="devise-hint"><%= @minimum_password_length %> characters minimum</span>
                 </div>
 

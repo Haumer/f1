@@ -1,0 +1,176 @@
+.skip-link {
+    position: fixed;
+    top: 8px;
+    left: 16px;
+    z-index: 10000;
+    transform: translateY(-160%);
+    padding: 12px 16px;
+    background: $bg-card;
+    border: 2px solid var(--page-accent, $accent-red);
+    border-radius: $radius-sm;
+
+    &:focus { transform: translateY(0); }
+}
+
+#main-content, #portfolio-log { scroll-margin-top: $nav-height + 16px; }
+
+select:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--page-accent, $accent-red);
+    outline-offset: 3px;
+}
+
+.password-field {
+    position: relative;
+
+    &--enhanced .devise-input { padding-right: 72px; }
+}
+
+.password-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    min-width: 56px;
+    min-height: 44px;
+    padding: 8px;
+    border: 0;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $text-secondary;
+    font-size: 13px;
+    font-weight: $weight-semi;
+
+    &:hover { color: $text-primary; }
+    &[hidden] { display: none; }
+}
+
+.driver-search-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 12px;
+    color: $text-secondary;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+    // Keep labels and actions readable without changing the desktop type ramp.
+    .table-header-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+
+        .table-tab {
+            flex: none;
+            min-height: 44px;
+            font-size: 16px;
+            padding: 10px 14px;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+    }
+
+    .fantasy-btn, .race-filter-submit, .race-load-more-btn,
+    .expand-table-btn, .picks-compact-edit, .race-debrief-results-link,
+    .analytics-consent-button, .race-analysis-share button,
+    .race-analysis-share summary, .race-analysis-info > summary {
+        min-height: 44px;
+    }
+
+    .race-filter-clear, .devise-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        font-size: 13px;
+        color: $text-secondary;
+    }
+
+    .driver-search-input, .race-filter-select, .devise-input,
+    .race-expectations-toolbar select {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .devise-container { padding: 8px 0 24px; }
+    .devise-card { padding: 24px 20px; }
+    .devise-header { margin-bottom: 24px; }
+    .devise-subtitle, .devise-hint { font-size: 13px; color: $text-secondary; }
+    .devise-field label { font-size: 12px; }
+    .devise-checkbox-label { min-height: 44px; }
+
+    .race-nav-btn { width: 44px; height: 44px; flex-shrink: 0; }
+
+    // Catch-up journey: put the classification higher on a phone. The desktop
+    // race hero keeps its established spacing.
+    .race-page {
+        .race-hero {
+            padding: 12px 0 16px;
+            margin-bottom: 16px;
+            text-align: left;
+
+            .race-nav {
+                position: absolute;
+                right: 0;
+                left: auto;
+                top: 0;
+                gap: 6px;
+                margin: 0;
+            }
+
+            .page-hero-label {
+                display: flex;
+                align-items: center;
+                min-height: 44px;
+                margin: 0 104px 12px 0;
+                padding: 4px 8px;
+                width: fit-content;
+            }
+
+            .page-hero-title { font-size: 26px; }
+            .page-hero-meta { font-size: 13px; line-height: 1.6; }
+        }
+
+        .race-stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+
+            // Completed races have at most three summary stats. Keep those in
+            // one row; the pre-race session schedule still uses two columns.
+            &--results {
+                grid-template-columns: none;
+                grid-auto-flow: column;
+                grid-auto-columns: minmax(0, 1fr);
+            }
+        }
+        .race-stat-card { min-width: 0; padding: 8px; }
+        .race-stat-driver {
+            display: block;
+            font-size: 10px;
+            text-transform: none;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+        }
+        .race-tabs-nav .table-tab {
+            min-height: 44px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+    }
+
+    .flash-dismiss { min-width: 44px; min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navbar .links, .navbar .hamburger-line, .navbar .mobile-overlay {
+        transition: none;
+    }
+    .navbar.menu-open .links .mobile-nav-item {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
