@@ -56,7 +56,7 @@
                 <% next unless session[:starts_at] %>
                 <% is_past = session[:starts_at] < Time.current %>
                 <div class="race-stat-card <%= 'race-stat-card--muted' if is_past %>">
-                    <div class="race-stat-value"><%= session[:starts_at].strftime("%H:%M") %></div>
+                    <div class="race-stat-value"><time datetime="<%= session[:starts_at].iso8601 %>" data-controller="local-time"><%= session[:starts_at].utc.strftime("%H:%M UTC") %></time></div>
                     <div class="race-stat-label">
                         <%= session[:name] %> &middot; <%= session[:date].strftime("%a %-d %b") %>
                         <% if is_past %>
@@ -69,6 +69,7 @@
     <% end %>
 
     <%# ── One navigation row for sessions, debrief and Elo ── %>
+    <% unless has_results %><p class="session-data-status"><%= missing_session_message(@race, :race) %></p><% end %>
     <% has_sprint = @sprint_results&.any? %>
     <% auto_tab = has_results ? "race" : (has_quali ? "qualifying" : "race") %>
     <% default_tab = %w[race sprint qualifying debrief elo].include?(params[:tab]) ? params[:tab] : auto_tab %>
@@ -82,10 +83,10 @@
                 data-tab="race" data-tab-table-target="tab" data-action="click->tab-table#switch">Race</button>
             <% if @race.sprint? %>
                 <button type="button" class="table-tab <%= 'active' if default_tab == 'sprint' %> <%= 'table-tab--disabled' unless has_sprint %>"
-                    <%= 'disabled' unless has_sprint %> data-tab="sprint" data-tab-table-target="tab" data-action="click->tab-table#switch">Sprint</button>
+                    <%= 'disabled' unless has_sprint %> title="<%= missing_session_message(@race, :sprint) unless has_sprint %>" data-tab="sprint" data-tab-table-target="tab" data-action="click->tab-table#switch">Sprint</button>
             <% end %>
             <button type="button" class="table-tab <%= 'active' if default_tab == 'qualifying' %> <%= 'table-tab--disabled' unless has_quali %>"
-                <%= 'disabled' unless has_quali %> data-tab="qualifying" data-tab-table-target="tab" data-action="click->tab-table#switch">Qualifying</button>
+                <%= 'disabled' unless has_quali %> title="<%= missing_session_message(@race, :qualifying) unless has_quali %>" data-tab="qualifying" data-tab-table-target="tab" data-action="click->tab-table#switch">Qualifying</button>
             <% if has_results %>
                 <button type="button" class="table-tab <%= 'active' if default_tab == 'debrief' %>"
                     data-tab="debrief" data-tab-table-target="tab" data-action="click->tab-table#switch">Debrief</button>
@@ -97,7 +98,7 @@
         <%# ── Race Results Panel ── %>
         <div class="card card-flush" data-tab="race" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'race' %>">
             <div class="table-scroll-wrapper">
-            <table class="race-results race-results--tabbed" data-controller="sortable-table">
+            <table class="race-results race-results--tabbed" data-controller="sortable-table result-details">
                 <thead>
                     <tr>
                         <th class="text-center col-pos">#</th>
@@ -115,9 +116,10 @@
                 </thead>
                 <tbody>
                     <% if has_results %>
-                        <% @race.race_results.sort_by { |rr| rr.position_order || 999 }.each do |race_result| %>
-                            <tr>
-                                <td class="text-center col-pos" title="<%= race_result.status&.status_type %>"><%= race_result.display_position %></td>
+                        <% @race.race_results.sort_by { |rr| rr.position_order || 999 }.each_with_index do |race_result, index| %>
+                            <% detail_id = "race-result-#{race_result.id}-details" %>
+                            <tr data-result-order="<%= index + 1 %>">
+                                <td class="text-center col-pos" title="<%= race_result.status&.status_type %>"><%= render "result_position", position: race_result.display_position, driver: race_result.driver, detail_id: detail_id %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
                                     <%= flag_image(race_result.driver, size: 24) %>
                                 </td>
@@ -166,6 +168,7 @@
                                 </td>
                                 <td class="text-center col-elo"><%= elo_link(race_result.display_new_elo) %></td>
                             </tr>
+                            <%= render "result_details", detail_id: detail_id, result: race_result, session: :race, constructor: constructor, standing: standing %>
                         <% end %>
                     <% elsif @expected_drivers %>
                         <% @expected_drivers.each_with_index do |entry, i| %>
@@ -206,6 +209,13 @@
             <% unless has_results %>
                 <span class="data-source">Ranked by current Elo</span>
             <% end %>
+            <% if !has_quali || (@race.sprint? && !has_sprint) %>
+                <details class="session-coverage-note">
+                    <summary>Session data availability</summary>
+                    <% unless has_quali %><p><%= missing_session_message(@race, :qualifying) %></p><% end %>
+                    <% if @race.sprint? && !has_sprint %><p><%= missing_session_message(@race, :sprint) %></p><% end %>
+                </details>
+            <% end %>
         </div>
 
         <%# ── Sprint Panel ── %>
@@ -213,7 +223,7 @@
         <div class="card card-flush" data-tab="sprint" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'sprint' %>">
             <% if has_sprint %>
                 <div class="table-scroll-wrapper">
-                <table class="race-results race-results--tabbed" data-controller="sortable-table">
+                <table class="race-results race-results--tabbed" data-controller="sortable-table result-details">
                     <thead>
                         <tr>
                             <th class="text-center col-pos">#</th>
@@ -230,9 +240,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% @sprint_results.each do |sr| %>
-                            <tr>
-                                <td class="text-center col-pos" title="<%= sr.status&.status_type %>"><%= sr.display_position %></td>
+                        <% @sprint_results.each_with_index do |sr, index| %>
+                            <% detail_id = "sprint-result-#{sr.id}-details" %>
+                            <tr data-result-order="<%= index + 1 %>">
+                                <td class="text-center col-pos" title="<%= sr.status&.status_type %>"><%= render "result_position", position: sr.display_position, driver: sr.driver, detail_id: detail_id %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
                                     <%= flag_image(sr.driver, size: 24) %>
                                 </td>
@@ -278,13 +289,14 @@
                                 </td>
                                 <td class="text-center col-elo"><%= elo_link(sr.driver.elo_v2) %></td>
                             </tr>
+                            <%= render "result_details", detail_id: detail_id, result: sr, session: :sprint, constructor: constructor %>
                         <% end %>
                     </tbody>
                 </table>
                 </div>
                 <span class="data-source">Sprint results do not affect Elo ratings</span>
             <% else %>
-                <p class="text-muted text-center" style="padding: 40px 0;">Sprint results not available yet.</p>
+                <p class="session-data-status"><%= missing_session_message(@race, :sprint) %></p>
             <% end %>
         </div>
         <% end %>
@@ -293,7 +305,7 @@
         <div class="card card-flush" data-tab="qualifying" data-tab-table-target="panel" style="<%= 'display:none' unless default_tab == 'qualifying' %>">
             <% if has_quali %>
                 <div class="table-scroll-wrapper">
-                <table class="race-results race-results--tabbed" data-controller="sortable-table">
+                <table class="race-results race-results--tabbed" data-controller="sortable-table result-details">
                     <thead>
                         <tr>
                             <th class="text-center col-pos">#</th>
@@ -311,9 +323,9 @@
                     </thead>
                     <tbody>
                         <% pole_time = @qualifying_results.first&.best_time %>
-                        <% @qualifying_results.each do |qr| %>
-                            <tr>
-                                <td class="text-center col-pos"><%= qr.position %></td>
+                        <% @qualifying_results.each_with_index do |qr, index| %>
+                            <tr data-result-order="<%= index + 1 %>">
+                                <td class="text-center col-pos"><%= render "result_position", position: qr.position, driver: qr.driver, detail_id: "qualifying-#{qr.id}-details" %></td>
                                 <td class="d-none d-sm-table-cell col-flag">
                                     <%= flag_image(qr.driver, size: 24) %>
                                 </td>
@@ -349,13 +361,14 @@
                                 </td>
                                 <td class="text-center col-elo"><%= elo_link(qr.driver.elo_v2) %></td>
                             </tr>
+                            <%= render "result_details", detail_id: "qualifying-#{qr.id}-details", result: qr, session: :qualifying, constructor: qr.constructor %>
                         <% end %>
                     </tbody>
                 </table>
                 </div>
                 <span class="data-source">Data: Jolpica (Ergast) API</span>
             <% else %>
-                <p class="text-muted text-center" style="padding: 40px 0;"><%= has_results ? "Qualifying results are not available for this race." : "Qualifying results are not available yet." %></p>
+                <p class="session-data-status"><%= missing_session_message(@race, :qualifying) %></p>
             <% end %>
         </div>
         <% if has_results %>

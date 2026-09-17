@@ -15,6 +15,14 @@
     <% end %>
   </div>
 
+  <p class="picks-saved-state">
+    <% if @race.picks_open? && !@race_pick.locked? %>
+      Saved<% if @race.starts_at %> · editable until <time datetime="<%= @race.starts_at.iso8601 %>" data-controller="local-time"><%= @race.starts_at.utc.strftime("%b %-d, %H:%M UTC") %></time><% else %> · editable; race start time not yet available<% end %>.
+    <% else %>
+      Picks locked · waiting for race results.
+    <% end %>
+  </p>
+
   <%# ═══ Headline stats ═══ %>
   <div class="compare-headline">
     <div class="compare-headline-stat">
@@ -76,8 +84,10 @@
     <%= link_to fantasy_overview_path(@user.username), class: "fantasy-btn fantasy-btn-outline" do %>
       <i class="fa-solid fa-house"></i> Back to Profile
     <% end %>
-    <%= link_to edit_race_picks_path, class: "fantasy-btn fantasy-btn-primary" do %>
-      <i class="fa-solid fa-pen-to-square"></i> Edit picks
+    <% if @is_owner && @race.picks_open? && !@race_pick.locked? %>
+      <%= link_to edit_race_picks_path, class: "fantasy-btn fantasy-btn-primary" do %>
+        <i class="fa-solid fa-pen-to-square"></i> Edit picks
+      <% end %>
     <% end %>
   </div>
 </div>

@@ -1,0 +1,5 @@
+<span class="action-deadline" data-controller="countdown" data-countdown-target-value="<%= closes_at.iso8601 %>">
+    <span><%= label %>: <strong data-countdown-target="display"><%= closes_at > Time.current ? "see time below" : "Locked" %></strong></span>
+    <time datetime="<%= closes_at.iso8601 %>" data-controller="local-time"><%= closes_at.utc.strftime("%b %d, %H:%M UTC") %></time>
+    <% if local_assigns[:note] %><small><%= note %></small><% end %>
+</span>

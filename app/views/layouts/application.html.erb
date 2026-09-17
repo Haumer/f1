@@ -43,6 +43,7 @@
 
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%= yield :head %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
@@ -87,7 +88,7 @@
       </aside>
     <% end %>
     <% if notice.present? %>
-      <div class="flash flash-notice" data-controller="flash">
+      <div class="flash flash-notice" data-controller="flash" data-flash-cleared-cart-value="<%= flash[:stock_cart_cleared] %>" data-flash-cleared-picks-value="<%= flash[:picks_draft_cleared] %>">
         <span><%= notice %></span>
         <button class="flash-dismiss" aria-label="Dismiss notification" data-action="click->flash#dismiss">&times;</button>
       </div>
@@ -99,7 +100,7 @@
       </div>
     <% end %>
     <%= render 'components/navbar' %>
-    <div class="container py-3">
+    <div class="container py-3 <%= yield :main_container_class %>">
       <main id="main-content" tabindex="-1"><%= yield %></main>
     </div>
     <footer class="site-footer">

@@ -30,7 +30,8 @@ export default class extends Controller {
     this.headers.forEach((h) => h.classList.remove("sort-asc", "sort-desc"))
     th.classList.add(this.ascending ? "sort-asc" : "sort-desc")
 
-    const rows = Array.from(this.tbody.querySelectorAll("tr"))
+    const rows = Array.from(this.tbody.rows).filter(row => !row.classList.contains("result-details-row"))
+    const details = new Map(rows.map(row => [row, row.nextElementSibling?.classList.contains("result-details-row") ? row.nextElementSibling : null]))
 
     rows.sort((a, b) => {
       const aText = a.cells[col]?.textContent.trim() || ""
@@ -51,6 +52,8 @@ export default class extends Controller {
     // Re-append sorted rows and update position cells
     rows.forEach((row, idx) => {
       this.tbody.appendChild(row)
+      if (details.get(row)) this.tbody.appendChild(details.get(row))
+      if (row.hasAttribute("data-result-order")) row.dataset.resultOrder = idx + 1
       // Update position/rank column if it has .position-cell
       const posCell = row.querySelector(".position-cell")
       if (posCell) posCell.textContent = idx + 1

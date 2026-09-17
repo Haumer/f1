@@ -1,0 +1,28 @@
+<aside class="fantasy-market-sidebar" aria-label="Trade draft">
+    <button type="button" class="fantasy-cart-toggle" data-stock-cart-target="toggle"
+            data-action="click->stock-cart#toggle" aria-controls="trade-draft" aria-expanded="false">
+        <span data-stock-cart-target="mobileSummary">No trades selected</span>
+        <span class="cart-review-label">Review</span>
+    </button>
+    <div class="fantasy-cart-panel" id="trade-draft" data-stock-cart-target="drawer">
+        <div class="fantasy-cart-header">
+            <div class="fantasy-cart-header-left"><strong>Trade draft</strong><span class="fantasy-cart-badge" data-stock-cart-target="cartCount">0</span></div>
+            <button type="button" class="fantasy-cart-clear" data-action="click->stock-cart#clear">Clear</button>
+        </div>
+        <p class="fantasy-cart-empty" data-stock-cart-target="cartEmpty">Choose Long or Short to start.</p>
+        <div class="fantasy-cart-filled" data-stock-cart-target="cartItems" hidden>
+            <div data-stock-cart-target="cartList"></div>
+            <dl class="fantasy-cart-summary">
+                <div class="fantasy-cart-row"><dt>Spend on longs</dt><dd data-stock-cart-target="cashSpent">0</dd></div>
+                <div class="fantasy-cart-row"><dt>Reserve for shorts</dt><dd data-stock-cart-target="margin">0</dd></div>
+                <div class="fantasy-cart-row"><dt>Credits needed</dt><dd data-stock-cart-target="cartTotal">0</dd></div>
+                <div class="fantasy-cart-row"><dt>Available after</dt><dd data-stock-cart-target="cartRemaining"><%= number_with_precision(@portfolio.available_cash, precision: 2) %></dd></div>
+            </dl>
+            <%= form_with url: buy_batch_fantasy_stock_portfolio_path(@portfolio), method: :post, data: { stock_cart_target: "form" } do %>
+                <button type="submit" class="fantasy-btn fantasy-btn-primary fantasy-cart-confirm" data-stock-cart-target="confirmBtn" data-action="click->stock-cart#confirm" disabled>Review trades</button>
+            <% end %>
+        </div>
+        <p class="fantasy-cart-validation"></p>
+        <p class="fantasy-cart-status" role="status" data-stock-cart-target="status">Nothing is submitted until you confirm.</p>
+    </div>
+</aside>

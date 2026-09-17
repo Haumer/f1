@@ -10,6 +10,20 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
 
   # -- Public routes --
 
+  test "weekend chip says saved while editable and locked only after race start" do
+    race = races(:melbourne_2026)
+    race.update!(date: Date.current + 5.days, time: "14:00:00")
+    RacePick.create!(user: @user, race: race, locked_at: race.starts_at,
+                     picks: [{ driver_id: drivers(:norris).id, position: 1, source: "manual" }])
+    sign_in @user
+    get fantasy_overview_path(@user.username)
+    assert_select ".fantasy-weekend-chip-sub", text: "Saved · editable"
+    race.update!(date: Date.yesterday)
+    get fantasy_overview_path(@user.username)
+    assert_select ".fantasy-weekend-chip-sub", text: "Locked"
+    assert_select ".fantasy-weekend-chip-sub", text: "Saved · editable", count: 0
+  end
+
   test "overview returns 200 for logged-in owner" do
     sign_in @user
     get fantasy_overview_path(@user.username)

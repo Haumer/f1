@@ -1,169 +1,246 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Client-side cart for the stock market.
-// Collects long/short orders with quantities before batch submission.
 export default class extends Controller {
-  static targets = ["card", "cartEmpty", "cartItems", "cartList",
-                     "cartTotal", "cartCount", "cartRemaining", "confirmBtn"]
-  static values = { cash: Number, maxPositions: Number, usedPositions: Number }
+  static targets = ["card", "cartEmpty", "cartItems", "cartList", "cartTotal", "cartCount",
+    "cartRemaining", "confirmBtn", "drawer", "toggle", "status", "mobileSummary", "form", "cashSpent", "margin"]
+  static values = { cash: Number, maxPositions: Number, usedPositions: Number, portfolio: String,
+    race: String, closesAt: String, open: Boolean, collateral: Number, quoteUrl: String }
 
   connect() {
-    this.cart = [] // [{ id, name, price, direction, quantity, cardEl }]
+    this.cart = []
+    this.submitting = false
+    this.checking = false
+    this.quotes = new Map(this.cardTargets.map(card => [card.dataset.driverId, {
+      id: card.dataset.driverId, name: card.dataset.driverName, price: Number(card.dataset.driverPrice),
+      owned: JSON.parse(card.dataset.driverOwned || "[]")
+    }]))
+    this.mobile = window.matchMedia("(max-width: 860px)")
+    this.expanded = false
+    this.onResize = () => this.renderDrawer()
+    this.mobile.addEventListener("change", this.onResize)
+    this.restore()
     this.update()
+    this.timer = setInterval(() => {
+      if (this.openValue && this.isClosed) {
+        this.openValue = false
+        this.message("Trading has closed. Your draft was not submitted.")
+        this.update()
+      }
+    }, 1000)
   }
 
-  addLong(event) {
+  disconnect() {
+    clearInterval(this.timer)
+    this.mobile.removeEventListener("change", this.onResize)
+    this.request?.abort()
+  }
+
+  get storageKey() { return `f1elo:stock-cart:${this.portfolioValue}` }
+  get isClosed() { return !this.openValue || !this.closesAtValue || Date.now() >= Date.parse(this.closesAtValue) }
+  get totals() {
+    const spent = this.cart.filter(d => d.direction === "long").reduce((sum, d) => sum + d.price * d.quantity, 0)
+    const margin = this.cart.filter(d => d.direction === "short").reduce((sum, d) => sum + d.price * d.quantity * this.collateralValue, 0)
+    return { spent, margin, required: spent + margin, remaining: this.cashValue - spent - margin }
+  }
+  money(value) { return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value) }
+  message(text) { this.statusTarget.textContent = text }
+
+  restore() {
+    try {
+      const draft = JSON.parse(sessionStorage.getItem(this.storageKey))
+      if (!draft) return
+      if (String(draft.race) !== this.raceValue || this.isClosed) {
+        sessionStorage.removeItem(this.storageKey)
+        return
+      }
+      if (!Array.isArray(draft.orders)) return
+      let removed = false
+      for (const order of draft.orders.slice(0, this.maxPositionsValue)) {
+        const quote = this.quotes.get(String(order.id))
+        if (!quote || !this.allowed(quote, order.direction) || !Number.isSafeInteger(order.quantity) || order.quantity <= 0 || this.cart.some(d => d.id === String(order.id))) {
+          removed = true
+          continue
+        }
+        this.cart.push({ ...quote, id: String(quote.id), direction: order.direction, quantity: order.quantity })
+      }
+      if (this.cart.length || removed) this.message(removed ? "Draft restored; unavailable trades were removed. Review before submitting." : "Draft restored. Prices will be checked before you confirm; nothing is submitted.")
+    } catch { /* Storage may be unavailable or an older draft malformed. */ }
+  }
+
+  save() {
+    try {
+      if (!this.cart.length || this.isClosed) sessionStorage.removeItem(this.storageKey)
+      else sessionStorage.setItem(this.storageKey, JSON.stringify({ race: this.raceValue,
+        orders: this.cart.map(({ id, direction, quantity }) => ({ id, direction, quantity })) }))
+    } catch { /* Trading still works without browser storage. */ }
+  }
+
+  allowed(quote, direction) {
+    return ["long", "short"].includes(direction) && Number.isFinite(quote.price) && quote.price > 0 && !quote.owned.some(d => d !== direction)
+  }
+
+  addLong(event) { this.add(event, "long") }
+  addShort(event) { this.add(event, "short") }
+  add(event, direction) {
     event.preventDefault()
-    this._addFromRow(event, "long")
-  }
-
-  addShort(event) {
-    event.preventDefault()
-    this._addFromRow(event, "short")
-  }
-
-  _addFromRow(event, direction) {
-    const card = event.target.closest("[data-driver-id]")
-    if (!card) return
-
-    const id = card.dataset.driverId
-    // Don't add duplicates
-    if (this.cart.find(d => d.id === id)) return
-
-    const name = card.dataset.driverName
-    const price = parseFloat(card.dataset.driverPrice)
-    const qtyInput = card.querySelector(".stock-qty-input")
-    const quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value) || 1) : 1
-
-    this.cart.push({ id, name, price, direction, quantity, cardEl: card })
-    card.classList.add("in-cart")
+    if (this.isClosed) return
+    const card = event.currentTarget.closest("[data-driver-id]")
+    const quote = this.quotes.get(card.dataset.driverId)
+    if (!quote || !this.allowed(quote, direction) || this.cart.some(d => d.id === String(quote.id))) return
+    const quantity = Math.max(1, Number(card.querySelector(".stock-qty-input")?.value) || 1)
+    this.cart.push({ ...quote, id: String(quote.id), direction, quantity })
+    this.message(`${quote.name} added ${direction}. Review your draft to change quantity or submit.`)
     this.update()
   }
 
   remove(event) {
-    event.preventDefault()
-    const id = event.currentTarget.dataset.driverId
-    const idx = this.cart.findIndex(d => d.id === id)
-    if (idx === -1) return
-
-    this.cart[idx].cardEl.classList.remove("in-cart")
-    this.cart.splice(idx, 1)
+    this.cart = this.cart.filter(d => d.id !== event.currentTarget.dataset.driverId)
+    this.message("Trade removed from draft.")
     this.update()
   }
-
-  clear(event) {
-    event.preventDefault()
-    this.cart.forEach(item => item.cardEl.classList.remove("in-cart"))
+  quantity(event) {
+    const item = this.cart.find(d => d.id === event.currentTarget.dataset.driverId)
+    if (!item) return
+    const value = Number(event.currentTarget.value)
+    if (!Number.isSafeInteger(value) || value < 1) {
+      event.currentTarget.value = item.quantity
+      this.message("Quantity must be a whole number of at least one.")
+      return
+    }
+    item.quantity = value
+    this.update(false)
+  }
+  clear() {
     this.cart = []
+    this.message("Draft cleared. No trades submitted.")
     this.update()
   }
+  toggle() { this.expanded = !this.expanded; this.renderDrawer() }
+  close(event) {
+    if (event.key !== "Escape" || !this.mobile.matches || !this.expanded) return
+    this.expanded = false
+    this.renderDrawer()
+    this.toggleTarget.focus()
+  }
+  renderDrawer() {
+    const visible = !this.mobile.matches || this.expanded
+    this.drawerTarget.hidden = !visible
+    this.toggleTarget.setAttribute("aria-expanded", String(visible))
+    this.toggleTarget.querySelector(".cart-review-label").textContent = this.expanded ? "Close" : "Review"
+  }
 
-  confirm(event) {
-    if (this.cart.length === 0) { event.preventDefault(); return }
-
+  async confirm(event) {
     event.preventDefault()
-    const summary = this.cart.map(d => `${d.quantity}x ${d.name} (${d.direction})`).join(", ")
-    const total = this.cart.reduce((s, d) => s + d.price * d.quantity, 0)
-    const form = this.confirmBtnTarget.closest("form")
+    if (this.checking || !this.cart.length || this.isClosed) return
+    this.checking = true
+    this.update(false)
+    this.message("Checking current prices and availability…")
+    try {
+      this.request = new AbortController()
+      const response = await fetch(this.quoteUrlValue, { headers: { Accept: "application/json" }, cache: "no-store", signal: this.request.signal })
+      if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) throw new Error("quote unavailable")
+      const quote = await response.json()
+      quote.drivers.forEach(driver => { driver.price = Number(driver.price) })
+      this.openValue = quote.can_trade && String(quote.race_id) === this.raceValue
+      this.closesAtValue = quote.closes_at || ""
+      this.cashValue = Number(quote.cash)
+      this.usedPositionsValue = quote.used_positions
+      this.quotes = new Map(quote.drivers.map(d => [String(d.id), d]))
+      const previousCount = this.cart.length
+      this.cart = this.cart.filter(d => {
+        const current = this.quotes.get(d.id)
+        if (!current || !this.allowed(current, d.direction)) return false
+        Object.assign(d, current, { id: String(current.id) })
+        return true
+      })
+      this.update()
+      if (this.isClosed) { this.message("Trading has closed. No trades were submitted."); return }
+      if (previousCount !== this.cart.length) { this.message("Some trades are no longer available. Review your updated draft."); return }
+      if (!this.valid) { this.message(this.validationMessage); return }
 
-    window.Swal.fire({
-      text: `Execute trades: ${summary}\nTotal cost: ${Math.round(total)}`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Execute Trades",
-      cancelButtonText: "Cancel",
-      background: "#1a1a1a",
-      color: "#e0e0e0",
-      confirmButtonColor: "#e10600",
-      cancelButtonColor: "#333",
-    }).then((result) => {
-      if (result.isConfirmed && form) form.requestSubmit()
-    })
+      const totals = this.totals
+      const summary = this.cart.map(d => `${d.quantity} × ${d.name} — ${d.direction}, ${this.money(d.price)} per share`).join("\n")
+      const result = await window.Swal.fire({
+        title: "Review trades", text: `${summary}\nSpend: ${this.money(totals.spent)} credits · Reserve as margin: ${this.money(totals.margin)}\nAvailable after: ${this.money(totals.remaining)}`,
+        icon: "question", showCancelButton: true, confirmButtonText: "Execute trades", cancelButtonText: "Keep editing",
+        background: getComputedStyle(this.drawerTarget).backgroundColor, color: getComputedStyle(this.element).color,
+        confirmButtonColor: getComputedStyle(document.body).getPropertyValue("--page-accent").trim() || "#e10600"
+      })
+      if (result.isConfirmed && !this.isClosed) {
+        // POST checks quoted prices again. Only success clears the draft.
+        this.submitting = true
+        this.formTarget.requestSubmit()
+      } else this.message("Draft kept. No trades submitted.")
+    } catch (error) {
+      if (error.name !== "AbortError") this.message("Could not check current prices. Your draft is safe; try again.")
+    } finally {
+      this.checking = false
+      if (this.element.isConnected) this.update(false)
+    }
   }
 
-  update() {
-    const total = this.cart.reduce((s, d) => s + d.price * d.quantity, 0)
-    const remaining = this.cashValue - total
-    const newPositions = this.cart.length
-    const positionsLeft = this.maxPositionsValue - this.usedPositionsValue - newPositions
-    const hasItems = this.cart.length > 0
+  get validationMessage() {
+    if (this.isClosed) return "Market closed. No trades can be submitted."
+    if (this.totals.remaining < -0.000001) return "Not enough available credits. Reduce quantity or remove a trade."
+    const newPositions = this.cart.filter(d => !d.owned.includes(d.direction)).length
+    if (this.usedPositionsValue + newPositions > this.maxPositionsValue) return `Maximum ${this.maxPositionsValue} positions. Reduce your draft.`
+    return ""
+  }
+  get valid() { return this.cart.length > 0 && !this.validationMessage }
 
-    // Toggle empty/items
-    if (this.hasCartEmptyTarget) this.cartEmptyTarget.style.display = hasItems ? "none" : ""
-    if (this.hasCartItemsTarget) this.cartItemsTarget.style.display = hasItems ? "" : "none"
-
-    // Cart list
-    if (this.hasCartListTarget) {
-      this.cartListTarget.innerHTML = this.cart.map(d => {
-        const dirClass = d.direction === "long" ? "stock-long" : "stock-short"
-        const dirIcon = d.direction === "long" ? "arrow-trend-up" : "arrow-trend-down"
-        const cost = Math.round(d.price * d.quantity)
-        return `<div class="fantasy-cart-item">
-          <span class="stock-direction-badge ${dirClass}" style="font-size:10px; padding:1px 5px;">
-            <i class="fa-solid fa-${dirIcon}" style="font-size:8px"></i> ${d.direction.toUpperCase()}
-          </span>
-          <span class="fantasy-cart-item-name">${d.quantity}x ${d.name}</span>
-          <span class="fantasy-cart-item-price">${cost}</span>
-          <button class="fantasy-cart-remove" data-action="click->stock-cart#remove" data-driver-id="${d.id}">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>`
-      }).join("")
+  update(renderItems = true) {
+    const totals = this.totals
+    this.cartEmptyTarget.hidden = this.cart.length > 0
+    this.cartItemsTarget.hidden = this.cart.length === 0
+    if (renderItems) {
+      this.cartListTarget.replaceChildren(...this.cart.map(d => {
+        // Never interpret stored/quoted names as HTML.
+        const row = document.createElement("div")
+        row.className = "fantasy-cart-item"
+        const name = document.createElement("span")
+        name.className = "fantasy-cart-item-name"
+        name.textContent = `${d.name} · ${d.direction === "long" ? "Long" : "Short"}`
+        const label = document.createElement("label")
+        label.textContent = "Quantity"
+        const input = document.createElement("input")
+        Object.assign(input, { type: "number", min: "1", step: "1", value: d.quantity, inputMode: "numeric" })
+        input.dataset.driverId = d.id
+        input.dataset.action = "change->stock-cart#quantity"
+        input.setAttribute("aria-label", `Quantity for ${d.name}`)
+        label.append(input)
+        const remove = document.createElement("button")
+        Object.assign(remove, { type: "button", textContent: "Remove", className: "fantasy-cart-remove" })
+        remove.dataset.driverId = d.id
+        remove.dataset.action = "click->stock-cart#remove"
+        remove.setAttribute("aria-label", `Remove ${d.name}`)
+        row.append(name, label, remove)
+        return row
+      }))
     }
-
-    // Totals
-    if (this.hasCartTotalTarget) this.cartTotalTarget.textContent = Math.round(total)
-    if (this.hasCartRemainingTarget) {
-      this.cartRemainingTarget.textContent = Math.round(remaining)
-      this.cartRemainingTarget.classList.toggle("text-red", remaining < 0)
-      this.cartRemainingTarget.classList.toggle("text-green", remaining >= 0)
-    }
-    if (this.hasCartCountTarget) this.cartCountTarget.textContent = this.cart.length
-
-    // Hidden inputs for batch form
-    if (this.hasConfirmBtnTarget) {
-      const form = this.confirmBtnTarget.closest("form")
-      if (form) {
-        form.querySelectorAll("[name^='orders']").forEach(el => el.remove())
-        this.cart.forEach((d, i) => {
-          this._addHidden(form, `orders[][driver_id]`, d.id)
-          this._addHidden(form, `orders[][direction]`, d.direction)
-          this._addHidden(form, `orders[][quantity]`, d.quantity)
-        })
-      }
-      this.confirmBtnTarget.disabled = !hasItems || remaining < 0
-    }
-
-    // Update row availability
+    this.cartTotalTarget.textContent = this.money(totals.required)
+    this.cashSpentTarget.textContent = this.money(totals.spent)
+    this.marginTarget.textContent = this.money(totals.margin)
+    this.cartRemainingTarget.textContent = this.money(totals.remaining)
+    this.cartCountTarget.textContent = this.cart.length
+    this.mobileSummaryTarget.textContent = this.cart.length ? `${this.cart.length} trade${this.cart.length === 1 ? "" : "s"} · ${this.money(totals.required)} credits` : "No trades selected"
+    this.confirmBtnTarget.disabled = !this.valid || this.checking || this.submitting
+    this.element.querySelector(".fantasy-cart-validation").textContent = this.validationMessage
+    this.formTarget.querySelectorAll("input[name^='orders']").forEach(el => el.remove())
+    this.cart.forEach(d => {
+      Object.entries({ driver_id: d.id, direction: d.direction, quantity: d.quantity, quoted_price: d.price }).forEach(([key, value]) => {
+        const input = document.createElement("input")
+        Object.assign(input, { type: "hidden", name: `orders[][${key}]`, value })
+        this.formTarget.append(input)
+      })
+    })
     this.cardTargets.forEach(card => {
-      const driverId = card.dataset.driverId
-      const inCart = !!this.cart.find(d => d.id === driverId)
-      const tradeArea = card.querySelector(".stock-trade-actions")
-      const cartIndicator = card.querySelector(".stock-in-cart-badge")
-
-      if (inCart) {
-        if (tradeArea) tradeArea.style.display = "none"
-        if (!cartIndicator) {
-          const td = card.querySelector("td:last-child")
-          if (td) {
-            const badge = document.createElement("span")
-            badge.className = "stock-in-cart-badge fantasy-badge-on-roster"
-            badge.innerHTML = '<i class="fa-solid fa-cart-shopping"></i>'
-            td.appendChild(badge)
-          }
-        }
-      } else {
-        if (tradeArea) tradeArea.style.display = ""
-        if (cartIndicator) cartIndicator.remove()
-      }
+      const inCart = this.cart.some(d => d.id === card.dataset.driverId)
+      card.classList.toggle("in-cart", inCart)
+      card.querySelectorAll(".stock-trade-btn").forEach(button => {
+        button.disabled = inCart || this.isClosed || button.classList.contains("slot-hidden")
+      })
     })
-  }
-
-  _addHidden(form, name, value) {
-    const input = document.createElement("input")
-    input.type = "hidden"
-    input.name = name
-    input.value = value
-    form.appendChild(input)
+    this.save()
+    this.renderDrawer()
   }
 }

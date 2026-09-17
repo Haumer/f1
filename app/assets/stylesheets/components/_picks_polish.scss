@@ -1,0 +1,80 @@
+// Editor-only overrides: scorecards, portfolio rows and desktop density stay intact.
+@media (max-width: 768px) {
+    // The footer and main container are sibling stacking contexts. Keep the
+    // fixed save bar above the footer, but below navigation and consent UI.
+    .container.picks-editor-container { z-index: 2; }
+}
+
+.picks-editor-page {
+    [hidden] { display: none !important; }
+    .picks-deadline { white-space: normal; }
+    .picks-instruction { color: $text-secondary; }
+    .picks-reward-hint { color: $text-secondary; }
+    .picks-toggle { border: 0; background: none; padding: 0; }
+    .picks-driver-card { font: inherit; color: $text-primary; text-align: left; min-width: 0; }
+    .picks-driver-card:disabled { cursor: default; }
+    .picks-card-info { min-width: 0; }
+    .picks-sort-btn, .picks-toggle, .picks-action-btn { min-height: 44px; }
+    .picks-list-actions { flex-wrap: wrap; }
+    .picks-order-hint, .picks-empty, .picks-draft-message { font-size: 13px; color: $text-secondary; }
+    .picks-draft-message:empty { display: none; }
+    .picks-goal-ready { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: -8px 0 24px; font-size: 14px; color: var(--page-accent, $accent-red); }
+    #pick-order, #pick-drivers { scroll-margin-top: 88px; }
+    .pick-slot-name { min-width: 0; }
+    .pick-slot-controls { display: inline-flex; gap: 2px; flex-shrink: 0; }
+    .pick-slot-move, .pick-slot-remove {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; padding: 0; border: 1px solid $border-accent;
+        border-radius: $radius-sm; background: transparent; color: $text-secondary; font-size: 18px;
+        &:disabled { opacity: 0.3; cursor: default; }
+    }
+    .picks-submit-form { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .picks-save-summary { display: flex; flex-direction: column; gap: 3px; text-align: left; font-size: 13px; min-width: 0; }
+    .picks-save-summary small { color: $text-secondary; font-size: 12px; }
+    .picks-review-btn, .picks-choose-more { display: none; }
+
+    @media (max-width: 768px) {
+        padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+        .picks-toolbar { flex-direction: column; align-items: stretch; }
+        .picks-toolbar-right { flex-wrap: wrap; gap: 8px; }
+        .picks-instruction { font-size: 13px; }
+        .picks-sort-btn { padding: 6px 12px; }
+        .picks-toggle { min-height: 44px; }
+        .picks-list-header { flex-wrap: wrap; gap: 12px; }
+        .picks-list-actions { gap: 6px; }
+        .picks-action-btn { padding: 6px 10px; }
+        .pick-slot-filled {
+            display: grid; grid-template-columns: 30px minmax(0, 1fr) auto;
+            gap: 4px 8px; padding: 8px;
+        }
+        .pick-slot-name { font-size: 13px; white-space: normal; overflow-wrap: anywhere; }
+        .pick-slot-controls { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+        .pick-slot-team, .pick-slot-elo { display: none; }
+        .pick-slot-badge { grid-column: 2; justify-self: start; }
+        .pick-slot-move, .pick-slot-remove { width: 44px; height: 44px; }
+        .picks-review-btn, .picks-choose-more { display: inline-flex; }
+        .picks-submit-form {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+            margin: 0; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid $border-accent; background: $bg-page; gap: 8px;
+            display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+        .picks-submit-btn { width: auto; min-height: 44px; padding: 8px 12px; font-size: 13px; max-width: 136px; }
+        .picks-save-summary { font-size: 12px; }
+        .picks-save-summary small { font-size: 11px; }
+    }
+
+    @media (max-width: 480px) {
+        // Give surnames a full row instead of squeezing them between a photo
+        // and Elo. Keep the richer desktop card untouched.
+        .picks-card-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; }
+        .picks-card-photo { display: none; }
+        .picks-card-info { display: contents; }
+        .picks-card-name { grid-column: 1 / -1; white-space: normal; overflow-wrap: anywhere; }
+        .picks-card-team { grid-column: 1; min-width: 0; }
+        .picks-card-elo { grid-column: 2; color: $text-secondary; }
+        .picks-card-results { flex-wrap: wrap; }
+    }
+}
+
+.picks-saved-state { color: $text-secondary; font-size: 13px; margin-bottom: 20px; }

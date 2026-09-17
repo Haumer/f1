@@ -112,7 +112,7 @@
                     done: picks_done,
                     locked: !picks_done && !picks_open,
                     path: (picks_open ? edit_race_picks_path : nil),
-                    sub: (picks_done ? "Locked in" : (picks_open ? "Pick your top 10" : "Locked"))
+                    sub: (picks_done ? (picks_open ? "Saved · editable" : "Locked") : (picks_open ? "Pick your top 10" : "Locked"))
                 }
             end
             chips << {

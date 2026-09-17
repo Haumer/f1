@@ -12,8 +12,22 @@ class FantasyStockPortfoliosController < ApplicationController
                      .order(Arel.sql("COALESCE(drivers.elo_v2, 0) DESC"))
                      .includes(:countries)
     @can_trade = @next_race && @portfolio.can_trade?(@next_race)
-    @constructors_by_driver = constructors_for_drivers(@drivers)
     @holdings_by_driver = @portfolio.active_holdings.group_by(&:driver_id)
+    @prices_by_driver = Fantasy::Pricing.prices_for_season(@drivers.map(&:id), @portfolio.season)
+    if request.format.json?
+      response.headers["Cache-Control"] = "no-store"
+      render json: {
+        can_trade: !!@can_trade, race_id: @next_race&.id,
+        closes_at: @portfolio.trading_closes_at(@next_race)&.iso8601,
+        cash: @portfolio.available_cash, used_positions: @portfolio.position_count,
+        drivers: @drivers.map { |driver| {
+          id: driver.id, name: driver.fullname, price: @prices_by_driver[driver.id],
+          owned: @holdings_by_driver.fetch(driver.id, []).map(&:direction)
+        } }
+      }
+      return
+    end
+    @constructors_by_driver = constructors_for_drivers(@drivers)
     @elo_trends = elo_trends_for(@drivers.map(&:id))
     @demand_by_driver = SeasonDriver.where(season_id: @portfolio.season_id)
                                      .pluck(:driver_id, :net_demand).to_h
@@ -72,15 +86,30 @@ class FantasyStockPortfoliosController < ApplicationController
   end
 
   def buy_batch
-    orders = Array(params[:orders])
+    orders = params[:orders].is_a?(Array) ? params[:orders].reject(&:blank?) : []
     errors = []
     bought = []
 
-    ActiveRecord::Base.transaction do
+    @portfolio.with_lock do
+      if orders.empty? || orders.size > FantasyStockPortfolio::MAX_POSITIONS || orders.any? { |o| !o.is_a?(ActionController::Parameters) } || orders.map { |o| o[:driver_id].to_s }.uniq.size != orders.size
+        errors << "Choose at least one trade, with one order per driver."
+        raise ActiveRecord::Rollback
+      end
       orders.each do |order|
-        driver = Driver.find(order[:driver_id])
+        driver = Driver.joins(:season_drivers).find_by(id: order[:driver_id], season_drivers: { season_id: @portfolio.season_id })
         qty = (order[:quantity] || 1).to_i
         direction = order[:direction]
+
+        if !driver || !%w[long short].include?(direction) || @portfolio.active_holdings.where(driver: driver).where.not(direction: direction).exists?
+          errors << "That trade is no longer available. Review your cart."
+          raise ActiveRecord::Rollback
+        end
+        # A saved/browser-cached draft is not a price promise. Services still
+        # calculate execution prices; reject changed quotes before any trade.
+        if order[:quoted_price].present? && (order[:quoted_price].to_d - @portfolio.share_price(driver).to_d).abs > 0.000001
+          errors << "#{driver.fullname}'s price changed. Review the refreshed cart."
+          raise ActiveRecord::Rollback
+        end
 
         result = if direction == "short"
           Fantasy::Stock::OpenShort.new(portfolio: @portfolio.reload, driver: driver, quantity: qty, race: @next_race).call
@@ -97,11 +126,11 @@ class FantasyStockPortfoliosController < ApplicationController
       end
     end
 
-    check_stock_achievements(@portfolio) if bought.any?
-
     if errors.any?
       redirect_to market_fantasy_stock_portfolio_path(@portfolio), alert: errors.join(". ")
     else
+      check_stock_achievements(@portfolio)
+      flash[:stock_cart_cleared] = @portfolio.id
       redirect_to fantasy_overview_path(current_user.username), notice: "Opened #{bought.join(', ')}"
     end
   end

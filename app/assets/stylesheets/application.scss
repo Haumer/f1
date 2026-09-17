@@ -1088,3 +1088,5 @@ table.race-results {
 // Shared interaction refinements come last so mobile overrides don't change
 // the established desktop components.
 @import "components/mobile_ux";
+@import "components/market_polish";
+@import "components/picks_polish";

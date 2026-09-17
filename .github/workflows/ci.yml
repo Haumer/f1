@@ -54,4 +54,8 @@ jobs:
         run: bin/rails test
 
       - name: Run browser tests
+        env:
+          # Match the verified local run; avoid auto-forking Chrome once the
+          # browser suite crosses Rails' 50-test parallelization threshold.
+          PARALLEL_WORKERS: "1"
         run: bin/rails test:system

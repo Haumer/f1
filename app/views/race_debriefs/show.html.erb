@@ -15,7 +15,7 @@
   <% else %>
     <section class="race-analysis-panel race-debrief-pending" aria-labelledby="race-debrief-pending-title">
       <h2 id="race-debrief-pending-title">Debrief not available yet</h2>
-      <p>Race results have not been imported for this event. Its debrief will appear here once results are available.</p>
+      <p><%= missing_session_message(@race, :race) %> Its debrief will appear here once results are available.</p>
       <%= link_to "View this race's schedule and qualifying →", race_path(@race) %>
     </section>
   <% end %>
