@@ -1,6 +1,10 @@
 <% content_for(:title) { "Your Picks — #{@race.circuit.name}" } %>
-<% content_for(:description) { "Make your race predictions for the #{@race.circuit.name}. Rank all #{@drivers.size} drivers and see how your picks compare." } %>
-<div class="page-container">
+<% content_for(:description) { "Make your race predictions for the #{@race.circuit.name} and see how your picks compare." } %>
+<% content_for(:main_container_class) { "picks-editor-container" } %>
+<% content_for :head do %>
+    <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+<div class="page-container picks-editor-page">
     <div class="picks-header">
         <div>
             <%# Without this the page is a cul-de-sac — it had no in-content links at all. %>
@@ -18,44 +22,49 @@
         <% if @race.starts_at %>
             <div class="picks-deadline">
                 <i class="fa-solid fa-clock"></i>
-                Locks at race start
+                <%= render "shared/deadline", closes_at: @race.starts_at, label: "Picks lock" %>
             </div>
         <% end %>
     </div>
 
-    <div data-controller="race-picks" data-race-picks-total-value="<%= @drivers.size %>">
+    <div data-controller="race-picks"
+         data-race-picks-total-value="<%= @drivers.size %>"
+         data-race-picks-goal-value="<%= @pick_goal %>"
+         data-race-picks-storage-key-value="f1elo:picks:<%= current_user&.id || 'guest' %>:<%= @race.id %>"
+         data-race-picks-version-value="<%= @race_pick.updated_at&.iso8601(6) %>"
+         data-race-picks-saved-value="<%= @race_pick.persisted? %>"
+         data-race-picks-closes-at-value="<%= @race.starts_at&.iso8601 %>"
+         data-race-picks-open-value="<%= @race.picks_open? && !@race_pick.locked? %>">
         <%# ═══════ Driver Card Grid ═══════ %>
         <div class="picks-toolbar">
             <div class="picks-instruction">
-                <i class="fa-solid fa-arrow-pointer"></i>
-                Tap a driver to place them. First tap = P1, second = P2, and so on.
+                <span>Tap drivers in finishing order, starting with P1.</span>
                 <span class="picks-reward-hint">
-                    <i class="fa-solid fa-coins"></i>
-                    The closer your call, the more credits you earn — nail the podium for a bonus.
+                    <%= @scoring_limit ? "Only your top #{@pick_goal} score. Ranking the rest is optional." : "Every predicted position can score." %>
                 </span>
             </div>
             <div class="picks-toolbar-right">
                 <div class="picks-sort" data-race-picks-target="sortGroup">
-                    <button class="picks-sort-btn active" data-action="click->race-picks#sort" data-sort="form">Form</button>
-                    <button class="picks-sort-btn" data-action="click->race-picks#sort" data-sort="elo">Elo</button>
-                    <button class="picks-sort-btn" data-action="click->race-picks#sort" data-sort="team">Team</button>
-                    <button class="picks-sort-btn" data-action="click->race-picks#sort" data-sort="alpha">A–Z</button>
+                    <button type="button" class="picks-sort-btn active" aria-pressed="true" data-action="click->race-picks#sort" data-sort="form">Form</button>
+                    <button type="button" class="picks-sort-btn" aria-pressed="false" data-action="click->race-picks#sort" data-sort="elo">Elo</button>
+                    <button type="button" class="picks-sort-btn" aria-pressed="false" data-action="click->race-picks#sort" data-sort="team">Team</button>
+                    <button type="button" class="picks-sort-btn" aria-pressed="false" data-action="click->race-picks#sort" data-sort="alpha">A–Z</button>
                 </div>
-                <label class="picks-toggle" data-action="click->race-picks#toggleForm" data-race-picks-target="formToggle">
+                <button type="button" class="picks-toggle" aria-pressed="false" data-action="click->race-picks#toggleForm" data-race-picks-target="formToggle">
                     <span class="picks-toggle-track">
                         <span class="picks-toggle-thumb"></span>
                     </span>
                     <span class="picks-toggle-label">Recent Form</span>
-                </label>
+                </button>
             </div>
         </div>
-        <div class="picks-driver-grid">
+        <div class="picks-driver-grid" id="pick-drivers" tabindex="-1" aria-label="Choose drivers in finishing order">
             <% @drivers.each do |driver| %>
                 <% constructor = @constructors_by_driver[driver.id] %>
                 <% color = constructor_color(constructor) %>
                 <% results = @recent_results[driver.id] || [] %>
                 <% last_pos = results.first&.position_order || 99 %>
-                <div class="picks-driver-card"
+                <button type="button" class="picks-driver-card" aria-label="Pick <%= driver.fullname %>" aria-pressed="false"
                      data-race-picks-target="card"
                      data-driver-id="<%= driver.id %>"
                      data-driver-name="<%= driver.fullname %>"
@@ -66,22 +75,22 @@
                      data-driver-last-pos="<%= last_pos %>"
                      data-action="click->race-picks#place"
                      style="--constructor-color: <%= color %>">
-                    <div class="picks-card-header">
+                    <span class="picks-card-header">
                         <% if driver.display_image_url.present? %>
                             <img src="<%= driver.display_image_url %>" alt="<%= driver.fullname %>" class="picks-card-photo" onerror="this.style.display='none'">
                         <% else %>
-                            <div class="picks-card-photo picks-card-photo-placeholder">
+                            <span class="picks-card-photo picks-card-photo-placeholder">
                                 <i class="fa-solid fa-user"></i>
-                            </div>
+                            </span>
                         <% end %>
-                        <div class="picks-card-info">
+                        <span class="picks-card-info">
                             <span class="picks-card-name"><%= driver.surname %></span>
                             <span class="picks-card-team"><%= constructor_logo_or_name(constructor, size: "xs") %></span>
-                        </div>
+                        </span>
                         <span class="picks-card-elo"><%= driver.display_elo.round(0) %></span>
-                    </div>
+                    </span>
                     <% if results.any? %>
-                        <div class="picks-card-results">
+                        <span class="picks-card-results">
                             <% prev_year = nil %>
                             <% results.first(5).each do |rr| %>
                                 <% race_year = rr.race.year.to_s %>
@@ -98,49 +107,58 @@
                                     <% end %>
                                 </span>
                             <% end %>
-                        </div>
+                        </span>
                     <% end %>
-                    <div class="picks-card-check"><i class="fa-solid fa-check"></i></div>
-                </div>
+                    <span class="picks-card-check"><i class="fa-solid fa-check"></i></span>
+                </button>
+            <% end %>
+        </div>
+
+        <div class="picks-goal-ready" data-race-picks-target="goalReady" hidden>
+            <span>Your top <%= @pick_goal %> is ready to save.</span>
+            <% if @drivers.size > @pick_goal %>
+                <button type="button" class="picks-action-btn" data-race-picks-target="optionalBtn" data-action="race-picks#rankRest">Rank the rest (optional)</button>
             <% end %>
         </div>
 
         <%# ═══════ Picks List ═══════ %>
         <div class="picks-list-section">
             <div class="picks-list-header">
-                <h3>
+                <h3 id="pick-order" tabindex="-1">
                     <i class="fa-solid fa-list-ol" style="opacity:0.5; font-size:14px"></i>
                     Your Order
-                    <span class="picks-counter" data-race-picks-target="counter">0/<%= @drivers.size %></span>
+                    <span class="picks-counter" data-race-picks-target="counter">0/<%= @pick_goal %></span>
                 </h3>
                 <div class="picks-list-actions">
-                    <button class="picks-action-btn" data-race-picks-target="randomiseBtn" data-action="click->race-picks#randomise" style="display:none">
+                    <button type="button" class="picks-action-btn picks-choose-more" data-action="race-picks#chooseMore">Choose drivers ↑</button>
+                    <button type="button" class="picks-action-btn" data-race-picks-target="undoBtn" data-action="race-picks#undo" hidden>Undo</button>
+                    <button type="button" class="picks-action-btn" data-race-picks-target="randomiseBtn" data-action="click->race-picks#randomise" hidden>
                         <i class="fa-solid fa-shuffle"></i> Randomise rest
                     </button>
-                    <button class="picks-action-btn picks-action-clear" data-race-picks-target="clearBtn" data-action="click->race-picks#clear" style="display:none">
+                    <button type="button" class="picks-action-btn picks-action-clear" data-race-picks-target="clearBtn" data-action="click->race-picks#clear" hidden>
                         <i class="fa-solid fa-trash"></i> Clear
                     </button>
                 </div>
             </div>
 
+            <p class="picks-order-hint">Drag to reorder, or use the arrow buttons. You can save fewer than <%= @pick_goal %>.</p>
+            <p class="picks-empty" data-race-picks-target="empty">Choose a driver above to start with P1.</p>
             <div class="picks-slots" data-race-picks-target="slotList"></div>
         </div>
 
+        <p class="picks-draft-message" data-race-picks-target="message" role="status" aria-live="polite"></p>
         <%# ═══════ Submit ═══════ %>
-        <% if current_user %>
-            <%= form_with url: race_picks_path, method: :patch, local: true, class: "picks-submit-form" do %>
+        <%= form_with url: (current_user ? race_picks_path : stash_race_picks_path), method: (current_user ? :patch : :post), local: true, class: "picks-submit-form", data: { action: "submit->race-picks#submit turbo:submit-end->race-picks#submitEnd" } do %>
+                <input type="hidden" name="race_id" value="<%= @race.id %>">
                 <input type="hidden" name="picks" value="<%= @race_pick.picks&.to_json || '[]' %>" data-race-picks-target="picksInput">
+                <div class="picks-save-summary">
+                    <strong data-race-picks-target="summary">Choose your top <%= @pick_goal %></strong>
+                    <small data-race-picks-target="saveState">Not saved</small>
+                </div>
+                <button type="button" class="picks-review-btn picks-action-btn" data-action="race-picks#review">Review</button>
                 <button type="submit" class="fantasy-btn fantasy-btn-primary picks-submit-btn" data-race-picks-target="submitBtn" disabled>
-                    <i class="fa-solid fa-check"></i> Save Picks
+                    <%= current_user ? "Save Picks" : "Sign Up to Save Picks" %>
                 </button>
-            <% end %>
-        <% else %>
-            <%= form_with url: stash_race_picks_path, method: :post, local: true, class: "picks-submit-form" do %>
-                <input type="hidden" name="picks" value="[]" data-race-picks-target="picksInput">
-                <button type="submit" class="fantasy-btn fantasy-btn-primary picks-submit-btn" data-race-picks-target="submitBtn" disabled>
-                    <i class="fa-solid fa-right-to-bracket"></i> Sign Up to Save Picks
-                </button>
-            <% end %>
         <% end %>
     </div>
 </div>

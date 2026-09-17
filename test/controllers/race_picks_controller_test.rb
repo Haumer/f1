@@ -14,6 +14,78 @@ class RacePicksControllerTest < ActionDispatch::IntegrationTest
 
   # ═══════ Authentication ═══════
 
+  test "editor exposes the scoring goal and race scoped draft identity" do
+    sign_in @user
+    get edit_race_picks_path
+    assert_select "[data-race-picks-goal-value='4']"
+    assert_select "[data-race-picks-storage-key-value=?]", "f1elo:picks:#{@user.id}:#{@race.id}"
+    assert_select "input[name='race_id'][value=?]", @race.id.to_s
+    assert_select "meta[name='turbo-cache-control'][content='no-cache']"
+  end
+
+  test "expired deadline rejects new picks and guest stashing without existing locked_at" do
+    @race.update!(date: Date.yesterday)
+    picks = [{ driver_id: drivers(:norris).id, position: 1, source: "manual" }].to_json
+    post stash_race_picks_path, params: { picks: picks, race_id: @race.id }
+    assert_redirected_to root_path
+    assert_nil session[:pending_picks]
+    sign_in @user
+    assert_no_difference "RacePick.count" do
+      patch race_picks_path, params: { picks: picks, race_id: @race.id }
+    end
+    assert_redirected_to fantasy_overview_path(@user.username)
+    assert_nil flash[:picks_draft_cleared]
+  end
+
+  test "a form from a different race is not saved into the current race" do
+    picks = [{ driver_id: drivers(:norris).id, position: 1, source: "manual" }].to_json
+    post stash_race_picks_path, params: { picks: picks, race_id: races(:bahrain_2026).id }
+    assert_redirected_to edit_race_picks_path
+    assert_nil session[:pending_picks]
+    sign_in @user
+    assert_no_difference "RacePick.count" do
+      patch race_picks_path, params: { picks: picks, race_id: races(:bahrain_2026).id }
+    end
+    assert_redirected_to edit_race_picks_path
+    assert_nil flash[:picks_draft_cleared]
+  end
+
+  test "successful saves clear only the matching draft while invalid saves do not" do
+    sign_in @user
+    patch race_picks_path, params: { picks: [{ driver_id: drivers(:norris).id, position: 1 }].to_json, race_id: @race.id }
+    assert_equal "f1elo:picks:#{@user.id}:#{@race.id}", flash[:picks_draft_cleared]
+    follow_redirect!
+    patch race_picks_path, params: { picks: "not json", race_id: @race.id }
+    assert_nil flash[:picks_draft_cleared]
+    assert_redirected_to edit_race_picks_path
+  end
+
+  test "guest can return from signup to their stashed picks" do
+    picks = [{ driver_id: drivers(:norris).id, position: 1, source: "manual" }].to_json
+    post stash_race_picks_path, params: { picks: picks, race_id: @race.id }
+    assert_equal "f1elo:picks:guest:#{@race.id}", flash[:picks_draft_cleared]
+    get edit_race_picks_path
+    assert_select "input[name='picks']" do |inputs|
+      assert_equal drivers(:norris).id, JSON.parse(inputs.first["value"]).first["driver_id"]
+    end
+  end
+
+  test "comparison allows editing only for the owner before locking" do
+    @user.update!(public_profile: true)
+    RacePick.create!(user: @user, race: @race, locked_at: @race.starts_at,
+                     picks: [{ driver_id: drivers(:norris).id, position: 1, source: "manual" }])
+    get race_pick_compare_path(username: @user.username, race_id: @race.id)
+    assert_select ".compare-cta a", text: "Edit picks", count: 0
+    sign_in @user
+    get race_pick_compare_path(username: @user.username, race_id: @race.id)
+    assert_select ".compare-cta a", text: "Edit picks"
+    assert_select ".picks-saved-state", text: /editable until/
+    @race.update!(date: Date.yesterday)
+    get race_pick_compare_path(username: @user.username, race_id: @race.id)
+    assert_select ".compare-cta a", text: "Edit picks", count: 0
+    assert_select ".picks-saved-state", text: /Picks locked/
+  end
+
   test "edit renders for guests" do
     get edit_race_picks_path
     assert_response :success

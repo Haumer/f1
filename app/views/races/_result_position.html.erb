@@ -1,0 +1,6 @@
+<span class="result-position-label"><%= position %></span>
+<button type="button" class="result-detail-toggle" hidden
+        data-result-details-target="toggle" data-action="click->result-details#toggle"
+        aria-expanded="false" aria-controls="<%= detail_id %>" aria-label="Details for <%= driver.fullname %>">
+    <%= position %> <i class="fa-solid fa-angle-down" aria-hidden="true"></i>
+</button>

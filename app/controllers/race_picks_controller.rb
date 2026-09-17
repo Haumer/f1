@@ -1,6 +1,7 @@
 class RacePicksController < ApplicationController
   before_action :authenticate_user!, only: [:update]
   before_action :set_race, only: [:edit, :update, :stash]
+  before_action :check_pick_window, only: [:update, :stash]
   before_action :set_race_pick, only: [:update]
 
   def edit
@@ -12,6 +13,10 @@ class RacePicksController < ApplicationController
     end
 
     @race_pick = current_user ? RacePick.find_or_initialize_by(user: current_user, race: @race) : RacePick.new(race: @race)
+    if !current_user && session[:pending_picks_race_id] == @race.id
+      pending = Fantasy::RacePickPayload.new(raw: session[:pending_picks], race: @race).call
+      @race_pick.picks = pending.picks if pending.success?
+    end
     load_drivers
   end
 
@@ -25,6 +30,7 @@ class RacePicksController < ApplicationController
 
     session[:pending_picks] = payload.picks.to_json
     session[:pending_picks_race_id] = @race.id
+    flash[:picks_draft_cleared] = "f1elo:picks:guest:#{@race.id}"
     redirect_to new_user_registration_path, notice: "Create an account to save your picks!"
   end
 
@@ -44,8 +50,9 @@ class RacePicksController < ApplicationController
     @race_pick.locked_at = @race.starts_at
 
     if @race_pick.save
+      flash[:picks_draft_cleared] = "f1elo:picks:#{current_user.id}:#{@race.id}"
       redirect_to race_pick_compare_path(username: current_user.username, race_id: @race.id),
-                  notice: "Your picks for #{@race.circuit.name} are locked in!"
+                  notice: "Your picks for #{@race.circuit.name} are saved. You can edit them until race start."
     else
       load_drivers
       render :edit
@@ -111,6 +118,16 @@ class RacePicksController < ApplicationController
   end
 
   private
+
+  # An editor left open across race windows must never save into the next race.
+  def check_pick_window
+    if params[:race_id].present? && params[:race_id].to_s != @race.id.to_s
+      redirect_to edit_race_picks_path, alert: "The upcoming race has changed. Please review picks for the new race."
+    elsif !@race.picks_open?
+      redirect_to(current_user ? fantasy_overview_path(current_user.username) : root_path,
+                  alert: "Picks are locked for this race. Nothing was saved.")
+    end
+  end
 
   def set_race
     @season = current_season
@@ -193,6 +210,8 @@ class RacePicksController < ApplicationController
                               .uniq(&:driver_id)
 
     @drivers = season_driver_records.map(&:driver)
+    @scoring_limit = Fantasy::ScoreRacePicks.scoring_limit_for(@race)
+    @pick_goal = [@scoring_limit || @drivers.size, @drivers.size].min
     @constructors_by_driver = season_driver_records.each_with_object({}) { |sd, h| h[sd.driver_id] = sd.constructor }
 
     # True last 5 results per driver (across seasons)

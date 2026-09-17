@@ -1,0 +1,92 @@
+.action-deadline {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    time, small { font-size: 12px; font-weight: normal; color: $text-secondary; }
+}
+
+.stock-market-page {
+    [hidden] { display: none !important; }
+    .market-trade-heading { width: 250px; }
+    .market-intro { margin: 0 0 16px; font-size: 13px; color: $text-secondary; summary { cursor: pointer; padding: 12px 0; } p { max-width: 640px; } }
+    .stock-trade-btn { min-height: 36px; }
+    .fantasy-cart-toggle { display: none; }
+    .fantasy-cart-panel { background: $bg-card; }
+    .fantasy-cart-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+        padding: 10px;
+        .fantasy-cart-item-name { grid-column: 1 / -1; font-size: 13px; white-space: normal; overflow-wrap: anywhere; }
+        label { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        input { width: 64px; min-height: 44px; border: 1px solid $border-accent; border-radius: $radius-sm; padding: 6px; background: $bg-card; color: $text-primary; font-size: 16px; }
+        .fantasy-cart-remove { width: auto; height: auto; min-height: 44px; font-size: 12px; }
+    }
+    .fantasy-cart-clear { min-height: 44px; }
+    .fantasy-cart-summary { margin: 8px 0; }
+    .fantasy-cart-row {
+        gap: 8px;
+        dt { font-size: 12px; font-weight: normal; }
+        dd { margin: 0; font-family: $mono-font; font-size: 13px; }
+    }
+    .fantasy-cart-status, .fantasy-cart-validation { font-size: 12px; line-height: 1.5; margin: 8px 0 0; }
+    .fantasy-cart-status { color: $text-secondary; }
+    .fantasy-cart-validation { color: $accent-red; }
+    .fantasy-cart-validation:empty { display: none; }
+    .market-rules {
+        margin: 24px 0;
+        border: 1px solid $border-color;
+        border-radius: $radius-md;
+        padding: 8px 16px;
+        summary { padding: 12px 0; cursor: pointer; font-size: 14px; }
+        dl { margin: 12px 0; font-size: 13px; }
+        dt { margin-top: 16px; }
+        dd { color: $text-secondary; margin-top: 6px; }
+    }
+
+    @media (max-width: 860px) {
+        padding-bottom: 90px;
+        .fantasy-market-main { padding-bottom: 0; }
+        .fantasy-market-sidebar { display: flex; flex-direction: column-reverse; padding: 0 8px env(safe-area-inset-bottom, 0px); background: $bg-page; }
+        .fantasy-cart-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            min-height: 56px;
+            padding: 10px 16px;
+            border: 1px solid $border-accent;
+            border-radius: $radius-sm;
+            color: $text-primary;
+            background: $bg-card;
+            font-size: 13px;
+            .cart-review-label { color: var(--page-accent, $accent-red); font-weight: bold; }
+        }
+        .fantasy-cart-panel { max-height: 60vh; margin: 0; }
+        .stock-trade-btn { min-height: 44px; }
+    }
+
+    @media (max-width: 600px) {
+        .fantasy-dashboard-header { flex-wrap: nowrap; align-items: center; }
+        .fantasy-dashboard-title { flex: 1; }
+        .fantasy-header-actions { width: auto; flex: none; }
+        .fantasy-market-table {
+            thead tr, tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) 65px 58px; align-items: center; }
+            .market-trade-heading { display: none; }
+            td, th { min-width: 0; padding: 8px; }
+            .market-trade-cell { grid-column: 1 / -1; padding-top: 0; }
+            tbody tr { border-bottom: 1px solid $border-color; }
+            td { border: 0; }
+        }
+        .stock-trade-actions { justify-content: flex-end; gap: 8px; }
+        .stock-qty-stepper { height: 44px; margin-right: auto; }
+        .stock-qty-btn { width: 36px; }
+        .stock-trade-btn { padding: 8px; font-size: 12px; }
+        .fantasy-market-driver-name { font-size: 13px; img { display: none; } }
+        .fantasy-market-driver-link { white-space: normal; }
+    }
+}
+
+.swal2-html-container { white-space: pre-line; }

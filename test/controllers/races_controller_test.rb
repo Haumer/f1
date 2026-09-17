@@ -87,7 +87,7 @@ class RacesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".race-expectations-table tbody tr", count: 4
     assert_select ".race-expectations-table", text: /Pre-race Elo unavailable/
     assert_select ".race-analysis-highlight", count: 1
-    assert_select "p", text: "Qualifying results are not available for this race."
+    assert_select ".session-data-status", text: "Qualifying results are unavailable for this race in our data."
   end
 
   test "full grid estimates render both qualifying and model provenance" do

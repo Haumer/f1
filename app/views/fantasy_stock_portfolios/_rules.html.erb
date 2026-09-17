@@ -1,0 +1,17 @@
+<% rules = Fantasy::Stock::SettlementCalculator %>
+<details class="market-rules">
+    <summary>How dividends, margin and fees work</summary>
+    <dl>
+        <dt>Long positions</dt>
+        <dd>Pay the share price up front. Your position rises or falls with the driver's price.</dd>
+        <dt>Race dividends</dt>
+        <dd>A top-10 place in the stored race classification pays <%= rules::DIVIDEND_BASE %> × the constructor multiplier, plus <%= rules::DIVIDEND_SURPRISE_BONUS %> credits per place finished above the Elo rank used at settlement, per share. Other finishes pay no dividend.</dd>
+        <dd>The constructor multiplier ranges from <%= rules::CONSTRUCTOR_MULT_MIN %> to <%= rules::CONSTRUCTOR_MULT_MAX %>, based on the previous season's standings. <%= link_to "Full scoring guide", fantasy_guide_path %></dd>
+        <dt>Short positions</dt>
+        <dd>Reserve <%= number_to_percentage(FantasyStockPortfolio::COLLATERAL_RATIO * 100, precision: 0) %> of the entry value as margin, rather than spending it. You gain if the price falls and lose if it rises.</dd>
+        <dt>Borrow fee</dt>
+        <dd><%= number_to_percentage(rules::BORROW_FEE_RATE * 100, precision: 2, strip_insignificant_zeros: true) %> of the entry value per race. Shorts do not earn dividends.</dd>
+        <dt>Liquidation</dt>
+        <dd>Shorts are automatically closed at settlement if the loss reaches <%= rules::MAX_LOSS_MULTIPLIER.to_i %>× the entry value. Margin is not a limit on losses.</dd>
+    </dl>
+</details>

@@ -1,0 +1,9 @@
+<tr class="result-details-row" id="<%= detail_id %>" hidden>
+    <td colspan="11">
+        <dl class="result-detail-fields" aria-label="<%= result.driver.fullname %> session details">
+            <% result_detail_fields(result, session: session, constructor: constructor, standing: local_assigns[:standing]).each do |label, value| %>
+                <div><dt><%= label %></dt><dd><%= value %></dd></div>
+            <% end %>
+        </dl>
+    </td>
+</tr>
