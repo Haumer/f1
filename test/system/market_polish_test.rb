@@ -22,21 +22,63 @@ class MarketPolishTest < ApplicationSystemTestCase
     page.driver.browser.execute_cdp("Network.clearBrowserCookies")
   end
 
+  test "market prices stay on one line with low cash and double digit holdings" do
+    @portfolio.wallet.update!(cash: @portfolio.total_collateral + 146.33)
+    fantasy_stock_holdings(:codex_ver_long).update!(quantity: 27)
+    drivers(:verstappen).update!(elo_v2: 2470.3)
+    @driver.update!(elo_v2: 2431.6)
+    [320, 390, 440, 600, 601, 768, 860, 861, 1024, 1400].each do |width|
+      page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: width, height: 956, deviceScaleFactor: 1, mobile: width <= 860)
+      visit market_fantasy_stock_portfolio_path(@portfolio)
+      wait_for_stimulus "stock-cart", ".stock-market-page"
+      page.save_screenshot(Rails.root.join("tmp/screenshots/market-polish/readability-#{width}.png"))
+      assert page.evaluate_script(<<~JS), "prices fit on one line at #{width}px"
+        Array.from(document.querySelectorAll('.fantasy-market-price-cell')).every(el => {
+          const range = document.createRange(); range.selectNodeContents(el)
+          return range.getClientRects().length === 1 && el.getBoundingClientRect().right <= el.closest('td').getBoundingClientRect().right
+        })
+      JS
+      assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, width
+      if width <= 600
+        assert_selector ".market-mobile-holding", text: "27× LONG"
+        assert_no_selector ".market-position-cell"
+        assert_no_selector ".market-trade-cell"
+        assert page.evaluate_script("Array.from(document.querySelectorAll('.fantasy-market-table tbody tr')).every(el => el.getBoundingClientRect().height <= 80)"), "compact rows at #{width}px"
+        assert_operator page.evaluate_script("document.querySelector('.fantasy-market-table').getBoundingClientRect().top"), :<, 320
+        within driver_row do
+          find("button[aria-label='Trade Charles Leclerc']").click
+          assert_button "Long", disabled: true
+          assert_button "Short", disabled: false
+          assert_text "Long needs 243.16 credits"
+        end
+      else
+        assert_no_selector ".market-trade-toggle"
+        assert_selector ".market-position-cell"
+      end
+      assert_no_selector ".fantasy-market-sidebar" if width <= 860
+    end
+  end
+
   test "compact cart and editable quantities fit phones and retain the desktop sidebar" do
-    [320, 390, 1400].each do |width|
+    [320, 390, 440, 600, 601, 768, 860, 861, 1400].each do |width|
       page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: width, height: 1000, deviceScaleFactor: 1, mobile: width < 769)
       visit market_fantasy_stock_portfolio_path(@portfolio)
       wait_for_stimulus "stock-cart", ".stock-market-page"
       if width < 861
         assert_no_selector "#trade-draft"
-        assert_operator page.evaluate_script("document.querySelector('.fantasy-market-sidebar').getBoundingClientRect().height"), :<, 90
+        assert_no_selector ".fantasy-market-sidebar"
       else
         assert_selector "#trade-draft"
         assert_no_selector ".fantasy-cart-toggle"
       end
       page.save_screenshot(Rails.root.join("tmp/screenshots/market-polish/market-#{width}.png"))
       within driver_row do
+        find("button[aria-label='Trade Charles Leclerc']").click if width <= 600
         click_button "Long", exact: true
+      end
+      if width <= 600
+        assert_no_selector ".market-trade-cell"
+        assert_selector "button[aria-label='Review trade for Charles Leclerc']"
       end
       click_button "Review", exact: false if width < 861
       assert_selector "#trade-draft", text: "Charles Leclerc · Long"
@@ -48,7 +90,53 @@ class MarketPolishTest < ApplicationSystemTestCase
       within "#trade-draft" do
         click_button "Clear", exact: true
       end
+      assert_no_selector ".fantasy-market-sidebar" if width <= 860
     end
+  end
+
+  test "phone trade disclosures work with keyboard and the draft stays above the footer" do
+    page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: 440, height: 956, deviceScaleFactor: 1, mobile: true)
+    visit market_fantasy_stock_portfolio_path(@portfolio)
+    wait_for_stimulus "stock-cart", ".stock-market-page"
+    find("button[aria-label='Trade Max Verstappen']").click
+    assert_selector ".trade-options-open", count: 1
+    find("button[aria-label='Trade Charles Leclerc']").click
+    assert_selector ".trade-options-open", count: 1
+    find(".trade-options-open .stock-trade-buy").send_keys(:escape)
+    assert_no_selector ".trade-options-open"
+    assert_equal "Trade Charles Leclerc", page.evaluate_script("document.activeElement.getAttribute('aria-label')")
+    find("button[aria-label='Trade Charles Leclerc']").send_keys(:enter)
+    within(driver_row) { click_button "Long", exact: true }
+    assert_selector ".fantasy-cart-toggle", text: "1 trade"
+    assert_no_selector "#trade-draft"
+    page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+    assert page.evaluate_script(<<~JS), "review bar is reachable over the footer"
+      (() => {
+        const button = document.querySelector('.fantasy-cart-toggle')
+        const rect = button.getBoundingClientRect()
+        return button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2))
+      })()
+    JS
+    find(".fantasy-cart-toggle").click
+    assert_selector "#trade-draft", text: "Charles Leclerc · Long"
+    page.save_screenshot(Rails.root.join("tmp/screenshots/market-polish/footer-cart-440.png"))
+    within("#trade-draft") { find("button[aria-label='Remove Charles Leclerc']").click }
+    assert_no_selector ".fantasy-market-sidebar"
+    assert_match "Trade", page.evaluate_script("document.activeElement.getAttribute('aria-label')")
+
+    find("button[aria-label='Trade Charles Leclerc']").click
+    within(driver_row) { click_button "Short", exact: true }
+    page.refresh
+    assert_selector ".fantasy-cart-toggle", text: "1 trade"
+    find("button[aria-label='Review trade for Charles Leclerc']").click
+    assert_selector "#trade-draft", text: "Charles Leclerc · Short"
+    assert_equal "Quantity for Charles Leclerc", page.evaluate_script("document.activeElement.getAttribute('aria-label')")
+    @race.update!(date: Date.yesterday)
+    page.refresh
+    assert_text "Market closed"
+    assert_no_selector ".market-trade-toggle"
+    assert_no_selector ".fantasy-market-sidebar"
+    assert_selector ".market-mobile-holding", text: "5× LONG"
   end
 
   test "draft survives a driver round trip and refresh with current prices" do

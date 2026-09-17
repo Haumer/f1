@@ -103,3 +103,19 @@ Browser coverage: `picks_polish_test.rb` checks a 22-driver fixture grid at 320,
 failure, reordering/undo, optional positions and deadline expiry. Preview images
 under `tmp/screenshots/picks-polish/` contain fixture data, not real race picks.
 The combined personal post-race recap remains a later improvement.
+
+## Market readability correction (2026-09-17)
+
+- Phone rows (up to 600px) use driver, non-wrapping price and a 44px-high Trade
+  disclosure. Holdings sit under the name instead of occupying another column.
+  Only one driver's Long/Short options are expanded at a time; quantity editing
+  remains in the draft. Desktop retains its full table, steppers and sidebar.
+- The mobile review bar is absent until there is a draft, disappears after
+  clearing/removing the last trade, and stays above the footer when present.
+- The phone market status is compact; the cutoff explanation lives in How to
+  trade. The exact local deadline, credits and position count remain visible.
+- An unaffordable Long is disabled even when Short margin is affordable. Trade
+  services, pricing and confirmation checks are unchanged.
+- Browser coverage includes two-decimal prices, 27-share holdings and 146.33
+  available credits at 320–1400px, individual price line count, row height,
+  disclosures, keyboard focus, empty/restored drafts and footer hit testing.

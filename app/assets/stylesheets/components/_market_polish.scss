@@ -5,8 +5,15 @@
     time, small { font-size: 12px; font-weight: normal; color: $text-secondary; }
 }
 
+@media (max-width: 860px) {
+    // Keep the fixed draft above the footer's sibling stacking context.
+    .container.stock-market-container { z-index: 2; }
+}
+
 .stock-market-page {
     [hidden] { display: none !important; }
+    .market-mobile-action, .market-mobile-holding, .market-trade-hint { display: none; }
+    .fantasy-market-price-cell, .stock-direction-badge { white-space: nowrap; }
     .market-trade-heading { width: 250px; }
     .market-intro { margin: 0 0 16px; font-size: 13px; color: $text-secondary; summary { cursor: pointer; padding: 12px 0; } p { max-width: 640px; } }
     .stock-trade-btn { min-height: 36px; }
@@ -46,7 +53,7 @@
     }
 
     @media (max-width: 860px) {
-        padding-bottom: 90px;
+        &.has-trade-draft { padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
         .fantasy-market-main { padding-bottom: 0; }
         .fantasy-market-sidebar { display: flex; flex-direction: column-reverse; padding: 0 8px env(safe-area-inset-bottom, 0px); background: $bg-page; }
         .fantasy-cart-toggle {
@@ -69,23 +76,55 @@
     }
 
     @media (max-width: 600px) {
-        .fantasy-dashboard-header { flex-wrap: nowrap; align-items: center; }
+        .fantasy-dashboard-header { flex-wrap: nowrap; align-items: center; margin-bottom: 16px; }
         .fantasy-dashboard-title { flex: 1; }
         .fantasy-header-actions { width: auto; flex: none; }
+        .fantasy-transfer-status {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 6px 8px;
+            padding: 10px 12px;
+            margin-bottom: 0;
+            > i { align-self: start; margin-top: 3px; }
+            .action-deadline { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+            .action-deadline small { display: none; } // Exact cutoff rule remains in How to trade.
+            .fantasy-swaps-remaining { grid-column: 2; margin: 0; color: $text-secondary; opacity: 1; }
+        }
+        .market-intro { margin-bottom: 4px; summary { min-height: 44px; } }
         .fantasy-market-table {
-            thead tr, tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) 65px 58px; align-items: center; }
-            .market-trade-heading { display: none; }
-            td, th { min-width: 0; padding: 8px; }
-            .market-trade-cell { grid-column: 1 / -1; padding-top: 0; }
+            thead tr, tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: center; }
+            thead tr:has(.market-mobile-action), tbody tr:has(.market-mobile-action) { grid-template-columns: minmax(0, 1fr) max-content 72px; }
+            .market-trade-heading, .market-position-cell { display: none; }
+            td, th { min-width: 0; padding: 8px 6px; }
+            td:first-child, th:first-child { padding-left: 10px; }
+            .market-mobile-action { display: block; text-align: center; }
+            .market-trade-cell { display: none; grid-column: 1 / -1; padding: 0 10px 10px; }
+            .trade-options-open .market-trade-cell { display: block; }
+            .trade-options-open { background: $bg-surface; }
             tbody tr { border-bottom: 1px solid $border-color; }
             td { border: 0; }
         }
-        .stock-trade-actions { justify-content: flex-end; gap: 8px; }
-        .stock-qty-stepper { height: 44px; margin-right: auto; }
-        .stock-qty-btn { width: 36px; }
-        .stock-trade-btn { padding: 8px; font-size: 12px; }
+        .market-trade-toggle {
+            width: 60px; min-height: 44px; padding: 6px 0;
+            border: 1px solid $border-accent; border-radius: $radius-sm;
+            background: transparent; color: $text-primary; font-size: 12px; font-weight: 600;
+            &[aria-expanded="true"] { border-color: var(--page-accent, $accent-red); color: var(--page-accent, $accent-red); }
+        }
+        .in-cart .market-trade-toggle { color: var(--page-accent, $accent-red); }
+        .stock-trade-actions { justify-content: flex-end; flex-wrap: nowrap; gap: 8px; }
+        .stock-trade-actions .slot-hidden, .stock-qty-stepper, .stock-cost-preview { display: none; }
+        .stock-trade-btn { flex: 1; justify-content: center; padding: 8px; font-size: 13px; }
+        .market-trade-hint { display: block; margin-top: 6px; color: $text-secondary; font-size: 12px; text-align: left; }
         .fantasy-market-driver-name { font-size: 13px; img { display: none; } }
-        .fantasy-market-driver-link { white-space: normal; }
+        .fantasy-market-driver-name a { white-space: normal; overflow-wrap: normal; }
+        .fantasy-market-driver-info { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 1px 6px; }
+        .fantasy-market-driver-name { flex-basis: 100%; }
+        .market-mobile-holding { display: inline-flex; padding: 0; font-size: 10px; background: transparent; }
+        .fantasy-market-row--owned > td:first-child { box-shadow: none; }
+    }
+
+    @media (max-width: 360px) {
+        .fantasy-market-driver-name .nationality-flag { display: none; }
     }
 }
 
