@@ -1522,15 +1522,21 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .leaderboard-preview-name {
   font-weight: $weight-semi;
   font-size: $type-small;
   color: $text-primary;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .leaderboard-preview-you {
+  flex-shrink: 0;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1614,7 +1620,7 @@
   font-weight: $weight-bold;
   text-transform: uppercase;
   letter-spacing: $ls-label;
-  color: $text-tertiary;
+  color: $text-secondary;
   white-space: nowrap;
 
   i {
@@ -1635,6 +1641,7 @@
   gap: 20px;
   flex-wrap: wrap;
   flex: 1;
+  min-width: 0;
 }
 
 .activity-stat {
@@ -1642,6 +1649,7 @@
   align-items: baseline;
   gap: 6px;
   color: $text-secondary;
+  min-width: 0;
 
   i {
     color: $text-tertiary;
@@ -1658,13 +1666,13 @@
 }
 
 .activity-stat-label {
-  color: $text-tertiary;
-  white-space: nowrap;
+  color: $text-secondary;
+  overflow-wrap: anywhere;
 }
 
 .activity-strip-link {
   margin-left: auto;
-  color: $text-tertiary;
+  color: $text-secondary;
   font-size: $type-small;
   font-weight: $weight-bold;
   white-space: nowrap;
@@ -1931,6 +1939,15 @@
     gap: 8px;
   }
 
+  .latest-result-label {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    white-space: normal;
+  }
+
+  .latest-result-circuit { overflow-wrap: anywhere; }
+
   // `flex: 1` gives the podium a 0% basis, so it always "fits" the first row and
   // never wraps — the nowrap label and Results link take the row and squeeze it
   // to ~11px, hiding all three drivers behind a sliver of scroll. Give it a full
@@ -1946,16 +1963,26 @@
   }
 
   .activity-strip {
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 8px;
+    padding: 6px 12px 12px;
+
+    .activity-strip-label { font-size: 11px; letter-spacing: 0.03em; }
 
     .activity-strip-stats {
-      gap: 12px;
-      row-gap: 6px;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      gap: 6px 16px;
+      align-items: start;
     }
 
     .activity-strip-link {
+      grid-column: 2;
+      grid-row: 1;
       margin-left: 0;
+      min-height: 44px;
+      font-size: 11px;
     }
   }
 

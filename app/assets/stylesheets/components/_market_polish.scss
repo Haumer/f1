@@ -5,7 +5,7 @@
     time, small { font-size: 12px; font-weight: normal; color: $text-secondary; }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1199px) {
     // Keep the fixed draft above the footer's sibling stacking context.
     .container.stock-market-container { z-index: 2; }
 }
@@ -52,7 +52,7 @@
         dd { color: $text-secondary; margin-top: 6px; }
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 1199px) {
         &.has-trade-draft { padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
         .fantasy-market-main { padding-bottom: 0; }
         .fantasy-market-sidebar { display: flex; flex-direction: column-reverse; padding: 0 8px env(safe-area-inset-bottom, 0px); background: $bg-page; }
@@ -75,7 +75,7 @@
         .stock-trade-btn { min-height: 44px; }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 767px) {
         .fantasy-dashboard-header { flex-wrap: nowrap; align-items: center; margin-bottom: 16px; }
         .fantasy-dashboard-title { flex: 1; }
         .fantasy-header-actions { width: auto; flex: none; }

@@ -98,6 +98,17 @@
         border: 1px solid currentColor;
         vertical-align: middle;
     }
+
+    @media (max-width: 767px) {
+        table-layout: fixed;
+        th, td { padding: 12px 10px; }
+        .fantasy-activity-change { width: 105px; white-space: normal; overflow-wrap: anywhere; }
+        .fantasy-activity-credits { display: block; margin: 0; }
+        .fantasy-txn-kind { display: inline-block; }
+        .fantasy-activity-mobile-subject { display: block; margin-top: 6px; font-size: 12px; overflow-wrap: anywhere; }
+        .fantasy-activity-mobile-time { display: block; margin-top: 4px; font-size: 11px; color: $text-secondary; }
+        .fantasy-activity-tier { margin-top: 4px; }
+    }
 }
 
 // Achievement badge variant — slightly different to avoid feeling identical to cards
@@ -262,6 +273,29 @@
 
     // Constrain the rank column so long player names get the horizontal space.
     .position-cell { width: 40px; }
+
+    &--combined {
+        @media (max-width: 1199px) {
+            table-layout: fixed;
+            th, td { padding: 10px 6px; }
+            th:first-child, .position-cell { width: 30px; }
+            th:nth-child(3) { width: 64px; }
+            th:nth-child(4), .fantasy-leaderboard-value { width: 96px; }
+            th:nth-child(5) { width: 76px; }
+            th:nth-child(6) { width: 70px; }
+            th:nth-child(7) { width: 96px; }
+            .leaderboard-player { display: flex; flex-wrap: wrap; gap: 4px; }
+            .leaderboard-player-name { flex: 1; }
+            .fantasy-you-badge { margin-left: 0; }
+            .leaderboard-last-race-inline { white-space: normal; }
+        }
+        @media (max-width: 575px) {
+            .leaderboard-player { display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: start; }
+            .leaderboard-team-logo, .leaderboard-team-placeholder { width: 20px; }
+            .leaderboard-player-name { white-space: normal; overflow-wrap: anywhere; }
+            .fantasy-you-badge { grid-column: 2; justify-self: start; }
+        }
+    }
 }
 
 .fantasy-leaderboard-me {

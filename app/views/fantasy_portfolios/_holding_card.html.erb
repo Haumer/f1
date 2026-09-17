@@ -45,9 +45,9 @@
                     <% if holding.quantity > 1 %>
                         <div class="sell-qty-row">
                             <div class="stock-qty-stepper sell-qty-stepper">
-                                <button type="button" class="stock-qty-btn" data-sell-qty-target="minus" data-action="click->sell-qty#decrement">&minus;</button>
-                                <input type="number" min="1" max="<%= holding.quantity %>" value="<%= holding.quantity %>" class="stock-qty-input" data-sell-qty-target="input" readonly>
-                                <button type="button" class="stock-qty-btn" data-sell-qty-target="plus" data-action="click->sell-qty#increment">+</button>
+                                <button type="button" class="stock-qty-btn" aria-label="Decrease quantity for <%= holding.driver.fullname %>" data-sell-qty-target="minus" data-action="click->sell-qty#decrement">&minus;</button>
+                                <input type="number" min="1" max="<%= holding.quantity %>" value="<%= holding.quantity %>" class="stock-qty-input" aria-label="Quantity to <%= sell_label.downcase %> for <%= holding.driver.fullname %>" data-sell-qty-target="input" readonly>
+                                <button type="button" class="stock-qty-btn" aria-label="Increase quantity for <%= holding.driver.fullname %>" data-sell-qty-target="plus" data-action="click->sell-qty#increment">+</button>
                             </div>
                             <%= submit_tag "#{sell_label} All", class: "fantasy-btn fantasy-btn-danger fantasy-btn-sm",
                                 data: { sell_qty_target: "submit", label: sell_label, driver_name: holding.driver.fullname,

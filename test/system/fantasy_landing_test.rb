@@ -12,7 +12,7 @@ class FantasyLandingTest < ApplicationSystemTestCase
   end
 
   test "fantasy landing remains usable on a phone" do
-    page.current_window.resize_to(390, 844)
+    viewport(390, height: 844)
     visit fantasy_home_path
 
     assert_selector ".fantasy-landing-hero"

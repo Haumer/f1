@@ -22,7 +22,7 @@
     <% if @entries.any? %>
         <div class="card card-flush">
             <div class="table-scroll-wrapper">
-                <table class="fantasy-leaderboard-table">
+                <table class="fantasy-leaderboard-table fantasy-leaderboard-table--combined">
                     <thead>
                         <tr>
                             <th class="text-center">#</th>
@@ -70,7 +70,7 @@
                                     </span>
                                     <% if last_race != 0 %>
                                         <span class="leaderboard-last-race-inline d-sm-none <%= last_race >= 0 ? 'text-green' : 'text-red' %>">
-                                            <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %> last race
+                                            <%= last_race >= 0 ? '+' : '' %><%= number_with_delimiter(last_race.round(0)) %> <span class="text-nowrap">last race</span>
                                         </span>
                                     <% end %>
                                 </td>

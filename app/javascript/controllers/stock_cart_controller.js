@@ -14,8 +14,9 @@ export default class extends Controller {
       id: card.dataset.driverId, name: card.dataset.driverName, price: Number(card.dataset.driverPrice),
       owned: JSON.parse(card.dataset.driverOwned || "[]")
     }]))
-    this.mobile = window.matchMedia("(max-width: 860px)")
-    this.compactRows = window.matchMedia("(max-width: 600px)")
+    // Keep these in sync with the market layout/row breakpoints in Sass.
+    this.mobile = window.matchMedia("(max-width: 1199px)")
+    this.compactRows = window.matchMedia("(max-width: 767px)")
     this.expanded = false
     this.onResize = () => { this.collapseTrades(); this.renderDrawer() }
     this.mobile.addEventListener("change", this.onResize)

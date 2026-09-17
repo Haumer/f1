@@ -17,6 +17,7 @@
 }
 
 .circuit-kings-list {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -71,5 +72,16 @@
     &[data-tooltip]:hover::after {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 768px) {
+        // Anchor the tooltip to the chip group, not a chip at the screen edge.
+        // Even an opacity-zero absolute tooltip contributes to scroll overflow.
+        position: static;
+        &[data-tooltip]::after {
+            width: max-content;
+            max-width: 100%;
+            white-space: normal;
+        }
     }
 }

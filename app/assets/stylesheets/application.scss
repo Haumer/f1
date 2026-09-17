@@ -356,6 +356,10 @@ th[data-sort] {
     &.compact {
         font-size: 13px;
         td, th { padding: 5px 8px; }
+        @media (max-width: 767px) {
+            .name-cell { white-space: normal; }
+            .name-cell a { overflow-wrap: anywhere; }
+        }
         @media (max-width: 480px) {
             font-size: 12px;
             td, th { padding: 4px 6px; }

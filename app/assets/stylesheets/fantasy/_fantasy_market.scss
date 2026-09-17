@@ -12,7 +12,7 @@
     gap: $space-lg;
     align-items: start;
 
-    @media (max-width: 860px) {
+    @media (max-width: 1199px) {
         grid-template-columns: 1fr;
     }
 }
@@ -21,7 +21,7 @@
     position: sticky;
     top: 120px; // below navbar + sticky header
 
-    @media (max-width: 860px) {
+    @media (max-width: 1199px) {
         position: fixed;
         bottom: 0;
         left: 0;
@@ -44,7 +44,7 @@
 .fantasy-market-main {
     min-width: 0;
 
-    @media (max-width: 860px) {
+    @media (max-width: 1199px) {
         padding-bottom: 160px; // space for fixed cart panel
     }
 }
@@ -270,7 +270,7 @@
         color: $text-secondary;
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 1199px) {
         flex-direction: row;
         padding: $space-xs 0;
         gap: $space-sm;
@@ -284,7 +284,7 @@
     font-size: 11px;
     color: $text-tertiary;
 
-    @media (max-width: 860px) { display: none; }
+    @media (max-width: 1199px) { display: none; }
 }
 
 // Filled state
@@ -293,7 +293,7 @@
     flex-direction: column;
     gap: $space-sm;
 
-    @media (max-width: 860px) {
+    @media (max-width: 1199px) {
         [data-fantasy-cart-target="cartList"] {
             max-height: 120px;
             overflow-y: auto;
@@ -478,7 +478,7 @@
     }
 
     .stock-trade-actions {
-        @media (max-width: 860px) {
+        @media (max-width: 1199px) {
             .stock-qty-stepper { display: none; }
             .stock-cost-preview { display: none; }
 
