@@ -64,8 +64,10 @@ class DriverChartTest < ApplicationSystemTestCase
   private
 
   def wait_for_chart
-    assert_selector ".driver-chart-full [_echarts_instance_] canvas"
-    Selenium::WebDriver::Wait.new(timeout: Capybara.default_max_wait_time).until do
+    # ECharts initializes after the page's load event. Give slower CI runners
+    # time to finish loading; keep all chart geometry and marker checks intact.
+    assert_selector ".driver-chart-full [_echarts_instance_] canvas", wait: 10
+    Selenium::WebDriver::Wait.new(timeout: 10).until do
       chart_value("chart.getOption().series.length > 0")
     end
     # Capture the final line and markers, not an intermediate animation frame.
