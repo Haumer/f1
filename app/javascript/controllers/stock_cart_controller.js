@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["card", "cartEmpty", "cartItems", "cartList", "cartTotal", "cartCount",
-    "cartRemaining", "confirmBtn", "drawer", "toggle", "status", "mobileSummary", "form", "cashSpent", "margin"]
+    "cartRemaining", "confirmBtn", "drawer", "toggle", "status", "mobileSummary", "form", "cashSpent", "margin", "sidebar"]
   static values = { cash: Number, maxPositions: Number, usedPositions: Number, portfolio: String,
     race: String, closesAt: String, open: Boolean, collateral: Number, quoteUrl: String }
 
@@ -15,9 +15,11 @@ export default class extends Controller {
       owned: JSON.parse(card.dataset.driverOwned || "[]")
     }]))
     this.mobile = window.matchMedia("(max-width: 860px)")
+    this.compactRows = window.matchMedia("(max-width: 600px)")
     this.expanded = false
-    this.onResize = () => this.renderDrawer()
+    this.onResize = () => { this.collapseTrades(); this.renderDrawer() }
     this.mobile.addEventListener("change", this.onResize)
+    this.compactRows.addEventListener("change", this.onResize)
     this.restore()
     this.update()
     this.timer = setInterval(() => {
@@ -32,6 +34,7 @@ export default class extends Controller {
   disconnect() {
     clearInterval(this.timer)
     this.mobile.removeEventListener("change", this.onResize)
+    this.compactRows.removeEventListener("change", this.onResize)
     this.request?.abort()
   }
 
@@ -87,10 +90,15 @@ export default class extends Controller {
     const card = event.currentTarget.closest("[data-driver-id]")
     const quote = this.quotes.get(card.dataset.driverId)
     if (!quote || !this.allowed(quote, direction) || this.cart.some(d => d.id === String(quote.id))) return
-    const quantity = Math.max(1, Number(card.querySelector(".stock-qty-input")?.value) || 1)
+    const quantity = this.compactRows.matches ? 1 : Math.max(1, Number(card.querySelector(".stock-qty-input")?.value) || 1)
     this.cart.push({ ...quote, id: String(quote.id), direction, quantity })
+    if (this.compactRows.matches) this.expanded = false
     this.message(`${quote.name} added ${direction}. Review your draft to change quantity or submit.`)
     this.update()
+    if (this.compactRows.matches) {
+      this.collapseTrades()
+      card.querySelector(".market-trade-toggle").focus({ preventScroll: true })
+    }
   }
 
   remove(event) {
@@ -115,18 +123,54 @@ export default class extends Controller {
     this.message("Draft cleared. No trades submitted.")
     this.update()
   }
+  toggleTrade(event) {
+    const card = event.currentTarget.closest("[data-driver-id]")
+    if (this.cart.some(d => d.id === card.dataset.driverId)) {
+      this.expanded = true
+      this.renderDrawer()
+      this.drawerTarget.querySelector(`input[data-driver-id="${card.dataset.driverId}"]`)?.focus({ preventScroll: true })
+      return
+    }
+    const expand = !card.classList.contains("trade-options-open")
+    this.collapseTrades()
+    card.classList.toggle("trade-options-open", expand)
+    event.currentTarget.setAttribute("aria-expanded", String(expand))
+  }
+  collapseTrades() {
+    this.cardTargets.forEach(card => {
+      card.classList.remove("trade-options-open")
+      card.querySelector(".market-trade-toggle")?.setAttribute("aria-expanded", "false")
+    })
+  }
   toggle() { this.expanded = !this.expanded; this.renderDrawer() }
   close(event) {
+    if (event.key === "Escape" && this.compactRows.matches) {
+      const card = this.element.querySelector(".trade-options-open")
+      if (card) { this.collapseTrades(); card.querySelector(".market-trade-toggle").focus(); return }
+    }
     if (event.key !== "Escape" || !this.mobile.matches || !this.expanded) return
     this.expanded = false
     this.renderDrawer()
     this.toggleTarget.focus()
   }
   renderDrawer() {
+    const hadFocus = this.sidebarTarget.contains(document.activeElement)
+    const empty = !this.cart.length
+    if (empty) this.expanded = false
+    this.sidebarTarget.hidden = this.mobile.matches && empty
+    this.element.classList.toggle("has-trade-draft", !empty)
     const visible = !this.mobile.matches || this.expanded
     this.drawerTarget.hidden = !visible
     this.toggleTarget.setAttribute("aria-expanded", String(visible))
+    this.cardTargets.filter(card => card.classList.contains("in-cart")).forEach(card => {
+      card.querySelector(".market-trade-toggle")?.setAttribute("aria-expanded", String(visible))
+    })
     this.toggleTarget.querySelector(".cart-review-label").textContent = this.expanded ? "Close" : "Review"
+    if (this.sidebarTarget.hidden && hadFocus) this.focusTradeButton()
+  }
+  focusTradeButton() {
+    const selector = this.compactRows.matches ? ".market-trade-toggle" : ".stock-trade-btn:not(:disabled)"
+    this.element.querySelector(selector)?.focus({ preventScroll: true })
   }
 
   async confirm(event) {
@@ -189,6 +233,8 @@ export default class extends Controller {
   get valid() { return this.cart.length > 0 && !this.validationMessage }
 
   update(renderItems = true) {
+    // Capture focus before replacing/removing the last focused cart item.
+    const returnFocus = this.mobile.matches && !this.cart.length && this.sidebarTarget.contains(document.activeElement)
     const totals = this.totals
     this.cartEmptyTarget.hidden = this.cart.length > 0
     this.cartItemsTarget.hidden = this.cart.length === 0
@@ -236,11 +282,21 @@ export default class extends Controller {
     this.cardTargets.forEach(card => {
       const inCart = this.cart.some(d => d.id === card.dataset.driverId)
       card.classList.toggle("in-cart", inCart)
+      const toggle = card.querySelector(".market-trade-toggle")
+      if (toggle) {
+        toggle.textContent = inCart ? "In draft" : "Trade"
+        toggle.setAttribute("aria-label", `${inCart ? "Review trade for" : "Trade"} ${card.dataset.driverName}`)
+        toggle.setAttribute("aria-controls", inCart ? "trade-draft" : `trade-options-${card.dataset.driverId}`)
+      }
       card.querySelectorAll(".stock-trade-btn").forEach(button => {
-        button.disabled = inCart || this.isClosed || button.classList.contains("slot-hidden")
+        const quote = this.quotes.get(card.dataset.driverId)
+        const quantity = this.compactRows.matches ? 1 : Math.max(1, Number(card.querySelector(".stock-qty-input")?.value) || 1)
+        const cost = (quote?.price || 0) * quantity * (button.dataset.tradeDirection === "short" ? this.collateralValue : 1)
+        button.disabled = inCart || this.isClosed || button.classList.contains("slot-hidden") || cost > this.cashValue
       })
     })
     this.save()
     this.renderDrawer()
+    if (returnFocus) this.focusTradeButton()
   }
 }
