@@ -37,7 +37,8 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
 
   def wait_for_stimulus(identifier, selector)
-    Selenium::WebDriver::Wait.new(timeout: Capybara.default_max_wait_time).until do
+    # Importmap modules can connect after the DOM arrives on shared CI runners.
+    Selenium::WebDriver::Wait.new(timeout: 10).until do
       page.evaluate_script(<<~JS)
         (() => {
           const element = document.querySelector(#{selector.to_json})

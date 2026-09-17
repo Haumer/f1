@@ -148,8 +148,11 @@ class LayoutRegressionTest < ApplicationSystemTestCase
   private
 
   def assert_page_fits(width)
-    assert_equal width, page.evaluate_script("document.documentElement.clientWidth"), "actual layout viewport"
-    assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, width
+    # innerWidth includes Linux's scrollbar; clientWidth is the space content
+    # must actually fit. macOS overlay scrollbars do not reserve those pixels.
+    assert_equal width, page.evaluate_script("window.innerWidth"), "actual emulated viewport"
+    assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=,
+                    page.evaluate_script("document.documentElement.clientWidth")
   end
 
   def assert_tables_fit(width)
