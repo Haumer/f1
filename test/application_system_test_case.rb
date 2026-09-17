@@ -10,10 +10,19 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
 
   setup do
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
     page.current_window.resize_to(1400, 1400)
   end
 
+  teardown do
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
+  end
+
   private
+
+  def viewport(width, height: 956)
+    page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: width, height: height, deviceScaleFactor: 1, mobile: width < 769)
+  end
 
   def sign_in_as(user)
     visit new_user_session_path
@@ -28,7 +37,8 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
 
   def wait_for_stimulus(identifier, selector)
-    Selenium::WebDriver::Wait.new(timeout: Capybara.default_max_wait_time).until do
+    # Importmap modules can connect after the DOM arrives on shared CI runners.
+    Selenium::WebDriver::Wait.new(timeout: 10).until do
       page.evaluate_script(<<~JS)
         (() => {
           const element = document.querySelector(#{selector.to_json})

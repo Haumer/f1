@@ -21,6 +21,7 @@
 
     .dc-page-title {
         font-size: 26px; font-weight: 800; margin: 0 0 4px;
+        overflow-wrap: anywhere;
     }
     .dc-page-sub {
         font-size: 13px; color: #888; margin: 0 0 24px;
@@ -59,6 +60,7 @@
     }
     .breakdown {
         display: flex; gap: 10px;
+        flex-wrap: wrap;
         font-size: 11px; font-weight: 700;
         font-variant-numeric: tabular-nums;
         color: rgba(255, 255, 255, 0.7);
@@ -784,11 +786,8 @@
 // the next grid row.
 .dc-grid .dc-stack-tile { margin-bottom: 36px; }
 
-// ───── Mobile: shrink the /cards grid to two roomy columns ─────
-// Below 600px viewport, `auto-fit minmax(240px, 1fr)` falls to one column and
-// stretches each card to full screen width — wastes vertical space and breaks
-// the card aspect. Two columns at 160×224 keeps cards readable and lets a
-// user see ~4 at a glance.
+// A deck includes the fanned cards, not just the 160px front face.
+// Fit a second deck only when both complete stacks have room.
 @media (max-width: 600px) {
     .dc-collection {
         --card-w: 160px;
@@ -796,7 +795,7 @@
         padding: 12px 0 60px;
     }
     .dc-grid {
-        grid-template-columns: repeat(2, var(--card-w));
+        grid-template-columns: repeat(auto-fit, 196px);
         justify-content: center;
         gap: 24px 14px;
     }
@@ -1138,7 +1137,7 @@
     .dc-tier-group[data-slot="behind-2"] {
         transform: translate3d(34px, 14px, -80px) rotateY(-20deg) rotateZ(3deg);
     }
-    .dc-tier-pill { padding: 6px 11px; font-size: 11px; }
+    .dc-tier-pill { padding: 6px 11px; font-size: 11px; min-height: 44px; }
     .dc-combine-pill { padding: 8px 14px; font-size: 11px; }
 }
 

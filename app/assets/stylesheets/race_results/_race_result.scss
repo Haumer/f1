@@ -26,6 +26,21 @@ table.race-results--tabbed {
     .col-name { white-space: normal; overflow: visible; }
     .col-data { width: 80px; }
     .col-elo { width: 90px; }
+
+    @media (min-width: 992px) and (max-width: 1199px) {
+        td, th { padding-left: 8px; padding-right: 8px; }
+    }
+
+    @media (max-width: 991px) {
+        // Compact padding/columns while retaining automatic sizing for expanded rows.
+        td, th { padding-left: 6px; padding-right: 6px; }
+        th { white-space: normal; }
+        .col-pos { width: 48px; padding-left: 0; padding-right: 0; }
+        .col-flag { width: 30px; }
+        .col-logo { width: 42px; }
+        .col-name { overflow-wrap: anywhere; }
+        .col-elo { width: 62px; }
+    }
 }
 
 // Podium highlighting on race results

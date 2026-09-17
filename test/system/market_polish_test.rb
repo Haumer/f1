@@ -27,7 +27,7 @@ class MarketPolishTest < ApplicationSystemTestCase
     fantasy_stock_holdings(:codex_ver_long).update!(quantity: 27)
     drivers(:verstappen).update!(elo_v2: 2470.3)
     @driver.update!(elo_v2: 2431.6)
-    [320, 390, 440, 600, 601, 768, 860, 861, 1024, 1400].each do |width|
+    [320, 390, 440, 600, 601, 767, 768, 860, 861, 1024, 1199, 1200, 1400].each do |width|
       page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: width, height: 956, deviceScaleFactor: 1, mobile: width <= 860)
       visit market_fantasy_stock_portfolio_path(@portfolio)
       wait_for_stimulus "stock-cart", ".stock-market-page"
@@ -39,7 +39,8 @@ class MarketPolishTest < ApplicationSystemTestCase
         })
       JS
       assert_operator page.evaluate_script("document.documentElement.scrollWidth"), :<=, width
-      if width <= 600
+      assert page.evaluate_script("Array.from(document.querySelectorAll('.table-scroll-wrapper')).every(el => el.scrollWidth <= el.clientWidth + 1)"), "entire market table fits at #{width}px"
+      if width <= 767
         assert_selector ".market-mobile-holding", text: "27× LONG"
         assert_no_selector ".market-position-cell"
         assert_no_selector ".market-trade-cell"
@@ -55,16 +56,16 @@ class MarketPolishTest < ApplicationSystemTestCase
         assert_no_selector ".market-trade-toggle"
         assert_selector ".market-position-cell"
       end
-      assert_no_selector ".fantasy-market-sidebar" if width <= 860
+      assert_no_selector ".fantasy-market-sidebar" if width <= 1199
     end
   end
 
   test "compact cart and editable quantities fit phones and retain the desktop sidebar" do
-    [320, 390, 440, 600, 601, 768, 860, 861, 1400].each do |width|
+    [320, 390, 440, 600, 601, 767, 768, 860, 861, 1024, 1199, 1200, 1400].each do |width|
       page.driver.browser.execute_cdp("Emulation.setDeviceMetricsOverride", width: width, height: 1000, deviceScaleFactor: 1, mobile: width < 769)
       visit market_fantasy_stock_portfolio_path(@portfolio)
       wait_for_stimulus "stock-cart", ".stock-market-page"
-      if width < 861
+      if width < 1200
         assert_no_selector "#trade-draft"
         assert_no_selector ".fantasy-market-sidebar"
       else
@@ -73,14 +74,14 @@ class MarketPolishTest < ApplicationSystemTestCase
       end
       page.save_screenshot(Rails.root.join("tmp/screenshots/market-polish/market-#{width}.png"))
       within driver_row do
-        find("button[aria-label='Trade Charles Leclerc']").click if width <= 600
+        find("button[aria-label='Trade Charles Leclerc']").click if width <= 767
         click_button "Long", exact: true
       end
-      if width <= 600
+      if width <= 767
         assert_no_selector ".market-trade-cell"
         assert_selector "button[aria-label='Review trade for Charles Leclerc']"
       end
-      click_button "Review", exact: false if width < 861
+      click_button "Review", exact: false if width < 1200
       assert_selector "#trade-draft", text: "Charles Leclerc · Long"
       within("#trade-draft") { fill_in "Quantity", with: "2" }
       find(".fantasy-cart-header").click
@@ -90,7 +91,7 @@ class MarketPolishTest < ApplicationSystemTestCase
       within "#trade-draft" do
         click_button "Clear", exact: true
       end
-      assert_no_selector ".fantasy-market-sidebar" if width <= 860
+      assert_no_selector ".fantasy-market-sidebar" if width <= 1199
     end
   end
 

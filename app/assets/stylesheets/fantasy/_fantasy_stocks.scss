@@ -193,6 +193,16 @@
     }
 }
 
+@media (max-width: 991px) {
+    .driver-card-action .sell-qty-row { flex-direction: column; align-items: stretch; }
+    .sell-qty-stepper {
+        height: 46px;
+        justify-content: center;
+        .stock-qty-btn { width: 44px; height: 44px; flex-shrink: 0; }
+        .stock-qty-input { width: 30px; font-size: 16px; }
+    }
+}
+
 // Stock-specific transaction kinds
 .fantasy-txn-short_open {
     background: rgba($accent-red, 0.1);

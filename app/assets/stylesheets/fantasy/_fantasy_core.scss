@@ -55,6 +55,7 @@
 
 .fantasy-dashboard-name {
     transition: color $t-fast;
+    overflow-wrap: anywhere;
 }
 
 .fantasy-dashboard-meta {

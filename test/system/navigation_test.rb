@@ -2,7 +2,7 @@ require "application_system_test_case"
 
 class NavigationTest < ApplicationSystemTestCase
   test "signed-in user can reach the tail of the fantasy menu on mobile" do
-    page.current_window.resize_to(390, 844)
+    viewport(390, height: 844)
     sign_in_as users(:codex)
 
     wait_for_stimulus "navbar", ".navbar"
@@ -19,7 +19,7 @@ class NavigationTest < ApplicationSystemTestCase
   end
 
   test "visitor can reach the tail of the history menu on mobile" do
-    page.current_window.resize_to(390, 844)
+    viewport(390, height: 844)
     visit root_path
 
     wait_for_stimulus "navbar", ".navbar"

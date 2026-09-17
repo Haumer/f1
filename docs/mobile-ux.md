@@ -40,7 +40,7 @@ screenshots use the local development database, not production.
 - Race/sprint/qualifying rows have a separate position disclosure below 992px.
   Hidden grid, points, status and qualifying times are available on demand. Detail
   rows stay attached when sorting; desktop columns and driver links are unchanged.
-- The market keeps its desktop sidebar. At 860px and below, a compact review bar
+- The market keeps its desktop sidebar from 1200px. Below that, a compact review bar
   opens an editable trade draft. Long spend and short margin are shown separately.
 - Drafts live in session storage, scoped to the portfolio and race window. They
   survive driver visits and refresh, are discarded when the window changes/closes,
@@ -106,7 +106,7 @@ The combined personal post-race recap remains a later improvement.
 
 ## Market readability correction (2026-09-17)
 
-- Phone rows (up to 600px) use driver, non-wrapping price and a 44px-high Trade
+- Phone rows (up to 767px) use driver, non-wrapping price and a 44px-high Trade
   disclosure. Holdings sit under the name instead of occupying another column.
   Only one driver's Long/Short options are expanded at a time; quantity editing
   remains in the draft. Desktop retains its full table, steppers and sidebar.
@@ -119,3 +119,23 @@ The combined personal post-race recap remains a later improvement.
 - Browser coverage includes two-decimal prices, 27-share holdings and 146.33
   available credits at 320–1400px, individual price line count, row height,
   disclosures, keyboard focus, empty/restored drafts and footer hit testing.
+
+## Visual-audit corrections (2026-09-17)
+
+- The community activity strip has a shared label/link header on phones, with
+  readable counts underneath, including the optional next-race picks statistic.
+- Long usernames and circuit names no longer widen the page. Leaderboard values
+  and race/qualifying columns fit inside their panels, including tablet widths.
+  Full names in compact standings wrap, and circuit-king tooltips stay inside
+  their chip group on phones instead of widening the page even while hidden.
+- Phone activity entries retain driver/race and achievement subjects, timestamps
+  and amounts. Desktop keeps the separate columns.
+- Sell quantity controls have labels and 44px touch targets. Card collections
+  size their columns for the entire fanned deck and use one column when needed.
+- Market breakpoints now match available content width: compact rows below 768px,
+  full-width tables through tablet sizes, and a sidebar from 1200px.
+- `layout_regression_test.rb` checks conditional content, maximum-length usernames,
+  internal table overflow, expanded rows, populated card decks and text contrast.
+  Navigation/landing tests use device emulation, avoiding Chrome's minimum window
+  width. Browser screenshots still require visual review; page-width checks alone
+  do not prove that nested content is visible. No production trades are needed.
