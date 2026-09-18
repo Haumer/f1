@@ -19,6 +19,19 @@ class FantasyStockPortfoliosControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "driver deep links are season scoped and never place an order" do
+    sign_in @user
+    assert_no_difference ["FantasyStockHolding.count", "FantasyStockTransaction.count"] do
+      get market_fantasy_stock_portfolio_path(@portfolio, driver: drivers(:leclerc).id)
+      assert_select ".market-driver-selected[data-driver-id=?]", drivers(:leclerc).id.to_s
+      get market_fantasy_stock_portfolio_path(@portfolio, driver: "not-a-driver")
+      assert_select ".market-driver-selected", count: 0
+      @portfolio.season.season_drivers.where(driver: drivers(:leclerc)).delete_all
+      get market_fantasy_stock_portfolio_path(@portfolio, driver: drivers(:leclerc).id)
+      assert_select ".market-driver-selected", count: 0
+    end
+  end
+
   test "market rules and deadline follow the settlement calculator" do
     sign_in @user
     race = races(:melbourne_2026)

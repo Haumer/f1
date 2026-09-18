@@ -48,9 +48,9 @@ class MarketPolishTest < ApplicationSystemTestCase
         assert_operator page.evaluate_script("document.querySelector('.fantasy-market-table').getBoundingClientRect().top"), :<, 320
         within driver_row do
           find("button[aria-label='Trade Charles Leclerc']").click
-          assert_button "Long", disabled: true
+          assert_button "Buy", disabled: true
           assert_button "Short", disabled: false
-          assert_text "Long needs 243.16 credits"
+          assert_text "Buying needs 243.16 credits"
         end
       else
         assert_no_selector ".market-trade-toggle"
@@ -75,14 +75,13 @@ class MarketPolishTest < ApplicationSystemTestCase
       page.save_screenshot(Rails.root.join("tmp/screenshots/market-polish/market-#{width}.png"))
       within driver_row do
         find("button[aria-label='Trade Charles Leclerc']").click if width <= 767
-        click_button "Long", exact: true
+        click_button "Buy", exact: true
       end
       if width <= 767
         assert_no_selector ".market-trade-cell"
         assert_selector "button[aria-label='Review trade for Charles Leclerc']"
       end
-      click_button "Review", exact: false if width < 1200
-      assert_selector "#trade-draft", text: "Charles Leclerc · Long"
+      assert_selector "#trade-draft", text: "Charles Leclerc · Buy"
       within("#trade-draft") { fill_in "Quantity", with: "2" }
       find(".fantasy-cart-header").click
       assert_equal "2", find("input[name='orders[][quantity]']", visible: false).value
@@ -107,8 +106,10 @@ class MarketPolishTest < ApplicationSystemTestCase
     assert_no_selector ".trade-options-open"
     assert_equal "Trade Charles Leclerc", page.evaluate_script("document.activeElement.getAttribute('aria-label')")
     find("button[aria-label='Trade Charles Leclerc']").send_keys(:enter)
-    within(driver_row) { click_button "Long", exact: true }
+    within(driver_row) { click_button "Buy", exact: true }
     assert_selector ".fantasy-cart-toggle", text: "1 trade"
+    assert_selector "#trade-draft"
+    find(".fantasy-cart-toggle").click
     assert_no_selector "#trade-draft"
     page.execute_script("window.scrollTo(0, document.body.scrollHeight)")
     assert page.evaluate_script(<<~JS), "review bar is reachable over the footer"
@@ -119,7 +120,7 @@ class MarketPolishTest < ApplicationSystemTestCase
       })()
     JS
     find(".fantasy-cart-toggle").click
-    assert_selector "#trade-draft", text: "Charles Leclerc · Long"
+    assert_selector "#trade-draft", text: "Charles Leclerc · Buy"
     page.save_screenshot(Rails.root.join("tmp/screenshots/market-polish/footer-cart-440.png"))
     within("#trade-draft") { find("button[aria-label='Remove Charles Leclerc']").click }
     assert_no_selector ".fantasy-market-sidebar"
@@ -141,11 +142,11 @@ class MarketPolishTest < ApplicationSystemTestCase
   end
 
   test "draft survives a driver round trip and refresh with current prices" do
-    within(driver_row) { click_button "Long", exact: true }
+    within(driver_row) { click_button "Buy", exact: true }
     within(driver_row) { find("a[href='#{driver_path(@driver)}']").click }
     assert_current_path driver_path(@driver)
     page.go_back
-    assert_selector "#trade-draft", text: "Charles Leclerc · Long"
+    assert_selector "#trade-draft", text: "Charles Leclerc · Buy"
     @driver.update!(elo_v2: @driver.elo_v2 + 100)
     page.refresh
     assert_selector ".fantasy-cart-status", text: "Draft restored"
@@ -163,16 +164,16 @@ class MarketPolishTest < ApplicationSystemTestCase
     assert_selector ".fantasy-cart-status", text: "Draft kept"
     assert page.evaluate_script("sessionStorage.getItem('f1elo:stock-cart:#{@portfolio.id}') !== null")
     click_button "Review trades", exact: true
-    click_button "Execute trades", exact: true
+    click_button "Confirm trades", exact: true
     assert_current_path fantasy_overview_path(users(:codex).username)
     assert_text "Opened"
     assert_nil page.evaluate_script("sessionStorage.getItem('f1elo:stock-cart:#{@portfolio.id}')")
   end
 
   test "closed market and unavailable quote never submit a saved draft" do
-    within(driver_row) { click_button "Long", exact: true }
+    within(driver_row) { click_button "Buy", exact: true }
     page.execute_script("window.fetch = async () => { throw new Error('offline') }")
-    click_button "Review trades", exact: true
+    click_button "Review purchase", exact: true
     assert_selector ".fantasy-cart-status", text: "Could not check current prices"
     assert_selector "#trade-draft", text: "Charles Leclerc"
     @race.update!(date: Date.yesterday)

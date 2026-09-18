@@ -14,6 +14,7 @@ class FantasyStockPortfoliosController < ApplicationController
     @can_trade = @next_race && @portfolio.can_trade?(@next_race)
     @holdings_by_driver = @portfolio.active_holdings.group_by(&:driver_id)
     @prices_by_driver = Fantasy::Pricing.prices_for_season(@drivers.map(&:id), @portfolio.season)
+    @selected_driver_id = @drivers.find { |driver| driver.id.to_s == params[:driver].to_s }&.id
     if request.format.json?
       response.headers["Cache-Control"] = "no-store"
       render json: {
@@ -121,7 +122,7 @@ class FantasyStockPortfoliosController < ApplicationController
           errors << "#{driver.fullname}: #{result[:error]}"
           raise ActiveRecord::Rollback
         else
-          bought << "#{qty}x #{driver.fullname} (#{direction})"
+          bought << (direction == "long" ? "Bought #{qty}x #{driver.fullname}" : "Opened short: #{qty}x #{driver.fullname}")
         end
       end
     end
@@ -131,7 +132,7 @@ class FantasyStockPortfoliosController < ApplicationController
     else
       check_stock_achievements(@portfolio)
       flash[:stock_cart_cleared] = @portfolio.id
-      redirect_to fantasy_overview_path(current_user.username), notice: "Opened #{bought.join(', ')}"
+      redirect_to fantasy_overview_path(current_user.username), notice: bought.join(". ")
     end
   end
 

@@ -39,7 +39,7 @@
         </div>
         <div class="fantasy-header-actions">
             <% if @is_owner && @stock_portfolio %>
-                <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" do %>
+                <%= link_to market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn #{@first_purchase ? 'fantasy-btn-outline' : 'fantasy-btn-primary'}" do %>
                     <i class="fa-solid fa-store"></i> Market
                 <% end %>
             <% elsif current_user && !@is_owner %>
@@ -128,11 +128,11 @@
                     sub: "Wear its colours"
                 }
             end
-            unless first_shares_done
+            unless first_shares_done || @first_purchase
                 chips << {
                     key: :first_shares, icon: "store", label: "Buy first shares",
                     done: false, path: market_fantasy_stock_portfolio_path(@stock_portfolio),
-                    sub: "Long or short a driver"
+                    sub: "Buy driver shares"
                 }
             end
         end
@@ -146,7 +146,7 @@
     <section class="fantasy-pitwall <%= 'has-weekend' if chips.any? %>">
         <div class="fantasy-pitwall-value">
             <div class="fantasy-value-row-top">
-                <span class="fantasy-value-label">Total Value</span>
+                <span class="fantasy-value-label"><%= @first_purchase ? "Available game credits" : "Total Value" %></span>
                 <% if @leaderboard_rank %>
                     <span class="fantasy-rank-chip" title="Leaderboard rank">
                         <%= ui_icon "podium", size: 12 %>
@@ -197,6 +197,15 @@
 
             <%# Allocation + the cash/invested split, previously three separate chips. %>
             <div class="fantasy-pitwall-meters">
+                <% if @first_purchase %>
+                    <div class="fantasy-buy-prompt fantasy-first-buy">
+                        <div class="fantasy-buy-prompt-copy">
+                            <h3>Put your credits on the grid.</h3>
+                            <p><%= @stock_can_trade ? "Buy shares in a driver you back." : "Market closed. Explore drivers for the next trading window." %> Game credits only. No real money.</p>
+                        </div>
+                        <%= link_to (@stock_can_trade ? "Buy your first driver" : "Browse drivers"), market_fantasy_stock_portfolio_path(@stock_portfolio), class: "fantasy-btn fantasy-btn-primary" %>
+                    </div>
+                <% else %>
                 <% if has_holdings %>
                     <div class="fantasy-allocation-row">
                         <div class="fantasy-allocation-bar" title="<%= invested_pct %>% invested · <%= cash_pct %>% cash">
@@ -249,6 +258,7 @@
                         <%= ui_icon "warning", size: 13 %>
                         <span><strong><%= @top_team_pct %>%</strong> of your book is <%= @top_team_name %> — a bad weekend for them is a bad weekend for you.</span>
                     </p>
+                <% end %>
                 <% end %>
             </div>
         </div>
@@ -334,6 +344,7 @@
 
 
     <%# ═══════════════════ Chart ═══════════════════ %>
+    <% unless @first_purchase && @snapshots.blank? && @stock_snapshots.blank? %>
     <%
         season_rounds = @season.races.order(:round).pluck(:round)
         roster_snaps  = (@snapshots || []).index_by { |s| s.race.round }
@@ -451,10 +462,11 @@
         } %>
         <%= custom_chart(chart_options.merge(width: "100%", height: "200px")) %>
     </div>
+    <% end %>
 
     <%# ═══════════════════ HOLDINGS ═══════════════════ %>
 
-    <% if @portfolio %>
+    <% if @portfolio && !@first_purchase %>
         <div class="table-header">
             <h3>Holdings</h3>
             <% if has_holdings %>

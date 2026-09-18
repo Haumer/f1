@@ -118,6 +118,7 @@ class HeadToHeadController < ApplicationController
     anchor = current_anchor_race(@year)
     @can_play_again = @session_record.race_id.nil? || (anchor && anchor.id != @session_record.race_id)
     @next_unlock_race = @can_play_again ? nil : @session_record.race
+    load_market_handoff
   end
 
   def results
@@ -129,6 +130,23 @@ class HeadToHeadController < ApplicationController
   end
 
   private
+
+  def load_market_handoff
+    return unless current_user && @year == current_season.year.to_i
+
+    @market_portfolio = current_user.fantasy_stock_portfolio_for(current_season)
+    return unless @market_portfolio
+
+    @market_cash = @market_portfolio.available_cash
+    @market_open = @market_portfolio.can_trade?(current_season.next_race)
+    return unless @champion && current_season.season_drivers.exists?(driver_id: @champion.id)
+
+    @market_driver = @champion
+    @market_price = @market_portfolio.share_price(@market_driver)
+    holdings = @market_portfolio.active_holdings.where(driver: @market_driver).to_a
+    @market_can_buy = @market_open && @market_price.positive? && @market_cash >= @market_price &&
+      holdings.none?(&:short?) && (!@market_portfolio.positions_full? || holdings.any?(&:long?))
+  end
 
   def requested_year
     y = params[:year].to_i

@@ -22,10 +22,33 @@
             </div>
         </div>
 
-        <% if @session_record.bonus_awarded_at.present? %>
+        <% if @market_portfolio %>
+            <section class="fantasy-buy-prompt h2h-buy-prompt" aria-label="Back your pick">
+                <div class="fantasy-buy-prompt-copy">
+                    <% if @session_record.bonus_awarded_at.present? %>
+                        <span class="fantasy-buy-prompt-kicker">+<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credits earned</span>
+                    <% end %>
+                    <h2><%= @market_driver ? "You picked #{@market_driver.fullname}. Back your pick?" : "Put your game credits on the grid." %></h2>
+                    <p>
+                        <% if @market_can_buy %>
+                            <%= number_with_delimiter(@market_cash.round(0)) %> credits available · <%= number_with_precision(@market_price, precision: 2, strip_insignificant_zeros: true) %> per share.
+                        <% elsif !@market_open %>
+                            Market closed. Explore the drivers for the next trading window.
+                        <% else %>
+                            Explore driver shares and your available trades.
+                        <% end %>
+                        <span>Game credits only. No real money.</span>
+                    </p>
+                </div>
+                <%= link_to market_fantasy_stock_portfolio_path(@market_portfolio, driver: @market_driver&.id, anchor: (@market_driver ? "driver-#{@market_driver.id}" : nil)),
+                            class: "fantasy-btn fantasy-btn-primary", data: { turbo_frame: "_top" } do %>
+                    <%= @market_can_buy ? "Buy #{@market_driver.surname} shares" : "Browse drivers" %>
+                <% end %>
+            </section>
+        <% elsif @session_record.bonus_awarded_at.present? %>
             <div class="h2h-bonus-banner">
                 <i class="fa-solid fa-sack-dollar"></i>
-                <span><strong>+$<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %></strong> added to your <%= @year %> fantasy portfolio for completing the game.</span>
+                <span><strong>+<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credits</strong> added to your <%= @year %> fantasy portfolio for completing the game.</span>
             </div>
         <% end %>
 
@@ -112,8 +135,8 @@
         <% unless current_user %>
             <div class="card h2h-signup-card">
                 <div class="h2h-signup-content">
-                    <h3>Claim your $<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> and save your ranking</h3>
-                    <p>Sign up to lock in your picks and unlock a $<%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credit on your <%= @year %> fantasy portfolio — free to play the market and stocks.</p>
+                    <h3>Claim your <%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> credits and save your ranking</h3>
+                    <p>Sign up to save your ranking and unlock <%= HeadToHead::AwardCompletionBonus::BONUS_AMOUNT %> bonus game credits for your <%= @year %> fantasy portfolio. Free to play. No real money.</p>
                     <div class="h2h-signup-actions">
                         <%= link_to "Create account", new_user_registration_path, class: "fantasy-btn fantasy-btn-primary", data: { turbo_frame: "_top" } %>
                         <%= link_to "Sign in", new_user_session_path, class: "fantasy-btn fantasy-btn-outline", data: { turbo_frame: "_top" } %>
