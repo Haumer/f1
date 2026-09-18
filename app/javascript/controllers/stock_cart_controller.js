@@ -2,9 +2,9 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["card", "cartEmpty", "cartItems", "cartList", "cartTotal", "cartCount",
-    "cartRemaining", "confirmBtn", "drawer", "toggle", "status", "mobileSummary", "form", "cashSpent", "margin", "sidebar"]
+    "cartRemaining", "confirmBtn", "drawer", "toggle", "status", "mobileSummary", "form", "cashSpent", "margin", "marginRow", "sidebar"]
   static values = { cash: Number, maxPositions: Number, usedPositions: Number, portfolio: String,
-    race: String, closesAt: String, open: Boolean, collateral: Number, quoteUrl: String }
+    race: String, closesAt: String, open: Boolean, collateral: Number, quoteUrl: String, selectedDriver: String }
 
   connect() {
     this.cart = []
@@ -23,6 +23,7 @@ export default class extends Controller {
     this.compactRows.addEventListener("change", this.onResize)
     this.restore()
     this.update()
+    this.selectedFrame = requestAnimationFrame(() => this.focusSelectedDriver())
     this.timer = setInterval(() => {
       if (this.openValue && this.isClosed) {
         this.openValue = false
@@ -34,6 +35,7 @@ export default class extends Controller {
 
   disconnect() {
     clearInterval(this.timer)
+    cancelAnimationFrame(this.selectedFrame)
     this.mobile.removeEventListener("change", this.onResize)
     this.compactRows.removeEventListener("change", this.onResize)
     this.request?.abort()
@@ -93,12 +95,13 @@ export default class extends Controller {
     if (!quote || !this.allowed(quote, direction) || this.cart.some(d => d.id === String(quote.id))) return
     const quantity = this.compactRows.matches ? 1 : Math.max(1, Number(card.querySelector(".stock-qty-input")?.value) || 1)
     this.cart.push({ ...quote, id: String(quote.id), direction, quantity })
-    if (this.compactRows.matches) this.expanded = false
-    this.message(`${quote.name} added ${direction}. Review your draft to change quantity or submit.`)
+    if (this.mobile.matches) this.expanded = direction === "long"
+    this.message(`${quote.name} added to your draft. Nothing bought yet; review and confirm when ready.`)
     this.update()
     if (this.compactRows.matches) {
       this.collapseTrades()
-      card.querySelector(".market-trade-toggle").focus({ preventScroll: true })
+      const focusTarget = this.expanded ? this.drawerTarget : card.querySelector(".market-trade-toggle")
+      focusTarget.focus({ preventScroll: true })
     }
   }
 
@@ -174,6 +177,22 @@ export default class extends Controller {
     this.element.querySelector(selector)?.focus({ preventScroll: true })
   }
 
+  focusSelectedDriver() {
+    const card = this.cardTargets.find(card => card.dataset.driverId === this.selectedDriverValue)
+    if (!card) return
+    // A link highlights a driver, never creates an order or replaces a draft.
+    const inCart = this.cart.some(d => d.id === card.dataset.driverId)
+    const toggle = card.querySelector(".market-trade-toggle")
+    if (this.compactRows.matches && toggle && !inCart && !this.isClosed) {
+      card.classList.add("trade-options-open")
+      toggle.setAttribute("aria-expanded", "true")
+    }
+    card.scrollIntoView({ block: "center" })
+    const buy = card.querySelector(".stock-trade-buy:not(:disabled):not(.slot-hidden)")
+    const focusTarget = buy || (this.compactRows.matches ? toggle : null) || card
+    focusTarget.focus({ preventScroll: true })
+  }
+
   async confirm(event) {
     event.preventDefault()
     if (this.checking || !this.cart.length || this.isClosed) return
@@ -204,10 +223,12 @@ export default class extends Controller {
       if (!this.valid) { this.message(this.validationMessage); return }
 
       const totals = this.totals
-      const summary = this.cart.map(d => `${d.quantity} × ${d.name} — ${d.direction}, ${this.money(d.price)} per share`).join("\n")
+      const buyOnly = this.cart.every(d => d.direction === "long")
+      const summary = this.cart.map(d => `${d.quantity} × ${d.name} — ${d.direction === "short" ? "short, " : ""}${this.money(d.price)} credits per share`).join("\n")
+      const cost = buyOnly ? `Cost: ${this.money(totals.spent)} game credits` : `Spend: ${this.money(totals.spent)} credits · Reserve as margin: ${this.money(totals.margin)}`
       const result = await window.Swal.fire({
-        title: "Review trades", text: `${summary}\nSpend: ${this.money(totals.spent)} credits · Reserve as margin: ${this.money(totals.margin)}\nAvailable after: ${this.money(totals.remaining)}`,
-        icon: "question", showCancelButton: true, confirmButtonText: "Execute trades", cancelButtonText: "Keep editing",
+        title: buyOnly ? "Review purchase" : "Review trades", text: `${summary}\n${cost}\nAvailable after: ${this.money(totals.remaining)} credits\nNo real money.`,
+        icon: buyOnly ? undefined : "question", showCancelButton: true, confirmButtonText: buyOnly ? "Confirm purchase" : "Confirm trades", cancelButtonText: "Keep editing",
         background: getComputedStyle(this.drawerTarget).backgroundColor, color: getComputedStyle(this.element).color,
         confirmButtonColor: getComputedStyle(document.body).getPropertyValue("--page-accent").trim() || "#e10600"
       })
@@ -246,7 +267,7 @@ export default class extends Controller {
         row.className = "fantasy-cart-item"
         const name = document.createElement("span")
         name.className = "fantasy-cart-item-name"
-        name.textContent = `${d.name} · ${d.direction === "long" ? "Long" : "Short"}`
+        name.textContent = `${d.name} · ${d.direction === "long" ? "Buy" : "Short"}`
         const label = document.createElement("label")
         label.textContent = "Quantity"
         const input = document.createElement("input")
@@ -267,10 +288,12 @@ export default class extends Controller {
     this.cartTotalTarget.textContent = this.money(totals.required)
     this.cashSpentTarget.textContent = this.money(totals.spent)
     this.marginTarget.textContent = this.money(totals.margin)
+    this.marginRowTarget.hidden = !this.cart.some(d => d.direction === "short")
     this.cartRemainingTarget.textContent = this.money(totals.remaining)
     this.cartCountTarget.textContent = this.cart.length
     this.mobileSummaryTarget.textContent = this.cart.length ? `${this.cart.length} trade${this.cart.length === 1 ? "" : "s"} · ${this.money(totals.required)} credits` : "No trades selected"
     this.confirmBtnTarget.disabled = !this.valid || this.checking || this.submitting
+    this.confirmBtnTarget.textContent = this.cart.length && this.cart.every(d => d.direction === "long") ? "Review purchase" : "Review trades"
     this.element.querySelector(".fantasy-cart-validation").textContent = this.validationMessage
     this.formTarget.querySelectorAll("input[name^='orders']").forEach(el => el.remove())
     this.cart.forEach(d => {

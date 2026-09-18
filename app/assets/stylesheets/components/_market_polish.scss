@@ -14,6 +14,8 @@
     [hidden] { display: none !important; }
     .market-mobile-action, .market-mobile-holding, .market-trade-hint { display: none; }
     .fantasy-market-price-cell, .stock-direction-badge { white-space: nowrap; }
+    tr[id] { scroll-margin-top: 80px; }
+    .market-driver-selected { background: rgba(var(--page-accent-rgb, 225, 6, 0), 0.08); }
     .market-trade-heading { width: 250px; }
     .market-intro { margin: 0 0 16px; font-size: 13px; color: $text-secondary; summary { cursor: pointer; padding: 12px 0; } p { max-width: 640px; } }
     .stock-trade-btn { min-height: 36px; }

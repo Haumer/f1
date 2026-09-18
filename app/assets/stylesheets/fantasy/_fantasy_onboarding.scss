@@ -105,6 +105,47 @@
 // number. Everything else in the panel is subordinate to it.
 // ═══════════════════════════════════════
 
+.fantasy-buy-prompt {
+    display: flex;
+    align-items: center;
+    gap: 16px 24px;
+
+    .fantasy-buy-prompt-copy { flex: 1; min-width: 0; }
+    h2, h3 { margin: 0 0 6px; font-size: 18px; line-height: 1.35; overflow-wrap: anywhere; }
+    p { margin: 0; font-size: 13px; line-height: 1.5; color: $text-secondary; }
+    p span { display: block; }
+    .fantasy-btn { flex-shrink: 0; min-height: 44px; white-space: normal; text-align: center; justify-content: center; }
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        .fantasy-btn { width: 100%; }
+    }
+}
+
+.fantasy-buy-prompt-kicker {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    color: $green;
+}
+
+.h2h-buy-prompt {
+    margin-bottom: $space-lg;
+    padding: 16px 20px;
+    border: 1px solid rgba(var(--page-accent-rgb, 225, 6, 0), 0.3);
+    border-radius: $radius-md;
+    background: $bg-card;
+}
+
+.fantasy-first-buy {
+    flex-direction: column;
+    align-items: flex-start;
+    @media (max-width: 600px) { align-items: stretch; }
+}
+
 .fantasy-pitwall {
     display: grid;
     grid-template-columns: 1fr;

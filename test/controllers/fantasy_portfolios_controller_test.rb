@@ -10,6 +10,38 @@ class FantasyPortfoliosControllerTest < ActionDispatch::IntegrationTest
 
   # -- Public routes --
 
+  test "first purchase prompt belongs only to the new portfolio owner" do
+    newcomer = User.create!(username: "firstbuy", email: "firstbuy@example.test", password: "password123", terms_accepted: true, public_profile: true)
+    Fantasy::CreatePortfolio.new(user: newcomer, season: seasons(:season_2026)).call
+    races(:melbourne_2026).update!(date: 2.days.from_now.to_date)
+    sign_in newcomer
+    get fantasy_overview_path(newcomer.username)
+    assert_select ".fantasy-first-buy a", text: "Buy your first driver"
+    assert_select ".fantasy-chart-card", count: 0
+    assert_select ".fantasy-weekend-chip-label", text: "Buy first shares", count: 0
+
+    races(:melbourne_2026).update!(date: Date.yesterday)
+    get fantasy_overview_path(newcomer.username)
+    assert_select ".fantasy-first-buy", text: /Market closed/
+    assert_select ".fantasy-first-buy a", text: "Browse drivers"
+
+    sign_out newcomer
+    get fantasy_overview_path(newcomer.username)
+    assert_select ".fantasy-first-buy", count: 0
+    sign_in @user
+    get fantasy_overview_path(newcomer.username)
+    assert_select ".fantasy-first-buy", count: 0
+  end
+
+  test "selling all holdings does not show the first purchase prompt again" do
+    fantasy_stock_portfolios(:codex_stock_2026).holdings.update_all(active: false)
+    sign_in @user
+    get fantasy_overview_path(@user.username)
+    assert_select ".fantasy-first-buy", count: 0
+    assert_select ".fantasy-chart-card"
+    assert_select ".empty-state", text: /No positions yet/
+  end
+
   test "weekend chip says saved while editable and locked only after race start" do
     race = races(:melbourne_2026)
     race.update!(date: Date.current + 5.days, time: "14:00:00")

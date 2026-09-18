@@ -26,6 +26,8 @@ class FantasyPortfoliosController < ApplicationController
       if @is_owner
         @next_race ||= @stock_portfolio.season.next_race || Race.where("date >= ?", Date.current).order(:date).first
         @stock_can_trade = @next_race && @stock_portfolio.can_trade?(@next_race)
+        # Inactive holdings count too: selling out does not make someone new.
+        @first_purchase = !@stock_portfolio.holdings.exists?
       end
     end
 
