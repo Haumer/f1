@@ -302,7 +302,7 @@ namespace :f1 do
       puts "=== #{year}: #{races.count} races ==="
       races.each do |race|
         count = UpdateQualifyingResult.new(race: race).call
-        if count
+        if count.positive?
           puts "  R#{race.round} #{race.circuit&.name}: #{count} qualifying results"
           total += count
         else
@@ -314,19 +314,25 @@ namespace :f1 do
     puts "\nDone. #{total} qualifying results stored."
   end
 
-  desc "Auto-fetch qualifying results for races where qualifying has finished"
+  desc "Start polling for qualifying results of any race whose session has ended (hourly via Heroku Scheduler)"
   task qualifying_sync: :environment do
     season = Season.sorted_by_year.first
     now = Time.current
-    expected = season.season_drivers.count
 
     season.races.each do |race|
-      next if race.qualifying_results.count >= expected # already fetched
-      next unless race.quali_starts_at
-      next unless race.quali_starts_at + 2.hours < now # quali should be done
-      next if race.quali_starts_at + 24.hours < now # too old, skip
+      opens_at = QualifyingSyncJob.poll_opens_at(race)
+      next unless opens_at
+      next if now < opens_at                                # quali not over yet
+      next if now > QualifyingSyncJob.poll_deadline(race)   # window closed; the job already alerted
+      next if QualifyingSyncJob.complete?(race)             # already fetched
 
-      puts "Enqueuing qualifying sync for R#{race.round} #{race.circuit&.name}"
+      label = "R#{race.round} #{race.circuit&.name}"
+      if QualifyingSyncJob.polling?
+        puts "Qualifying poll already running, not starting another for #{label}"
+        next
+      end
+
+      puts "Starting qualifying poll for #{label} (every #{QualifyingSyncJob::POLL_INTERVAL.inspect} until #{QualifyingSyncJob.poll_deadline(race).utc})"
       QualifyingSyncJob.perform_later(race_id: race.id)
     end
   end
