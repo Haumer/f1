@@ -74,7 +74,7 @@ class WikipediaRaceResultFetcher
     title = extract_title(@race.url)
     return nil unless title
 
-    section_number = find_race_classification_section(title)
+    section_number = classification_section_index(title)
     return nil unless section_number
 
     wikitext = fetch_wikitext(title, section_number)
@@ -82,7 +82,7 @@ class WikipediaRaceResultFetcher
 
     parse_classification_table(wikitext)
   rescue StandardError => e
-    Rails.logger.error("WikipediaRaceResultFetcher failed for #{@race.url}: #{e.message}")
+    Rails.logger.error("#{self.class.name} failed for #{@race.url}: #{e.message}")
     nil
   end
 
@@ -94,7 +94,26 @@ class WikipediaRaceResultFetcher
     nil
   end
 
+  # Which section of the article holds the table this fetcher parses.
+  # Subclasses (e.g. the qualifying fetcher) override this.
+  def classification_section_index(title)
+    find_race_classification_section(title)
+  end
+
+  def section_label
+    "Race classification"
+  end
+
   def find_race_classification_section(title)
+    find_section_index(title) do |sections|
+      sections.find { |s| s["line"] =~ /race classification/i } ||
+        sections.find { |s| s["line"] =~ /classification/i && s["line"] !~ /qualifying|sprint/i }
+    end
+  end
+
+  # Fetches the article's section list (rejecting redirects to a different
+  # article) and yields it; the block picks the section whose index we return.
+  def find_section_index(title)
     uri = URI(API_BASE)
     uri.query = URI.encode_www_form(action: "parse", page: title, prop: "sections", format: "json")
     data = fetch_json(uri)
@@ -104,9 +123,7 @@ class WikipediaRaceResultFetcher
     return nil unless data.dig('parse', 'title') == expected_title
 
     sections = data.dig("parse", "sections") || []
-    section = sections.find { |s| s["line"] =~ /race classification/i }
-    section ||= sections.find { |s| s["line"] =~ /classification/i && s["line"] !~ /qualifying|sprint/i }
-    section&.dig("index")
+    yield(sections)&.dig("index")
   end
 
   def fetch_wikitext(title, section_number)
@@ -150,7 +167,7 @@ class WikipediaRaceResultFetcher
     # source — say so rather than letting the caller report "no results yet".
     if results.empty?
       Rails.logger.warn(
-        "[WikipediaRaceResultFetcher] Race classification section found for " \
+        "[#{self.class.name}] #{section_label} section found for " \
         "#{@race.url} but 0 rows parsed from #{wikitext.length} chars of wikitext"
       )
     end
